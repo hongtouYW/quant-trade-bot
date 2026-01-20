@@ -1,0 +1,32 @@
+{
+  "exchanges": {
+    "binance": {
+      "api_key": "YOUR_BINANCE_API_KEY",
+      "secret": "YOUR_BINANCE_SECRET",
+      "sandbox": false
+    },
+    "bitget": {
+      "api_key": "YOUR_BITGET_API_KEY",
+      "secret": "YOUR_BITGET_SECRET",
+      "passphrase": "YOUR_BITGET_PASSPHRASE",
+      "sandbox": false
+    }
+  },
+  "telegram": {
+    "bot_token": "YOUR_TELEGRAM_BOT_TOKEN",
+    "chat_id": "YOUR_TELEGRAM_CHAT_ID"
+  },
+  "trading": {
+    "default_exchange": "binance",
+    "symbols": ["BTC/USDT", "ETH/USDT"],
+    "base_amount": 100,
+    "max_position_size": 0.1,
+    "stop_loss_percent": 0.05,
+    "take_profit_percent": 0.1
+  },
+  "risk_management": {
+    "max_daily_loss": 500,
+    "max_open_positions": 3,
+    "position_size_percent": 0.02
+  }
+}
