@@ -1,0 +1,11 @@
+# Cron定时任务配置文件
+# 使用方法: crontab < cron_config.txt
+
+# 每天下午2:00执行本地git提交
+0 14 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/auto_git_commit.sh
+
+# 每天晚上11:00执行本地git提交  
+0 23 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/auto_git_commit.sh
+
+# 每天午夜12:00推送到GitHub
+0 0 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/auto_git_push.sh
