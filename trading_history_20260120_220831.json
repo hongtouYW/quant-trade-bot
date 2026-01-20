@@ -1,0 +1,4566 @@
+{
+  "MA5/20": [
+    {
+      "timestamp": "2025-07-25T19:08:31.608698",
+      "type": "buy",
+      "price": 43250.75,
+      "amount": 0.219649,
+      "pnl": null,
+      "value": 9500.0
+    },
+    {
+      "timestamp": "2025-07-26T03:08:31.608709",
+      "type": "sell",
+      "price": 44354.53,
+      "amount": 0.219649,
+      "pnl": 223.2,
+      "value": 9742.44
+    },
+    {
+      "timestamp": "2025-07-26T06:08:31.608713",
+      "type": "buy",
+      "price": 44187.05,
+      "amount": 0.219794,
+      "pnl": null,
+      "value": 9712.04
+    },
+    {
+      "timestamp": "2025-07-26T09:08:31.608717",
+      "type": "sell",
+      "price": 43522.03,
+      "amount": 0.219794,
+      "pnl": -165.44,
+      "value": 9565.87
+    },
+    {
+      "timestamp": "2025-07-26T10:08:31.608718",
+      "type": "buy",
+      "price": 44110.9,
+      "amount": 0.21661,
+      "pnl": null,
+      "value": 9554.87
+    },
+    {
+      "timestamp": "2025-07-26T16:08:31.608725",
+      "type": "sell",
+      "price": 43976.81,
+      "amount": 0.21661,
+      "pnl": -48.13,
+      "value": 9525.82
+    },
+    {
+      "timestamp": "2025-07-26T17:08:31.608727",
+      "type": "buy",
+      "price": 44702.81,
+      "amount": 0.212719,
+      "pnl": null,
+      "value": 9509.15
+    },
+    {
+      "timestamp": "2025-07-28T12:08:31.608784",
+      "type": "sell",
+      "price": 47398.03,
+      "amount": 0.212719,
+      "pnl": 553.73,
+      "value": 10082.47
+    },
+    {
+      "timestamp": "2025-07-29T00:08:31.608799",
+      "type": "buy",
+      "price": 49278.91,
+      "amount": 0.203641,
+      "pnl": null,
+      "value": 10035.2
+    },
+    {
+      "timestamp": "2025-07-30T05:08:31.608835",
+      "type": "sell",
+      "price": 51491.48,
+      "amount": 0.203641,
+      "pnl": 430.05,
+      "value": 10485.76
+    },
+    {
+      "timestamp": "2025-07-30T16:08:31.608848",
+      "type": "buy",
+      "price": 54489.11,
+      "amount": 0.191667,
+      "pnl": null,
+      "value": 10443.74
+    },
+    {
+      "timestamp": "2025-07-30T19:08:31.608851",
+      "type": "sell",
+      "price": 52220.63,
+      "amount": 0.191667,
+      "pnl": -455.25,
+      "value": 10008.95
+    },
+    {
+      "timestamp": "2025-07-31T17:08:31.608882",
+      "type": "buy",
+      "price": 51228.29,
+      "amount": 0.195424,
+      "pnl": null,
+      "value": 10011.26
+    },
+    {
+      "timestamp": "2025-08-01T04:08:31.608897",
+      "type": "sell",
+      "price": 49342.98,
+      "amount": 0.195424,
+      "pnl": -388.09,
+      "value": 9642.82
+    },
+    {
+      "timestamp": "2025-08-01T20:08:31.608916",
+      "type": "buy",
+      "price": 48410.07,
+      "amount": 0.199185,
+      "pnl": null,
+      "value": 9642.57
+    },
+    {
+      "timestamp": "2025-08-02T14:08:31.608939",
+      "type": "sell",
+      "price": 49139.85,
+      "amount": 0.199185,
+      "pnl": 125.93,
+      "value": 9787.93
+    },
+    {
+      "timestamp": "2025-08-03T00:08:31.608950",
+      "type": "buy",
+      "price": 51105.81,
+      "amount": 0.191019,
+      "pnl": null,
+      "value": 9762.21
+    },
+    {
+      "timestamp": "2025-08-03T05:08:31.608957",
+      "type": "sell",
+      "price": 49352.12,
+      "amount": 0.191019,
+      "pnl": -354.18,
+      "value": 9427.22
+    },
+    {
+      "timestamp": "2025-08-03T12:08:31.608966",
+      "type": "buy",
+      "price": 51281.79,
+      "amount": 0.183803,
+      "pnl": null,
+      "value": 9425.74
+    },
+    {
+      "timestamp": "2025-08-04T02:08:31.608983",
+      "type": "sell",
+      "price": 50666.88,
+      "amount": 0.183803,
+      "pnl": -131.76,
+      "value": 9312.71
+    },
+    {
+      "timestamp": "2025-08-04T03:08:31.608984",
+      "type": "buy",
+      "price": 52019.76,
+      "amount": 0.178789,
+      "pnl": null,
+      "value": 9300.56
+    },
+    {
+      "timestamp": "2025-08-06T05:08:31.609048",
+      "type": "sell",
+      "price": 58317.89,
+      "amount": 0.178789,
+      "pnl": 1106.31,
+      "value": 10426.6
+    },
+    {
+      "timestamp": "2025-08-08T03:08:31.609107",
+      "type": "buy",
+      "price": 53218.78,
+      "amount": 0.194509,
+      "pnl": null,
+      "value": 10351.56
+    },
+    {
+      "timestamp": "2025-08-08T05:08:31.609110",
+      "type": "sell",
+      "price": 52503.55,
+      "amount": 0.194509,
+      "pnl": -159.68,
+      "value": 10212.44
+    },
+    {
+      "timestamp": "2025-08-08T12:08:31.609119",
+      "type": "buy",
+      "price": 55004.84,
+      "amount": 0.185436,
+      "pnl": null,
+      "value": 10199.86
+    },
+    {
+      "timestamp": "2025-08-08T21:08:31.609130",
+      "type": "sell",
+      "price": 50347.94,
+      "amount": 0.185436,
+      "pnl": -883.09,
+      "value": 9336.3
+    },
+    {
+      "timestamp": "2025-08-10T07:08:31.609171",
+      "type": "buy",
+      "price": 49209.63,
+      "amount": 0.190225,
+      "pnl": null,
+      "value": 9360.92
+    },
+    {
+      "timestamp": "2025-08-10T16:08:31.609182",
+      "type": "sell",
+      "price": 47735.09,
+      "amount": 0.190225,
+      "pnl": -298.94,
+      "value": 9080.43
+    },
+    {
+      "timestamp": "2025-08-12T09:08:31.609254",
+      "type": "buy",
+      "price": 35355.38,
+      "amount": 0.256734,
+      "pnl": null,
+      "value": 9076.93
+    },
+    {
+      "timestamp": "2025-08-13T03:08:31.609276",
+      "type": "sell",
+      "price": 34757.64,
+      "amount": 0.256734,
+      "pnl": -171.46,
+      "value": 8923.47
+    },
+    {
+      "timestamp": "2025-08-13T14:08:31.609290",
+      "type": "buy",
+      "price": 38546.96,
+      "amount": 0.231252,
+      "pnl": null,
+      "value": 8914.04
+    },
+    {
+      "timestamp": "2025-08-14T04:08:31.609307",
+      "type": "sell",
+      "price": 36400.23,
+      "amount": 0.231252,
+      "pnl": -513.77,
+      "value": 8417.61
+    },
+    {
+      "timestamp": "2025-08-15T00:08:31.609331",
+      "type": "buy",
+      "price": 35021.58,
+      "amount": 0.240594,
+      "pnl": null,
+      "value": 8425.96
+    },
+    {
+      "timestamp": "2025-08-15T03:08:31.609335",
+      "type": "sell",
+      "price": 34419.58,
+      "amount": 0.240594,
+      "pnl": -161.54,
+      "value": 8281.13
+    },
+    {
+      "timestamp": "2025-08-15T04:08:31.609336",
+      "type": "buy",
+      "price": 34606.63,
+      "amount": 0.239044,
+      "pnl": null,
+      "value": 8272.5
+    },
+    {
+      "timestamp": "2025-08-15T05:08:31.609337",
+      "type": "sell",
+      "price": 35228.04,
+      "amount": 0.239044,
+      "pnl": 131.85,
+      "value": 8421.04
+    },
+    {
+      "timestamp": "2025-08-15T08:08:31.609341",
+      "type": "buy",
+      "price": 34676.18,
+      "amount": 0.242176,
+      "pnl": null,
+      "value": 8397.75
+    },
+    {
+      "timestamp": "2025-08-15T11:08:31.609344",
+      "type": "sell",
+      "price": 34335.0,
+      "amount": 0.242176,
+      "pnl": -99.34,
+      "value": 8315.13
+    },
+    {
+      "timestamp": "2025-08-15T12:08:31.609346",
+      "type": "buy",
+      "price": 35299.55,
+      "amount": 0.235226,
+      "pnl": null,
+      "value": 8303.38
+    },
+    {
+      "timestamp": "2025-08-15T20:08:31.609356",
+      "type": "sell",
+      "price": 34517.3,
+      "amount": 0.235226,
+      "pnl": -200.43,
+      "value": 8119.38
+    },
+    {
+      "timestamp": "2025-08-15T22:08:31.609358",
+      "type": "buy",
+      "price": 35315.49,
+      "amount": 0.229728,
+      "pnl": null,
+      "value": 8112.97
+    },
+    {
+      "timestamp": "2025-08-16T09:08:31.609372",
+      "type": "sell",
+      "price": 35443.03,
+      "amount": 0.229728,
+      "pnl": 13.04,
+      "value": 8142.27
+    },
+    {
+      "timestamp": "2025-08-16T14:08:31.609377",
+      "type": "buy",
+      "price": 36985.98,
+      "amount": 0.219688,
+      "pnl": null,
+      "value": 8125.37
+    },
+    {
+      "timestamp": "2025-08-17T10:08:31.609402",
+      "type": "sell",
+      "price": 37016.67,
+      "amount": 0.219688,
+      "pnl": -9.51,
+      "value": 8132.11
+    },
+    {
+      "timestamp": "2025-08-18T03:08:31.609422",
+      "type": "buy",
+      "price": 38783.32,
+      "amount": 0.209274,
+      "pnl": null,
+      "value": 8116.33
+    },
+    {
+      "timestamp": "2025-08-18T14:08:31.609436",
+      "type": "sell",
+      "price": 38049.23,
+      "amount": 0.209274,
+      "pnl": -169.7,
+      "value": 7962.7
+    },
+    {
+      "timestamp": "2025-08-18T23:08:31.609448",
+      "type": "buy",
+      "price": 38778.53,
+      "amount": 0.205142,
+      "pnl": null,
+      "value": 7955.11
+    },
+    {
+      "timestamp": "2025-08-20T18:08:31.609501",
+      "type": "sell",
+      "price": 42745.75,
+      "amount": 0.205142,
+      "pnl": 797.12,
+      "value": 8768.95
+    },
+    {
+      "timestamp": "2025-08-20T21:08:31.609505",
+      "type": "buy",
+      "price": 43675.17,
+      "amount": 0.199481,
+      "pnl": null,
+      "value": 8712.37
+    },
+    {
+      "timestamp": "2025-08-20T22:08:31.609506",
+      "type": "sell",
+      "price": 42699.59,
+      "amount": 0.199481,
+      "pnl": -211.84,
+      "value": 8517.76
+    },
+    {
+      "timestamp": "2025-08-21T23:08:31.609537",
+      "type": "buy",
+      "price": 39700.69,
+      "amount": 0.214382,
+      "pnl": null,
+      "value": 8511.13
+    },
+    {
+      "timestamp": "2025-08-22T22:08:31.609564",
+      "type": "sell",
+      "price": 42682.63,
+      "amount": 0.214382,
+      "pnl": 621.61,
+      "value": 9150.4
+    },
+    {
+      "timestamp": "2025-08-23T10:08:31.609579",
+      "type": "buy",
+      "price": 45660.92,
+      "amount": 0.199331,
+      "pnl": null,
+      "value": 9101.66
+    },
+    {
+      "timestamp": "2025-08-24T03:08:31.609599",
+      "type": "sell",
+      "price": 44075.07,
+      "amount": 0.199331,
+      "pnl": -334.0,
+      "value": 8785.55
+    },
+    {
+      "timestamp": "2025-08-24T12:08:31.609611",
+      "type": "buy",
+      "price": 45836.48,
+      "amount": 0.191646,
+      "pnl": null,
+      "value": 8784.36
+    },
+    {
+      "timestamp": "2025-08-24T17:08:31.609617",
+      "type": "sell",
+      "price": 44105.88,
+      "amount": 0.191646,
+      "pnl": -348.9,
+      "value": 8452.7
+    },
+    {
+      "timestamp": "2025-08-24T22:08:31.609622",
+      "type": "buy",
+      "price": 44541.8,
+      "amount": 0.189775,
+      "pnl": null,
+      "value": 8452.91
+    },
+    {
+      "timestamp": "2025-08-25T01:08:31.609626",
+      "type": "sell",
+      "price": 43603.47,
+      "amount": 0.189775,
+      "pnl": -194.8,
+      "value": 8274.84
+    },
+    {
+      "timestamp": "2025-08-25T09:08:31.609640",
+      "type": "buy",
+      "price": 45534.0,
+      "amount": 0.181575,
+      "pnl": null,
+      "value": 8267.85
+    },
+    {
+      "timestamp": "2025-08-25T15:08:31.609649",
+      "type": "sell",
+      "price": 43841.82,
+      "amount": 0.181575,
+      "pnl": -323.49,
+      "value": 7960.59
+    },
+    {
+      "timestamp": "2025-08-25T22:08:31.609657",
+      "type": "buy",
+      "price": 45788.94,
+      "amount": 0.173853,
+      "pnl": null,
+      "value": 7960.54
+    },
+    {
+      "timestamp": "2025-08-26T12:08:31.609674",
+      "type": "sell",
+      "price": 43638.43,
+      "amount": 0.173853,
+      "pnl": -389.42,
+      "value": 7586.67
+    },
+    {
+      "timestamp": "2025-08-27T03:08:31.609695",
+      "type": "buy",
+      "price": 45948.13,
+      "amount": 0.165199,
+      "pnl": null,
+      "value": 7590.59
+    },
+    {
+      "timestamp": "2025-08-27T10:08:31.609703",
+      "type": "sell",
+      "price": 43292.6,
+      "amount": 0.165199,
+      "pnl": -453.43,
+      "value": 7151.9
+    },
+    {
+      "timestamp": "2025-08-27T20:08:31.609715",
+      "type": "buy",
+      "price": 45293.39,
+      "amount": 0.158077,
+      "pnl": null,
+      "value": 7159.83
+    },
+    {
+      "timestamp": "2025-08-28T11:08:31.609733",
+      "type": "sell",
+      "price": 45098.56,
+      "amount": 0.158077,
+      "pnl": -45.09,
+      "value": 7129.03
+    },
+    {
+      "timestamp": "2025-08-29T02:08:31.609752",
+      "type": "buy",
+      "price": 43921.39,
+      "amount": 0.162039,
+      "pnl": null,
+      "value": 7117.0
+    },
+    {
+      "timestamp": "2025-08-29T04:08:31.609754",
+      "type": "sell",
+      "price": 42006.41,
+      "amount": 0.162039,
+      "pnl": -324.23,
+      "value": 6806.69
+    },
+    {
+      "timestamp": "2025-08-29T09:08:31.609760",
+      "type": "buy",
+      "price": 45331.84,
+      "amount": 0.150203,
+      "pnl": null,
+      "value": 6808.98
+    },
+    {
+      "timestamp": "2025-08-30T05:08:31.609786",
+      "type": "sell",
+      "price": 46702.62,
+      "amount": 0.150203,
+      "pnl": 192.07,
+      "value": 7014.88
+    },
+    {
+      "timestamp": "2025-08-31T03:08:31.609815",
+      "type": "buy",
+      "price": 45269.77,
+      "amount": 0.15444,
+      "pnl": null,
+      "value": 6991.45
+    },
+    {
+      "timestamp": "2025-09-01T13:08:31.609859",
+      "type": "sell",
+      "price": 50094.01,
+      "amount": 0.15444,
+      "pnl": 730.33,
+      "value": 7736.5
+    },
+    {
+      "timestamp": "2025-09-02T06:08:31.609881",
+      "type": "buy",
+      "price": 46620.5,
+      "amount": 0.164847,
+      "pnl": null,
+      "value": 7685.26
+    },
+    {
+      "timestamp": "2025-09-02T19:08:31.609897",
+      "type": "sell",
+      "price": 45298.6,
+      "amount": 0.164847,
+      "pnl": -233.06,
+      "value": 7467.35
+    },
+    {
+      "timestamp": "2025-09-03T13:08:31.609920",
+      "type": "buy",
+      "price": 47876.48,
+      "amount": 0.155898,
+      "pnl": null,
+      "value": 7463.85
+    },
+    {
+      "timestamp": "2025-09-04T06:08:31.609941",
+      "type": "sell",
+      "price": 47479.82,
+      "amount": 0.155898,
+      "pnl": -76.7,
+      "value": 7402.01
+    },
+    {
+      "timestamp": "2025-09-05T06:08:31.609972",
+      "type": "buy",
+      "price": 47906.48,
+      "amount": 0.154279,
+      "pnl": null,
+      "value": 7390.98
+    },
+    {
+      "timestamp": "2025-09-06T22:08:31.610021",
+      "type": "sell",
+      "price": 56693.88,
+      "amount": 0.154279,
+      "pnl": 1339.58,
+      "value": 8746.69
+    },
+    {
+      "timestamp": "2025-09-07T02:08:31.610026",
+      "type": "buy",
+      "price": 57845.08,
+      "amount": 0.149772,
+      "pnl": null,
+      "value": 8663.58
+    },
+    {
+      "timestamp": "2025-09-08T12:08:31.610068",
+      "type": "sell",
+      "price": 63869.95,
+      "amount": 0.149772,
+      "pnl": 884.13,
+      "value": 9565.93
+    },
+    {
+      "timestamp": "2025-09-09T13:08:31.610100",
+      "type": "buy",
+      "price": 60921.64,
+      "amount": 0.155995,
+      "pnl": null,
+      "value": 9503.5
+    },
+    {
+      "timestamp": "2025-09-10T01:08:31.610114",
+      "type": "sell",
+      "price": 58650.34,
+      "amount": 0.155995,
+      "pnl": -372.97,
+      "value": 9149.19
+    },
+    {
+      "timestamp": "2025-09-10T16:08:31.610134",
+      "type": "buy",
+      "price": 59114.96,
+      "amount": 0.154769,
+      "pnl": null,
+      "value": 9149.18
+    },
+    {
+      "timestamp": "2025-09-10T23:08:31.610142",
+      "type": "sell",
+      "price": 55276.5,
+      "amount": 0.154769,
+      "pnl": -611.78,
+      "value": 8555.11
+    },
+    {
+      "timestamp": "2025-09-11T04:08:31.610148",
+      "type": "buy",
+      "price": 57094.98,
+      "amount": 0.150066,
+      "pnl": null,
+      "value": 8567.99
+    },
+    {
+      "timestamp": "2025-09-12T01:08:31.610175",
+      "type": "sell",
+      "price": 59608.03,
+      "amount": 0.150066,
+      "pnl": 359.61,
+      "value": 8945.11
+    },
+    {
+      "timestamp": "2025-09-14T07:08:31.610243",
+      "type": "buy",
+      "price": 52936.65,
+      "amount": 0.168307,
+      "pnl": null,
+      "value": 8909.62
+    },
+    {
+      "timestamp": "2025-09-15T09:08:31.610278",
+      "type": "sell",
+      "price": 60553.86,
+      "amount": 0.168307,
+      "pnl": 1262.93,
+      "value": 10191.65
+    },
+    {
+      "timestamp": "2025-09-16T00:08:31.610296",
+      "type": "buy",
+      "price": 60236.39,
+      "amount": 0.167829,
+      "pnl": null,
+      "value": 10109.4
+    },
+    {
+      "timestamp": "2025-09-16T01:08:31.610297",
+      "type": "sell",
+      "price": 58811.58,
+      "amount": 0.167829,
+      "pnl": -259.1,
+      "value": 9870.28
+    },
+    {
+      "timestamp": "2025-09-16T03:08:31.610299",
+      "type": "buy",
+      "price": 61184.96,
+      "amount": 0.161204,
+      "pnl": null,
+      "value": 9863.26
+    },
+    {
+      "timestamp": "2025-09-18T23:08:31.610385",
+      "type": "sell",
+      "price": 77396.09,
+      "amount": 0.161204,
+      "pnl": 2590.96,
+      "value": 12476.55
+    },
+    {
+      "timestamp": "2025-09-19T10:08:31.610398",
+      "type": "buy",
+      "price": 80015.84,
+      "amount": 0.154028,
+      "pnl": null,
+      "value": 12324.67
+    },
+    {
+      "timestamp": "2025-09-21T06:08:31.610453",
+      "type": "sell",
+      "price": 90228.75,
+      "amount": 0.154028,
+      "pnl": 1546.85,
+      "value": 13897.74
+    },
+    {
+      "timestamp": "2025-09-23T17:08:31.610528",
+      "type": "buy",
+      "price": 76737.73,
+      "amount": 0.179757,
+      "pnl": null,
+      "value": 13794.17
+    },
+    {
+      "timestamp": "2025-09-24T12:08:31.610551",
+      "type": "sell",
+      "price": 73943.86,
+      "amount": 0.179757,
+      "pnl": -529.31,
+      "value": 13291.95
+    },
+    {
+      "timestamp": "2025-09-25T04:08:31.610572",
+      "type": "buy",
+      "price": 76939.6,
+      "amount": 0.17275,
+      "pnl": null,
+      "value": 13291.33
+    },
+    {
+      "timestamp": "2025-09-26T10:08:31.610610",
+      "type": "sell",
+      "price": 82767.32,
+      "amount": 0.17275,
+      "pnl": 979.15,
+      "value": 14298.07
+    },
+    {
+      "timestamp": "2025-09-26T11:08:31.610611",
+      "type": "buy",
+      "price": 84232.03,
+      "amount": 0.168838,
+      "pnl": null,
+      "value": 14221.53
+    },
+    {
+      "timestamp": "2025-09-27T07:08:31.610635",
+      "type": "sell",
+      "price": 83874.93,
+      "amount": 0.168838,
+      "pnl": -88.68,
+      "value": 14161.23
+    },
+    {
+      "timestamp": "2025-09-28T05:08:31.610664",
+      "type": "buy",
+      "price": 80428.37,
+      "amount": 0.175775,
+      "pnl": null,
+      "value": 14137.28
+    },
+    {
+      "timestamp": "2025-09-28T10:08:31.610670",
+      "type": "sell",
+      "price": 76676.74,
+      "amount": 0.175775,
+      "pnl": -687.06,
+      "value": 13477.84
+    },
+    {
+      "timestamp": "2025-09-28T13:08:31.610674",
+      "type": "buy",
+      "price": 79776.42,
+      "amount": 0.16903,
+      "pnl": null,
+      "value": 13484.58
+    },
+    {
+      "timestamp": "2025-09-29T08:08:31.610699",
+      "type": "sell",
+      "price": 83776.94,
+      "amount": 0.16903,
+      "pnl": 648.56,
+      "value": 14160.79
+    },
+    {
+      "timestamp": "2025-09-29T22:08:31.610717",
+      "type": "buy",
+      "price": 83834.32,
+      "amount": 0.168197,
+      "pnl": null,
+      "value": 14100.71
+    },
+    {
+      "timestamp": "2025-09-30T08:08:31.610729",
+      "type": "sell",
+      "price": 79633.67,
+      "amount": 0.168197,
+      "pnl": -734.03,
+      "value": 13394.17
+    },
+    {
+      "timestamp": "2025-10-01T02:08:31.610751",
+      "type": "buy",
+      "price": 80046.94,
+      "amount": 0.167444,
+      "pnl": null,
+      "value": 13403.38
+    },
+    {
+      "timestamp": "2025-10-01T06:08:31.610757",
+      "type": "sell",
+      "price": 78101.49,
+      "amount": 0.167444,
+      "pnl": -352.23,
+      "value": 13077.63
+    },
+    {
+      "timestamp": "2025-10-02T05:08:31.610786",
+      "type": "buy",
+      "price": 77303.24,
+      "amount": 0.169058,
+      "pnl": null,
+      "value": 13068.76
+    },
+    {
+      "timestamp": "2025-10-02T22:08:31.610811",
+      "type": "sell",
+      "price": 79687.93,
+      "amount": 0.169058,
+      "pnl": 376.61,
+      "value": 13471.91
+    },
+    {
+      "timestamp": "2025-10-03T19:08:31.610841",
+      "type": "buy",
+      "price": 79325.59,
+      "amount": 0.169259,
+      "pnl": null,
+      "value": 13426.54
+    },
+    {
+      "timestamp": "2025-10-04T17:08:31.610868",
+      "type": "sell",
+      "price": 84739.93,
+      "amount": 0.169259,
+      "pnl": 888.66,
+      "value": 14342.96
+    },
+    {
+      "timestamp": "2025-10-05T08:08:31.610886",
+      "type": "buy",
+      "price": 87278.99,
+      "amount": 0.163507,
+      "pnl": null,
+      "value": 14270.76
+    },
+    {
+      "timestamp": "2025-10-06T18:08:31.610929",
+      "type": "sell",
+      "price": 96392.8,
+      "amount": 0.163507,
+      "pnl": 1460.14,
+      "value": 15760.94
+    },
+    {
+      "timestamp": "2025-10-07T16:08:31.610960",
+      "type": "buy",
+      "price": 91056.3,
+      "amount": 0.171958,
+      "pnl": null,
+      "value": 15657.9
+    },
+    {
+      "timestamp": "2025-10-08T04:08:31.610976",
+      "type": "sell",
+      "price": 87784.21,
+      "amount": 0.171958,
+      "pnl": -593.42,
+      "value": 15095.23
+    },
+    {
+      "timestamp": "2025-10-08T17:08:31.610991",
+      "type": "buy",
+      "price": 89504.16,
+      "amount": 0.168642,
+      "pnl": null,
+      "value": 15094.15
+    },
+    {
+      "timestamp": "2025-10-09T07:08:31.611008",
+      "type": "sell",
+      "price": 88493.09,
+      "amount": 0.168642,
+      "pnl": -200.53,
+      "value": 14923.64
+    },
+    {
+      "timestamp": "2025-10-09T16:08:31.611019",
+      "type": "buy",
+      "price": 91224.2,
+      "amount": 0.163374,
+      "pnl": null,
+      "value": 14903.65
+    },
+    {
+      "timestamp": "2025-10-09T19:08:31.611023",
+      "type": "sell",
+      "price": 88131.52,
+      "amount": 0.163374,
+      "pnl": -534.56,
+      "value": 14398.39
+    },
+    {
+      "timestamp": "2025-10-11T00:08:31.611059",
+      "type": "buy",
+      "price": 85057.4,
+      "amount": 0.169248,
+      "pnl": null,
+      "value": 14395.82
+    },
+    {
+      "timestamp": "2025-10-11T20:08:31.611082",
+      "type": "sell",
+      "price": 84795.56,
+      "amount": 0.169248,
+      "pnl": -73.06,
+      "value": 14351.5
+    },
+    {
+      "timestamp": "2025-10-12T19:08:31.611110",
+      "type": "buy",
+      "price": 88730.86,
+      "amount": 0.161459,
+      "pnl": null,
+      "value": 14326.41
+    },
+    {
+      "timestamp": "2025-10-13T07:08:31.611125",
+      "type": "sell",
+      "price": 83572.89,
+      "amount": 0.161459,
+      "pnl": -860.62,
+      "value": 13493.61
+    },
+    {
+      "timestamp": "2025-10-13T20:08:31.611140",
+      "type": "buy",
+      "price": 92135.79,
+      "amount": 0.146619,
+      "pnl": null,
+      "value": 13508.82
+    },
+    {
+      "timestamp": "2025-10-14T20:08:31.611170",
+      "type": "sell",
+      "price": 90450.27,
+      "amount": 0.146619,
+      "pnl": -273.9,
+      "value": 13261.69
+    },
+    {
+      "timestamp": "2025-10-15T22:08:31.611201",
+      "type": "buy",
+      "price": 93503.19,
+      "amount": 0.141692,
+      "pnl": null,
+      "value": 13248.61
+    },
+    {
+      "timestamp": "2025-10-16T07:08:31.611212",
+      "type": "sell",
+      "price": 87616.1,
+      "amount": 0.141692,
+      "pnl": -859.81,
+      "value": 12414.46
+    },
+    {
+      "timestamp": "2025-10-16T18:08:31.611225",
+      "type": "buy",
+      "price": 94265.19,
+      "amount": 0.131881,
+      "pnl": null,
+      "value": 12431.79
+    },
+    {
+      "timestamp": "2025-10-17T15:08:31.611251",
+      "type": "sell",
+      "price": 94594.97,
+      "amount": 0.131881,
+      "pnl": 18.59,
+      "value": 12475.28
+    },
+    {
+      "timestamp": "2025-10-18T07:08:31.611271",
+      "type": "buy",
+      "price": 96103.86,
+      "amount": 0.129542,
+      "pnl": null,
+      "value": 12449.45
+    },
+    {
+      "timestamp": "2025-10-18T13:08:31.611278",
+      "type": "sell",
+      "price": 94042.77,
+      "amount": 0.129542,
+      "pnl": -291.63,
+      "value": 12182.45
+    },
+    {
+      "timestamp": "2025-10-19T01:08:31.611292",
+      "type": "buy",
+      "price": 97877.47,
+      "amount": 0.124364,
+      "pnl": null,
+      "value": 12172.4
+    },
+    {
+      "timestamp": "2025-10-19T14:08:31.611308",
+      "type": "sell",
+      "price": 91652.46,
+      "amount": 0.124364,
+      "pnl": -797.74,
+      "value": 11398.23
+    },
+    {
+      "timestamp": "2025-10-21T14:08:31.611366",
+      "type": "buy",
+      "price": 79968.16,
+      "amount": 0.142739,
+      "pnl": null,
+      "value": 11414.55
+    },
+    {
+      "timestamp": "2025-10-22T22:08:31.611405",
+      "type": "sell",
+      "price": 84384.6,
+      "amount": 0.142739,
+      "pnl": 606.94,
+      "value": 12044.95
+    },
+    {
+      "timestamp": "2025-10-23T13:08:31.611427",
+      "type": "buy",
+      "price": 87689.58,
+      "amount": 0.136745,
+      "pnl": null,
+      "value": 11991.14
+    },
+    {
+      "timestamp": "2025-10-25T08:08:31.611493",
+      "type": "sell",
+      "price": 95925.13,
+      "amount": 0.136745,
+      "pnl": 1101.06,
+      "value": 13117.31
+    },
+    {
+      "timestamp": "2025-10-26T03:08:31.611516",
+      "type": "buy",
+      "price": 94780.97,
+      "amount": 0.13755,
+      "pnl": null,
+      "value": 13037.15
+    },
+    {
+      "timestamp": "2025-10-26T14:08:31.611529",
+      "type": "sell",
+      "price": 88472.19,
+      "amount": 0.13755,
+      "pnl": -892.98,
+      "value": 12169.38
+    },
+    {
+      "timestamp": "2025-10-27T13:08:31.611557",
+      "type": "buy",
+      "price": 80412.84,
+      "amount": 0.151578,
+      "pnl": null,
+      "value": 12188.82
+    },
+    {
+      "timestamp": "2025-10-28T00:08:31.611574",
+      "type": "sell",
+      "price": 77917.43,
+      "amount": 0.151578,
+      "pnl": -402.25,
+      "value": 11810.57
+    },
+    {
+      "timestamp": "2025-10-30T06:08:31.611641",
+      "type": "buy",
+      "price": 67974.97,
+      "amount": 0.173692,
+      "pnl": null,
+      "value": 11806.68
+    },
+    {
+      "timestamp": "2025-10-30T22:08:31.611661",
+      "type": "sell",
+      "price": 64539.7,
+      "amount": 0.173692,
+      "pnl": -619.69,
+      "value": 11210.01
+    },
+    {
+      "timestamp": "2025-11-01T00:08:31.611693",
+      "type": "buy",
+      "price": 65443.87,
+      "amount": 0.171414,
+      "pnl": null,
+      "value": 11217.97
+    },
+    {
+      "timestamp": "2025-11-01T10:08:31.611704",
+      "type": "sell",
+      "price": 62983.99,
+      "amount": 0.171414,
+      "pnl": -443.67,
+      "value": 10796.32
+    },
+    {
+      "timestamp": "2025-11-02T14:08:31.611738",
+      "type": "buy",
+      "price": 60672.15,
+      "amount": 0.177948,
+      "pnl": null,
+      "value": 10796.49
+    },
+    {
+      "timestamp": "2025-11-02T16:08:31.611740",
+      "type": "sell",
+      "price": 59341.15,
+      "amount": 0.177948,
+      "pnl": -258.21,
+      "value": 10559.64
+    },
+    {
+      "timestamp": "2025-11-02T22:08:31.611747",
+      "type": "buy",
+      "price": 61981.21,
+      "amount": 0.170232,
+      "pnl": null,
+      "value": 10551.19
+    },
+    {
+      "timestamp": "2025-11-04T08:08:31.611792",
+      "type": "sell",
+      "price": 72352.53,
+      "amount": 0.170232,
+      "pnl": 1742.66,
+      "value": 12316.72
+    },
+    {
+      "timestamp": "2025-11-04T13:08:31.611798",
+      "type": "buy",
+      "price": 73607.65,
+      "amount": 0.165835,
+      "pnl": null,
+      "value": 12206.72
+    },
+    {
+      "timestamp": "2025-11-04T14:08:31.611799",
+      "type": "sell",
+      "price": 72210.72,
+      "amount": 0.165835,
+      "pnl": -255.84,
+      "value": 11975.06
+    },
+    {
+      "timestamp": "2025-11-05T15:08:31.611830",
+      "type": "buy",
+      "price": 71475.97,
+      "amount": 0.16738,
+      "pnl": null,
+      "value": 11963.67
+    },
+    {
+      "timestamp": "2025-11-06T14:08:31.611857",
+      "type": "sell",
+      "price": 72069.8,
+      "amount": 0.16738,
+      "pnl": 75.37,
+      "value": 12063.07
+    },
+    {
+      "timestamp": "2025-11-07T00:08:31.611870",
+      "type": "buy",
+      "price": 73908.94,
+      "amount": 0.162839,
+      "pnl": null,
+      "value": 12035.27
+    },
+    {
+      "timestamp": "2025-11-07T21:08:31.611895",
+      "type": "sell",
+      "price": 79128.2,
+      "amount": 0.162839,
+      "pnl": 824.98,
+      "value": 12885.17
+    },
+    {
+      "timestamp": "2025-11-08T11:08:31.611915",
+      "type": "buy",
+      "price": 81950.74,
+      "amount": 0.156423,
+      "pnl": null,
+      "value": 12819.0
+    },
+    {
+      "timestamp": "2025-11-09T01:08:31.611933",
+      "type": "sell",
+      "price": 84908.15,
+      "amount": 0.156423,
+      "pnl": 436.51,
+      "value": 13281.61
+    },
+    {
+      "timestamp": "2025-11-09T15:08:31.611950",
+      "type": "buy",
+      "price": 84452.61,
+      "amount": 0.1567,
+      "pnl": null,
+      "value": 13233.68
+    },
+    {
+      "timestamp": "2025-11-10T05:08:31.611968",
+      "type": "sell",
+      "price": 83596.71,
+      "amount": 0.1567,
+      "pnl": -160.45,
+      "value": 13099.57
+    },
+    {
+      "timestamp": "2025-11-11T15:08:31.612010",
+      "type": "buy",
+      "price": 80453.28,
+      "amount": 0.162594,
+      "pnl": null,
+      "value": 13081.26
+    },
+    {
+      "timestamp": "2025-11-11T18:08:31.612013",
+      "type": "sell",
+      "price": 82488.87,
+      "amount": 0.162594,
+      "pnl": 304.48,
+      "value": 13412.23
+    },
+    {
+      "timestamp": "2025-11-11T19:08:31.612014",
+      "type": "buy",
+      "price": 84956.28,
+      "amount": 0.157381,
+      "pnl": null,
+      "value": 13370.51
+    },
+    {
+      "timestamp": "2025-11-12T02:08:31.612023",
+      "type": "sell",
+      "price": 78126.24,
+      "amount": 0.157381,
+      "pnl": -1100.59,
+      "value": 12295.59
+    },
+    {
+      "timestamp": "2025-11-13T09:08:31.612060",
+      "type": "buy",
+      "price": 68862.53,
+      "amount": 0.178979,
+      "pnl": null,
+      "value": 12324.96
+    },
+    {
+      "timestamp": "2025-11-14T02:08:31.612081",
+      "type": "sell",
+      "price": 68807.42,
+      "amount": 0.178979,
+      "pnl": -34.5,
+      "value": 12315.1
+    },
+    {
+      "timestamp": "2025-11-14T15:08:31.612096",
+      "type": "buy",
+      "price": 71684.92,
+      "amount": 0.171475,
+      "pnl": null,
+      "value": 12292.18
+    },
+    {
+      "timestamp": "2025-11-15T08:08:31.612117",
+      "type": "sell",
+      "price": 68426.85,
+      "amount": 0.171475,
+      "pnl": -582.7,
+      "value": 11733.5
+    },
+    {
+      "timestamp": "2025-11-16T03:08:31.612139",
+      "type": "buy",
+      "price": 64186.38,
+      "amount": 0.182883,
+      "pnl": null,
+      "value": 11738.61
+    },
+    {
+      "timestamp": "2025-11-16T12:08:31.612150",
+      "type": "sell",
+      "price": 63718.09,
+      "amount": 0.182883,
+      "pnl": -109.03,
+      "value": 11652.97
+    },
+    {
+      "timestamp": "2025-11-16T16:08:31.612155",
+      "type": "buy",
+      "price": 65878.82,
+      "amount": 0.176613,
+      "pnl": null,
+      "value": 11635.03
+    },
+    {
+      "timestamp": "2025-11-18T04:08:31.612198",
+      "type": "sell",
+      "price": 65259.3,
+      "amount": 0.176613,
+      "pnl": -132.58,
+      "value": 11525.61
+    },
+    {
+      "timestamp": "2025-11-18T18:08:31.612215",
+      "type": "buy",
+      "price": 66929.18,
+      "amount": 0.171959,
+      "pnl": null,
+      "value": 11509.08
+    },
+    {
+      "timestamp": "2025-11-19T16:08:31.612242",
+      "type": "sell",
+      "price": 66463.68,
+      "amount": 0.171959,
+      "pnl": -102.99,
+      "value": 11429.04
+    },
+    {
+      "timestamp": "2025-11-19T23:08:31.612250",
+      "type": "buy",
+      "price": 69846.13,
+      "amount": 0.163377,
+      "pnl": null,
+      "value": 11411.25
+    },
+    {
+      "timestamp": "2025-11-20T03:08:31.612254",
+      "type": "sell",
+      "price": 68476.8,
+      "amount": 0.163377,
+      "pnl": -246.31,
+      "value": 11187.53
+    },
+    {
+      "timestamp": "2025-11-20T10:08:31.612262",
+      "type": "buy",
+      "price": 70245.79,
+      "amount": 0.159116,
+      "pnl": null,
+      "value": 11177.25
+    },
+    {
+      "timestamp": "2025-11-21T13:08:31.612297",
+      "type": "sell",
+      "price": 71018.52,
+      "amount": 0.159116,
+      "pnl": 100.48,
+      "value": 11300.2
+    },
+    {
+      "timestamp": "2025-11-21T18:08:31.612303",
+      "type": "buy",
+      "price": 74113.79,
+      "amount": 0.1521,
+      "pnl": null,
+      "value": 11272.7
+    },
+    {
+      "timestamp": "2025-11-22T19:08:31.612334",
+      "type": "sell",
+      "price": 71720.66,
+      "amount": 0.1521,
+      "pnl": -386.18,
+      "value": 10908.7
+    },
+    {
+      "timestamp": "2025-11-24T19:08:31.612391",
+      "type": "buy",
+      "price": 61659.51,
+      "amount": 0.176872,
+      "pnl": null,
+      "value": 10905.83
+    },
+    {
+      "timestamp": "2025-11-25T03:08:31.612401",
+      "type": "sell",
+      "price": 59222.07,
+      "amount": 0.176872,
+      "pnl": -452.49,
+      "value": 10474.72
+    },
+    {
+      "timestamp": "2025-11-25T18:08:31.612419",
+      "type": "buy",
+      "price": 61469.85,
+      "amount": 0.170424,
+      "pnl": null,
+      "value": 10475.96
+    },
+    {
+      "timestamp": "2025-11-26T01:08:31.612427",
+      "type": "sell",
+      "price": 57607.26,
+      "amount": 0.170424,
+      "pnl": -678.57,
+      "value": 9817.68
+    },
+    {
+      "timestamp": "2025-11-26T14:08:31.612444",
+      "type": "buy",
+      "price": 60713.39,
+      "amount": 0.16193,
+      "pnl": null,
+      "value": 9831.32
+    },
+    {
+      "timestamp": "2025-11-27T17:08:31.612476",
+      "type": "sell",
+      "price": 58872.27,
+      "amount": 0.16193,
+      "pnl": -317.5,
+      "value": 9533.18
+    },
+    {
+      "timestamp": "2025-11-28T07:08:31.612493",
+      "type": "buy",
+      "price": 59212.23,
+      "amount": 0.160941,
+      "pnl": null,
+      "value": 9529.69
+    },
+    {
+      "timestamp": "2025-11-28T21:08:31.612510",
+      "type": "sell",
+      "price": 59026.08,
+      "amount": 0.160941,
+      "pnl": -48.99,
+      "value": 9499.74
+    },
+    {
+      "timestamp": "2025-11-29T00:08:31.612514",
+      "type": "buy",
+      "price": 60895.1,
+      "amount": 0.155729,
+      "pnl": null,
+      "value": 9483.16
+    },
+    {
+      "timestamp": "2025-11-29T13:08:31.612529",
+      "type": "sell",
+      "price": 60347.14,
+      "amount": 0.155729,
+      "pnl": -104.22,
+      "value": 9397.82
+    },
+    {
+      "timestamp": "2025-11-29T17:08:31.612534",
+      "type": "buy",
+      "price": 63045.76,
+      "amount": 0.148847,
+      "pnl": null,
+      "value": 9384.15
+    },
+    {
+      "timestamp": "2025-11-30T20:08:31.612567",
+      "type": "sell",
+      "price": 68749.89,
+      "amount": 0.148847,
+      "pnl": 829.42,
+      "value": 10233.19
+    },
+    {
+      "timestamp": "2025-12-01T20:08:31.612597",
+      "type": "buy",
+      "price": 69336.77,
+      "amount": 0.146706,
+      "pnl": null,
+      "value": 10172.1
+    },
+    {
+      "timestamp": "2025-12-02T10:08:31.612615",
+      "type": "sell",
+      "price": 68905.25,
+      "amount": 0.146706,
+      "pnl": -83.59,
+      "value": 10108.8
+    },
+    {
+      "timestamp": "2025-12-02T18:08:31.612624",
+      "type": "buy",
+      "price": 74194.25,
+      "amount": 0.136031,
+      "pnl": null,
+      "value": 10092.7
+    },
+    {
+      "timestamp": "2025-12-03T02:08:31.612633",
+      "type": "sell",
+      "price": 68586.76,
+      "amount": 0.136031,
+      "pnl": -782.21,
+      "value": 9329.91
+    },
+    {
+      "timestamp": "2025-12-03T06:08:31.612638",
+      "type": "buy",
+      "price": 73809.4,
+      "amount": 0.126672,
+      "pnl": null,
+      "value": 9349.59
+    },
+    {
+      "timestamp": "2025-12-04T22:08:31.612686",
+      "type": "sell",
+      "price": 87950.97,
+      "amount": 0.126672,
+      "pnl": 1770.85,
+      "value": 11140.94
+    },
+    {
+      "timestamp": "2025-12-05T03:08:31.612692",
+      "type": "buy",
+      "price": 89512.43,
+      "amount": 0.123244,
+      "pnl": null,
+      "value": 11031.9
+    },
+    {
+      "timestamp": "2025-12-05T04:08:31.612693",
+      "type": "sell",
+      "price": 87964.76,
+      "amount": 0.123244,
+      "pnl": -212.61,
+      "value": 10841.16
+    },
+    {
+      "timestamp": "2025-12-05T08:08:31.612698",
+      "type": "buy",
+      "price": 91904.0,
+      "amount": 0.117839,
+      "pnl": null,
+      "value": 10829.92
+    },
+    {
+      "timestamp": "2025-12-05T18:08:31.612710",
+      "type": "sell",
+      "price": 90187.97,
+      "amount": 0.117839,
+      "pnl": -223.67,
+      "value": 10627.7
+    },
+    {
+      "timestamp": "2025-12-06T04:08:31.612721",
+      "type": "buy",
+      "price": 94129.84,
+      "amount": 0.112796,
+      "pnl": null,
+      "value": 10617.43
+    },
+    {
+      "timestamp": "2025-12-07T05:08:31.613037",
+      "type": "sell",
+      "price": 95964.21,
+      "amount": 0.112796,
+      "pnl": 185.47,
+      "value": 10824.34
+    },
+    {
+      "timestamp": "2025-12-07T10:08:31.613044",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.107936,
+      "pnl": null,
+      "value": 10793.62
+    },
+    {
+      "timestamp": "2025-12-07T22:08:31.613058",
+      "type": "sell",
+      "price": 97777.19,
+      "amount": 0.107936,
+      "pnl": -261.27,
+      "value": 10553.7
+    },
+    {
+      "timestamp": "2025-12-08T02:08:31.613063",
+      "type": "buy",
+      "price": 99105.25,
+      "amount": 0.106406,
+      "pnl": null,
+      "value": 10545.42
+    },
+    {
+      "timestamp": "2025-12-08T04:08:31.613066",
+      "type": "sell",
+      "price": 97497.65,
+      "amount": 0.106406,
+      "pnl": -191.98,
+      "value": 10374.36
+    },
+    {
+      "timestamp": "2025-12-08T22:08:31.613087",
+      "type": "buy",
+      "price": 96675.64,
+      "amount": 0.107194,
+      "pnl": null,
+      "value": 10363.04
+    },
+    {
+      "timestamp": "2025-12-09T21:08:31.613118",
+      "type": "sell",
+      "price": 95061.51,
+      "amount": 0.107194,
+      "pnl": -193.58,
+      "value": 10190.01
+    },
+    {
+      "timestamp": "2025-12-11T02:08:31.613154",
+      "type": "buy",
+      "price": 93300.61,
+      "amount": 0.1091,
+      "pnl": null,
+      "value": 10179.14
+    },
+    {
+      "timestamp": "2025-12-12T00:08:31.613181",
+      "type": "sell",
+      "price": 96042.33,
+      "amount": 0.1091,
+      "pnl": 278.47,
+      "value": 10478.26
+    },
+    {
+      "timestamp": "2025-12-13T06:08:31.613217",
+      "type": "buy",
+      "price": 87058.32,
+      "amount": 0.119962,
+      "pnl": null,
+      "value": 10443.68
+    },
+    {
+      "timestamp": "2025-12-14T04:08:31.613245",
+      "type": "sell",
+      "price": 92997.94,
+      "amount": 0.119962,
+      "pnl": 690.93,
+      "value": 11156.21
+    },
+    {
+      "timestamp": "2025-12-14T19:08:31.613263",
+      "type": "buy",
+      "price": 93286.05,
+      "amount": 0.11899,
+      "pnl": null,
+      "value": 11100.06
+    },
+    {
+      "timestamp": "2025-12-15T10:08:31.613281",
+      "type": "sell",
+      "price": 93105.5,
+      "amount": 0.11899,
+      "pnl": -43.66,
+      "value": 11078.58
+    },
+    {
+      "timestamp": "2025-12-16T06:08:31.613306",
+      "type": "buy",
+      "price": 94430.62,
+      "amount": 0.117108,
+      "pnl": null,
+      "value": 11058.59
+    },
+    {
+      "timestamp": "2025-12-16T22:08:31.613326",
+      "type": "sell",
+      "price": 90421.4,
+      "amount": 0.117108,
+      "pnl": -491.16,
+      "value": 10589.07
+    },
+    {
+      "timestamp": "2025-12-19T00:08:31.613388",
+      "type": "buy",
+      "price": 70700.0,
+      "amount": 0.149816,
+      "pnl": null,
+      "value": 10591.98
+    },
+    {
+      "timestamp": "2025-12-19T23:08:31.613416",
+      "type": "sell",
+      "price": 73182.74,
+      "amount": 0.149816,
+      "pnl": 350.4,
+      "value": 10963.94
+    },
+    {
+      "timestamp": "2025-12-20T09:08:31.613428",
+      "type": "buy",
+      "price": 75584.85,
+      "amount": 0.144538,
+      "pnl": null,
+      "value": 10924.86
+    },
+    {
+      "timestamp": "2025-12-20T17:08:31.613439",
+      "type": "sell",
+      "price": 72248.32,
+      "amount": 0.144538,
+      "pnl": -503.62,
+      "value": 10442.61
+    },
+    {
+      "timestamp": "2025-12-20T20:08:31.613443",
+      "type": "buy",
+      "price": 74610.17,
+      "amount": 0.140013,
+      "pnl": null,
+      "value": 10446.42
+    },
+    {
+      "timestamp": "2025-12-23T01:08:31.613513",
+      "type": "sell",
+      "price": 84887.78,
+      "amount": 0.140013,
+      "pnl": 1416.67,
+      "value": 11885.42
+    },
+    {
+      "timestamp": "2025-12-24T16:08:31.613565",
+      "type": "buy",
+      "price": 75318.67,
+      "amount": 0.156565,
+      "pnl": null,
+      "value": 11792.26
+    },
+    {
+      "timestamp": "2025-12-25T07:08:31.613583",
+      "type": "sell",
+      "price": 77353.38,
+      "amount": 0.156565,
+      "pnl": 294.66,
+      "value": 12110.82
+    },
+    {
+      "timestamp": "2025-12-25T08:08:31.613584",
+      "type": "buy",
+      "price": 78634.99,
+      "amount": 0.153522,
+      "pnl": null,
+      "value": 12072.18
+    },
+    {
+      "timestamp": "2025-12-26T02:08:31.613608",
+      "type": "sell",
+      "price": 80404.7,
+      "amount": 0.153522,
+      "pnl": 247.27,
+      "value": 12343.87
+    },
+    {
+      "timestamp": "2025-12-27T09:08:31.613646",
+      "type": "buy",
+      "price": 74239.53,
+      "amount": 0.165775,
+      "pnl": null,
+      "value": 12307.09
+    },
+    {
+      "timestamp": "2025-12-27T20:08:31.613659",
+      "type": "sell",
+      "price": 72575.65,
+      "amount": 0.165775,
+      "pnl": -300.17,
+      "value": 12031.26
+    },
+    {
+      "timestamp": "2025-12-28T09:08:31.613676",
+      "type": "buy",
+      "price": 73773.49,
+      "amount": 0.162957,
+      "pnl": null,
+      "value": 12021.93
+    },
+    {
+      "timestamp": "2025-12-30T00:08:31.613723",
+      "type": "sell",
+      "price": 79840.59,
+      "amount": 0.162957,
+      "pnl": 963.65,
+      "value": 13010.61
+    },
+    {
+      "timestamp": "2025-12-30T02:08:31.613726",
+      "type": "buy",
+      "price": 81994.1,
+      "amount": 0.157784,
+      "pnl": null,
+      "value": 12937.4
+    },
+    {
+      "timestamp": "2025-12-30T21:08:31.613750",
+      "type": "sell",
+      "price": 81246.37,
+      "amount": 0.157784,
+      "pnl": -143.74,
+      "value": 12819.42
+    },
+    {
+      "timestamp": "2025-12-31T01:08:31.613755",
+      "type": "buy",
+      "price": 88537.56,
+      "amount": 0.144581,
+      "pnl": null,
+      "value": 12800.85
+    },
+    {
+      "timestamp": "2026-01-01T02:08:31.613786",
+      "type": "sell",
+      "price": 92441.14,
+      "amount": 0.144581,
+      "pnl": 538.22,
+      "value": 13365.23
+    },
+    {
+      "timestamp": "2026-01-01T19:08:31.613806",
+      "type": "buy",
+      "price": 94840.19,
+      "amount": 0.140364,
+      "pnl": null,
+      "value": 13312.16
+    },
+    {
+      "timestamp": "2026-01-02T19:08:31.613837",
+      "type": "sell",
+      "price": 95966.18,
+      "amount": 0.140364,
+      "pnl": 131.27,
+      "value": 13470.2
+    },
+    {
+      "timestamp": "2026-01-03T04:08:31.613848",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.134369,
+      "pnl": null,
+      "value": 13436.86
+    },
+    {
+      "timestamp": "2026-01-03T09:08:31.613854",
+      "type": "sell",
+      "price": 93249.06,
+      "amount": 0.134369,
+      "pnl": -933.08,
+      "value": 12529.74
+    },
+    {
+      "timestamp": "2026-01-04T00:08:31.613872",
+      "type": "buy",
+      "price": 99559.53,
+      "amount": 0.12606,
+      "pnl": null,
+      "value": 12550.43
+    },
+    {
+      "timestamp": "2026-01-05T02:08:31.613905",
+      "type": "sell",
+      "price": 97098.19,
+      "amount": 0.12606,
+      "pnl": -335.07,
+      "value": 12240.16
+    },
+    {
+      "timestamp": "2026-01-05T08:08:31.613912",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.122321,
+      "pnl": null,
+      "value": 12232.12
+    },
+    {
+      "timestamp": "2026-01-05T10:08:31.613915",
+      "type": "sell",
+      "price": 97144.55,
+      "amount": 0.122321,
+      "pnl": -373.4,
+      "value": 11882.84
+    },
+    {
+      "timestamp": "2026-01-05T22:08:31.613930",
+      "type": "buy",
+      "price": 99944.14,
+      "amount": 0.11884,
+      "pnl": null,
+      "value": 11877.39
+    },
+    {
+      "timestamp": "2026-01-06T06:08:31.613939",
+      "type": "sell",
+      "price": 93525.05,
+      "amount": 0.11884,
+      "pnl": -785.84,
+      "value": 11114.55
+    },
+    {
+      "timestamp": "2026-01-06T17:08:31.613953",
+      "type": "buy",
+      "price": 96109.52,
+      "amount": 0.115814,
+      "pnl": null,
+      "value": 11130.85
+    },
+    {
+      "timestamp": "2026-01-07T17:08:31.613981",
+      "type": "sell",
+      "price": 95844.65,
+      "amount": 0.115814,
+      "pnl": -52.91,
+      "value": 11100.17
+    },
+    {
+      "timestamp": "2026-01-08T11:08:31.614003",
+      "type": "buy",
+      "price": 88798.08,
+      "amount": 0.124784,
+      "pnl": null,
+      "value": 11080.58
+    },
+    {
+      "timestamp": "2026-01-10T11:08:31.614061",
+      "type": "sell",
+      "price": 98417.43,
+      "amount": 0.124784,
+      "pnl": 1176.98,
+      "value": 12280.93
+    },
+    {
+      "timestamp": "2026-01-12T03:08:31.614110",
+      "type": "buy",
+      "price": 92798.46,
+      "amount": 0.131454,
+      "pnl": null,
+      "value": 12198.72
+    },
+    {
+      "timestamp": "2026-01-12T16:08:31.614125",
+      "type": "sell",
+      "price": 91308.07,
+      "amount": 0.131454,
+      "pnl": -220.12,
+      "value": 12002.8
+    },
+    {
+      "timestamp": "2026-01-13T07:08:31.614144",
+      "type": "buy",
+      "price": 96028.51,
+      "amount": 0.124855,
+      "pnl": null,
+      "value": 11989.6
+    },
+    {
+      "timestamp": "2026-01-14T02:08:31.614166",
+      "type": "sell",
+      "price": 92603.04,
+      "amount": 0.124855,
+      "pnl": -451.24,
+      "value": 11561.92
+    },
+    {
+      "timestamp": "2026-01-15T08:08:31.614203",
+      "type": "buy",
+      "price": 81182.02,
+      "amount": 0.142407,
+      "pnl": null,
+      "value": 11560.93
+    },
+    {
+      "timestamp": "2026-01-16T02:08:31.614225",
+      "type": "sell",
+      "price": 80011.57,
+      "amount": 0.142407,
+      "pnl": -189.64,
+      "value": 11394.25
+    },
+    {
+      "timestamp": "2026-01-16T17:08:31.614243",
+      "type": "buy",
+      "price": 83437.1,
+      "amount": 0.136399,
+      "pnl": null,
+      "value": 11380.77
+    },
+    {
+      "timestamp": "2026-01-17T17:08:31.614271",
+      "type": "sell",
+      "price": 86004.99,
+      "amount": 0.136399,
+      "pnl": 327.15,
+      "value": 11731.03
+    },
+    {
+      "timestamp": "2026-01-18T21:08:31.614305",
+      "type": "buy",
+      "price": 85157.29,
+      "amount": 0.137294,
+      "pnl": null,
+      "value": 11691.56
+    },
+    {
+      "timestamp": "2026-01-19T05:08:31.614315",
+      "type": "sell",
+      "price": 81290.9,
+      "amount": 0.137294,
+      "pnl": -553.68,
+      "value": 11160.73
+    },
+    {
+      "timestamp": "2026-01-19T21:08:31.614334",
+      "type": "buy",
+      "price": 82016.9,
+      "amount": 0.136137,
+      "pnl": null,
+      "value": 11165.56
+    }
+  ],
+  "MA10/30": [
+    {
+      "timestamp": "2025-07-29T03:08:31.608803",
+      "type": "buy",
+      "price": 50866.29,
+      "amount": 0.186764,
+      "pnl": null,
+      "value": 9500.0
+    },
+    {
+      "timestamp": "2025-07-30T10:08:31.608841",
+      "type": "sell",
+      "price": 53323.77,
+      "amount": 0.186764,
+      "pnl": 439.51,
+      "value": 9958.97
+    },
+    {
+      "timestamp": "2025-07-31T22:08:31.608889",
+      "type": "buy",
+      "price": 49891.43,
+      "amount": 0.198782,
+      "pnl": null,
+      "value": 9917.53
+    },
+    {
+      "timestamp": "2025-08-01T08:08:31.608901",
+      "type": "sell",
+      "price": 48637.12,
+      "amount": 0.198782,
+      "pnl": -268.92,
+      "value": 9668.2
+    },
+    {
+      "timestamp": "2025-08-02T01:08:31.608923",
+      "type": "buy",
+      "price": 51400.26,
+      "amount": 0.187977,
+      "pnl": null,
+      "value": 9662.06
+    },
+    {
+      "timestamp": "2025-08-02T20:08:31.608946",
+      "type": "sell",
+      "price": 49879.63,
+      "amount": 0.187977,
+      "pnl": -304.88,
+      "value": 9376.22
+    },
+    {
+      "timestamp": "2025-08-03T15:08:31.608970",
+      "type": "buy",
+      "price": 50610.39,
+      "amount": 0.185188,
+      "pnl": null,
+      "value": 9372.42
+    },
+    {
+      "timestamp": "2025-08-06T10:08:31.609054",
+      "type": "sell",
+      "price": 58733.36,
+      "amount": 0.185188,
+      "pnl": 1484.02,
+      "value": 10876.7
+    },
+    {
+      "timestamp": "2025-08-08T16:08:31.609124",
+      "type": "buy",
+      "price": 55165.39,
+      "amount": 0.195453,
+      "pnl": null,
+      "value": 10782.25
+    },
+    {
+      "timestamp": "2025-08-08T23:08:31.609133",
+      "type": "sell",
+      "price": 51520.8,
+      "amount": 0.195453,
+      "pnl": -733.2,
+      "value": 10069.9
+    },
+    {
+      "timestamp": "2025-08-10T11:08:31.609176",
+      "type": "buy",
+      "price": 49866.49,
+      "amount": 0.202254,
+      "pnl": null,
+      "value": 10085.71
+    },
+    {
+      "timestamp": "2025-08-10T19:08:31.609185",
+      "type": "sell",
+      "price": 46275.91,
+      "amount": 0.202254,
+      "pnl": -745.66,
+      "value": 9359.5
+    },
+    {
+      "timestamp": "2025-08-12T14:08:31.609260",
+      "type": "buy",
+      "price": 37291.37,
+      "amount": 0.251461,
+      "pnl": null,
+      "value": 9377.33
+    },
+    {
+      "timestamp": "2025-08-13T09:08:31.609284",
+      "type": "sell",
+      "price": 34936.53,
+      "amount": 0.251461,
+      "pnl": -610.31,
+      "value": 8785.18
+    },
+    {
+      "timestamp": "2025-08-13T15:08:31.609291",
+      "type": "buy",
+      "price": 38368.07,
+      "amount": 0.229293,
+      "pnl": null,
+      "value": 8797.54
+    },
+    {
+      "timestamp": "2025-08-14T08:08:31.609312",
+      "type": "sell",
+      "price": 34514.61,
+      "amount": 0.229293,
+      "pnl": -900.28,
+      "value": 7913.97
+    },
+    {
+      "timestamp": "2025-08-15T09:08:31.609342",
+      "type": "buy",
+      "price": 35036.84,
+      "amount": 0.226683,
+      "pnl": null,
+      "value": 7942.27
+    },
+    {
+      "timestamp": "2025-08-17T15:08:31.609408",
+      "type": "sell",
+      "price": 37977.18,
+      "amount": 0.226683,
+      "pnl": 649.98,
+      "value": 8608.79
+    },
+    {
+      "timestamp": "2025-08-18T07:08:31.609428",
+      "type": "buy",
+      "price": 38641.35,
+      "amount": 0.221518,
+      "pnl": null,
+      "value": 8559.74
+    },
+    {
+      "timestamp": "2025-08-18T17:08:31.609441",
+      "type": "sell",
+      "price": 35998.33,
+      "amount": 0.221518,
+      "pnl": -602.01,
+      "value": 7974.27
+    },
+    {
+      "timestamp": "2025-08-19T02:08:31.609452",
+      "type": "buy",
+      "price": 38922.73,
+      "amount": 0.205223,
+      "pnl": null,
+      "value": 7987.84
+    },
+    {
+      "timestamp": "2025-08-21T00:08:31.609508",
+      "type": "sell",
+      "price": 41752.7,
+      "amount": 0.205223,
+      "pnl": 564.22,
+      "value": 8568.61
+    },
+    {
+      "timestamp": "2025-08-22T05:08:31.609544",
+      "type": "buy",
+      "price": 42644.83,
+      "amount": 0.19988,
+      "pnl": null,
+      "value": 8523.84
+    },
+    {
+      "timestamp": "2025-08-23T04:08:31.609572",
+      "type": "sell",
+      "price": 41596.69,
+      "amount": 0.19988,
+      "pnl": -226.34,
+      "value": 8314.34
+    },
+    {
+      "timestamp": "2025-08-23T13:08:31.609583",
+      "type": "buy",
+      "price": 45987.98,
+      "amount": 0.180674,
+      "pnl": null,
+      "value": 8308.82
+    },
+    {
+      "timestamp": "2025-08-24T09:08:31.609607",
+      "type": "sell",
+      "price": 45573.29,
+      "amount": 0.180674,
+      "pnl": -91.47,
+      "value": 8233.89
+    },
+    {
+      "timestamp": "2025-08-26T00:08:31.609659",
+      "type": "buy",
+      "price": 46773.35,
+      "amount": 0.175782,
+      "pnl": null,
+      "value": 8221.93
+    },
+    {
+      "timestamp": "2025-08-26T14:08:31.609676",
+      "type": "sell",
+      "price": 43342.1,
+      "amount": 0.175782,
+      "pnl": -618.99,
+      "value": 7618.77
+    },
+    {
+      "timestamp": "2025-08-27T08:08:31.609701",
+      "type": "buy",
+      "price": 43550.33,
+      "amount": 0.175289,
+      "pnl": null,
+      "value": 7633.88
+    },
+    {
+      "timestamp": "2025-08-27T14:08:31.609708",
+      "type": "sell",
+      "price": 43947.33,
+      "amount": 0.175289,
+      "pnl": 54.25,
+      "value": 7703.47
+    },
+    {
+      "timestamp": "2025-08-27T19:08:31.609714",
+      "type": "buy",
+      "price": 45200.13,
+      "amount": 0.170031,
+      "pnl": null,
+      "value": 7685.42
+    },
+    {
+      "timestamp": "2025-08-28T15:08:31.609738",
+      "type": "sell",
+      "price": 44073.47,
+      "amount": 0.170031,
+      "pnl": -206.75,
+      "value": 7493.85
+    },
+    {
+      "timestamp": "2025-08-29T12:08:31.609764",
+      "type": "buy",
+      "price": 44601.1,
+      "amount": 0.167911,
+      "pnl": null,
+      "value": 7489.01
+    },
+    {
+      "timestamp": "2025-08-30T10:08:31.609792",
+      "type": "sell",
+      "price": 44142.93,
+      "amount": 0.167911,
+      "pnl": -91.83,
+      "value": 7412.08
+    },
+    {
+      "timestamp": "2025-08-31T07:08:31.609820",
+      "type": "buy",
+      "price": 48151.93,
+      "amount": 0.153717,
+      "pnl": null,
+      "value": 7401.77
+    },
+    {
+      "timestamp": "2025-09-01T15:08:31.609862",
+      "type": "sell",
+      "price": 47895.61,
+      "amount": 0.153717,
+      "pnl": -54.17,
+      "value": 7362.37
+    },
+    {
+      "timestamp": "2025-09-02T13:08:31.609889",
+      "type": "buy",
+      "price": 46402.44,
+      "amount": 0.158404,
+      "pnl": null,
+      "value": 7350.32
+    },
+    {
+      "timestamp": "2025-09-02T23:08:31.609902",
+      "type": "sell",
+      "price": 45027.87,
+      "amount": 0.158404,
+      "pnl": -232.22,
+      "value": 7132.58
+    },
+    {
+      "timestamp": "2025-09-03T16:08:31.609923",
+      "type": "buy",
+      "price": 48347.68,
+      "amount": 0.147467,
+      "pnl": null,
+      "value": 7129.71
+    },
+    {
+      "timestamp": "2025-09-04T14:08:31.609951",
+      "type": "sell",
+      "price": 46816.04,
+      "amount": 0.147467,
+      "pnl": -239.9,
+      "value": 6903.84
+    },
+    {
+      "timestamp": "2025-09-05T09:08:31.609975",
+      "type": "buy",
+      "price": 49489.77,
+      "amount": 0.139459,
+      "pnl": null,
+      "value": 6901.8
+    },
+    {
+      "timestamp": "2025-09-08T17:08:31.610074",
+      "type": "sell",
+      "price": 63869.24,
+      "amount": 0.139459,
+      "pnl": 1989.54,
+      "value": 8907.15
+    },
+    {
+      "timestamp": "2025-09-09T20:08:31.610108",
+      "type": "buy",
+      "price": 61229.66,
+      "amount": 0.143588,
+      "pnl": null,
+      "value": 8791.86
+    },
+    {
+      "timestamp": "2025-09-10T05:08:31.610119",
+      "type": "sell",
+      "price": 56618.23,
+      "amount": 0.143588,
+      "pnl": -679.07,
+      "value": 8129.72
+    },
+    {
+      "timestamp": "2025-09-11T06:08:31.610151",
+      "type": "buy",
+      "price": 59060.68,
+      "amount": 0.137939,
+      "pnl": null,
+      "value": 8146.75
+    },
+    {
+      "timestamp": "2025-09-12T07:08:31.610182",
+      "type": "sell",
+      "price": 60312.61,
+      "amount": 0.137939,
+      "pnl": 156.22,
+      "value": 8319.44
+    },
+    {
+      "timestamp": "2025-09-14T11:08:31.610249",
+      "type": "buy",
+      "price": 53336.54,
+      "amount": 0.155525,
+      "pnl": null,
+      "value": 8295.16
+    },
+    {
+      "timestamp": "2025-09-15T17:08:31.610287",
+      "type": "sell",
+      "price": 58497.72,
+      "amount": 0.155525,
+      "pnl": 785.3,
+      "value": 9097.85
+    },
+    {
+      "timestamp": "2025-09-16T07:08:31.610304",
+      "type": "buy",
+      "price": 62634.02,
+      "amount": 0.14435,
+      "pnl": null,
+      "value": 9041.19
+    },
+    {
+      "timestamp": "2025-09-19T04:08:31.610391",
+      "type": "sell",
+      "price": 76799.14,
+      "amount": 0.14435,
+      "pnl": 2024.6,
+      "value": 11085.92
+    },
+    {
+      "timestamp": "2025-09-19T12:08:31.610401",
+      "type": "buy",
+      "price": 81328.09,
+      "amount": 0.134819,
+      "pnl": null,
+      "value": 10964.56
+    },
+    {
+      "timestamp": "2025-09-21T11:08:31.610460",
+      "type": "sell",
+      "price": 88415.46,
+      "amount": 0.134819,
+      "pnl": 932.63,
+      "value": 11920.07
+    },
+    {
+      "timestamp": "2025-09-23T23:08:31.610535",
+      "type": "buy",
+      "price": 77774.23,
+      "amount": 0.152371,
+      "pnl": null,
+      "value": 11850.56
+    },
+    {
+      "timestamp": "2025-09-24T14:08:31.610553",
+      "type": "sell",
+      "price": 70838.12,
+      "amount": 0.152371,
+      "pnl": -1079.51,
+      "value": 10793.69
+    },
+    {
+      "timestamp": "2025-09-25T09:08:31.610578",
+      "type": "buy",
+      "price": 76782.2,
+      "amount": 0.140984,
+      "pnl": null,
+      "value": 10825.03
+    },
+    {
+      "timestamp": "2025-09-27T10:08:31.610640",
+      "type": "sell",
+      "price": 80101.61,
+      "amount": 0.140984,
+      "pnl": 445.86,
+      "value": 11293.01
+    },
+    {
+      "timestamp": "2025-09-28T16:08:31.610677",
+      "type": "buy",
+      "price": 85163.65,
+      "amount": 0.132082,
+      "pnl": null,
+      "value": 11248.6
+    },
+    {
+      "timestamp": "2025-09-29T13:08:31.610705",
+      "type": "sell",
+      "price": 78908.78,
+      "amount": 0.132082,
+      "pnl": -847.83,
+      "value": 10422.44
+    },
+    {
+      "timestamp": "2025-09-30T02:08:31.610722",
+      "type": "buy",
+      "price": 86819.35,
+      "amount": 0.120286,
+      "pnl": null,
+      "value": 10443.16
+    },
+    {
+      "timestamp": "2025-09-30T10:08:31.610731",
+      "type": "sell",
+      "price": 76943.31,
+      "amount": 0.120286,
+      "pnl": -1207.65,
+      "value": 9255.21
+    },
+    {
+      "timestamp": "2025-10-02T10:08:31.610792",
+      "type": "buy",
+      "price": 79305.49,
+      "amount": 0.117216,
+      "pnl": null,
+      "value": 9295.89
+    },
+    {
+      "timestamp": "2025-10-03T05:08:31.610819",
+      "type": "sell",
+      "price": 75202.13,
+      "amount": 0.117216,
+      "pnl": -499.09,
+      "value": 8814.91
+    },
+    {
+      "timestamp": "2025-10-03T23:08:31.610846",
+      "type": "buy",
+      "price": 80477.55,
+      "amount": 0.109618,
+      "pnl": null,
+      "value": 8821.76
+    },
+    {
+      "timestamp": "2025-10-05T00:08:31.610877",
+      "type": "sell",
+      "price": 83019.96,
+      "amount": 0.109618,
+      "pnl": 260.77,
+      "value": 9100.45
+    },
+    {
+      "timestamp": "2025-10-05T11:08:31.610890",
+      "type": "buy",
+      "price": 88712.58,
+      "amount": 0.102235,
+      "pnl": null,
+      "value": 9069.49
+    },
+    {
+      "timestamp": "2025-10-06T21:08:31.610932",
+      "type": "sell",
+      "price": 94140.44,
+      "amount": 0.102235,
+      "pnl": 536.22,
+      "value": 9624.4
+    },
+    {
+      "timestamp": "2025-10-07T21:08:31.610966",
+      "type": "buy",
+      "price": 93484.36,
+      "amount": 0.102465,
+      "pnl": null,
+      "value": 9578.9
+    },
+    {
+      "timestamp": "2025-10-08T09:08:31.610982",
+      "type": "sell",
+      "price": 88148.57,
+      "amount": 0.102465,
+      "pnl": -565.34,
+      "value": 9032.17
+    },
+    {
+      "timestamp": "2025-10-08T22:08:31.610997",
+      "type": "buy",
+      "price": 89328.57,
+      "amount": 0.10122,
+      "pnl": null,
+      "value": 9041.82
+    },
+    {
+      "timestamp": "2025-10-09T12:08:31.611014",
+      "type": "sell",
+      "price": 89990.58,
+      "amount": 0.10122,
+      "pnl": 48.86,
+      "value": 9108.83
+    },
+    {
+      "timestamp": "2025-10-11T04:08:31.611064",
+      "type": "buy",
+      "price": 87169.43,
+      "amount": 0.104259,
+      "pnl": null,
+      "value": 9088.24
+    },
+    {
+      "timestamp": "2025-10-12T00:08:31.611088",
+      "type": "sell",
+      "price": 86375.35,
+      "amount": 0.104259,
+      "pnl": -100.88,
+      "value": 9005.45
+    },
+    {
+      "timestamp": "2025-10-12T21:08:31.611113",
+      "type": "buy",
+      "price": 87589.08,
+      "amount": 0.102666,
+      "pnl": null,
+      "value": 8992.4
+    },
+    {
+      "timestamp": "2025-10-13T11:08:31.611130",
+      "type": "sell",
+      "price": 82758.5,
+      "amount": 0.102666,
+      "pnl": -513.42,
+      "value": 8496.46
+    },
+    {
+      "timestamp": "2025-10-13T23:08:31.611144",
+      "type": "buy",
+      "price": 90043.35,
+      "amount": 0.094451,
+      "pnl": null,
+      "value": 8504.64
+    },
+    {
+      "timestamp": "2025-10-15T01:08:31.611176",
+      "type": "sell",
+      "price": 90922.52,
+      "amount": 0.094451,
+      "pnl": 65.95,
+      "value": 8587.68
+    },
+    {
+      "timestamp": "2025-10-16T00:08:31.611204",
+      "type": "buy",
+      "price": 98718.46,
+      "amount": 0.086785,
+      "pnl": null,
+      "value": 8567.29
+    },
+    {
+      "timestamp": "2025-10-16T11:08:31.611216",
+      "type": "sell",
+      "price": 90744.6,
+      "amount": 0.086785,
+      "pnl": -708.46,
+      "value": 7875.28
+    },
+    {
+      "timestamp": "2025-10-16T19:08:31.611226",
+      "type": "buy",
+      "price": 94878.83,
+      "amount": 0.083204,
+      "pnl": null,
+      "value": 7894.26
+    },
+    {
+      "timestamp": "2025-10-17T19:08:31.611255",
+      "type": "sell",
+      "price": 93152.61,
+      "amount": 0.083204,
+      "pnl": -159.27,
+      "value": 7750.63
+    },
+    {
+      "timestamp": "2025-10-19T04:08:31.611295",
+      "type": "buy",
+      "price": 99407.26,
+      "amount": 0.077891,
+      "pnl": null,
+      "value": 7742.95
+    },
+    {
+      "timestamp": "2025-10-19T18:08:31.611313",
+      "type": "sell",
+      "price": 89534.95,
+      "amount": 0.077891,
+      "pnl": -783.68,
+      "value": 6973.99
+    },
+    {
+      "timestamp": "2025-10-21T19:08:31.611373",
+      "type": "buy",
+      "price": 79816.09,
+      "amount": 0.087682,
+      "pnl": null,
+      "value": 6998.45
+    },
+    {
+      "timestamp": "2025-10-23T03:08:31.611411",
+      "type": "sell",
+      "price": 80616.95,
+      "amount": 0.087682,
+      "pnl": 56.15,
+      "value": 7068.67
+    },
+    {
+      "timestamp": "2025-10-23T17:08:31.611431",
+      "type": "buy",
+      "price": 89455.12,
+      "amount": 0.078831,
+      "pnl": null,
+      "value": 7051.8
+    },
+    {
+      "timestamp": "2025-10-25T11:08:31.611497",
+      "type": "sell",
+      "price": 90390.31,
+      "amount": 0.078831,
+      "pnl": 59.54,
+      "value": 7125.52
+    },
+    {
+      "timestamp": "2025-10-26T07:08:31.611521",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.071084,
+      "pnl": null,
+      "value": 7108.37
+    },
+    {
+      "timestamp": "2025-10-26T17:08:31.611534",
+      "type": "sell",
+      "price": 85028.85,
+      "amount": 0.071084,
+      "pnl": -1077.36,
+      "value": 6044.16
+    },
+    {
+      "timestamp": "2025-10-27T21:08:31.611567",
+      "type": "buy",
+      "price": 80880.61,
+      "amount": 0.075233,
+      "pnl": null,
+      "value": 6084.88
+    },
+    {
+      "timestamp": "2025-10-27T22:08:31.611568",
+      "type": "sell",
+      "price": 78655.59,
+      "amount": 0.075233,
+      "pnl": -179.4,
+      "value": 5917.48
+    },
+    {
+      "timestamp": "2025-10-28T01:08:31.611576",
+      "type": "buy",
+      "price": 77874.51,
+      "amount": 0.075948,
+      "pnl": null,
+      "value": 5914.45
+    },
+    {
+      "timestamp": "2025-10-28T02:08:31.611577",
+      "type": "sell",
+      "price": 77427.31,
+      "amount": 0.075948,
+      "pnl": -45.76,
+      "value": 5880.49
+    },
+    {
+      "timestamp": "2025-10-30T12:08:31.611648",
+      "type": "buy",
+      "price": 66922.64,
+      "amount": 0.087728,
+      "pnl": null,
+      "value": 5870.98
+    },
+    {
+      "timestamp": "2025-10-31T04:08:31.611668",
+      "type": "sell",
+      "price": 64493.43,
+      "amount": 0.087728,
+      "pnl": -224.64,
+      "value": 5657.87
+    },
+    {
+      "timestamp": "2025-11-01T05:08:31.611699",
+      "type": "buy",
+      "price": 65048.53,
+      "amount": 0.086975,
+      "pnl": null,
+      "value": 5657.57
+    },
+    {
+      "timestamp": "2025-11-01T11:08:31.611705",
+      "type": "sell",
+      "price": 61671.12,
+      "amount": 0.086975,
+      "pnl": -304.77,
+      "value": 5363.82
+    },
+    {
+      "timestamp": "2025-11-03T01:08:31.611751",
+      "type": "buy",
+      "price": 62061.12,
+      "amount": 0.086496,
+      "pnl": null,
+      "value": 5368.04
+    },
+    {
+      "timestamp": "2025-11-04T19:08:31.611805",
+      "type": "sell",
+      "price": 71508.39,
+      "amount": 0.086496,
+      "pnl": 805.6,
+      "value": 6185.19
+    },
+    {
+      "timestamp": "2025-11-05T21:08:31.611837",
+      "type": "buy",
+      "price": 71189.6,
+      "amount": 0.086155,
+      "pnl": null,
+      "value": 6133.36
+    },
+    {
+      "timestamp": "2025-11-06T19:08:31.611864",
+      "type": "sell",
+      "price": 69458.95,
+      "amount": 0.086155,
+      "pnl": -161.22,
+      "value": 5984.26
+    },
+    {
+      "timestamp": "2025-11-07T02:08:31.611872",
+      "type": "buy",
+      "price": 76184.02,
+      "amount": 0.078497,
+      "pnl": null,
+      "value": 5980.2
+    },
+    {
+      "timestamp": "2025-11-08T02:08:31.611905",
+      "type": "sell",
+      "price": 76982.03,
+      "amount": 0.078497,
+      "pnl": 50.62,
+      "value": 6042.84
+    },
+    {
+      "timestamp": "2025-11-08T14:08:31.611919",
+      "type": "buy",
+      "price": 88225.85,
+      "amount": 0.068328,
+      "pnl": null,
+      "value": 6028.29
+    },
+    {
+      "timestamp": "2025-11-09T14:08:31.611949",
+      "type": "sell",
+      "price": 86029.25,
+      "amount": 0.068328,
+      "pnl": -162.0,
+      "value": 5878.2
+    },
+    {
+      "timestamp": "2025-11-09T20:08:31.611956",
+      "type": "buy",
+      "price": 88184.51,
+      "amount": 0.066615,
+      "pnl": null,
+      "value": 5874.39
+    },
+    {
+      "timestamp": "2025-11-10T09:08:31.611972",
+      "type": "sell",
+      "price": 83767.03,
+      "amount": 0.066615,
+      "pnl": -305.72,
+      "value": 5580.12
+    },
+    {
+      "timestamp": "2025-11-11T20:08:31.612016",
+      "type": "buy",
+      "price": 84470.21,
+      "amount": 0.066106,
+      "pnl": null,
+      "value": 5583.95
+    },
+    {
+      "timestamp": "2025-11-12T05:08:31.612026",
+      "type": "sell",
+      "price": 74704.94,
+      "amount": 0.066106,
+      "pnl": -656.06,
+      "value": 4938.41
+    },
+    {
+      "timestamp": "2025-11-13T12:08:31.612064",
+      "type": "buy",
+      "price": 70943.94,
+      "amount": 0.069924,
+      "pnl": null,
+      "value": 4960.69
+    },
+    {
+      "timestamp": "2025-11-14T07:08:31.612087",
+      "type": "sell",
+      "price": 68321.56,
+      "amount": 0.069924,
+      "pnl": -193.11,
+      "value": 4777.33
+    },
+    {
+      "timestamp": "2025-11-14T19:08:31.612101",
+      "type": "buy",
+      "price": 76356.93,
+      "amount": 0.062565,
+      "pnl": null,
+      "value": 4777.24
+    },
+    {
+      "timestamp": "2025-11-15T11:08:31.612120",
+      "type": "sell",
+      "price": 66191.59,
+      "amount": 0.062565,
+      "pnl": -644.91,
+      "value": 4141.25
+    },
+    {
+      "timestamp": "2025-11-16T13:08:31.612151",
+      "type": "buy",
+      "price": 63902.09,
+      "amount": 0.065171,
+      "pnl": null,
+      "value": 4164.58
+    },
+    {
+      "timestamp": "2025-11-18T06:08:31.612200",
+      "type": "sell",
+      "price": 65062.98,
+      "amount": 0.065171,
+      "pnl": 67.25,
+      "value": 4240.24
+    },
+    {
+      "timestamp": "2025-11-19T01:08:31.612224",
+      "type": "buy",
+      "price": 67927.01,
+      "amount": 0.06225,
+      "pnl": null,
+      "value": 4228.47
+    },
+    {
+      "timestamp": "2025-11-19T23:08:31.612250",
+      "type": "sell",
+      "price": 69846.13,
+      "amount": 0.06225,
+      "pnl": 110.89,
+      "value": 4347.93
+    },
+    {
+      "timestamp": "2025-11-20T02:08:31.612253",
+      "type": "buy",
+      "price": 68005.11,
+      "amount": 0.063728,
+      "pnl": null,
+      "value": 4333.81
+    },
+    {
+      "timestamp": "2025-11-20T05:08:31.612257",
+      "type": "sell",
+      "price": 66434.47,
+      "amount": 0.063728,
+      "pnl": -108.66,
+      "value": 4233.72
+    },
+    {
+      "timestamp": "2025-11-20T13:08:31.612267",
+      "type": "buy",
+      "price": 70297.97,
+      "amount": 0.060181,
+      "pnl": null,
+      "value": 4230.59
+    },
+    {
+      "timestamp": "2025-11-21T19:08:31.612304",
+      "type": "sell",
+      "price": 73528.44,
+      "amount": 0.060181,
+      "pnl": 185.76,
+      "value": 4425.0
+    },
+    {
+      "timestamp": "2025-11-21T20:08:31.612305",
+      "type": "buy",
+      "price": 73639.23,
+      "amount": 0.059847,
+      "pnl": null,
+      "value": 4407.06
+    },
+    {
+      "timestamp": "2025-11-22T21:08:31.612336",
+      "type": "sell",
+      "price": 70266.74,
+      "amount": 0.059847,
+      "pnl": -210.44,
+      "value": 4205.22
+    },
+    {
+      "timestamp": "2025-11-25T00:08:31.612398",
+      "type": "buy",
+      "price": 60492.14,
+      "amount": 0.069548,
+      "pnl": null,
+      "value": 4207.13
+    },
+    {
+      "timestamp": "2025-11-25T02:08:31.612400",
+      "type": "sell",
+      "price": 58672.07,
+      "amount": 0.069548,
+      "pnl": -134.87,
+      "value": 4080.55
+    },
+    {
+      "timestamp": "2025-11-25T03:08:31.612401",
+      "type": "buy",
+      "price": 59222.07,
+      "amount": 0.068876,
+      "pnl": null,
+      "value": 4079.01
+    },
+    {
+      "timestamp": "2025-11-25T04:08:31.612402",
+      "type": "sell",
+      "price": 59912.66,
+      "amount": 0.068876,
+      "pnl": 39.36,
+      "value": 4126.57
+    },
+    {
+      "timestamp": "2025-11-25T22:08:31.612424",
+      "type": "buy",
+      "price": 60172.57,
+      "amount": 0.06841,
+      "pnl": null,
+      "value": 4116.4
+    },
+    {
+      "timestamp": "2025-11-26T02:08:31.612429",
+      "type": "sell",
+      "price": 56175.39,
+      "amount": 0.06841,
+      "pnl": -281.41,
+      "value": 3842.95
+    },
+    {
+      "timestamp": "2025-11-26T17:08:31.612447",
+      "type": "buy",
+      "price": 61602.24,
+      "amount": 0.062483,
+      "pnl": null,
+      "value": 3849.06
+    },
+    {
+      "timestamp": "2025-11-27T19:08:31.612479",
+      "type": "sell",
+      "price": 58105.46,
+      "amount": 0.062483,
+      "pnl": -225.97,
+      "value": 3630.57
+    },
+    {
+      "timestamp": "2025-11-28T13:08:31.612500",
+      "type": "buy",
+      "price": 59894.19,
+      "amount": 0.06068,
+      "pnl": null,
+      "value": 3634.39
+    },
+    {
+      "timestamp": "2025-12-01T01:08:31.612572",
+      "type": "sell",
+      "price": 70737.04,
+      "amount": 0.06068,
+      "pnl": 650.02,
+      "value": 4292.34
+    },
+    {
+      "timestamp": "2025-12-01T23:08:31.612601",
+      "type": "buy",
+      "price": 70449.82,
+      "amount": 0.060354,
+      "pnl": null,
+      "value": 4251.91
+    },
+    {
+      "timestamp": "2025-12-02T16:08:31.612622",
+      "type": "sell",
+      "price": 70469.33,
+      "amount": 0.060354,
+      "pnl": -7.33,
+      "value": 4253.09
+    },
+    {
+      "timestamp": "2025-12-02T18:08:31.612624",
+      "type": "buy",
+      "price": 74194.25,
+      "amount": 0.057214,
+      "pnl": null,
+      "value": 4244.95
+    },
+    {
+      "timestamp": "2025-12-05T21:08:31.612713",
+      "type": "sell",
+      "price": 90415.15,
+      "amount": 0.057214,
+      "pnl": 918.64,
+      "value": 5173.01
+    },
+    {
+      "timestamp": "2025-12-06T05:08:31.612723",
+      "type": "buy",
+      "price": 96643.0,
+      "amount": 0.052954,
+      "pnl": null,
+      "value": 5117.66
+    },
+    {
+      "timestamp": "2025-12-07T22:08:31.613058",
+      "type": "sell",
+      "price": 97777.19,
+      "amount": 0.052954,
+      "pnl": 49.76,
+      "value": 5177.72
+    },
+    {
+      "timestamp": "2025-12-08T00:08:31.613061",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.051649,
+      "pnl": null,
+      "value": 5164.94
+    },
+    {
+      "timestamp": "2025-12-08T03:08:31.613065",
+      "type": "sell",
+      "price": 97463.41,
+      "amount": 0.051649,
+      "pnl": -141.21,
+      "value": 5033.93
+    },
+    {
+      "timestamp": "2025-12-09T02:08:31.613094",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.050308,
+      "pnl": null,
+      "value": 5030.79
+    },
+    {
+      "timestamp": "2025-12-09T23:08:31.613121",
+      "type": "sell",
+      "price": 94663.73,
+      "amount": 0.050308,
+      "pnl": -278.25,
+      "value": 4762.33
+    },
+    {
+      "timestamp": "2025-12-11T06:08:31.613159",
+      "type": "buy",
+      "price": 96322.63,
+      "amount": 0.049484,
+      "pnl": null,
+      "value": 4766.45
+    },
+    {
+      "timestamp": "2025-12-12T06:08:31.613189",
+      "type": "sell",
+      "price": 97801.95,
+      "amount": 0.049484,
+      "pnl": 63.6,
+      "value": 4839.66
+    },
+    {
+      "timestamp": "2025-12-13T13:08:31.613226",
+      "type": "buy",
+      "price": 95544.12,
+      "amount": 0.05052,
+      "pnl": null,
+      "value": 4826.87
+    },
+    {
+      "timestamp": "2025-12-14T09:08:31.613251",
+      "type": "sell",
+      "price": 92244.06,
+      "amount": 0.05052,
+      "pnl": -176.21,
+      "value": 4660.15
+    },
+    {
+      "timestamp": "2025-12-14T23:08:31.613268",
+      "type": "buy",
+      "price": 98483.24,
+      "amount": 0.047312,
+      "pnl": null,
+      "value": 4659.47
+    },
+    {
+      "timestamp": "2025-12-15T16:08:31.613289",
+      "type": "sell",
+      "price": 91764.77,
+      "amount": 0.047312,
+      "pnl": -326.87,
+      "value": 4341.61
+    },
+    {
+      "timestamp": "2025-12-16T11:08:31.613312",
+      "type": "buy",
+      "price": 92842.87,
+      "amount": 0.046842,
+      "pnl": null,
+      "value": 4348.95
+    },
+    {
+      "timestamp": "2025-12-17T01:08:31.613330",
+      "type": "sell",
+      "price": 90533.21,
+      "amount": 0.046842,
+      "pnl": -116.78,
+      "value": 4240.76
+    },
+    {
+      "timestamp": "2025-12-19T05:08:31.613394",
+      "type": "buy",
+      "price": 73656.23,
+      "amount": 0.057538,
+      "pnl": null,
+      "value": 4238.01
+    },
+    {
+      "timestamp": "2025-12-20T05:08:31.613424",
+      "type": "sell",
+      "price": 72178.39,
+      "amount": 0.057538,
+      "pnl": -93.42,
+      "value": 4152.98
+    },
+    {
+      "timestamp": "2025-12-20T11:08:31.613431",
+      "type": "buy",
+      "price": 73385.02,
+      "amount": 0.056541,
+      "pnl": null,
+      "value": 4149.26
+    },
+    {
+      "timestamp": "2025-12-23T06:08:31.613520",
+      "type": "sell",
+      "price": 81669.73,
+      "amount": 0.056541,
+      "pnl": 459.66,
+      "value": 4617.68
+    },
+    {
+      "timestamp": "2025-12-24T20:08:31.613570",
+      "type": "buy",
+      "price": 79540.36,
+      "amount": 0.057655,
+      "pnl": null,
+      "value": 4585.93
+    },
+    {
+      "timestamp": "2025-12-26T09:08:31.613616",
+      "type": "sell",
+      "price": 79829.68,
+      "amount": 0.057655,
+      "pnl": 7.49,
+      "value": 4602.61
+    },
+    {
+      "timestamp": "2025-12-27T14:08:31.613652",
+      "type": "buy",
+      "price": 73774.26,
+      "amount": 0.062258,
+      "pnl": null,
+      "value": 4593.05
+    },
+    {
+      "timestamp": "2025-12-28T02:08:31.613667",
+      "type": "sell",
+      "price": 71569.84,
+      "amount": 0.062258,
+      "pnl": -146.29,
+      "value": 4455.81
+    },
+    {
+      "timestamp": "2025-12-28T16:08:31.613684",
+      "type": "buy",
+      "price": 73673.41,
+      "amount": 0.060457,
+      "pnl": null,
+      "value": 4454.07
+    },
+    {
+      "timestamp": "2026-01-01T06:08:31.613791",
+      "type": "sell",
+      "price": 91934.83,
+      "amount": 0.060457,
+      "pnl": 1094.02,
+      "value": 5558.1
+    },
+    {
+      "timestamp": "2026-01-01T23:08:31.613811",
+      "type": "buy",
+      "price": 98766.4,
+      "amount": 0.05562,
+      "pnl": null,
+      "value": 5493.39
+    },
+    {
+      "timestamp": "2026-01-02T22:08:31.613841",
+      "type": "sell",
+      "price": 92984.86,
+      "amount": 0.05562,
+      "pnl": -332.23,
+      "value": 5171.82
+    },
+    {
+      "timestamp": "2026-01-04T03:08:31.613876",
+      "type": "buy",
+      "price": 97532.15,
+      "amount": 0.053088,
+      "pnl": null,
+      "value": 5177.77
+    },
+    {
+      "timestamp": "2026-01-05T04:08:31.613907",
+      "type": "sell",
+      "price": 98359.0,
+      "amount": 0.053088,
+      "pnl": 33.5,
+      "value": 5221.66
+    },
+    {
+      "timestamp": "2026-01-06T02:08:31.613934",
+      "type": "buy",
+      "price": 96867.62,
+      "amount": 0.053781,
+      "pnl": null,
+      "value": 5209.59
+    },
+    {
+      "timestamp": "2026-01-06T08:08:31.613941",
+      "type": "sell",
+      "price": 92093.84,
+      "amount": 0.053781,
+      "pnl": -266.9,
+      "value": 4952.85
+    },
+    {
+      "timestamp": "2026-01-06T20:08:31.613956",
+      "type": "buy",
+      "price": 98186.4,
+      "amount": 0.050476,
+      "pnl": null,
+      "value": 4956.04
+    },
+    {
+      "timestamp": "2026-01-07T19:08:31.613983",
+      "type": "sell",
+      "price": 93675.57,
+      "amount": 0.050476,
+      "pnl": -237.37,
+      "value": 4728.35
+    },
+    {
+      "timestamp": "2026-01-08T19:08:31.614013",
+      "type": "buy",
+      "price": 91951.99,
+      "amount": 0.051446,
+      "pnl": null,
+      "value": 4730.53
+    },
+    {
+      "timestamp": "2026-01-10T15:08:31.614067",
+      "type": "sell",
+      "price": 95916.87,
+      "amount": 0.051446,
+      "pnl": 194.31,
+      "value": 4934.51
+    },
+    {
+      "timestamp": "2026-01-12T08:08:31.614116",
+      "type": "buy",
+      "price": 96154.96,
+      "amount": 0.051117,
+      "pnl": null,
+      "value": 4915.13
+    },
+    {
+      "timestamp": "2026-01-12T20:08:31.614130",
+      "type": "sell",
+      "price": 90776.45,
+      "amount": 0.051117,
+      "pnl": -284.49,
+      "value": 4640.2
+    },
+    {
+      "timestamp": "2026-01-13T10:08:31.614148",
+      "type": "buy",
+      "price": 94680.18,
+      "amount": 0.049058,
+      "pnl": null,
+      "value": 4644.86
+    },
+    {
+      "timestamp": "2026-01-14T06:08:31.614172",
+      "type": "sell",
+      "price": 85923.55,
+      "amount": 0.049058,
+      "pnl": -438.45,
+      "value": 4215.28
+    },
+    {
+      "timestamp": "2026-01-15T13:08:31.614209",
+      "type": "buy",
+      "price": 83246.63,
+      "amount": 0.050793,
+      "pnl": null,
+      "value": 4228.34
+    },
+    {
+      "timestamp": "2026-01-16T09:08:31.614233",
+      "type": "sell",
+      "price": 82455.83,
+      "amount": 0.050793,
+      "pnl": -48.58,
+      "value": 4188.17
+    },
+    {
+      "timestamp": "2026-01-16T22:08:31.614249",
+      "type": "buy",
+      "price": 82377.1,
+      "amount": 0.050769,
+      "pnl": null,
+      "value": 4182.19
+    },
+    {
+      "timestamp": "2026-01-18T00:08:31.614279",
+      "type": "sell",
+      "price": 86891.0,
+      "amount": 0.050769,
+      "pnl": 220.57,
+      "value": 4411.35
+    },
+    {
+      "timestamp": "2026-01-20T02:08:31.614340",
+      "type": "buy",
+      "price": 82760.1,
+      "amount": 0.053066,
+      "pnl": null,
+      "value": 4391.73
+    }
+  ],
+  "MA20/50": [
+    {
+      "timestamp": "2025-08-02T07:08:31.608930",
+      "type": "buy",
+      "price": 51022.01,
+      "amount": 0.186194,
+      "pnl": null,
+      "value": 9500.0
+    },
+    {
+      "timestamp": "2025-08-03T17:08:31.608972",
+      "type": "sell",
+      "price": 49160.71,
+      "amount": 0.186194,
+      "pnl": -365.22,
+      "value": 9153.44
+    },
+    {
+      "timestamp": "2025-08-04T03:08:31.608984",
+      "type": "buy",
+      "price": 52019.76,
+      "amount": 0.175953,
+      "pnl": null,
+      "value": 9153.04
+    },
+    {
+      "timestamp": "2025-08-06T21:08:31.609067",
+      "type": "sell",
+      "price": 54781.72,
+      "amount": 0.175953,
+      "pnl": 467.18,
+      "value": 9639.02
+    },
+    {
+      "timestamp": "2025-08-13T02:08:31.609275",
+      "type": "buy",
+      "price": 35460.77,
+      "amount": 0.270633,
+      "pnl": null,
+      "value": 9596.87
+    },
+    {
+      "timestamp": "2025-08-14T12:08:31.609317",
+      "type": "sell",
+      "price": 34790.53,
+      "amount": 0.270633,
+      "pnl": -200.4,
+      "value": 9415.48
+    },
+    {
+      "timestamp": "2025-08-16T01:08:31.609362",
+      "type": "buy",
+      "price": 36082.34,
+      "amount": 0.260695,
+      "pnl": null,
+      "value": 9406.49
+    },
+    {
+      "timestamp": "2025-08-18T13:08:31.609435",
+      "type": "sell",
+      "price": 38048.16,
+      "amount": 0.260695,
+      "pnl": 493.15,
+      "value": 9918.97
+    },
+    {
+      "timestamp": "2025-08-19T07:08:31.609459",
+      "type": "buy",
+      "price": 39640.13,
+      "amount": 0.249116,
+      "pnl": null,
+      "value": 9874.98
+    },
+    {
+      "timestamp": "2025-08-21T10:08:31.609520",
+      "type": "sell",
+      "price": 39689.79,
+      "amount": 0.249116,
+      "pnl": -7.39,
+      "value": 9887.35
+    },
+    {
+      "timestamp": "2025-08-22T13:08:31.609553",
+      "type": "buy",
+      "price": 44753.59,
+      "amount": 0.220495,
+      "pnl": null,
+      "value": 9867.96
+    },
+    {
+      "timestamp": "2025-08-25T04:08:31.609629",
+      "type": "sell",
+      "price": 43083.04,
+      "amount": 0.220495,
+      "pnl": -387.72,
+      "value": 9499.61
+    },
+    {
+      "timestamp": "2025-08-26T01:08:31.609661",
+      "type": "buy",
+      "price": 46093.5,
+      "amount": 0.206095,
+      "pnl": null,
+      "value": 9499.63
+    },
+    {
+      "timestamp": "2025-08-26T20:08:31.609687",
+      "type": "sell",
+      "price": 43295.63,
+      "amount": 0.206095,
+      "pnl": -595.05,
+      "value": 8923.0
+    },
+    {
+      "timestamp": "2025-08-28T02:08:31.609723",
+      "type": "buy",
+      "price": 46163.07,
+      "amount": 0.193539,
+      "pnl": null,
+      "value": 8934.33
+    },
+    {
+      "timestamp": "2025-08-28T22:08:31.609746",
+      "type": "sell",
+      "price": 43453.97,
+      "amount": 0.193539,
+      "pnl": -541.66,
+      "value": 8410.02
+    },
+    {
+      "timestamp": "2025-08-29T16:08:31.609769",
+      "type": "buy",
+      "price": 48848.03,
+      "amount": 0.172366,
+      "pnl": null,
+      "value": 8419.76
+    },
+    {
+      "timestamp": "2025-08-30T19:08:31.609805",
+      "type": "sell",
+      "price": 42642.21,
+      "amount": 0.172366,
+      "pnl": -1085.44,
+      "value": 7350.08
+    },
+    {
+      "timestamp": "2025-08-31T15:08:31.609829",
+      "type": "buy",
+      "price": 50026.24,
+      "amount": 0.147694,
+      "pnl": null,
+      "value": 7388.59
+    },
+    {
+      "timestamp": "2025-09-01T23:08:31.609873",
+      "type": "sell",
+      "price": 42428.46,
+      "amount": 0.147694,
+      "pnl": -1135.8,
+      "value": 6266.44
+    },
+    {
+      "timestamp": "2025-09-03T18:08:31.609926",
+      "type": "buy",
+      "price": 48614.16,
+      "amount": 0.129789,
+      "pnl": null,
+      "value": 6309.57
+    },
+    {
+      "timestamp": "2025-09-04T22:08:31.609961",
+      "type": "sell",
+      "price": 43812.42,
+      "amount": 0.129789,
+      "pnl": -635.21,
+      "value": 5686.36
+    },
+    {
+      "timestamp": "2025-09-05T17:08:31.609985",
+      "type": "buy",
+      "price": 54194.26,
+      "amount": 0.10529,
+      "pnl": null,
+      "value": 5706.13
+    },
+    {
+      "timestamp": "2025-09-09T02:08:31.610086",
+      "type": "sell",
+      "price": 57695.5,
+      "amount": 0.10529,
+      "pnl": 356.87,
+      "value": 6074.77
+    },
+    {
+      "timestamp": "2025-09-11T13:08:31.610159",
+      "type": "buy",
+      "price": 63311.61,
+      "amount": 0.095482,
+      "pnl": null,
+      "value": 6045.15
+    },
+    {
+      "timestamp": "2025-09-12T17:08:31.610195",
+      "type": "sell",
+      "price": 57820.36,
+      "amount": 0.095482,
+      "pnl": -535.88,
+      "value": 5520.83
+    },
+    {
+      "timestamp": "2025-09-14T19:08:31.610259",
+      "type": "buy",
+      "price": 59600.65,
+      "amount": 0.092886,
+      "pnl": null,
+      "value": 5536.06
+    },
+    {
+      "timestamp": "2025-09-21T23:08:31.610475",
+      "type": "sell",
+      "price": 87812.84,
+      "amount": 0.092886,
+      "pnl": 2606.82,
+      "value": 8156.57
+    },
+    {
+      "timestamp": "2025-09-25T18:08:31.610589",
+      "type": "buy",
+      "price": 80942.15,
+      "amount": 0.098991,
+      "pnl": null,
+      "value": 8012.54
+    },
+    {
+      "timestamp": "2025-09-27T18:08:31.610650",
+      "type": "sell",
+      "price": 78031.96,
+      "amount": 0.098991,
+      "pnl": -303.82,
+      "value": 7724.46
+    },
+    {
+      "timestamp": "2025-09-29T00:08:31.610689",
+      "type": "buy",
+      "price": 87322.01,
+      "amount": 0.088453,
+      "pnl": null,
+      "value": 7723.91
+    },
+    {
+      "timestamp": "2025-09-30T01:08:31.610720",
+      "type": "sell",
+      "price": 86878.21,
+      "amount": 0.088453,
+      "pnl": -54.66,
+      "value": 7684.65
+    },
+    {
+      "timestamp": "2025-10-02T18:08:31.610806",
+      "type": "buy",
+      "price": 79464.29,
+      "amount": 0.096546,
+      "pnl": null,
+      "value": 7671.98
+    },
+    {
+      "timestamp": "2025-10-03T12:08:31.610832",
+      "type": "sell",
+      "price": 74290.03,
+      "amount": 0.096546,
+      "pnl": -514.4,
+      "value": 7172.42
+    },
+    {
+      "timestamp": "2025-10-04T04:08:31.610852",
+      "type": "buy",
+      "price": 85516.97,
+      "amount": 0.083999,
+      "pnl": null,
+      "value": 7183.3
+    },
+    {
+      "timestamp": "2025-10-07T06:08:31.610947",
+      "type": "sell",
+      "price": 90046.39,
+      "amount": 0.083999,
+      "pnl": 365.72,
+      "value": 7563.76
+    },
+    {
+      "timestamp": "2025-10-09T04:08:31.611004",
+      "type": "buy",
+      "price": 91474.94,
+      "amount": 0.082326,
+      "pnl": null,
+      "value": 7530.73
+    },
+    {
+      "timestamp": "2025-10-09T15:08:31.611017",
+      "type": "sell",
+      "price": 90267.85,
+      "amount": 0.082326,
+      "pnl": -114.34,
+      "value": 7431.36
+    },
+    {
+      "timestamp": "2025-10-09T16:08:31.611019",
+      "type": "buy",
+      "price": 91224.2,
+      "amount": 0.081361,
+      "pnl": null,
+      "value": 7422.11
+    },
+    {
+      "timestamp": "2025-10-09T17:08:31.611021",
+      "type": "sell",
+      "price": 89706.57,
+      "amount": 0.081361,
+      "pnl": -138.2,
+      "value": 7298.64
+    },
+    {
+      "timestamp": "2025-10-09T18:08:31.611022",
+      "type": "buy",
+      "price": 90664.32,
+      "amount": 0.080416,
+      "pnl": null,
+      "value": 7290.83
+    },
+    {
+      "timestamp": "2025-10-09T19:08:31.611023",
+      "type": "sell",
+      "price": 88131.52,
+      "amount": 0.080416,
+      "pnl": -218.05,
+      "value": 7087.15
+    },
+    {
+      "timestamp": "2025-10-11T13:08:31.611074",
+      "type": "buy",
+      "price": 92713.62,
+      "amount": 0.076404,
+      "pnl": null,
+      "value": 7083.67
+    },
+    {
+      "timestamp": "2025-10-12T15:08:31.611106",
+      "type": "sell",
+      "price": 86278.6,
+      "amount": 0.076404,
+      "pnl": -505.34,
+      "value": 6592.01
+    },
+    {
+      "timestamp": "2025-10-12T16:08:31.611107",
+      "type": "buy",
+      "price": 88594.05,
+      "amount": 0.074538,
+      "pnl": null,
+      "value": 6603.6
+    },
+    {
+      "timestamp": "2025-10-12T21:08:31.611113",
+      "type": "sell",
+      "price": 87589.08,
+      "amount": 0.074538,
+      "pnl": -88.04,
+      "value": 6528.7
+    },
+    {
+      "timestamp": "2025-10-14T06:08:31.611152",
+      "type": "buy",
+      "price": 92146.63,
+      "amount": 0.070756,
+      "pnl": null,
+      "value": 6519.97
+    },
+    {
+      "timestamp": "2025-10-15T13:08:31.611190",
+      "type": "sell",
+      "price": 87189.79,
+      "amount": 0.070756,
+      "pnl": -363.42,
+      "value": 6169.24
+    },
+    {
+      "timestamp": "2025-10-16T15:08:31.611221",
+      "type": "buy",
+      "price": 90935.61,
+      "amount": 0.067902,
+      "pnl": null,
+      "value": 6174.72
+    },
+    {
+      "timestamp": "2025-10-18T07:08:31.611271",
+      "type": "sell",
+      "price": 96103.86,
+      "amount": 0.067902,
+      "pnl": 338.23,
+      "value": 6525.65
+    },
+    {
+      "timestamp": "2025-10-19T10:08:31.611303",
+      "type": "buy",
+      "price": 98003.29,
+      "amount": 0.066284,
+      "pnl": null,
+      "value": 6496.04
+    },
+    {
+      "timestamp": "2025-10-20T00:08:31.611320",
+      "type": "sell",
+      "price": 89014.35,
+      "amount": 0.066284,
+      "pnl": -608.22,
+      "value": 5900.22
+    },
+    {
+      "timestamp": "2025-10-22T05:08:31.611385",
+      "type": "buy",
+      "price": 86542.73,
+      "amount": 0.068385,
+      "pnl": null,
+      "value": 5918.24
+    },
+    {
+      "timestamp": "2025-10-23T14:08:31.611428",
+      "type": "sell",
+      "price": 86773.01,
+      "amount": 0.068385,
+      "pnl": 3.9,
+      "value": 5933.98
+    },
+    {
+      "timestamp": "2025-10-23T19:08:31.611434",
+      "type": "buy",
+      "price": 93325.95,
+      "amount": 0.063454,
+      "pnl": null,
+      "value": 5921.94
+    },
+    {
+      "timestamp": "2025-10-25T17:08:31.611505",
+      "type": "sell",
+      "price": 91866.21,
+      "amount": 0.063454,
+      "pnl": -104.38,
+      "value": 5829.31
+    },
+    {
+      "timestamp": "2025-11-03T08:08:31.611763",
+      "type": "buy",
+      "price": 65469.26,
+      "amount": 0.088939,
+      "pnl": null,
+      "value": 5822.78
+    },
+    {
+      "timestamp": "2025-11-05T07:08:31.611819",
+      "type": "sell",
+      "price": 67636.81,
+      "amount": 0.088939,
+      "pnl": 180.94,
+      "value": 6015.56
+    },
+    {
+      "timestamp": "2025-11-06T06:08:31.611848",
+      "type": "buy",
+      "price": 71310.27,
+      "amount": 0.084065,
+      "pnl": null,
+      "value": 5994.67
+    },
+    {
+      "timestamp": "2025-11-10T17:08:31.611982",
+      "type": "sell",
+      "price": 84285.28,
+      "amount": 0.084065,
+      "pnl": 1077.66,
+      "value": 7085.41
+    },
+    {
+      "timestamp": "2025-11-13T23:08:31.612077",
+      "type": "buy",
+      "price": 71833.85,
+      "amount": 0.097704,
+      "pnl": null,
+      "value": 7018.45
+    },
+    {
+      "timestamp": "2025-11-15T14:08:31.612124",
+      "type": "sell",
+      "price": 63516.75,
+      "amount": 0.097704,
+      "pnl": -825.84,
+      "value": 6205.83
+    },
+    {
+      "timestamp": "2025-11-17T04:08:31.612169",
+      "type": "buy",
+      "price": 66283.42,
+      "amount": 0.094049,
+      "pnl": null,
+      "value": 6233.9
+    },
+    {
+      "timestamp": "2025-11-18T14:08:31.612210",
+      "type": "sell",
+      "price": 65549.64,
+      "amount": 0.094049,
+      "pnl": -81.41,
+      "value": 6164.89
+    },
+    {
+      "timestamp": "2025-11-19T06:08:31.612230",
+      "type": "buy",
+      "price": 70844.67,
+      "amount": 0.086902,
+      "pnl": null,
+      "value": 6156.56
+    },
+    {
+      "timestamp": "2025-11-23T02:08:31.612342",
+      "type": "sell",
+      "price": 65989.3,
+      "amount": 0.086902,
+      "pnl": -433.83,
+      "value": 5734.62
+    },
+    {
+      "timestamp": "2025-11-27T01:08:31.612456",
+      "type": "buy",
+      "price": 60160.57,
+      "amount": 0.095485,
+      "pnl": null,
+      "value": 5744.42
+    },
+    {
+      "timestamp": "2025-11-28T04:08:31.612489",
+      "type": "sell",
+      "price": 59606.37,
+      "amount": 0.095485,
+      "pnl": -64.35,
+      "value": 5691.5
+    },
+    {
+      "timestamp": "2025-11-29T03:08:31.612517",
+      "type": "buy",
+      "price": 63111.89,
+      "amount": 0.090051,
+      "pnl": null,
+      "value": 5683.28
+    },
+    {
+      "timestamp": "2025-12-01T13:08:31.612589",
+      "type": "sell",
+      "price": 66284.32,
+      "amount": 0.090051,
+      "pnl": 274.03,
+      "value": 5968.96
+    },
+    {
+      "timestamp": "2025-12-02T10:08:31.612615",
+      "type": "buy",
+      "price": 68905.25,
+      "amount": 0.086258,
+      "pnl": null,
+      "value": 5943.61
+    },
+    {
+      "timestamp": "2025-12-08T09:08:31.613072",
+      "type": "sell",
+      "price": 91056.39,
+      "amount": 0.086258,
+      "pnl": 1896.91,
+      "value": 7854.32
+    },
+    {
+      "timestamp": "2025-12-09T11:08:31.613106",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.077457,
+      "pnl": null,
+      "value": 7745.67
+    },
+    {
+      "timestamp": "2025-12-10T10:08:31.613134",
+      "type": "sell",
+      "price": 88811.65,
+      "amount": 0.077457,
+      "pnl": -881.24,
+      "value": 6879.06
+    },
+    {
+      "timestamp": "2025-12-11T15:08:31.613169",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.069085,
+      "pnl": null,
+      "value": 6908.5
+    },
+    {
+      "timestamp": "2025-12-12T17:08:31.613202",
+      "type": "sell",
+      "price": 85679.32,
+      "amount": 0.069085,
+      "pnl": -1002.17,
+      "value": 5919.15
+    },
+    {
+      "timestamp": "2025-12-13T22:08:31.613237",
+      "type": "buy",
+      "price": 94023.97,
+      "amount": 0.06335,
+      "pnl": null,
+      "value": 5956.44
+    },
+    {
+      "timestamp": "2025-12-14T22:08:31.613266",
+      "type": "sell",
+      "price": 96751.99,
+      "amount": 0.06335,
+      "pnl": 160.73,
+      "value": 6129.26
+    },
+    {
+      "timestamp": "2025-12-15T00:08:31.613269",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.061091,
+      "pnl": null,
+      "value": 6109.13
+    },
+    {
+      "timestamp": "2025-12-16T01:08:31.613300",
+      "type": "sell",
+      "price": 88354.05,
+      "amount": 0.061091,
+      "pnl": -722.97,
+      "value": 5397.67
+    },
+    {
+      "timestamp": "2025-12-19T17:08:31.613409",
+      "type": "buy",
+      "price": 75235.9,
+      "amount": 0.072071,
+      "pnl": null,
+      "value": 5422.31
+    },
+    {
+      "timestamp": "2025-12-23T16:08:31.613531",
+      "type": "sell",
+      "price": 76430.55,
+      "amount": 0.072071,
+      "pnl": 75.17,
+      "value": 5508.41
+    },
+    {
+      "timestamp": "2025-12-25T07:08:31.613583",
+      "type": "buy",
+      "price": 77353.38,
+      "amount": 0.071021,
+      "pnl": null,
+      "value": 5493.72
+    },
+    {
+      "timestamp": "2025-12-26T18:08:31.613628",
+      "type": "sell",
+      "price": 75771.51,
+      "amount": 0.071021,
+      "pnl": -123.22,
+      "value": 5381.37
+    },
+    {
+      "timestamp": "2025-12-28T21:08:31.613690",
+      "type": "buy",
+      "price": 77976.7,
+      "amount": 0.068952,
+      "pnl": null,
+      "value": 5376.66
+    },
+    {
+      "timestamp": "2026-01-01T19:08:31.613806",
+      "type": "sell",
+      "price": 94840.19,
+      "amount": 0.068952,
+      "pnl": 1150.86,
+      "value": 6539.43
+    },
+    {
+      "timestamp": "2026-01-02T06:08:31.613821",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.0647,
+      "pnl": null,
+      "value": 6469.97
+    },
+    {
+      "timestamp": "2026-01-03T12:08:31.613858",
+      "type": "sell",
+      "price": 95447.62,
+      "amount": 0.0647,
+      "pnl": -307.18,
+      "value": 6175.44
+    },
+    {
+      "timestamp": "2026-01-04T12:08:31.613888",
+      "type": "buy",
+      "price": 100000,
+      "amount": 0.061781,
+      "pnl": null,
+      "value": 6178.15
+    },
+    {
+      "timestamp": "2026-01-05T17:08:31.613924",
+      "type": "sell",
+      "price": 92991.91,
+      "amount": 0.061781,
+      "pnl": -444.89,
+      "value": 5745.18
+    },
+    {
+      "timestamp": "2026-01-07T05:08:31.613967",
+      "type": "buy",
+      "price": 97280.85,
+      "amount": 0.059164,
+      "pnl": null,
+      "value": 5755.5
+    },
+    {
+      "timestamp": "2026-01-07T23:08:31.613989",
+      "type": "sell",
+      "price": 86169.56,
+      "amount": 0.059164,
+      "pnl": -668.24,
+      "value": 5098.11
+    },
+    {
+      "timestamp": "2026-01-09T10:08:31.614031",
+      "type": "buy",
+      "price": 95427.34,
+      "amount": 0.05366,
+      "pnl": null,
+      "value": 5120.67
+    },
+    {
+      "timestamp": "2026-01-11T01:08:31.614079",
+      "type": "sell",
+      "price": 92479.51,
+      "amount": 0.05366,
+      "pnl": -168.27,
+      "value": 4962.49
+    },
+    {
+      "timestamp": "2026-01-13T16:08:31.614155",
+      "type": "buy",
+      "price": 97273.63,
+      "amount": 0.050999,
+      "pnl": null,
+      "value": 4960.82
+    },
+    {
+      "timestamp": "2026-01-14T12:08:31.614179",
+      "type": "sell",
+      "price": 87666.15,
+      "amount": 0.050999,
+      "pnl": -499.4,
+      "value": 4470.85
+    },
+    {
+      "timestamp": "2026-01-16T01:08:31.614223",
+      "type": "buy",
+      "price": 82394.86,
+      "amount": 0.05445,
+      "pnl": null,
+      "value": 4486.39
+    },
+    {
+      "timestamp": "2026-01-18T12:08:31.614295",
+      "type": "sell",
+      "price": 81168.79,
+      "amount": 0.05445,
+      "pnl": -75.67,
+      "value": 4419.63
+    },
+    {
+      "timestamp": "2026-01-20T10:08:31.614350",
+      "type": "buy",
+      "price": 86666.03,
+      "amount": 0.050937,
+      "pnl": null,
+      "value": 4414.51
+    }
+  ],
+  "RSI14": [
+    {
+      "timestamp": "2025-08-11T01:08:31.609196",
+      "type": "buy",
+      "price": 42326.2,
+      "amount": 0.224447,
+      "pnl": null,
+      "value": 9500.0
+    },
+    {
+      "timestamp": "2025-08-31T14:08:31.609828",
+      "type": "sell",
+      "price": 51422.51,
+      "amount": 0.224447,
+      "pnl": 2020.6,
+      "value": 11541.64
+    },
+    {
+      "timestamp": "2025-09-01T20:08:31.609869",
+      "type": "buy",
+      "price": 43677.38,
+      "amount": 0.261453,
+      "pnl": null,
+      "value": 11419.57
+    },
+    {
+      "timestamp": "2025-09-05T17:08:31.609985",
+      "type": "sell",
+      "price": 54194.26,
+      "amount": 0.261453,
+      "pnl": 2724.08,
+      "value": 14169.24
+    },
+    {
+      "timestamp": "2025-10-20T06:08:31.611327",
+      "type": "buy",
+      "price": 81324.86,
+      "amount": 0.172241,
+      "pnl": null,
+      "value": 14007.45
+    },
+    {
+      "timestamp": "2025-11-03T16:08:31.611773",
+      "type": "sell",
+      "price": 70827.46,
+      "amount": 0.172241,
+      "pnl": -1834.29,
+      "value": 12199.37
+    },
+    {
+      "timestamp": "2025-11-12T10:08:31.612032",
+      "type": "buy",
+      "price": 69469.19,
+      "amount": 0.176551,
+      "pnl": null,
+      "value": 12264.88
+    },
+    {
+      "timestamp": "2025-11-30T01:08:31.612545",
+      "type": "sell",
+      "price": 69919.35,
+      "amount": 0.176551,
+      "pnl": 54.87,
+      "value": 12344.35
+    },
+    {
+      "timestamp": "2025-12-17T21:08:31.613354",
+      "type": "buy",
+      "price": 74788.75,
+      "amount": 0.164691,
+      "pnl": null,
+      "value": 12317.0
+    },
+    {
+      "timestamp": "2025-12-22T11:08:31.613492",
+      "type": "sell",
+      "price": 88224.42,
+      "amount": 0.164691,
+      "pnl": 2185.88,
+      "value": 14529.73
+    },
+    {
+      "timestamp": "2026-01-07T23:08:31.613989",
+      "type": "buy",
+      "price": 86169.56,
+      "amount": 0.167038,
+      "pnl": null,
+      "value": 14393.59
+    }
+  ],
+  "RSI21": [
+    {
+      "timestamp": "2025-08-11T01:08:31.609196",
+      "type": "buy",
+      "price": 42326.2,
+      "amount": 0.224447,
+      "pnl": null,
+      "value": 9500.0
+    },
+    {
+      "timestamp": "2025-09-05T20:08:31.609989",
+      "type": "sell",
+      "price": 55131.55,
+      "amount": 0.224447,
+      "pnl": 2852.25,
+      "value": 12374.13
+    },
+    {
+      "timestamp": "2025-10-27T03:08:31.611546",
+      "type": "buy",
+      "price": 77619.31,
+      "amount": 0.157302,
+      "pnl": null,
+      "value": 12209.64
+    },
+    {
+      "timestamp": "2025-11-03T17:08:31.611774",
+      "type": "sell",
+      "price": 71965.38,
+      "amount": 0.157302,
+      "pnl": -912.9,
+      "value": 11320.27
+    },
+    {
+      "timestamp": "2025-11-12T11:08:31.612033",
+      "type": "buy",
+      "price": 68236.21,
+      "amount": 0.166222,
+      "pnl": null,
+      "value": 11342.38
+    },
+    {
+      "timestamp": "2025-11-30T01:08:31.612545",
+      "type": "sell",
+      "price": 69919.35,
+      "amount": 0.166222,
+      "pnl": 256.81,
+      "value": 11622.16
+    },
+    {
+      "timestamp": "2025-12-17T21:08:31.613354",
+      "type": "buy",
+      "price": 74788.75,
+      "amount": 0.154921,
+      "pnl": null,
+      "value": 11586.35
+    },
+    {
+      "timestamp": "2025-12-22T11:08:31.613492",
+      "type": "sell",
+      "price": 88224.42,
+      "amount": 0.154921,
+      "pnl": 2056.21,
+      "value": 13667.82
+    },
+    {
+      "timestamp": "2026-01-08T01:08:31.613991",
+      "type": "buy",
+      "price": 85026.64,
+      "amount": 0.159241,
+      "pnl": null,
+      "value": 13539.76
+    }
+  ],
+  "网格交易": [
+    {
+      "timestamp": "2025-07-24T22:08:31.608664",
+      "type": "buy",
+      "price": 45680.44,
+      "amount": 0.021891,
+      "pnl": null,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-07-24T22:08:31.608664",
+      "type": "buy",
+      "price": 45680.44,
+      "amount": 0.021891,
+      "pnl": null,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-07-24T22:08:31.608664",
+      "type": "buy",
+      "price": 45680.44,
+      "amount": 0.021891,
+      "pnl": null,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-07-24T22:08:31.608664",
+      "type": "buy",
+      "price": 45680.44,
+      "amount": 0.021891,
+      "pnl": null,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-07-24T22:08:31.608664",
+      "type": "buy",
+      "price": 45680.44,
+      "amount": 0.021891,
+      "pnl": null,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-09-08T00:08:31.610053",
+      "type": "sell",
+      "price": 68439.58,
+      "amount": 0.014611,
+      "pnl": 33.86,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-09-08T02:08:31.610056",
+      "type": "sell",
+      "price": 70485.91,
+      "amount": 0.014187,
+      "pnl": 61.88,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-09-08T06:08:31.610061",
+      "type": "sell",
+      "price": 72213.14,
+      "amount": 0.013848,
+      "pnl": 84.3,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-09-17T12:08:31.610340",
+      "type": "sell",
+      "price": 75374.54,
+      "amount": 0.013267,
+      "pnl": 122.66,
+      "value": 1000.0
+    },
+    {
+      "timestamp": "2025-09-17T13:08:31.610341",
+      "type": "sell",
+      "price": 76728.27,
+      "amount": 0.013033,
+      "pnl": 138.12,
+      "value": 1000.0
+    }
+  ]
+}

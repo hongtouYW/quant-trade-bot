@@ -1,0 +1,110 @@
+[
+  {
+    "strategy": "MA5/20",
+    "total_trades": 261,
+    "sell_trades": 130,
+    "winning_trades": 45,
+    "win_rate": 0.34615384615384615,
+    "total_pnl": 1753.223221768816,
+    "return_pct": 0.25217045228208573,
+    "annual_return": 0.5043409045641715,
+    "final_equity": 12521.704522820857,
+    "avg_pnl": 13.486332475144739
+  },
+  {
+    "strategy": "MA10/30",
+    "total_trades": 179,
+    "sell_trades": 89,
+    "winning_trades": 33,
+    "win_rate": 0.3707865168539326,
+    "total_pnl": -5377.127545286689,
+    "return_pct": -0.5117054335165264,
+    "annual_return": -1.0234108670330528,
+    "final_equity": 4882.945664834736,
+    "avg_pnl": -60.41716343018752
+  },
+  {
+    "strategy": "MA20/50",
+    "total_trades": 99,
+    "sell_trades": 49,
+    "winning_trades": 14,
+    "win_rate": 0.2857142857142857,
+    "total_pnl": -5353.148383204295,
+    "return_pct": -0.5302663870655165,
+    "annual_return": -1.060532774131033,
+    "final_equity": 4697.336129344834,
+    "avg_pnl": -109.24792618784275
+  },
+  {
+    "strategy": "RSI14",
+    "total_trades": 23,
+    "sell_trades": 11,
+    "winning_trades": 7,
+    "win_rate": 0.6363636363636364,
+    "total_pnl": 4760.717815649461,
+    "return_pct": 0.4121509117213591,
+    "annual_return": 0.8243018234427182,
+    "final_equity": 14121.50911721359,
+    "avg_pnl": 432.79252869540557
+  },
+  {
+    "strategy": "RSI14",
+    "total_trades": 11,
+    "sell_trades": 5,
+    "winning_trades": 4,
+    "win_rate": 0.8,
+    "total_pnl": 5151.143103824457,
+    "return_pct": 0.5399709943059221,
+    "annual_return": 1.0799419886118442,
+    "final_equity": 15399.70994305922,
+    "avg_pnl": 1030.2286207648915
+  },
+  {
+    "strategy": "RSI21",
+    "total_trades": 9,
+    "sell_trades": 4,
+    "winning_trades": 3,
+    "win_rate": 0.75,
+    "total_pnl": 4252.376401716154,
+    "return_pct": 0.4671523145653646,
+    "annual_return": 0.9343046291307292,
+    "final_equity": 14671.523145653646,
+    "avg_pnl": 1063.0941004290385
+  },
+  {
+    "strategy": "网格交易",
+    "total_trades": 20,
+    "sell_trades": 10,
+    "winning_trades": 10,
+    "win_rate": 1.0,
+    "total_pnl": 312.98344200957735,
+    "return_pct": 0.33746180584145896,
+    "annual_return": 0.6749236116829179,
+    "final_equity": 13374.61805841459,
+    "avg_pnl": 31.298344200957736
+  },
+  {
+    "strategy": "网格交易",
+    "total_trades": 16,
+    "sell_trades": 8,
+    "winning_trades": 8,
+    "win_rate": 1.0,
+    "total_pnl": 449.0953596982331,
+    "return_pct": 0.35554256601484524,
+    "annual_return": 0.7110851320296905,
+    "final_equity": 13555.425660148452,
+    "avg_pnl": 56.13691996227914
+  },
+  {
+    "strategy": "网格交易",
+    "total_trades": 10,
+    "sell_trades": 5,
+    "winning_trades": 5,
+    "win_rate": 1.0,
+    "total_pnl": 440.8315136368939,
+    "return_pct": 0.35444481777000275,
+    "annual_return": 0.7088896355400055,
+    "final_equity": 13544.448177700027,
+    "avg_pnl": 88.16630272737878
+  }
+]

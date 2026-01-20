@@ -332,7 +332,8 @@ class SimpleBacktester:
             'return_pct': return_pct,
             'annual_return': return_pct * 2,  # 6个月数据年化
             'final_equity': final_equity,
-            'avg_pnl': total_pnl / len(sell_trades) if sell_trades else 0
+            'avg_pnl': total_pnl / len(sell_trades) if sell_trades else 0,
+            'trades': trades  # 保存完整交易历史
         }
 
 def main():
@@ -439,20 +440,60 @@ def print_comparison_report(results):
     print("="*80)
 
 def save_results(results):
-    """保存回测结果"""
+    """保存回测结果和交易历史"""
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"strategy_analysis_{timestamp}.json"
     
-    # 清理结果用于JSON序列化
+    # 保存汇总结果
+    summary_filename = f"strategy_analysis_{timestamp}.json"
     clean_results = []
     for result in results:
-        clean_result = {k: v for k, v in result.items() if not callable(v)}
+        clean_result = {k: v for k, v in result.items() if k != 'trades'}
         clean_results.append(clean_result)
     
-    with open(filename, 'w', encoding='utf-8') as f:
+    with open(summary_filename, 'w', encoding='utf-8') as f:
         json.dump(clean_results, f, indent=2, ensure_ascii=False, default=str)
     
-    print(f"💾 回测结果已保存到: {filename}")
+    # 保存详细交易历史
+    trades_filename = f"trading_history_{timestamp}.json"
+    all_trades = {}
+    
+    for result in results:
+        strategy_name = result['strategy']
+        if 'trades' in result:
+            all_trades[strategy_name] = [
+                {
+                    'timestamp': trade.get('timestamp', '').isoformat() if hasattr(trade.get('timestamp', ''), 'isoformat') else str(trade.get('timestamp', '')),
+                    'type': trade.get('type', ''),
+                    'price': round(trade.get('price', 0), 2),
+                    'amount': round(trade.get('amount', 0), 6),
+                    'pnl': round(trade.get('pnl', 0), 2) if trade.get('pnl') else None,
+                    'value': round(trade.get('price', 0) * trade.get('amount', 0), 2)
+                }
+                for trade in result.get('trades', [])
+            ]
+    
+    with open(trades_filename, 'w', encoding='utf-8') as f:
+        json.dump(all_trades, f, indent=2, ensure_ascii=False, default=str)
+    
+    print(f"💾 回测结果已保存到: {summary_filename}")
+    print(f"📊 交易历史已保存到: {trades_filename}")
+    
+    # 创建最新数据的符号链接
+    try:
+        import os
+        if os.path.exists('latest_trades.json'):
+            os.remove('latest_trades.json')
+        if os.path.exists('latest_analysis.json'):
+            os.remove('latest_analysis.json')
+        
+        os.symlink(trades_filename, 'latest_trades.json')
+        os.symlink(summary_filename, 'latest_analysis.json')
+        print("🔗 已创建最新数据链接")
+    except:
+        # 如果符号链接失败，直接复制文件
+        import shutil
+        shutil.copy2(trades_filename, 'latest_trades.json')
+        shutil.copy2(summary_filename, 'latest_analysis.json')
 
 if __name__ == "__main__":
     main()
