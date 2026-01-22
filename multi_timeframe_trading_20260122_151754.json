@@ -1,0 +1,56 @@
+{
+  "monitoring_summary": {
+    "start_capital": 1000,
+    "total_trades": 3,
+    "final_positions": {
+      "BTC/USDT": {
+        "size": -0.00013386843618840661,
+        "avg_price": 89640.24934982571,
+        "leverage": 2
+      },
+      "ETH/USDT": {
+        "size": 0.0030875751637472458,
+        "avg_price": 3886.545059986867,
+        "leverage": 2
+      },
+      "SOL/USDT": {
+        "size": 0.05058002635124544,
+        "avg_price": 237.24780047894382,
+        "leverage": 2
+      }
+    },
+    "timestamp": "20260122_151754"
+  },
+  "trades_detail": [
+    {
+      "timestamp": "2026-01-22 15:16:54",
+      "symbol": "BTC/USDT",
+      "signal": "sell_rally",
+      "price": 89640.24934982571,
+      "size": 0.00013386843618840661,
+      "leverage": 2,
+      "value": 24.0,
+      "confidence": 0.6
+    },
+    {
+      "timestamp": "2026-01-22 15:17:54",
+      "symbol": "ETH/USDT",
+      "signal": "buy_dip",
+      "price": 3886.545059986867,
+      "size": 0.0030875751637472458,
+      "leverage": 2,
+      "value": 24.0,
+      "confidence": 0.6
+    },
+    {
+      "timestamp": "2026-01-22 15:17:54",
+      "symbol": "SOL/USDT",
+      "signal": "buy_dip",
+      "price": 237.24780047894382,
+      "size": 0.05058002635124544,
+      "leverage": 2,
+      "value": 24.0,
+      "confidence": 0.6
+    }
+  ]
+}

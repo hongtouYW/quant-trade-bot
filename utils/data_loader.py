@@ -1,32 +1,84 @@
 import ccxt
 import pandas as pd
 import numpy as np
+import time
+import logging
 from datetime import datetime, timedelta
+from typing import Optional, Dict, Any
+
+# 设置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 class DataLoader:
-    """行情数据加载器"""
+    """行情数据加载器，带有重试和异常处理"""
     
-    def __init__(self, exchange_name, api_key=None, api_secret=None):
-        exchange_class = getattr(ccxt, exchange_name)
-        self.exchange = exchange_class({
-            'apiKey': api_key,
-            'secret': api_secret,
-            'enableRateLimit': True,
-            'options': {'defaultType': 'spot'}
-        })
+    def __init__(self, exchange_name, api_key=None, api_secret=None, max_retries=3):
+        self.exchange_name = exchange_name
+        self.max_retries = max_retries
+        
+        try:
+            exchange_class = getattr(ccxt, exchange_name)
+            self.exchange = exchange_class({
+                'apiKey': api_key,
+                'secret': api_secret,
+                'enableRateLimit': True,
+                'options': {'defaultType': 'spot'}
+            })
+            
+            # 测试连接
+            self.exchange.load_markets()
+            logger.info(f"✅ {exchange_name} 连接成功")
+            
+        except Exception as e:
+            logger.error(f"❌ {exchange_name} 连接失败: {e}")
+            raise
     
     def fetch_ohlcv(self, symbol, timeframe='1h', limit=100):
-        """获取K线数据"""
-        ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
-        df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        df.set_index('timestamp', inplace=True)
-        return df
+        """获取K线数据，带重试机制"""
+        for attempt in range(self.max_retries):
+            try:
+                ohlcv = self.exchange.fetch_ohlcv(symbol, timeframe=timeframe, limit=limit)
+                df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                df.set_index('timestamp', inplace=True)
+                return df
+            
+            except ccxt.NetworkError as e:
+                logger.warning(f"网络错误 (尝试 {attempt+1}/{self.max_retries}): {e}")
+                if attempt < self.max_retries - 1:
+                    time.sleep(2 ** attempt)  # 指数退避
+                else:
+                    raise
+            
+            except ccxt.RateLimitExceeded as e:
+                logger.warning(f"API限流 (尝试 {attempt+1}/{self.max_retries}): {e}")
+                if attempt < self.max_retries - 1:
+                    time.sleep(5 * (attempt + 1))  # 更长等待时间
+                else:
+                    raise
+            
+            except Exception as e:
+                logger.error(f"获取数据失败: {e}")
+                raise
     
     def fetch_ticker(self, symbol):
-        """获取当前价格"""
-        ticker = self.exchange.fetch_ticker(symbol)
-        return ticker
+        """获取当前价格，带重试机制"""
+        for attempt in range(self.max_retries):
+            try:
+                ticker = self.exchange.fetch_ticker(symbol)
+                return ticker
+            
+            except ccxt.NetworkError as e:
+                logger.warning(f"网络错误 (尝试 {attempt+1}/{self.max_retries}): {e}")
+                if attempt < self.max_retries - 1:
+                    time.sleep(2 ** attempt)
+                else:
+                    raise
+            
+            except Exception as e:
+                logger.error(f"获取价格失败: {e}")
+                raise
     
     def fetch_balance(self):
         """获取账户余额"""

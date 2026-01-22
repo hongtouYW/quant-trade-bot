@@ -1,0 +1,22 @@
+{
+  "environment_info": {
+    "initial_balance": 10000,
+    "start_time": "2026-01-22T16:26:34.990529",
+    "end_time": "2026-01-22T16:26:37.001341"
+  },
+  "performance_stats": {
+    "total_trades": 1,
+    "winning_trades": 1,
+    "losing_trades": 0,
+    "total_pnl": 45.2,
+    "max_drawdown": 0.47143,
+    "current_drawdown": 0.47143,
+    "max_balance": 10000
+  },
+  "current_balance": 5285.7,
+  "positions": {
+    "BTC/USDT": {
+      "amount": 0.05,
+      "avg_price": 95000,
+      "side": "long",
+      "entry_time": 

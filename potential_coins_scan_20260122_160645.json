@@ -1,0 +1,348 @@
+{
+  "scan_time": "2026-01-22 16:06:45",
+  "total_scanned": 20,
+  "high_potential_count": 14,
+  "volume_surge_count": 14,
+  "whale_activity_count": 18,
+  "high_potential_coins": [
+    {
+      "symbol": "ETH/USDT",
+      "current_price": 3616.122753134224,
+      "price_change_24h": 6.356551562771282,
+      "volume_ratio": 7.335761382769672,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -74039333.98400635,
+        "buy_volume": 38194916.726449154,
+        "sell_volume": 112234250.71045549,
+        "direction": "获利回吐",
+        "confidence": 0.6,
+        "score": 30
+      },
+      "technical_signals": {
+        "signals": [
+          "放量突破",
+          "异常放量"
+        ],
+        "score": 30,
+        "description": "放量突破 | 异常放量"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 10,
+        "whale_orders": 10,
+        "total_volume": 150429167.43690467,
+        "score": 25,
+        "description": "巨鲸出没 - 10笔大单"
+      }
+    },
+    {
+      "symbol": "BNB/USDT",
+      "current_price": 590.5233260223054,
+      "price_change_24h": -1.579445662949111,
+      "volume_ratio": 6.774101975261896,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -6444285.681896351,
+        "buy_volume": 24402368.40947432,
+        "sell_volume": 30846654.091370672,
+        "direction": "恐慌抛售",
+        "confidence": 0.5,
+        "score": 6.444285681896352
+      },
+      "technical_signals": {
+        "signals": [
+          "底部放量",
+          "异常放量",
+          "强势整理"
+        ],
+        "score": 30,
+        "description": "底部放量 | 异常放量 | 强势整理"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 6,
+        "whale_orders": 6,
+        "total_volume": 54870830.54138374,
+        "score": 25,
+        "description": "巨鲸出没 - 6笔大单"
+      }
+    },
+    {
+      "symbol": "DOT/USDT",
+      "current_price": 7.65108500305765,
+      "price_change_24h": -4.361437461779377,
+      "volume_ratio": 6.6600359240244575,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": 159780058.0447979,
+        "buy_volume": 161515304.21622887,
+        "sell_volume": 1735246.171430988,
+        "direction": "抄底资金",
+        "confidence": 0.7,
+        "score": 30
+      },
+      "technical_signals": {
+        "signals": [
+          "底部放量",
+          "异常放量"
+        ],
+        "score": 30,
+        "description": "底部放量 | 异常放量"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 10,
+        "whale_orders": 10,
+        "total_volume": 163250550.38765985,
+        "score": 25,
+        "description": "巨鲸出没 - 10笔大单"
+      }
+    },
+    {
+      "symbol": "MATIC/USDT",
+      "current_price": 1.2200331337469572,
+      "price_change_24h": 1.6694278122464463,
+      "volume_ratio": 5.656807119958629,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -15839445.388043351,
+        "buy_volume": 38548820.79449113,
+        "sell_volume": 54388266.18253448,
+        "direction": "获利回吐",
+        "confidence": 0.6,
+        "score": 15.839445388043352
+      },
+      "technical_signals": {
+        "signals": [
+          "异常放量",
+          "强势整理"
+        ],
+        "score": 25,
+        "description": "异常放量 | 强势整理"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 10,
+        "whale_orders": 10,
+        "total_volume": 92937086.97702561,
+        "score": 25,
+        "description": "巨鲸出没 - 10笔大单"
+      }
+    },
+    {
+      "symbol": "AVAX/USDT",
+      "current_price": 40.62711918508931,
+      "price_change_24h": 1.5677979627232803,
+      "volume_ratio": 5.349189256755492,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -55247511.67130291,
+        "buy_volume": 26197301.417703994,
+        "sell_volume": 81444813.0890069,
+        "direction": "获利回吐",
+        "confidence": 0.6,
+        "score": 30
+      },
+      "technical_signals": {
+        "signals": [
+          "异常放量",
+          "强势整理"
+        ],
+        "score": 25,
+        "description": "异常放量 | 强势整理"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 10,
+        "whale_orders": 10,
+        "total_volume": 107642114.50671089,
+        "score": 25,
+        "description": "巨鲸出没 - 10笔大单"
+      }
+    },
+    {
+      "symbol": "ALGO/USDT",
+      "current_price": 0.2918948431196442,
+      "price_change_24h": -2.701718960118588,
+      "volume_ratio": 4.6418186338746965,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -33389893.67295252,
+        "buy_volume": 8067862.112065744,
+        "sell_volume": 41457755.785018265,
+        "direction": "恐慌抛售",
+        "confidence": 0.5,
+        "score": 30
+      },
+      "technical_signals": {
+        "signals": [
+          "底部放量"
+        ],
+        "score": 20,
+        "description": "底部放量"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 7,
+        "whale_orders": 7,
+        "total_volume": 49525617.897084005,
+        "score": 25,
+        "description": "巨鲸出没 - 7笔大单"
+      }
+    },
+    {
+      "symbol": "VET/USDT",
+      "current_price": 0.05045962524618422,
+      "price_change_24h": 0.9192504923684175,
+      "volume_ratio": 7.5120200242307265,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -25571831.312802237,
+        "buy_volume": 5853950.067917724,
+        "sell_volume": 31425781.38071996,
+        "direction": "获利回吐",
+        "confidence": 0.6,
+        "score": 25.571831312802235
+      },
+      "technical_signals": {
+        "signals": [
+          "异常放量",
+          "强势整理"
+        ],
+        "score": 25,
+        "description": "异常放量 | 强势整理"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 5,
+        "whale_orders": 6,
+        "total_volume": 37279731.44863769,
+        "score": 25,
+        "description": "巨鲸出没 - 6笔大单"
+      }
+    },
+    {
+      "symbol": "MANA/USDT",
+      "current_price": 0.6414548726666611,
+      "price_change_24h": 6.909145444443523,
+      "volume_ratio": 7.9646937244413785,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": -26679888.266293176,
+        "buy_volume": 17860023.61424727,
+        "sell_volume": 44539911.880540445,
+        "direction": "获利回吐",
+        "confidence": 0.6,
+        "score": 26.679888266293176
+      },
+      "technical_signals": {
+        "signals": [
+          "放量突破",
+          "异常放量"
+        ],
+        "score": 30,
+        "description": "放量突破 | 异常放量"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 8,
+        "whale_orders": 8,
+        "total_volume": 62399935.49478771,
+        "score": 25,
+        "description": "巨鲸出没 - 8笔大单"
+      }
+    },
+    {
+      "symbol": "LRC/USDT",
+      "current_price": 0.21855533722562437,
+      "price_change_24h": 9.277668612812192,
+      "volume_ratio": 3.395164128956936,
+      "potential_score": 100,
+      "fund_flow": {
+        "net_flow": 22902843.63182388,
+        "buy_volume": 22902843.63182388,
+        "sell_volume": 0,
+        "direction": "强势流入",
+        "confidence": 0.8,
+        "score": 22.902843631823878
+      },
+      "technical_signals": {
+        "signals": [
+          "放量突破"
+        ],
+        "score": 25,
+        "description": "放量突破"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 4,
+        "whale_orders": 4,
+        "total_volume": 22902843.63182388,
+        "score": 25,
+        "description": "巨鲸出没 - 4笔大单"
+      }
+    },
+    {
+      "symbol": "ATOM/USDT",
+      "current_price": 13.907910602548032,
+      "price_change_24h": -7.2805959830131135,
+      "volume_ratio": 5.247644858081573,
+      "potential_score": 93.29477847162651,
+      "fund_flow": {
+        "net_flow": -13294778.471626513,
+        "buy_volume": 59822769.45927339,
+        "sell_volume": 73117547.9308999,
+        "direction": "恐慌抛售",
+        "confidence": 0.5,
+        "score": 13.294778471626513
+      },
+      "technical_signals": {
+        "signals": [
+          "异常放量"
+        ],
+        "score": 15,
+        "description": "异常放量"
+      },
+      "whale_activity": {
+        "level": "巨鲸出没",
+        "mega_orders": 10,
+        "whale_orders": 10,
+        "total_volume": 132940317.3901733,
+        "score": 25,
+        "description": "巨鲸出没 - 10笔大单"
+      }
+    }
+  ],
+  "volume_surge_coins": [
+    "CoinAnalysis(symbol='ETH/USDT', current_price=3616.122753134224, volume_24h=293886562.1613801, volume_7d_avg=40062175.80245516, volume_ratio=7.335761382769672, price_change_24h=6.356551562771282, large_orders=[{'size': 25023481.45789673, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 43, 126372), 'price_impact': 0.49612655465001587}, {'size': 22865588.222505268, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 43, 126332), 'price_impact': 0.11373645969732205}, {'size': 20035234.05186545, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 126306), 'price_impact': 1.5770495623829013}, {'size': 16643906.850919407, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 43, 126336), 'price_impact': 1.5107067684953965}, {'size': 15249440.098685415, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 126341), 'price_impact': 0.391746639641126}, {'size': 14808842.359782673, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 43, 126326), 'price_impact': 0.25241887984556577}, {'size': 13778106.441112012, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 6, 6, 43, 126262), 'price_impact': 1.8663943354890322}, {'size': 11878597.041666651, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 126346), 'price_impact': 1.1750279925262526}, {'size': 5764394.678999354, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 1, 6, 43, 126375), 'price_impact': 0.5252708308952141}, {'size': 4381576.23347169, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 15, 6, 43, 126365), 'price_impact': 1.8066644117515367}], fund_flow={'net_flow': -74039333.98400635, 'buy_volume': 38194916.726449154, 'sell_volume': 112234250.71045549, 'direction': '获利回吐', 'confidence': 0.6, 'score': 30}, technical_signals={'signals': ['放量突破', '异常放量'], 'score': 30, 'description': '放量突破 | 异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 150429167.43690467, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='BNB/USDT', current_price=590.5233260223054, volume_24h=141882718.0952222, volume_7d_avg=20944874.850328308, volume_ratio=6.774101975261896, price_change_24h=-1.579445662949111, large_orders=[{'size': 13891420.264792368, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 43, 231551), 'price_impact': 1.426195186033502}, {'size': 13679255.467432884, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 231570), 'price_impact': 0.6518234368570569}, {'size': 10107728.114755891, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 11, 6, 43, 231564), 'price_impact': 0.7825615032986135}, {'size': 8188042.722545048, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 1, 6, 43, 231578), 'price_impact': 1.267556139365779}, {'size': 6469313.7523611635, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 231576), 'price_impact': 1.4289014655354537}, {'size': 2535070.2194963875, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 9, 6, 43, 231567), 'price_impact': 0.8475891158234408}, {'size': 378191.95946125116, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 231573), 'price_impact': 1.436514857196452}], fund_flow={'net_flow': -6444285.681896351, 'buy_volume': 24402368.40947432, 'sell_volume': 30846654.091370672, 'direction': '恐慌抛售', 'confidence': 0.5, 'score': 6.444285681896352}, technical_signals={'signals': ['底部放量', '异常放量', '强势整理'], 'score': 30, 'description': '底部放量 | 异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 6, 'whale_orders': 6, 'total_volume': 54870830.54138374, 'score': 25, 'description': '巨鲸出没 - 6笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='DOT/USDT', current_price=7.65108500305765, volume_24h=278986353.1715896, volume_7d_avg=41889616.86606138, volume_ratio=6.6600359240244575, price_change_24h=-4.361437461779377, large_orders=[{'size': 26810614.5042461, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 547439), 'price_impact': 0.8801816941612873}, {'size': 26542404.81888404, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 43, 547452), 'price_impact': 1.112589318111488}, {'size': 23904474.326881666, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 7, 6, 43, 547444), 'price_impact': 0.872345405230963}, {'size': 22268628.508116297, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 7, 6, 43, 547460), 'price_impact': 1.2463520785587194}, {'size': 21545783.58695232, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 43, 547471), 'price_impact': 0.746587384874444}, {'size': 13781254.262814315, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 547421), 'price_impact': 1.6978612520249534}, {'size': 11466930.57850274, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 547464), 'price_impact': 0.17732522026776099}, {'size': 9062052.407675052, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 43, 547467), 'price_impact': 0.8703993663152205}, {'size': 6133161.222156314, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 43, 547448), 'price_impact': 0.14334550939148283}, {'size': 1735246.171430988, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 547456), 'price_impact': 1.948060181708214}], fund_flow={'net_flow': 159780058.0447979, 'buy_volume': 161515304.21622887, 'sell_volume': 1735246.171430988, 'direction': '抄底资金', 'confidence': 0.7, 'score': 30}, technical_signals={'signals': ['底部放量', '异常放量'], 'score': 30, 'description': '底部放量 | 异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 163250550.38765985, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='MATIC/USDT', current_price=1.2200331337469572, volume_24h=235988066.60858068, volume_7d_avg=41717538.11013916, volume_ratio=5.656807119958629, price_change_24h=1.6694278122464463, large_orders=[{'size': 17226050.4059851, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 43, 758072), 'price_impact': 0.37033808024111925}, {'size': 16262653.63708858, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 758063), 'price_impact': 1.0837627693471972}, {'size': 14445997.518782116, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 43, 758067), 'price_impact': 0.5410740238578086}, {'size': 10831658.103415055, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 758085), 'price_impact': 1.9327400575748703}, {'size': 8804069.404915519, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 758093), 'price_impact': 1.1398342968855506}, {'size': 6511442.23996468, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 10, 6, 43, 758077), 'price_impact': 1.0641832017880544}, {'size': 6406667.761576232, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 758081), 'price_impact': 1.9375139961327619}, {'size': 5994983.284619644, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 758089), 'price_impact': 0.5274223160445736}, {'size': 5142356.2729529785, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 1, 6, 43, 758042), 'price_impact': 1.8950704845766}, {'size': 1311208.3477257024, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 43, 758057), 'price_impact': 1.8331553016078612}], fund_flow={'net_flow': -15839445.388043351, 'buy_volume': 38548820.79449113, 'sell_volume': 54388266.18253448, 'direction': '获利回吐', 'confidence': 0.6, 'score': 15.839445388043352}, technical_signals={'signals': ['异常放量', '强势整理'], 'score': 25, 'description': '异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 92937086.97702561, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='AVAX/USDT', current_price=40.62711918508931, volume_24h=205201925.18532956, volume_7d_avg=38361313.33849891, volume_ratio=5.349189256755492, price_change_24h=1.5677979627232803, large_orders=[{'size': 20086678.493403018, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 43, 863541), 'price_impact': 0.9523493106608559}, {'size': 17812920.719586644, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 2, 6, 43, 863494), 'price_impact': 1.1301563959771024}, {'size': 14923656.91412534, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 43, 863509), 'price_impact': 1.2619607970975637}, {'size': 13649484.864585416, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 863517), 'price_impact': 1.9555573717514538}, {'size': 10901166.902825693, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 863535), 'price_impact': 1.6719048189209085}, {'size': 9601023.405981941, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 43, 863485), 'price_impact': 0.4501779728467644}, {'size': 6110622.924300975, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 23, 6, 43, 863529), 'price_impact': 1.3327727570804346}, {'size': 6108102.488180156, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 863453), 'price_impact': 1.3091748099631537}, {'size': 4530894.4286396615, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 7, 6, 43, 863502), 'price_impact': 1.5631773210855409}, {'size': 3917563.365082044, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 3, 6, 43, 863523), 'price_impact': 1.998235881174009}], fund_flow={'net_flow': -55247511.67130291, 'buy_volume': 26197301.417703994, 'sell_volume': 81444813.0890069, 'direction': '获利回吐', 'confidence': 0.6, 'score': 30}, technical_signals={'signals': ['异常放量', '强势整理'], 'score': 25, 'description': '异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 107642114.50671089, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='ALGO/USDT', current_price=0.2918948431196442, volume_24h=147327938.30610982, volume_7d_avg=31739270.731293045, volume_ratio=4.6418186338746965, price_change_24h=-2.701718960118588, large_orders=[{'size': 12835131.267487107, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 44, 280264), 'price_impact': 1.572721132454017}, {'size': 9742981.227131786, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 44, 280071), 'price_impact': 0.15659009189591563}, {'size': 9611548.647758596, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 44, 280142), 'price_impact': 1.463939355480969}, {'size': 7849674.684322497, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 44, 280274), 'price_impact': 0.4595159773511174}, {'size': 5180203.611901353, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 44, 280130), 'price_impact': 0.5915323972057618}, {'size': 2887658.500164391, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 44, 280115), 'price_impact': 1.2401236078089422}, {'size': 1418419.9583182773, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 10, 6, 44, 280247), 'price_impact': 1.292148325498736}], fund_flow={'net_flow': -33389893.67295252, 'buy_volume': 8067862.112065744, 'sell_volume': 41457755.785018265, 'direction': '恐慌抛售', 'confidence': 0.5, 'score': 30}, technical_signals={'signals': ['底部放量'], 'score': 20, 'description': '底部放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 7, 'whale_orders': 7, 'total_volume': 49525617.897084005, 'score': 25, 'description': '巨鲸出没 - 7笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='VET/USDT', current_price=0.05045962524618422, volume_24h=134427331.37782055, volume_7d_avg=17894964.462849215, volume_ratio=7.5120200242307265, price_change_24h=0.9192504923684175, large_orders=[{'size': 12914029.88593449, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 44, 385736), 'price_impact': 0.15717156948139294}, {'size': 12177735.756157055, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 44, 385700), 'price_impact': 1.158051460059493}, {'size': 5537095.84880597, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 17, 6, 44, 385752), 'price_impact': 0.17325119621230212}, {'size': 4161468.278746531, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 44, 385763), 'price_impact': 0.12235235391485126}, {'size': 1692481.7891711935, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 44, 385746), 'price_impact': 1.0166162174526319}, {'size': 796919.8898224469, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 3, 6, 44, 385758), 'price_impact': 1.0096795118699253}], fund_flow={'net_flow': -25571831.312802237, 'buy_volume': 5853950.067917724, 'sell_volume': 31425781.38071996, 'direction': '获利回吐', 'confidence': 0.6, 'score': 25.571831312802235}, technical_signals={'signals': ['异常放量', '强势整理'], 'score': 25, 'description': '异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 5, 'whale_orders': 6, 'total_volume': 37279731.44863769, 'score': 25, 'description': '巨鲸出没 - 6笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='MANA/USDT', current_price=0.6414548726666611, volume_24h=167959870.0372474, volume_7d_avg=21088051.323533803, volume_ratio=7.9646937244413785, price_change_24h=6.909145444443523, large_orders=[{'size': 14498664.41230741, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 44, 488434), 'price_impact': 1.1743494871328843}, {'size': 14222150.026051661, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 44, 488407), 'price_impact': 0.622252858713299}, {'size': 11626393.026889812, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 6, 6, 44, 488452), 'price_impact': 0.25294953594149994}, {'size': 7245656.664042316, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 44, 488430), 'price_impact': 1.1342622911995375}, {'size': 6956834.553747359, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 44, 488426), 'price_impact': 1.2733328782941347}, {'size': 4192704.415291559, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 44, 488421), 'price_impact': 1.658952615866955}, {'size': 2260320.438270665, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 44, 488445), 'price_impact': 1.0582817037163548}, {'size': 1397211.9581869298, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 44, 488449), 'price_impact': 0.6009640715597779}], fund_flow={'net_flow': -26679888.266293176, 'buy_volume': 17860023.61424727, 'sell_volume': 44539911.880540445, 'direction': '获利回吐', 'confidence': 0.6, 'score': 26.679888266293176}, technical_signals={'signals': ['放量突破', '异常放量'], 'score': 30, 'description': '放量突破 | 异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 8, 'whale_orders': 8, 'total_volume': 62399935.49478771, 'score': 25, 'description': '巨鲸出没 - 8笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='LRC/USDT', current_price=0.21855533722562437, volume_24h=90152129.8610752, volume_7d_avg=26553099.183682695, volume_ratio=3.395164128956936, price_change_24h=9.277668612812192, large_orders=[{'size': 7863972.651292135, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 45, 9941), 'price_impact': 0.15005203774918718}, {'size': 6178497.562032792, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 45, 9934), 'price_impact': 0.43562245248846776}, {'size': 5374344.653032458, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 45, 9919), 'price_impact': 1.3642473945621696}, {'size': 3486028.7654664926, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 11, 6, 45, 9938), 'price_impact': 0.7109246170830877}], fund_flow={'net_flow': 22902843.63182388, 'buy_volume': 22902843.63182388, 'sell_volume': 0, 'direction': '强势流入', 'confidence': 0.8, 'score': 22.902843631823878}, technical_signals={'signals': ['放量突破'], 'score': 25, 'description': '放量突破'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 4, 'whale_orders': 4, 'total_volume': 22902843.63182388, 'score': 25, 'description': '巨鲸出没 - 4笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='ATOM/USDT', current_price=13.907910602548032, volume_24h=244825496.2813667, volume_7d_avg=46654356.93582162, volume_ratio=5.247644858081573, price_change_24h=-7.2805959830131135, large_orders=[{'size': 20649560.409176793, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 967962), 'price_impact': 0.9718859622915262}, {'size': 20463804.77484007, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 43, 967973), 'price_impact': 1.8787824367356043}, {'size': 18709404.275256522, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 11, 6, 43, 967986), 'price_impact': 1.1521496802283142}, {'size': 14557863.03605015, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 43, 967989), 'price_impact': 1.7229181944297203}, {'size': 12522616.813595247, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 43, 967970), 'price_impact': 0.6100920179652604}, {'size': 10358701.40857519, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 43, 967980), 'price_impact': 0.8302843333421789}, {'size': 9760029.446014017, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 43, 967967), 'price_impact': 1.3416001531939479}, {'size': 8970823.968742738, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 8, 6, 43, 967976), 'price_impact': 0.2684018104562871}, {'size': 8790544.457098799, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 43, 967950), 'price_impact': 0.5236393780452357}, {'size': 8156968.800823764, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 43, 967983), 'price_impact': 1.7679669063536418}], fund_flow={'net_flow': -13294778.471626513, 'buy_volume': 59822769.45927339, 'sell_volume': 73117547.9308999, 'direction': '恐慌抛售', 'confidence': 0.5, 'score': 13.294778471626513}, technical_signals={'signals': ['异常放量'], 'score': 15, 'description': '异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 132940317.3901733, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=93.29477847162651)"
+  ],
+  "whale_activity_coins": [
+    "CoinAnalysis(symbol='ETH/USDT', current_price=3616.122753134224, volume_24h=293886562.1613801, volume_7d_avg=40062175.80245516, volume_ratio=7.335761382769672, price_change_24h=6.356551562771282, large_orders=[{'size': 25023481.45789673, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 43, 126372), 'price_impact': 0.49612655465001587}, {'size': 22865588.222505268, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 43, 126332), 'price_impact': 0.11373645969732205}, {'size': 20035234.05186545, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 126306), 'price_impact': 1.5770495623829013}, {'size': 16643906.850919407, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 43, 126336), 'price_impact': 1.5107067684953965}, {'size': 15249440.098685415, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 126341), 'price_impact': 0.391746639641126}, {'size': 14808842.359782673, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 43, 126326), 'price_impact': 0.25241887984556577}, {'size': 13778106.441112012, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 6, 6, 43, 126262), 'price_impact': 1.8663943354890322}, {'size': 11878597.041666651, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 126346), 'price_impact': 1.1750279925262526}, {'size': 5764394.678999354, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 1, 6, 43, 126375), 'price_impact': 0.5252708308952141}, {'size': 4381576.23347169, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 15, 6, 43, 126365), 'price_impact': 1.8066644117515367}], fund_flow={'net_flow': -74039333.98400635, 'buy_volume': 38194916.726449154, 'sell_volume': 112234250.71045549, 'direction': '获利回吐', 'confidence': 0.6, 'score': 30}, technical_signals={'signals': ['放量突破', '异常放量'], 'score': 30, 'description': '放量突破 | 异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 150429167.43690467, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='BNB/USDT', current_price=590.5233260223054, volume_24h=141882718.0952222, volume_7d_avg=20944874.850328308, volume_ratio=6.774101975261896, price_change_24h=-1.579445662949111, large_orders=[{'size': 13891420.264792368, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 43, 231551), 'price_impact': 1.426195186033502}, {'size': 13679255.467432884, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 231570), 'price_impact': 0.6518234368570569}, {'size': 10107728.114755891, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 11, 6, 43, 231564), 'price_impact': 0.7825615032986135}, {'size': 8188042.722545048, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 1, 6, 43, 231578), 'price_impact': 1.267556139365779}, {'size': 6469313.7523611635, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 231576), 'price_impact': 1.4289014655354537}, {'size': 2535070.2194963875, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 9, 6, 43, 231567), 'price_impact': 0.8475891158234408}, {'size': 378191.95946125116, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 231573), 'price_impact': 1.436514857196452}], fund_flow={'net_flow': -6444285.681896351, 'buy_volume': 24402368.40947432, 'sell_volume': 30846654.091370672, 'direction': '恐慌抛售', 'confidence': 0.5, 'score': 6.444285681896352}, technical_signals={'signals': ['底部放量', '异常放量', '强势整理'], 'score': 30, 'description': '底部放量 | 异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 6, 'whale_orders': 6, 'total_volume': 54870830.54138374, 'score': 25, 'description': '巨鲸出没 - 6笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='DOT/USDT', current_price=7.65108500305765, volume_24h=278986353.1715896, volume_7d_avg=41889616.86606138, volume_ratio=6.6600359240244575, price_change_24h=-4.361437461779377, large_orders=[{'size': 26810614.5042461, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 547439), 'price_impact': 0.8801816941612873}, {'size': 26542404.81888404, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 43, 547452), 'price_impact': 1.112589318111488}, {'size': 23904474.326881666, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 7, 6, 43, 547444), 'price_impact': 0.872345405230963}, {'size': 22268628.508116297, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 7, 6, 43, 547460), 'price_impact': 1.2463520785587194}, {'size': 21545783.58695232, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 43, 547471), 'price_impact': 0.746587384874444}, {'size': 13781254.262814315, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 547421), 'price_impact': 1.6978612520249534}, {'size': 11466930.57850274, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 547464), 'price_impact': 0.17732522026776099}, {'size': 9062052.407675052, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 43, 547467), 'price_impact': 0.8703993663152205}, {'size': 6133161.222156314, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 43, 547448), 'price_impact': 0.14334550939148283}, {'size': 1735246.171430988, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 547456), 'price_impact': 1.948060181708214}], fund_flow={'net_flow': 159780058.0447979, 'buy_volume': 161515304.21622887, 'sell_volume': 1735246.171430988, 'direction': '抄底资金', 'confidence': 0.7, 'score': 30}, technical_signals={'signals': ['底部放量', '异常放量'], 'score': 30, 'description': '底部放量 | 异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 163250550.38765985, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='MATIC/USDT', current_price=1.2200331337469572, volume_24h=235988066.60858068, volume_7d_avg=41717538.11013916, volume_ratio=5.656807119958629, price_change_24h=1.6694278122464463, large_orders=[{'size': 17226050.4059851, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 43, 758072), 'price_impact': 0.37033808024111925}, {'size': 16262653.63708858, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 758063), 'price_impact': 1.0837627693471972}, {'size': 14445997.518782116, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 43, 758067), 'price_impact': 0.5410740238578086}, {'size': 10831658.103415055, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 758085), 'price_impact': 1.9327400575748703}, {'size': 8804069.404915519, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 758093), 'price_impact': 1.1398342968855506}, {'size': 6511442.23996468, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 10, 6, 43, 758077), 'price_impact': 1.0641832017880544}, {'size': 6406667.761576232, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 43, 758081), 'price_impact': 1.9375139961327619}, {'size': 5994983.284619644, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 758089), 'price_impact': 0.5274223160445736}, {'size': 5142356.2729529785, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 1, 6, 43, 758042), 'price_impact': 1.8950704845766}, {'size': 1311208.3477257024, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 43, 758057), 'price_impact': 1.8331553016078612}], fund_flow={'net_flow': -15839445.388043351, 'buy_volume': 38548820.79449113, 'sell_volume': 54388266.18253448, 'direction': '获利回吐', 'confidence': 0.6, 'score': 15.839445388043352}, technical_signals={'signals': ['异常放量', '强势整理'], 'score': 25, 'description': '异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 92937086.97702561, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='AVAX/USDT', current_price=40.62711918508931, volume_24h=205201925.18532956, volume_7d_avg=38361313.33849891, volume_ratio=5.349189256755492, price_change_24h=1.5677979627232803, large_orders=[{'size': 20086678.493403018, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 43, 863541), 'price_impact': 0.9523493106608559}, {'size': 17812920.719586644, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 2, 6, 43, 863494), 'price_impact': 1.1301563959771024}, {'size': 14923656.91412534, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 43, 863509), 'price_impact': 1.2619607970975637}, {'size': 13649484.864585416, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 863517), 'price_impact': 1.9555573717514538}, {'size': 10901166.902825693, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 18, 6, 43, 863535), 'price_impact': 1.6719048189209085}, {'size': 9601023.405981941, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 43, 863485), 'price_impact': 0.4501779728467644}, {'size': 6110622.924300975, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 23, 6, 43, 863529), 'price_impact': 1.3327727570804346}, {'size': 6108102.488180156, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 0, 6, 43, 863453), 'price_impact': 1.3091748099631537}, {'size': 4530894.4286396615, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 7, 6, 43, 863502), 'price_impact': 1.5631773210855409}, {'size': 3917563.365082044, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 3, 6, 43, 863523), 'price_impact': 1.998235881174009}], fund_flow={'net_flow': -55247511.67130291, 'buy_volume': 26197301.417703994, 'sell_volume': 81444813.0890069, 'direction': '获利回吐', 'confidence': 0.6, 'score': 30}, technical_signals={'signals': ['异常放量', '强势整理'], 'score': 25, 'description': '异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 107642114.50671089, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='ALGO/USDT', current_price=0.2918948431196442, volume_24h=147327938.30610982, volume_7d_avg=31739270.731293045, volume_ratio=4.6418186338746965, price_change_24h=-2.701718960118588, large_orders=[{'size': 12835131.267487107, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 44, 280264), 'price_impact': 1.572721132454017}, {'size': 9742981.227131786, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 44, 280071), 'price_impact': 0.15659009189591563}, {'size': 9611548.647758596, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 44, 280142), 'price_impact': 1.463939355480969}, {'size': 7849674.684322497, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 44, 280274), 'price_impact': 0.4595159773511174}, {'size': 5180203.611901353, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 44, 280130), 'price_impact': 0.5915323972057618}, {'size': 2887658.500164391, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 44, 280115), 'price_impact': 1.2401236078089422}, {'size': 1418419.9583182773, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 10, 6, 44, 280247), 'price_impact': 1.292148325498736}], fund_flow={'net_flow': -33389893.67295252, 'buy_volume': 8067862.112065744, 'sell_volume': 41457755.785018265, 'direction': '恐慌抛售', 'confidence': 0.5, 'score': 30}, technical_signals={'signals': ['底部放量'], 'score': 20, 'description': '底部放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 7, 'whale_orders': 7, 'total_volume': 49525617.897084005, 'score': 25, 'description': '巨鲸出没 - 7笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='VET/USDT', current_price=0.05045962524618422, volume_24h=134427331.37782055, volume_7d_avg=17894964.462849215, volume_ratio=7.5120200242307265, price_change_24h=0.9192504923684175, large_orders=[{'size': 12914029.88593449, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 44, 385736), 'price_impact': 0.15717156948139294}, {'size': 12177735.756157055, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 12, 6, 44, 385700), 'price_impact': 1.158051460059493}, {'size': 5537095.84880597, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 17, 6, 44, 385752), 'price_impact': 0.17325119621230212}, {'size': 4161468.278746531, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 44, 385763), 'price_impact': 0.12235235391485126}, {'size': 1692481.7891711935, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 44, 385746), 'price_impact': 1.0166162174526319}, {'size': 796919.8898224469, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 3, 6, 44, 385758), 'price_impact': 1.0096795118699253}], fund_flow={'net_flow': -25571831.312802237, 'buy_volume': 5853950.067917724, 'sell_volume': 31425781.38071996, 'direction': '获利回吐', 'confidence': 0.6, 'score': 25.571831312802235}, technical_signals={'signals': ['异常放量', '强势整理'], 'score': 25, 'description': '异常放量 | 强势整理'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 5, 'whale_orders': 6, 'total_volume': 37279731.44863769, 'score': 25, 'description': '巨鲸出没 - 6笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='MANA/USDT', current_price=0.6414548726666611, volume_24h=167959870.0372474, volume_7d_avg=21088051.323533803, volume_ratio=7.9646937244413785, price_change_24h=6.909145444443523, large_orders=[{'size': 14498664.41230741, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 44, 488434), 'price_impact': 1.1743494871328843}, {'size': 14222150.026051661, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 44, 488407), 'price_impact': 0.622252858713299}, {'size': 11626393.026889812, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 6, 6, 44, 488452), 'price_impact': 0.25294953594149994}, {'size': 7245656.664042316, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 44, 488430), 'price_impact': 1.1342622911995375}, {'size': 6956834.553747359, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 22, 6, 44, 488426), 'price_impact': 1.2733328782941347}, {'size': 4192704.415291559, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 44, 488421), 'price_impact': 1.658952615866955}, {'size': 2260320.438270665, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 44, 488445), 'price_impact': 1.0582817037163548}, {'size': 1397211.9581869298, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 44, 488449), 'price_impact': 0.6009640715597779}], fund_flow={'net_flow': -26679888.266293176, 'buy_volume': 17860023.61424727, 'sell_volume': 44539911.880540445, 'direction': '获利回吐', 'confidence': 0.6, 'score': 26.679888266293176}, technical_signals={'signals': ['放量突破', '异常放量'], 'score': 30, 'description': '放量突破 | 异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 8, 'whale_orders': 8, 'total_volume': 62399935.49478771, 'score': 25, 'description': '巨鲸出没 - 8笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='LRC/USDT', current_price=0.21855533722562437, volume_24h=90152129.8610752, volume_7d_avg=26553099.183682695, volume_ratio=3.395164128956936, price_change_24h=9.277668612812192, large_orders=[{'size': 7863972.651292135, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 45, 9941), 'price_impact': 0.15005203774918718}, {'size': 6178497.562032792, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 45, 9934), 'price_impact': 0.43562245248846776}, {'size': 5374344.653032458, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 4, 6, 45, 9919), 'price_impact': 1.3642473945621696}, {'size': 3486028.7654664926, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 11, 6, 45, 9938), 'price_impact': 0.7109246170830877}], fund_flow={'net_flow': 22902843.63182388, 'buy_volume': 22902843.63182388, 'sell_volume': 0, 'direction': '强势流入', 'confidence': 0.8, 'score': 22.902843631823878}, technical_signals={'signals': ['放量突破'], 'score': 25, 'description': '放量突破'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 4, 'whale_orders': 4, 'total_volume': 22902843.63182388, 'score': 25, 'description': '巨鲸出没 - 4笔大单'}, potential_score=100)",
+    "CoinAnalysis(symbol='ATOM/USDT', current_price=13.907910602548032, volume_24h=244825496.2813667, volume_7d_avg=46654356.93582162, volume_ratio=5.247644858081573, price_change_24h=-7.2805959830131135, large_orders=[{'size': 20649560.409176793, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 14, 6, 43, 967962), 'price_impact': 0.9718859622915262}, {'size': 20463804.77484007, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 43, 967973), 'price_impact': 1.8787824367356043}, {'size': 18709404.275256522, 'type': 'buy', 'timestamp': datetime.datetime(2026, 1, 22, 11, 6, 43, 967986), 'price_impact': 1.1521496802283142}, {'size': 14557863.03605015, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 19, 6, 43, 967989), 'price_impact': 1.7229181944297203}, {'size': 12522616.813595247, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 20, 6, 43, 967970), 'price_impact': 0.6100920179652604}, {'size': 10358701.40857519, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 16, 6, 43, 967980), 'price_impact': 0.8302843333421789}, {'size': 9760029.446014017, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 5, 6, 43, 967967), 'price_impact': 1.3416001531939479}, {'size': 8970823.968742738, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 8, 6, 43, 967976), 'price_impact': 0.2684018104562871}, {'size': 8790544.457098799, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 21, 21, 6, 43, 967950), 'price_impact': 0.5236393780452357}, {'size': 8156968.800823764, 'type': 'sell', 'timestamp': datetime.datetime(2026, 1, 22, 13, 6, 43, 967983), 'price_impact': 1.7679669063536418}], fund_flow={'net_flow': -13294778.471626513, 'buy_volume': 59822769.45927339, 'sell_volume': 73117547.9308999, 'direction': '恐慌抛售', 'confidence': 0.5, 'score': 13.294778471626513}, technical_signals={'signals': ['异常放量'], 'score': 15, 'description': '异常放量'}, whale_activity={'level': '巨鲸出没', 'mega_orders': 10, 'whale_orders': 10, 'total_volume': 132940317.3901733, 'score': 25, 'description': '巨鲸出没 - 10笔大单'}, potential_score=93.29477847162651)"
+  ],
+  "summary": {
+    "average_score": 77.86,
+    "max_score": 100,
+    "top_coin": "ETH/USDT",
+    "market_sentiment": "极度活跃",
+    "scan_quality": "excellent"
+  }
+}

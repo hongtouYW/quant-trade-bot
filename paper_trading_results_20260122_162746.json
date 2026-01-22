@@ -1,0 +1,50 @@
+{
+  "environment_info": {
+    "initial_balance": 10000,
+    "start_time": "2026-01-22T16:27:44.018709",
+    "end_time": "2026-01-22T16:27:46.025673"
+  },
+  "performance_stats": {
+    "total_trades": 1,
+    "winning_trades": 1,
+    "losing_trades": 0,
+    "total_pnl": 45.2,
+    "max_drawdown": 0.47143,
+    "current_drawdown": 0.47143,
+    "max_balance": 10000
+  },
+  "current_balance": 5285.7,
+  "positions": {
+    "BTC/USDT": {
+      "amount": 0.05,
+      "avg_price": 95000,
+      "side": "long",
+      "entry_time": "2026-01-22T16:27:44.018735"
+    }
+  },
+  "trade_history": [
+    {
+      "timestamp": "2026-01-22T16:27:45.023833",
+      "symbol": "BTC/USDT",
+      "side": "sell",
+      "amount": 0.05,
+      "price": 96000,
+      "pnl": 45.2,
+      "fee": 4.8,
+      "balance_after": 5285.7
+    }
+  ],
+  "performance_report": {
+    "🕐 交易时长": "0:00:02.006995",
+    "💰 初始资金": "$10,000.00",
+    "💵 当前现金": "$5,285.70",
+    "📊 总资产价值": "$5,285.70",
+    "📈 总收益率": "-47.14%",
+    "🎯 交易次数": 1,
+    "✅ 胜率": "100.0%",
+    "💸 总盈亏": "$+45.20",
+    "📉 最大回撤": "47.14%",
+    "📊 当前回撤": "47.14%",
+    "👥 持仓数量": 1
+  }
+}

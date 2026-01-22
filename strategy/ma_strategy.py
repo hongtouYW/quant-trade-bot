@@ -209,7 +209,10 @@ class CombinedStrategy:
 # 测试代码
 if __name__ == "__main__":
     import sys
-    sys.path.append('..')
+    # 添加父目录到Python路径
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.insert(0, parent_dir)
+    
     from utils.data_loader import DataLoader
     import json
     

@@ -1,0 +1,142 @@
+{
+  "periods": {
+    "2024-2025": {
+      "final_capital": 6063.17,
+      "return_rate": 506.32,
+      "total_trades": 2872,
+      "strategies": 5,
+      "market_type": "熊转牛市 - BTC/ETH复苏期"
+    },
+    "2025-2026": {
+      "final_capital": 7892.72,
+      "return_rate": 689.27,
+      "total_trades": 2745,
+      "strategies": 5,
+      "market_type": "牛市确立 - 多策略并行"
+    }
+  },
+  "btc_eth_focus": {
+    "btc_strategies_2024": [
+      {
+        "strategy": "BTC突破策略_2024",
+        "year_period": "2024-2025",
+        "market_condition": "BEARISH_TO_BULLISH",
+        "total_return": 60.56,
+        "win_rate": 46.3,
+        "total_trades": 630,
+        "winning_trades": 292,
+        "losing_trades": 338,
+        "total_pnl": 605.61,
+        "avg_trade": 0.96,
+        "max_drawdown": -7.45,
+        "leverage_range": "3-5x",
+        "currencies": [
+          "BTC/USDT"
+        ]
+      },
+      {
+        "strategy": "BTC稳健策略_2024",
+        "year_period": "2024-2025",
+        "market_condition": "CONSOLIDATION",
+        "total_return": 25.29,
+        "win_rate": 51.2,
+        "total_trades": 381,
+        "winning_trades": 195,
+        "losing_trades": 186,
+        "total_pnl": 252.94,
+        "avg_trade": 0.66,
+        "max_drawdown": -5.66,
+        "leverage_range": "1-3x",
+        "currencies": [
+          "BTC/USDT"
+        ]
+      }
+    ],
+    "eth_strategies_2024": [
+      {
+        "strategy": "ETH量价策略_2024",
+        "year_period": "2024-2025",
+        "market_condition": "ACCUMULATION",
+        "total_return": 82.91,
+        "win_rate": 50.8,
+        "total_trades": 841,
+        "winning_trades": 427,
+        "losing_trades": 414,
+        "total_pnl": 829.11,
+        "avg_trade": 0.99,
+        "max_drawdown": -6.33,
+        "leverage_range": "2-4x",
+        "currencies": [
+          "ETH/USDT"
+        ]
+      },
+      {
+        "strategy": "ETH增强策略_2024",
+        "year_period": "2024-2025",
+        "market_condition": "BREAKOUT",
+        "total_return": 319.25,
+        "win_rate": 43.1,
+        "total_trades": 545,
+        "winning_trades": 235,
+        "losing_trades": 310,
+        "total_pnl": 3192.49,
+        "avg_trade": 5.86,
+        "max_drawdown": -11.06,
+        "leverage_range": "3-6x",
+        "currencies": [
+          "ETH/USDT"
+        ]
+      }
+    ],
+    "btc_strategies_2025": [
+      {
+        "strategy": "BTC突破策略",
+        "total_return": 56.87,
+        "win_rate": 46.8,
+        "total_trades": 556,
+        "winning_trades": 260,
+        "losing_trades": 296,
+        "total_pnl": 568.7,
+        "avg_trade": 1.02,
+        "max_drawdown": -7.96,
+        "leverage_range": "3-5x"
+      }
+    ],
+    "eth_strategies_2025": [
+      {
+        "strategy": "ETH量价策略",
+        "total_return": 53.97,
+        "win_rate": 48.1,
+        "total_trades": 729,
+        "winning_trades": 351,
+        "losing_trades": 378,
+        "total_pnl": 539.73,
+        "avg_trade": 0.74,
+        "max_drawdown": -6.04,
+        "leverage_range": "2-4x"
+      }
+    ]
+  },
+  "performance_comparison": {
+    "avg_return_2024": 101.26,
+    "avg_return_2025": 137.86,
+    "avg_winrate_2024": 48.5,
+    "avg_winrate_2025": 49.2,
+    "total_trades_2024": 2872,
+    "total_trades_2025": 2745,
+    "strategy_evolution": {
+      "focus_shift": "从BTC/ETH单一关注转向多币种策略",
+      "leverage_evolution": "杠杆使用更加激进和多样化",
+      "frequency_change": "交易频率显著提升",
+      "risk_management": "风控策略在牛市中更加精细化"
+    }
+  },
+  "insights": [
+    "2024年：市场从熊转牛，BTC和ETH策略表现稳健",
+    "2025年：牛市确立，多样化策略显著提升收益",
+    "BTC策略：在不同市场环境下都保持相对稳定",
+    "ETH策略：在牛市中表现更加突出",
+    "杠杆使用：2025年更激进的杠杆策略带来更高收益"
+  ],
+  "generated_at": "2026-01-22T14:55:49.982649"
+}
