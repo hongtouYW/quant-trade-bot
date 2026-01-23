@@ -20,14 +20,15 @@ try:
 except:
     from simple_enhanced_strategy import SimpleEnhancedStrategy as StrategyEngine
 
-from live_paper_trading import LivePaperTradingBot
+# 使用增强版模拟交易（支持杠杆和数据库）
+from enhanced_paper_trading import EnhancedPaperTradingBot
 import ccxt
 
 
 class IntegratedTradingSystem:
     """集成交易系统"""
     
-    def __init__(self, initial_balance=1000, config_file='config.json'):
+    def __init__(self, initial_balance=1000, leverage=3, config_file='config.json'):
         print("🚀 初始化集成交易系统...")
         
         # 初始化交易所
@@ -39,8 +40,8 @@ class IntegratedTradingSystem:
         # 初始化策略
         self.strategy = StrategyEngine(self.exchange)
         
-        # 初始化模拟交易
-        self.bot = LivePaperTradingBot(initial_balance, config_file)
+        # 初始化模拟交易（增强版，支持杠杆和数据库）
+        self.bot = EnhancedPaperTradingBot(initial_balance, config_file, leverage)
         
         # 交易对
         self.symbols = ['BTC/USDT', 'ETH/USDT', 'XMR/USDT', 'BNB/USDT', 'SOL/USDT']
@@ -135,6 +136,9 @@ class IntegratedTradingSystem:
                 # 检查止损止盈
                 self.bot.check_stop_loss_take_profit()
                 
+                # 检查是否需要发送每日报表
+                self.bot.check_daily_report_time()
+                
                 # 定期显示状态 (每10次检查)
                 if check_count % 10 == 0:
                     self.bot.display_portfolio()
@@ -173,6 +177,7 @@ def main():
     # 创建并运行系统
     system = IntegratedTradingSystem(
         initial_balance=1000,
+        leverage=3,  # 3倍杠杆
         config_file=config_file
     )
     

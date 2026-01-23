@@ -1,0 +1,32 @@
+{
+  "server": {
+    "ip": "你的服务器IP",
+    "port": 22,
+    "user": "root",
+    "ssh_key_path": "~/.ssh/id_rsa"
+  },
+  "binance": {
+    "api_key": "你的Binance API Key",
+    "api_secret": "你的Binance API Secret",
+    "testnet": false
+  },
+  "telegram": {
+    "bot_token": "你的Telegram Bot Token",
+    "chat_id": "你的Telegram Chat ID"
+  },
+  "trading": {
+    "initial_balance": 1000,
+    "max_leverage": 3,
+    "risk_per_trade": 0.02
+  },
+  "monitoring": {
+    "web_port": 5001,
+    "enable_ssl": false,
+    "domain": ""
+  },
+  "backup": {
+    "enabled": true,
+    "schedule": "0 2 * * *",
+    "retention_days": 30
+  }
+}
