@@ -13,10 +13,10 @@ import ccxt
 
 app = Flask(__name__)
 
-# 使用绝对路径
+# 使用绝对路径 - 数据库在项目根目录的data/db/
 import os
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(SCRIPT_DIR, 'paper_trading.db')
+SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根目录
+DB_PATH = os.path.join(SCRIPT_DIR, 'data', 'db', 'paper_trading.db')
 
 def get_db():
     """获取数据库连接"""

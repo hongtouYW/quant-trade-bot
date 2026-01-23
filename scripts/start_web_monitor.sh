@@ -18,4 +18,5 @@ echo "📊 访问地址: http://localhost:5001"
 echo "💡 按 Ctrl+C 停止服务器"
 echo ""
 
-python3 web_monitor.py
+cd ..
+python3 src/dashboard/web_monitor.py
