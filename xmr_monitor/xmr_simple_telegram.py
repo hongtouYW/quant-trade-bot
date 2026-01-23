@@ -51,8 +51,13 @@ class XMRSimpleMonitor:
     def _init_telegram(self):
         """初始化Telegram"""
         try:
-            # 尝试当前目录和上级目录的config.json
-            config_paths = ['config.json', '../config.json']
+            # 尝试多个可能的config.json位置
+            config_paths = [
+                'config.json',
+                '../config.json', 
+                '../config/config.json',  # 新的config目录
+                os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'config', 'config.json')
+            ]
             config_path = None
             
             for path in config_paths:
