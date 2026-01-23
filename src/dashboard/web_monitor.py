@@ -11,12 +11,14 @@ from datetime import datetime, date
 import os
 import ccxt
 
-app = Flask(__name__)
-
-# 使用绝对路径 - 数据库在项目根目录的data/db/
-import os
+# 使用绝对路径 - 项目根目录
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根目录
 DB_PATH = os.path.join(SCRIPT_DIR, 'data', 'db', 'paper_trading.db')
+
+# Flask app - 指定模板和静态文件目录
+app = Flask(__name__, 
+            template_folder=os.path.join(SCRIPT_DIR, 'templates'),
+            static_folder=os.path.join(SCRIPT_DIR, 'static'))
 
 def get_db():
     """获取数据库连接"""

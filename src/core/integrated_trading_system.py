@@ -11,17 +11,21 @@ import time
 from datetime import datetime
 import json
 
-# 添加路径
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# 添加项目根目录和src目录到路径
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, PROJECT_ROOT)
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src'))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'strategy'))
+sys.path.insert(0, os.path.join(PROJECT_ROOT, 'src', 'core'))
 
 # 尝试使用增强版策略，如果失败则使用简化版
 try:
-    from enhanced_strategy import EnhancedMultiTimeframeStrategy as StrategyEngine
+    from src.strategy.enhanced_strategy import EnhancedMultiTimeframeStrategy as StrategyEngine
 except:
-    from simple_enhanced_strategy import SimpleEnhancedStrategy as StrategyEngine
+    from src.strategy.simple_enhanced_strategy import SimpleEnhancedStrategy as StrategyEngine
 
 # 使用增强版模拟交易（支持杠杆和数据库）
-from enhanced_paper_trading import EnhancedPaperTradingBot
+from src.core.enhanced_paper_trading import EnhancedPaperTradingBot
 import ccxt
 
 
