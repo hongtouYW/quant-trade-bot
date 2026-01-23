@@ -49,8 +49,15 @@ class EnhancedPaperTradingBot:
         self.taker_fee = 0.001  # 0.1% taker费
         self.slippage = 0.0005  # 0.05%滑点
         
+        # 🔴 合约/杠杆交易特殊费用
+        self.funding_rate = 0.0001  # 0.01% 资金费率（每8小时）
+        self.funding_interval = 8 * 3600  # 8小时（秒）
+        self.daily_funding_times = 3  # 每天收取3次
+        self.max_holding_days = 7  # 建议最大持仓天数
+        
         # 累计费用统计
         self.total_fees = 0
+        self.total_funding_fees = 0  # 资金费用累计
         
         # 初始化交易所
         self.exchange = ccxt.binance({
@@ -81,6 +88,8 @@ class EnhancedPaperTradingBot:
         print(f"📈 交易品种: {', '.join(self.symbols)}")
         print(f"⚠️ 单笔风险: {self.risk_per_trade*100}%")
         print(f"💾 数据库: {self.db_path}")
+        print(f"⚠️ 资金费率: {self.funding_rate*100:.3f}% (每8小时)")
+        print(f"💡 每日持仓成本: ~{self.funding_rate * self.daily_funding_times * 100:.3f}%")
         
         self._send_notification(
             "🚀 实盘模拟交易启动",
@@ -242,7 +251,9 @@ class EnhancedPaperTradingBot:
             'take_profit': actual_price * (1 + self.take_profit_pct),
             'cost': total_cost,
             'position_value': position_value,
-            'margin': margin_required
+            'margin': margin_required,
+            'accumulated_funding_fee': 0,  # 累计资金费用
+            'last_funding_time': datetime.now()  # 上次收费时间
         }
         
         # 保存到数据库
@@ -275,11 +286,18 @@ class EnhancedPaperTradingBot:
         print(f"💰 余额: ${self.balance:,.2f}")
         print(f"🛡️ 止损: ${self.positions[symbol]['stop_loss']:.2f}")
         print(f"🎯 止盈: ${self.positions[symbol]['take_profit']:.2f}")
+        print(f"⚠️ 资金费率: {self.funding_rate*100:.3f}%/8h (~{self.funding_rate*self.daily_funding_times*100:.3f}%/天)")
+        print(f"💡 每日持仓成本: ${position_value * self.funding_rate * self.daily_funding_times:.2f}")
         print(f"{'='*60}\n")
         
         # 发送Telegram通知
         position_emoji = "📈" if position_type == 'long' else "📉"
         position_text = "做多" if position_type == 'long' else "做空"
+        
+        # 计算持仓成本提醒
+        daily_holding_cost = position_value * self.funding_rate * self.daily_funding_times
+        weekly_holding_cost = daily_holding_cost * 7
+        
         self._send_notification(
             f"{position_emoji} 开仓{position_text} - {symbol}",
             f"<b>买入详情</b>\n"
@@ -296,6 +314,12 @@ class EnhancedPaperTradingBot:
             f"🛡️ 止损: ${self.positions[symbol]['stop_loss']:.2f}\n"
             f"🎯 止盈: ${self.positions[symbol]['take_profit']:.2f}\n"
             f"━━━━━━━━━━━━━━\n"
+            f"⚠️ <b>持仓成本警告</b>\n"
+            f"📊 资金费率: {self.funding_rate*100:.3f}%/8h\n"
+            f"💰 每日成本: ${daily_holding_cost:.2f} (~{self.funding_rate*self.daily_funding_times*100:.3f}%)\n"
+            f"📅 一周成本: ${weekly_holding_cost:.2f}\n"
+            f"💡 建议: 持仓≤{self.max_holding_days}天\n"
+            f"━━━━━━━━━━━━━━\n"
             f"💰 剩余余额: ${self.balance:,.2f}"
         )
         
@@ -309,6 +333,12 @@ class EnhancedPaperTradingBot:
         
         position = self.positions[symbol]
         
+        # 🔴 计算持仓期间的资金费用
+        holding_time = datetime.now() - position['entry_time']
+        holding_hours = holding_time.total_seconds() / 3600
+        funding_charges = int(holding_hours / 8)  # 每8小时收费一次
+        funding_fee = position['position_value'] * self.funding_rate * funding_charges
+        
         # 模拟滑点
         actual_price = price * (1 - self.slippage)
         
@@ -319,14 +349,17 @@ class EnhancedPaperTradingBot:
         # 杠杆交易的盈亏是放大的
         gross_pnl = (position_value - entry_value) * self.leverage
         fee = position_value * self.taker_fee
-        net_pnl = gross_pnl - fee
+        
+        # 🔴 扣除资金费用
+        net_pnl = gross_pnl - fee - funding_fee
         
         # 返还保证金
         margin_return = position['margin']
         
-        # 更新余额（保证金 + 盈亏 - 手续费）
+        # 更新余额（保证金 + 盈亏 - 手续费 - 资金费用）
         self.balance += margin_return + net_pnl
         self.total_fees += fee
+        self.total_funding_fees += funding_fee
         
         # 计算盈亏百分比
         pnl_pct = (net_pnl / position['cost']) * 100
@@ -366,6 +399,7 @@ class EnhancedPaperTradingBot:
         self._save_stats_to_db()
         
         # 显示信息
+        holding_days = holding_hours / 24
         print(f"\n{'='*60}")
         print(f"✅ 模拟卖出成功")
         print(f"{'='*60}")
@@ -374,7 +408,9 @@ class EnhancedPaperTradingBot:
         print(f"📊 数量: {quantity:.6f}")
         print(f"🔢 杠杆: {self.leverage}x")
         print(f"💵 仓位价值: ${position_value:,.2f}")
-        print(f"💸 手续费: ${fee:.2f}")
+        print(f"⏱️ 持仓时长: {holding_days:.2f}天 ({holding_hours:.1f}小时)")
+        print(f"💸 交易手续费: ${fee:.2f}")
+        print(f"🔴 资金费用: ${funding_fee:.2f} ({funding_charges}次收费)")
         print(f"{emoji} 盈亏: ${net_pnl:+,.2f} ({pnl_pct:+.2f}%)")
         print(f"📝 原因: {reason}")
         print(f"💰 余额: ${self.balance:,.2f}")
@@ -384,6 +420,7 @@ class EnhancedPaperTradingBot:
         print(f"📈 胜率: {self.stats['win_rate']:.1f}%")
         print(f"💵 总盈亏: ${self.stats['total_pnl']:+,.2f}")
         print(f"💸 总手续费: ${self.stats['total_fees']:,.2f}")
+        print(f"🔴 总资金费用: ${self.total_funding_fees:,.2f}")
         print(f"{'='*60}\n")
         
         # 发送Telegram通知
@@ -395,10 +432,12 @@ class EnhancedPaperTradingBot:
             f"数量: {quantity:.6f}\n"
             f"杠杆: {self.leverage}x\n"
             f"原因: {reason}\n"
+            f"持仓: {holding_days:.2f}天\n"
             f"━━━━━━━━━━━━━━\n"
             f"💵 仓位价值: ${position_value:,.2f}\n"
-            f"💸 手续费: ${fee:.2f}\n"
-            f"{emoji} <b>盈亏: ${net_pnl:+,.2f} ({pnl_pct:+.2f}%)</b>\n"
+            f"💸 交易手续费: ${fee:.2f}\n"
+            f"🔴 资金费用: ${funding_fee:.2f} ({funding_charges}次)\n"
+            f"{emoji} <b>净盈亏: ${net_pnl:+,.2f} ({pnl_pct:+.2f}%)</b>\n"
             f"━━━━━━━━━━━━━━\n"
             f"💰 当前余额: ${self.balance:,.2f}\n"
             f"📊 总盈亏: ${self.stats['total_pnl']:+,.2f}\n"
@@ -527,6 +566,14 @@ class EnhancedPaperTradingBot:
                 if not current_price:
                     continue
                 
+                # 🔴 检查持仓时长警告
+                holding_time = datetime.now() - position['entry_time']
+                holding_days = holding_time.total_seconds() / 86400
+                
+                if holding_days >= self.max_holding_days:
+                    print(f"⚠️ 持仓过久警告: {symbol} 已持仓 {holding_days:.1f}天")
+                    print(f"   建议尽快平仓以避免过高资金费用")
+                
                 # 检查止损
                 if current_price <= position['stop_loss']:
                     print(f"🚨 触发止损: {symbol} @ ${current_price:.2f}")
@@ -567,16 +614,26 @@ class EnhancedPaperTradingBot:
                     unrealized_pnl = (position_value - entry_value) * pos['leverage']
                     unrealized_pnl_pct = (unrealized_pnl / pos['cost']) * 100
                     
+                    # 🔴 计算持仓时长和累计资金费用
+                    holding_time = datetime.now() - pos['entry_time']
+                    holding_hours = holding_time.total_seconds() / 3600
+                    holding_days = holding_hours / 24
+                    estimated_funding_fee = position_value * self.funding_rate * int(holding_hours / 8)
+                    
                     total_position_value += position_value
                     total_unrealized_pnl += unrealized_pnl
                     
                     emoji = "🟢" if unrealized_pnl > 0 else "🔴"
-                    print(f"\n  {symbol}:")
+                    warning = "⚠️" if holding_days >= self.max_holding_days else ""
+                    
+                    print(f"\n  {warning} {symbol}:")
                     print(f"    数量: {pos['quantity']:.6f}")
                     print(f"    入场: ${pos['entry_price']:.2f}")
                     print(f"    现价: ${current_price:.2f}")
                     print(f"    杠杆: {pos['leverage']}x")
+                    print(f"    持仓: {holding_days:.2f}天")
                     print(f"    {emoji} 浮盈: ${unrealized_pnl:+.2f} ({unrealized_pnl_pct:+.2f}%)")
+                    print(f"    🔴 资金费: ${estimated_funding_fee:.2f}")
         else:
             print("\n📊 当前持仓: 空仓")
         
@@ -589,6 +646,7 @@ class EnhancedPaperTradingBot:
         emoji = "🟢" if total_pnl > 0 else "🔴"
         print(f"{emoji} 总盈亏: ${total_pnl:+.2f} ({total_return:+.2f}%)")
         print(f"💸 累计手续费: ${self.total_fees:.2f}")
+        print(f"🔴 累计资金费: ${self.total_funding_fees:.2f}")
         
         # 交易统计
         if self.stats['total_trades'] > 0:
