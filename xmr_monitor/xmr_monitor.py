@@ -9,6 +9,9 @@ import pandas as pd
 import numpy as np
 import time
 import json
+import requests
+import signal
+import sys
 from datetime import datetime, timedelta
 from flask import Flask, render_template_string, jsonify
 
@@ -393,29 +396,64 @@ class XMRMonitor:
                 print(f"   ⚖️ 风险收益比: 1:{suggestion['risk_reward']:.2f}")
     
     def start_continuous_monitoring(self, interval=300):
-        """开始连续监控"""
+        """开始连续监控 - 网络断开时自动重连"""
         print(f"\n🚀 开始连续监控 XMRUSDT")
         print(f"⏰ 更新间隔: {interval//60}分钟")
+        print("🌐 网络断开时将自动重试")
         print("按 Ctrl+C 停止监控")
+        
+        consecutive_errors = 0
+        max_consecutive_errors = 5
         
         try:
             while True:
-                self.run_analysis()
-                
-                # 保存历史记录
-                if self.current_data:
-                    self.analysis_history.append({
-                        'timestamp': datetime.now().isoformat(),
-                        'price': self.current_data['analysis']['current_price'],
-                        'signal': self.current_data['signals']['overall_signal'],
-                        'confidence': self.current_data['signals']['confidence']
-                    })
-                
-                print(f"\n⏰ 下次更新: {(datetime.now() + timedelta(seconds=interval)).strftime('%H:%M:%S')}")
-                time.sleep(interval)
+                try:
+                    # 运行分析
+                    result = self.run_analysis()
+                    
+                    if result:
+                        # 成功获取数据，重置错误计数
+                        consecutive_errors = 0
+                        
+                        # 保存历史记录
+                        self.analysis_history.append({
+                            'timestamp': datetime.now().isoformat(),
+                            'price': self.current_data['analysis']['current_price'],
+                            'signal': self.current_data['signals']['overall_signal'],
+                            'confidence': self.current_data['signals']['confidence']
+                        })
+                        
+                        print(f"\n⏰ 下次更新: {(datetime.now() + timedelta(seconds=interval)).strftime('%H:%M:%S')}")
+                    else:
+                        consecutive_errors += 1
+                        print(f"⚠️ 获取数据失败 ({consecutive_errors}/{max_consecutive_errors})")
+                    
+                    # 正常等待间隔
+                    time.sleep(interval)
+                    
+                except Exception as e:
+                    consecutive_errors += 1
+                    print(f"❌ 监控出错: {e}")
+                    print(f"🔄 错误次数: {consecutive_errors}/{max_consecutive_errors}")
+                    
+                    if consecutive_errors >= max_consecutive_errors:
+                        print(f"⚠️ 连续{max_consecutive_errors}次错误，增加重试间隔")
+                        # 逐渐增加重试间隔，最多等待5分钟
+                        wait_time = min(300, 30 * consecutive_errors)
+                        print(f"⏳ 等待{wait_time}秒后重试...")
+                        time.sleep(wait_time)
+                        consecutive_errors = 0  # 重置计数器
+                    else:
+                        # 短暂等待后重试
+                        wait_time = 30
+                        print(f"⏳ {wait_time}秒后重试...")
+                        time.sleep(wait_time)
                 
         except KeyboardInterrupt:
             print("\n👋 监控已停止")
+            self.save_analysis_history()
+        except Exception as e:
+            print(f"\n❌ 监控系统严重错误: {e}")
             self.save_analysis_history()
     
     def save_analysis_history(self):
@@ -428,6 +466,83 @@ class XMRMonitor:
                 'final_analysis': self.current_data
             }, f, ensure_ascii=False, indent=2)
         print(f"📁 分析历史已保存: {filename}")
+    
+    def check_network_connection(self):
+        """检查网络连接"""
+        try:
+            response = requests.get('https://api.binance.com/api/v3/ping', timeout=10)
+            return response.status_code == 200
+        except:
+            return False
+    
+    def start_daemon_monitoring(self, interval=300):
+        """启动守护进程监控 - 永不停止"""
+        print(f"\n🔄 启动守护进程监控模式")
+        print(f"⏰ 更新间隔: {interval//60}分钟") 
+        print(f"🌐 网络断开时自动等待重连")
+        print(f"💾 监控数据自动保存")
+        print("=" * 50)
+        
+        # 设置信号处理器
+        def signal_handler(sig, frame):
+            print(f"\n🛑 收到停止信号，正在保存数据...")
+            self.save_analysis_history()
+            print("👋 守护进程已停止")
+            sys.exit(0)
+        
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        
+        error_count = 0
+        last_success_time = None
+        
+        while True:
+            try:
+                # 检查网络连接
+                if not self.check_network_connection():
+                    print(f"🌐 网络连接检查失败，等待30秒重试...")
+                    time.sleep(30)
+                    continue
+                
+                # 运行分析
+                result = self.run_analysis()
+                
+                if result:
+                    error_count = 0
+                    last_success_time = datetime.now()
+                    
+                    # 保存历史记录
+                    self.analysis_history.append({
+                        'timestamp': datetime.now().isoformat(),
+                        'price': self.current_data['analysis']['current_price'],
+                        'signal': self.current_data['signals']['overall_signal'],
+                        'confidence': self.current_data['signals']['confidence']
+                    })
+                    
+                    # 每小时自动保存一次
+                    if len(self.analysis_history) % 12 == 0:  # 假设5分钟间隔
+                        self.save_analysis_history()
+                        print(f"💾 自动保存完成 (记录: {len(self.analysis_history)})")
+                    
+                    print(f"✅ 监控正常 - 下次更新: {(datetime.now() + timedelta(seconds=interval)).strftime('%H:%M:%S')}")
+                else:
+                    error_count += 1
+                    print(f"⚠️ 数据获取失败 (错误{error_count}次)")
+                
+            except Exception as e:
+                error_count += 1
+                print(f"❌ 监控异常: {e} (错误{error_count}次)")
+                
+                # 如果错误过多，增加等待时间
+                if error_count > 10:
+                    wait_time = min(600, 60 * (error_count - 10))  # 最多等10分钟
+                    print(f"⏳ 错误过多，等待{wait_time//60}分{wait_time%60}秒...")
+                    time.sleep(wait_time)
+                    error_count = 0
+                    continue
+            
+            # 正常等待
+            time.sleep(interval)
 
 # Web Dashboard
 app = Flask(__name__)
@@ -568,9 +683,10 @@ def main():
     print("1. 单次分析")
     print("2. 连续监控")
     print("3. Web面板 (http://localhost:5010)")
+    print("4. 守护进程监控 (永不停止)")
     
     try:
-        choice = input("\n请选择 (1-3): ").strip()
+        choice = input("\n请选择 (1-4): ").strip()
         
         if choice == '1':
             monitor.run_analysis()
@@ -580,6 +696,8 @@ def main():
             print("\n🌐 启动Web监控面板...")
             print("📊 访问 http://localhost:5010 查看实时数据")
             app.run(host='0.0.0.0', port=5010, debug=False)
+        elif choice == '4':
+            monitor.start_daemon_monitoring(interval=300)  # 守护进程模式
         else:
             print("❌ 无效选择")
     
