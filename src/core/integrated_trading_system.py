@@ -47,8 +47,15 @@ class IntegratedTradingSystem:
         # 初始化模拟交易（增强版，支持杠杆和数据库）
         self.bot = EnhancedPaperTradingBot(initial_balance, config_file, leverage)
         
-        # 交易对
-        self.symbols = ['BTC/USDT', 'ETH/USDT', 'XMR/USDT', 'BNB/USDT', 'SOL/USDT']
+        # 交易对 - 扩展到20个主流币种
+        self.symbols = [
+            # 主流币
+            'BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'XMR/USDT', 'SOL/USDT',
+            # DeFi & Layer1
+            'ADA/USDT', 'DOT/USDT', 'AVAX/USDT', 'MATIC/USDT', 'LINK/USDT',
+            # 潜力币
+            'ATOM/USDT', 'NEAR/USDT', 'FTM/USDT', 'ALGO/USDT', 'VET/USDT'
+        ]
         
         # 运行参数
         self.scan_interval = 300  # 5分钟扫描一次

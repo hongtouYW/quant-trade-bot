@@ -413,64 +413,88 @@ class EnhancedPaperTradingBot:
     
     def _save_trade_to_db(self, trade):
         """保存交易到数据库"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT INTO trades (timestamp, symbol, side, price, quantity, leverage, 
-                              cost, fee, pnl, pnl_pct, reason, balance_after)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            trade['timestamp'],
-            trade['symbol'],
-            trade['side'],
-            trade['price'],
-            trade['quantity'],
-            trade.get('leverage', 1),
-            trade['cost'],
-            trade['fee'],
-            trade.get('pnl', 0),
-            trade.get('pnl_pct', 0),
-            trade.get('reason', ''),
-            trade['balance_after']
-        ))
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT INTO trades (timestamp, symbol, side, price, quantity, leverage, 
+                                  cost, fee, pnl, pnl_pct, reason, balance_after)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                trade['timestamp'],
+                trade['symbol'],
+                trade['side'],
+                trade['price'],
+                trade['quantity'],
+                trade.get('leverage', 1),
+                trade['cost'],
+                trade['fee'],
+                trade.get('pnl', 0),
+                trade.get('pnl_pct', 0),
+                trade.get('reason', ''),
+                trade['balance_after']
+            ))
+            
+            conn.commit()
+            trade_id = cursor.lastrowid
+            conn.close()
+            
+            # 验证保存成功
+            print(f"✅ 交易已保存到数据库 [ID: {trade_id}]")
+            
+        except Exception as e:
+            print(f"❌ 保存交易失败: {e}")
+            if conn:
+                conn.close()
     
     def _save_position_to_db(self, symbol, position):
         """保存持仓到数据库"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('''
-            INSERT OR REPLACE INTO positions 
-            (symbol, quantity, entry_price, entry_time, leverage, stop_loss, take_profit, cost, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            symbol,
-            position['quantity'],
-            position['entry_price'],
-            position['entry_time'].isoformat(),
-            position['leverage'],
-            position['stop_loss'],
-            position['take_profit'],
-            position['cost'],
-            'open'
-        ))
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('''
+                INSERT OR REPLACE INTO positions 
+                (symbol, quantity, entry_price, entry_time, leverage, stop_loss, take_profit, cost, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                symbol,
+                position['quantity'],
+                position['entry_price'],
+                position['entry_time'].isoformat(),
+                position['leverage'],
+                position['stop_loss'],
+                position['take_profit'],
+                position['cost'],
+                'open'
+            ))
+            
+            conn.commit()
+            conn.close()
+            print(f"✅ 持仓已保存到数据库 [{symbol}]")
+            
+        except Exception as e:
+            print(f"❌ 保存持仓失败: {e}")
+            if conn:
+                conn.close()
     
     def _update_position_status(self, symbol, status):
         """更新持仓状态"""
-        conn = sqlite3.connect(self.db_path)
-        cursor = conn.cursor()
-        
-        cursor.execute('UPDATE positions SET status = ? WHERE symbol = ?', (status, symbol))
-        
-        conn.commit()
-        conn.close()
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            
+            cursor.execute('UPDATE positions SET status = ? WHERE symbol = ?', (status, symbol))
+            
+            conn.commit()
+            conn.close()
+            print(f"✅ 持仓状态已更新 [{symbol}: {status}]")
+            
+        except Exception as e:
+            print(f"❌ 更新持仓状态失败: {e}")
+            if conn:
+                conn.close()
     
     def _save_stats_to_db(self):
         """保存统计到数据库"""
