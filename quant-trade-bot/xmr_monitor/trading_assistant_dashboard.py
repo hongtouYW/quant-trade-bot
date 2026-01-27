@@ -152,30 +152,90 @@ def get_trades():
 
 @app.route('/api/daily_stats')
 def get_daily_stats():
-    """获取每日统计（最近7天）"""
+    """获取每日统计（最近7天）- 优先从daily_pnl表读取"""
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
+
+        # 先尝试从daily_pnl表读取
+        try:
+            cursor.execute('''
+                SELECT
+                    date,
+                    trades_count as trades,
+                    win_count as wins,
+                    total_pnl as daily_pnl,
+                    win_rate,
+                    cumulative_pnl
+                FROM daily_pnl
+                WHERE date >= date('now', '-7 days')
+                ORDER BY date DESC
+            ''')
+            daily_stats = [dict(row) for row in cursor.fetchall()]
+
+            # 如果有数据，直接返回
+            if daily_stats:
+                conn.close()
+                return jsonify(daily_stats)
+        except:
+            # 如果表不存在，继续使用旧方法
+            pass
+
+        # 降级方案：实时计算（如果daily_pnl表不存在或无数据）
         cursor.execute('''
-            SELECT 
-                DATE(entry_time) as date,
+            SELECT
+                DATE(exit_time) as date,
                 COUNT(*) as trades,
                 SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
                 SUM(COALESCE(pnl, 0)) as daily_pnl
             FROM real_trades
             WHERE mode = 'paper' AND assistant = '交易助手'
             AND status = 'CLOSED'
-            AND entry_time >= date('now', '-7 days')
-            GROUP BY DATE(entry_time)
+            AND exit_time >= date('now', '-7 days')
+            GROUP BY DATE(exit_time)
             ORDER BY date DESC
         ''')
-        
+
         daily_stats = [dict(row) for row in cursor.fetchall()]
         conn.close()
-        
+
         return jsonify(daily_stats)
-        
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/daily_history')
+def get_daily_history():
+    """获取每日收益历史记录（所有数据）"""
+    try:
+        days = request.args.get('days', 30, type=int)
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT
+                date,
+                trades_count,
+                win_count,
+                loss_count,
+                total_pnl,
+                total_fee,
+                total_funding_fee,
+                win_rate,
+                best_trade,
+                worst_trade,
+                cumulative_pnl
+            FROM daily_pnl
+            WHERE date >= date('now', ? || ' days')
+            ORDER BY date DESC
+        ''', (f'-{days}',))
+
+        history = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        return jsonify(history)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -567,45 +627,271 @@ HTML_TEMPLATE = '''
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+
+        /* 持仓卡片样式 */
+        .position-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .position-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 8px;
+            padding: 8px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .position-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .position-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .position-card-title {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .position-card-symbol {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .position-card-body {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .position-card-main {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 6px;
+        }
+
+        .position-card-pnl {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .position-card-info {
+            font-size: 0.75em;
+            color: #666;
+        }
+
+        .position-card-label {
+            color: #999;
+            margin-right: 3px;
+        }
+
+        .position-card-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .position-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.7em;
+            color: #666;
+            padding-top: 6px;
+            border-top: 1px dashed rgba(102, 126, 234, 0.2);
+        }
+
+        /* 交易历史卡片样式 */
+        .trade-cards {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .trade-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(249, 250, 251, 0.9) 100%);
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px;
+            transition: all 0.2s;
+        }
+
+        .trade-card:hover {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border-color: #d1d5db;
+        }
+
+        .trade-card.closed {
+            border-left: 3px solid #10b981;
+        }
+
+        .trade-card.closed.loss {
+            border-left: 3px solid #ef4444;
+        }
+
+        .trade-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .trade-card-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .trade-card-symbol {
+            font-size: 1em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .trade-card-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .trade-card-pnl {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .trade-card-roi {
+            font-size: 0.95em;
+            font-weight: 600;
+        }
+
+        .trade-card-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75em;
+            color: #666;
+        }
+
+        .trade-card-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trade-card-detail-label {
+            color: #999;
+            margin-bottom: 2px;
+        }
+
+        .trade-card-detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* 小标签样式 */
+        .badge-sm {
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: 500;
+        }
+
+        .mini-btn {
+            padding: 4px 10px;
+            font-size: 0.75em;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #667eea;
+            color: white;
+        }
+
+        .mini-btn:hover {
+            background: #5568d3;
+            transform: scale(1.05);
+        }
         
         .loading::after {
             content: '...';
             animation: pulse 1.5s infinite;
         }
         
+        /* 图表控制区域 */
+        .chart-controls-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 10px;
+        }
+
+        .position-selector-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .position-selector-wrapper label {
+            color: #666;
+            font-size: 0.85em;
+            font-weight: 500;
+        }
+
+        .position-selector-wrapper select {
+            padding: 6px 12px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            font-size: 0.85em;
+            cursor: pointer;
+            background: white;
+        }
+
         /* 时间周期按钮组 */
         .timeframe-selector {
             display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
+            gap: 5px;
+            flex-wrap: nowrap;
         }
-        
+
         .timeframe-btn {
-            padding: 8px 16px;
-            border: 2px solid #e5e7eb;
+            padding: 5px 10px;
+            border: 1px solid #e5e7eb;
             background: white;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-size: 0.9em;
+            font-size: 0.75em;
             font-weight: 500;
             color: #666;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            min-width: 40px;
         }
-        
+
         .timeframe-btn:hover {
             border-color: #667eea;
             color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
         }
-        
+
         .timeframe-btn.active {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-color: #667eea;
             color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
         
         /* 查看图表按钮 */
@@ -628,41 +914,48 @@ HTML_TEMPLATE = '''
         /* 图表容器样式 */
         .chart-wrapper {
             background: white;
-            padding: 25px;
+            padding: 15px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
         }
-        
+
         .chart-title {
-            font-size: 1.3em;
+            font-size: 1em;
             font-weight: bold;
             color: #333;
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-        
+
         .chart-info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 12px;
-            margin-bottom: 15px;
-            padding: 15px;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+            padding: 8px 10px;
             background: #f9fafb;
-            border-radius: 8px;
+            border-radius: 6px;
         }
-        
+
+        .chart-info-grid.two-rows {
+            grid-template-rows: auto auto;
+        }
+
         .info-item {
-            font-size: 0.95em;
+            font-size: 0.8em;
         }
-        
+
         .info-label {
             color: #666;
             font-weight: 500;
-            margin-right: 5px;
+            margin-right: 3px;
         }
-        
+
         .info-value {
             font-weight: bold;
             color: #333;
@@ -682,11 +975,145 @@ HTML_TEMPLATE = '''
         /* 三栏布局 */
         .main-layout {
             display: grid;
-            grid-template-columns: 280px 1fr 380px;
+            grid-template-columns: 200px 1fr 280px;
             gap: 20px;
             margin-bottom: 20px;
-            height: calc(100vh - 400px);
-            min-height: 600px;
+            height: 700px;
+        }
+
+        /* 底部区域 */
+        .bottom-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .bottom-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .bottom-panel h2 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .bottom-panel-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        /* 目标进度面板 */
+        .progress-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .progress-stat-item {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 10px;
+            padding: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .progress-stat-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .progress-stat-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .progress-stat-value.positive {
+            color: #10b981;
+        }
+
+        .progress-stat-value.negative {
+            color: #ef4444;
+        }
+
+        .progress-bar-large {
+            width: 100%;
+            height: 50px;
+            background: #e5e7eb;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-fill-large {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: width 0.5s;
+        }
+
+        .progress-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95em;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .daily-breakdown {
+            margin-top: 15px;
+        }
+
+        .daily-breakdown-title {
+            font-size: 1em;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .daily-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .daily-item:last-child {
+            border-bottom: none;
+        }
+
+        .daily-date {
+            color: #666;
+        }
+
+        .daily-value {
+            font-weight: 600;
+        }
+
+        .daily-value.positive {
+            color: #10b981;
+        }
+
+        .daily-value.negative {
+            color: #ef4444;
         }
 
         .left-panel {
@@ -714,7 +1141,7 @@ HTML_TEMPLATE = '''
         .center-panel {
             background: white;
             border-radius: 12px;
-            padding: 25px;
+            padding: 20px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             overflow: hidden;
             display: flex;
@@ -722,8 +1149,8 @@ HTML_TEMPLATE = '''
         }
 
         .center-panel h2 {
-            font-size: 1.3em;
-            margin-bottom: 15px;
+            font-size: 1.1em;
+            margin-bottom: 10px;
             color: #333;
         }
 
@@ -802,34 +1229,74 @@ HTML_TEMPLATE = '''
             color: #666;
         }
 
+        .watch-card-vertical .watch-confidence {
+            font-size: 0.75em;
+            color: #667eea;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
         .watch-card-vertical .watch-icon {
             font-size: 1.3em;
+        }
+
+        /* 顶部按钮栏 */
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .panel-header h2 {
+            margin: 0;
+        }
+
+        .header-btn {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .header-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
         /* 滚动条样式 */
         .left-panel-content::-webkit-scrollbar,
         .center-panel-content::-webkit-scrollbar,
-        .right-panel::-webkit-scrollbar {
+        .right-panel::-webkit-scrollbar,
+        .bottom-panel-content::-webkit-scrollbar {
             width: 6px;
         }
 
         .left-panel-content::-webkit-scrollbar-track,
         .center-panel-content::-webkit-scrollbar-track,
-        .right-panel::-webkit-scrollbar-track {
+        .right-panel::-webkit-scrollbar-track,
+        .bottom-panel-content::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
 
         .left-panel-content::-webkit-scrollbar-thumb,
         .center-panel-content::-webkit-scrollbar-thumb,
-        .right-panel::-webkit-scrollbar-thumb {
+        .right-panel::-webkit-scrollbar-thumb,
+        .bottom-panel-content::-webkit-scrollbar-thumb {
             background: #888;
             border-radius: 10px;
         }
 
         .left-panel-content::-webkit-scrollbar-thumb:hover,
         .center-panel-content::-webkit-scrollbar-thumb:hover,
-        .right-panel::-webkit-scrollbar-thumb:hover {
+        .right-panel::-webkit-scrollbar-thumb:hover,
+        .bottom-panel-content::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
 
@@ -839,6 +1306,10 @@ HTML_TEMPLATE = '''
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto auto;
                 height: auto;
+            }
+
+            .bottom-section {
+                grid-template-columns: 1fr;
             }
 
             .watchlist-vertical {
@@ -893,22 +1364,15 @@ HTML_TEMPLATE = '''
                 <div class="subtext">最多同时3个</div>
             </div>
         </div>
-        
-        <div class="stat-card">
-            <div class="label">目标进度</div>
-            <div class="progress-bar">
-                <div class="progress-fill" id="progress-bar" style="width: 0%">0%</div>
-            </div>
-            <div class="subtext" style="margin-top: 10px;">
-                已赚: <span id="earned">0U</span> / 还需: <span id="remaining">3400U</span>
-            </div>
-        </div>
 
         <!-- 三栏布局 -->
         <div class="main-layout">
             <!-- 左侧：监控列表 -->
             <div class="left-panel">
-                <h2>👁️ 监控列表</h2>
+                <div class="panel-header">
+                    <h2>👁️ 监控列表</h2>
+                    <button class="header-btn" onclick="alert('图表功能开发中')">📊 图表</button>
+                </div>
                 <div class="left-panel-content">
                     <div id="watchlist-container">
                         <div class="loading">加载中</div>
@@ -920,14 +1384,8 @@ HTML_TEMPLATE = '''
             <div class="center-panel">
                 <h2>📈 持仓实时图表</h2>
                 <div id="chart-controls" style="display: none;">
-                    <div style="text-align: center; margin-bottom: 15px;">
-                        <div style="margin-bottom: 12px;">
-                            <label style="color: #666; font-size: 0.95em; margin-right: 10px;">选择持仓:</label>
-                            <select id="position-selector" onchange="loadSelectedChart()" style="padding: 8px 16px; border: 2px solid #667eea; border-radius: 8px; font-size: 0.95em; cursor: pointer; background: white;">
-                                <option value="">-- 请选择 --</option>
-                            </select>
-                        </div>
-                        <div style="margin-bottom: 8px; color: #666; font-size: 0.9em;">选择时间周期</div>
+                    <div class="chart-controls-wrapper">
+                        <!-- 中间：时间周期 -->
                         <div class="timeframe-selector">
                             <button class="timeframe-btn active" data-interval="5m" onclick="changeTimeframe('5m', this)">5m</button>
                             <button class="timeframe-btn" data-interval="10m" onclick="changeTimeframe('10m', this)">10m</button>
@@ -935,6 +1393,13 @@ HTML_TEMPLATE = '''
                             <button class="timeframe-btn" data-interval="1h" onclick="changeTimeframe('1h', this)">1h</button>
                             <button class="timeframe-btn" data-interval="4h" onclick="changeTimeframe('4h', this)">4h</button>
                             <button class="timeframe-btn" data-interval="1d" onclick="changeTimeframe('1d', this)">1d</button>
+                        </div>
+                        <!-- 右上：持仓选择 -->
+                        <div class="position-selector-wrapper">
+                            <label>持仓:</label>
+                            <select id="position-selector" onchange="loadSelectedChart()">
+                                <option value="">-- 请选择 --</option>
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -949,19 +1414,71 @@ HTML_TEMPLATE = '''
                 </div>
             </div>
 
-            <!-- 右侧：当前持仓 + 交易历史 -->
+            <!-- 右侧：当前持仓 -->
             <div class="right-panel">
                 <div class="right-panel-section">
-                    <h2>📦 当前持仓</h2>
+                    <div class="panel-header">
+                        <h2>📦 当前持仓</h2>
+                        <button class="header-btn" onclick="alert('图表功能开发中')">📊 图表</button>
+                    </div>
                     <div id="positions-table">
                         <div class="loading">加载中</div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="right-panel-section">
-                    <h2>📊 交易历史</h2>
-                    <div id="trades-table">
-                        <div class="loading">加载中</div>
+        <!-- 底部区域：交易历史 + 目标进度 -->
+        <div class="bottom-section">
+            <!-- 交易历史 -->
+            <div class="bottom-panel">
+                <h2>📊 交易历史</h2>
+                <div class="bottom-panel-content" id="trades-table">
+                    <div class="loading">加载中</div>
+                </div>
+            </div>
+
+            <!-- 目标进度 -->
+            <div class="bottom-panel">
+                <h2>🎯 目标进度追踪</h2>
+                <div class="progress-panel">
+                    <!-- 进度条 -->
+                    <div>
+                        <div class="progress-bar-large">
+                            <div class="progress-fill-large" id="progress-bar-large" style="width: 0%">0%</div>
+                        </div>
+                        <div class="progress-details">
+                            <span>已完成: <strong id="progress-earned">0U</strong></span>
+                            <span>还需: <strong id="progress-remaining">3400U</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- 统计数据 -->
+                    <div class="progress-stats">
+                        <div class="progress-stat-item">
+                            <div class="progress-stat-label">目标金额</div>
+                            <div class="progress-stat-value" id="progress-target">3400U</div>
+                        </div>
+                        <div class="progress-stat-item">
+                            <div class="progress-stat-label">当前盈亏</div>
+                            <div class="progress-stat-value" id="progress-current">-</div>
+                        </div>
+                        <div class="progress-stat-item">
+                            <div class="progress-stat-label">平均日收益</div>
+                            <div class="progress-stat-value" id="progress-daily-avg">-</div>
+                        </div>
+                        <div class="progress-stat-item">
+                            <div class="progress-stat-label">预计完成天数</div>
+                            <div class="progress-stat-value" id="progress-days">-</div>
+                        </div>
+                    </div>
+
+                    <!-- 每日盈亏明细 -->
+                    <div class="daily-breakdown">
+                        <div class="daily-breakdown-title">📅 最近7天盈亏</div>
+                        <div id="daily-pnl-list">
+                            <div class="loading">加载中</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1094,13 +1611,19 @@ HTML_TEMPLATE = '''
                     ` : ''}
                 `;
 
+                const canvasWrapper = document.createElement('div');
+                canvasWrapper.style.flex = '1';
+                canvasWrapper.style.minHeight = '0';
+                canvasWrapper.style.position = 'relative';
+                canvasWrapper.style.maxHeight = '800px';
+
                 const canvas = document.createElement('canvas');
                 canvas.id = `trade-chart-${index}`;
-                canvas.style.maxHeight = '400px';
 
+                canvasWrapper.appendChild(canvas);
                 chartDiv.appendChild(title);
                 chartDiv.appendChild(info);
-                chartDiv.appendChild(canvas);
+                chartDiv.appendChild(canvasWrapper);
                 container.innerHTML = '';
                 container.appendChild(chartDiv);
 
@@ -1391,55 +1914,90 @@ HTML_TEMPLATE = '''
             try {
                 const response = await fetch('/api/positions');
                 const positions = await response.json();
-                
+
                 const container = document.getElementById('positions-table');
-                
+
                 if (positions.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">暂无持仓</p>';
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 15px; font-size: 0.9em;">暂无持仓</p>';
                     currentPositions = [];
                     document.getElementById('position-selector').innerHTML = '<option value="">-- 暂无持仓 --</option>';
                     return;
                 }
-                
+
                 // 获取所有持仓的当前价格
-                const pricePromises = positions.map(pos => 
+                const pricePromises = positions.map(pos =>
                     fetch(`/api/price/${pos.symbol}`).then(r => r.json())
                 );
                 const prices = await Promise.all(pricePromises);
-                
-                let html = '<table><thead><tr>';
-                html += '<th>币种</th><th>方向</th><th>金额</th><th>杠杆</th>';
-                html += '<th>入场价</th><th>当前价</th><th>止盈/止损</th><th>盈亏</th><th>操作</th>';
-                html += '</tr></thead><tbody>';
-                
+
+                let html = '<div class="position-cards">';
+
                 positions.forEach((pos, i) => {
                     const currentPrice = prices[i].price || 0;
-                    
+
                     let pricePct = 0;
                     if (pos.direction === 'LONG') {
                         pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
                     } else {
                         pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
                     }
-                    
+
                     const roi = pricePct * pos.leverage * 100;
                     const pnl = pos.amount * pricePct * pos.leverage;
-                    
-                    html += '<tr>';
-                    html += `<td><strong>${pos.symbol}</strong></td>`;
-                    html += `<td><span class="badge ${pos.direction.toLowerCase()}">${pos.direction === 'LONG' ? '做多' : '做空'}</span></td>`;
-                    html += `<td>${formatNumber(pos.amount, 0)}U</td>`;
-                    html += `<td>${pos.leverage}x</td>`;
-                    html += `<td>$${formatNumber(pos.entry_price, 6)}</td>`;
-                    html += `<td style="color: #667eea; font-weight: bold;">$${formatNumber(currentPrice, 6)}</td>`;
-                    html += `<td><span style="color: #10b981;">$${formatNumber(pos.take_profit, 6)}</span> / <span style="color: #ef4444;">$${formatNumber(pos.stop_loss, 6)}</span></td>`;
-                    html += `<td style="color: ${pnl >= 0 ? '#10b981' : '#ef4444'}; font-weight: bold;">`;
-                    html += `${formatCurrency(pnl)}U (${formatCurrency(roi)}%)</td>`;
-                    html += `<td><button class="view-chart-btn" onclick="viewChart('${pos.symbol}', ${i})">📊 查看图表</button></td>`;
-                    html += '</tr>';
+
+                    const directionText = pos.direction === 'LONG' ? '做多' : '做空';
+                    const directionClass = pos.direction.toLowerCase();
+                    const directionEmoji = pos.direction === 'LONG' ? '📈' : '📉';
+                    const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+
+                    html += `
+                        <div class="position-card" onclick="viewChart('${pos.symbol}', ${i})">
+                            <div class="position-card-header">
+                                <div class="position-card-title">
+                                    <span class="position-card-symbol">${directionEmoji} ${pos.symbol}</span>
+                                    <span class="badge-sm ${directionClass}">${directionText}</span>
+                                    <span class="badge-sm" style="background: #667eea; color: white;">${pos.leverage}x</span>
+                                </div>
+                                <button class="mini-btn" onclick="event.stopPropagation(); viewChart('${pos.symbol}', ${i})">📊 图表</button>
+                            </div>
+
+                            <div class="position-card-body">
+                                <div class="position-card-main">
+                                    <div>
+                                        <div style="font-size: 0.75em; color: #999;">当前价</div>
+                                        <div style="font-size: 1.1em; font-weight: bold; color: #667eea;">$${formatNumber(currentPrice, 4)}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="font-size: 0.75em; color: #999;">盈亏</div>
+                                        <div class="position-card-pnl" style="color: ${pnlColor};">
+                                            ${formatCurrency(pnl)}U
+                                        </div>
+                                        <div style="font-size: 0.85em; color: ${pnlColor};">
+                                            ${formatCurrency(roi)}%
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="position-card-info">
+                                    <span class="position-card-label">入场:</span>
+                                    <span class="position-card-value">$${formatNumber(pos.entry_price, 4)}</span>
+                                </div>
+
+                                <div class="position-card-info">
+                                    <span class="position-card-label">金额:</span>
+                                    <span class="position-card-value">${formatNumber(pos.amount, 0)}U</span>
+                                </div>
+                            </div>
+
+                            <div class="position-card-footer">
+                                <span>🎯 ${formatNumber(pos.take_profit, 4)}</span>
+                                <span>🛑 ${formatNumber(pos.stop_loss, 4)}</span>
+                            </div>
+                        </div>
+                    `;
                 });
-                
-                html += '</tbody></table>';
+
+                html += '</div>';
                 container.innerHTML = html;
                 
                 // 保存到全局变量
@@ -1469,46 +2027,77 @@ HTML_TEMPLATE = '''
             try {
                 const response = await fetch('/api/trades');
                 const trades = await response.json();
-                
+
                 const container = document.getElementById('trades-table');
-                
+
                 if (trades.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">暂无交易记录</p>';
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 15px; font-size: 0.9em;">暂无交易记录</p>';
                     return;
                 }
-                
-                let html = '<table><thead><tr>';
-                html += '<th>币种</th><th>方向</th><th>状态</th><th>金额</th>';
-                html += '<th>入场/出场</th><th>盈亏</th><th>ROI</th><th>时间</th><th>操作</th>';
-                html += '</tr></thead><tbody>';
+
+                let html = '<div class="trade-cards">';
 
                 trades.forEach((trade, index) => {
                     const pnl = trade.pnl || 0;
                     const roi = trade.roi || 0;
 
-                    html += '<tr>';
-                    html += `<td><strong>${trade.symbol}</strong></td>`;
-                    html += `<td><span class="badge ${trade.direction.toLowerCase()}">${trade.direction === 'LONG' ? '做多' : '做空'}</span></td>`;
-                    html += `<td><span class="badge ${trade.status.toLowerCase()}">${trade.status === 'OPEN' ? '持仓中' : '已平仓'}</span></td>`;
-                    html += `<td>${formatNumber(trade.amount, 0)}U × ${trade.leverage}x</td>`;
-                    html += `<td>$${formatNumber(trade.entry_price, 6)}`;
-                    if (trade.exit_price) {
-                        html += ` → $${formatNumber(trade.exit_price, 6)}`;
-                    }
-                    html += '</td>';
-                    html += `<td style="color: ${pnl >= 0 ? '#10b981' : '#ef4444'}; font-weight: bold;">${formatCurrency(pnl)}U</td>`;
-                    html += `<td style="color: ${roi >= 0 ? '#10b981' : '#ef4444'};">${formatCurrency(roi)}%</td>`;
-                    html += `<td>${formatTime(trade.entry_time)}</td>`;
-                    // 添加查看图表按钮
-                    if (trade.status === 'CLOSED') {
-                        html += `<td><button class="btn-chart" onclick="viewTradeChart(${index})">📊 复盘</button></td>`;
-                    } else {
-                        html += `<td><span style="color: #999;">-</span></td>`;
-                    }
-                    html += '</tr>';
+                    const directionText = trade.direction === 'LONG' ? '做多' : '做空';
+                    const directionClass = trade.direction.toLowerCase();
+                    const statusText = trade.status === 'OPEN' ? '持仓中' : '已平仓';
+                    const statusClass = trade.status.toLowerCase();
+                    const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+                    const lossClass = (trade.status === 'CLOSED' && pnl < 0) ? 'loss' : '';
+
+                    html += `
+                        <div class="trade-card ${statusClass} ${lossClass}">
+                            <div class="trade-card-header">
+                                <div class="trade-card-title">
+                                    <span class="trade-card-symbol">${trade.symbol}</span>
+                                    <span class="badge-sm ${directionClass}">${directionText}</span>
+                                    <span class="badge-sm ${statusClass}">${statusText}</span>
+                                </div>
+                                ${trade.status === 'CLOSED' ?
+                                    `<button class="mini-btn" onclick="viewTradeChart(${index})">📊</button>` :
+                                    '<span style="color: #999; font-size: 0.75em;">-</span>'
+                                }
+                            </div>
+
+                            <div class="trade-card-main">
+                                <div>
+                                    <div class="trade-card-pnl" style="color: ${pnlColor};">
+                                        ${formatCurrency(pnl)}U
+                                    </div>
+                                </div>
+                                <div class="trade-card-roi" style="color: ${pnlColor};">
+                                    ${formatCurrency(roi)}%
+                                </div>
+                            </div>
+
+                            <div class="trade-card-details">
+                                <div class="trade-card-detail">
+                                    <span class="trade-card-detail-label">入场</span>
+                                    <span class="trade-card-detail-value">$${formatNumber(trade.entry_price, 4)}</span>
+                                </div>
+                                ${trade.exit_price ? `
+                                    <div class="trade-card-detail">
+                                        <span class="trade-card-detail-label">出场</span>
+                                        <span class="trade-card-detail-value">$${formatNumber(trade.exit_price, 4)}</span>
+                                    </div>
+                                ` : '<div class="trade-card-detail"></div>'}
+                                <div class="trade-card-detail">
+                                    <span class="trade-card-detail-label">仓位</span>
+                                    <span class="trade-card-detail-value">${formatNumber(trade.amount, 0)}U</span>
+                                </div>
+                                <div class="trade-card-detail">
+                                    <span class="trade-card-detail-label">杠杆</span>
+                                    <span class="trade-card-detail-value">${trade.leverage}x</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 });
-                
-                html += '</tbody></table>';
+
+                html += '</div>';
                 container.innerHTML = html;
 
                 // 保存到全局变量
@@ -1516,7 +2105,7 @@ HTML_TEMPLATE = '''
 
             } catch (error) {
                 console.error('加载交易历史失败:', error);
-                document.getElementById('trades-table').innerHTML = '<p style="color: #ef4444;">加载失败</p>';
+                document.getElementById('trades-table').innerHTML = '<p style="color: #ef4444; font-size: 0.9em;">加载失败</p>';
             }
         }
 
@@ -1537,12 +2126,15 @@ HTML_TEMPLATE = '''
                 watchlist.forEach(coin => {
                     const hasPosition = coin.has_position ? 'has-position' : '';
                     const icon = coin.has_position ? '📊' : '👁️';
+                    // 临时模拟信心度（后续从API获取）
+                    const confidence = coin.confidence || Math.floor(Math.random() * 30) + 70;
 
                     html += `
                         <div class="watch-card-vertical ${hasPosition}">
                             <div class="watch-info">
                                 <div class="watch-symbol">${coin.symbol}</div>
                                 <div class="watch-price">$${formatNumber(coin.price, 4)}</div>
+                                <div class="watch-confidence">信心度: ${confidence}%</div>
                             </div>
                             <div class="watch-icon">${icon}</div>
                         </div>
@@ -1604,23 +2196,23 @@ HTML_TEMPLATE = '''
                 `;
                 
                 const info = document.createElement('div');
-                info.className = 'chart-info-grid';
+                info.className = 'chart-info-grid two-rows';
                 info.innerHTML = `
                     <div class="info-item">
-                        <span class="info-label">📍 入场价:</span>
-                        <span class="info-value" style="color: #3b82f6;">$${formatNumber(pos.entry_price, 6)}</span>
+                        <span class="info-label">📍 入场:</span>
+                        <span class="info-value" style="color: #3b82f6;">$${formatNumber(pos.entry_price, 5)}</span>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">💰 当前价:</span>
-                        <span class="info-value" style="color: #8b5cf6; font-size: 1.1em;">$${formatNumber(currentPrice, 6)}</span>
+                        <span class="info-label">💰 当前:</span>
+                        <span class="info-value" style="color: #8b5cf6; font-weight: bold;">$${formatNumber(currentPrice, 5)}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">🎯 止盈:</span>
-                        <span class="info-value" style="color: #10b981;">$${formatNumber(pos.take_profit, 6)}</span>
+                        <span class="info-value" style="color: #10b981;">$${formatNumber(pos.take_profit, 5)}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">🛑 止损:</span>
-                        <span class="info-value" style="color: #ef4444;">$${formatNumber(pos.stop_loss, 6)}</span>
+                        <span class="info-value" style="color: #ef4444;">$${formatNumber(pos.stop_loss, 5)}</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">💼 仓位:</span>
@@ -1628,21 +2220,31 @@ HTML_TEMPLATE = '''
                     </div>
                     <div class="info-item">
                         <span class="info-label">💵 盈亏:</span>
-                        <span class="info-value" style="color: ${pnl >= 0 ? '#10b981' : '#ef4444'}; font-size: 1.15em;">${formatCurrency(pnl)}U</span>
+                        <span class="info-value" style="color: ${pnl >= 0 ? '#10b981' : '#ef4444'}; font-weight: bold;">${formatCurrency(pnl)}U</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">📊 ROI:</span>
-                        <span class="info-value" style="color: ${roi >= 0 ? '#10b981' : '#ef4444'}; font-size: 1.15em;">${formatCurrency(roi)}%</span>
+                        <span class="info-value" style="color: ${roi >= 0 ? '#10b981' : '#ef4444'}; font-weight: bold;">${formatCurrency(roi)}%</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">⏱ 开仓:</span>
+                        <span class="info-value" style="font-size: 0.85em;">${formatTime(pos.entry_time)}</span>
                     </div>
                 `;
                 
+                const canvasWrapper = document.createElement('div');
+                canvasWrapper.style.flex = '1';
+                canvasWrapper.style.minHeight = '0';
+                canvasWrapper.style.position = 'relative';
+                canvasWrapper.style.height = '960px';
+
                 const canvas = document.createElement('canvas');
                 canvas.id = `chart-${pos.symbol}`;
-                canvas.style.maxHeight = '400px';
-                
+
+                canvasWrapper.appendChild(canvas);
                 chartDiv.appendChild(title);
                 chartDiv.appendChild(info);
-                chartDiv.appendChild(canvas);
+                chartDiv.appendChild(canvasWrapper);
                 container.innerHTML = '';
                 container.appendChild(chartDiv);
                 
@@ -1844,17 +2446,100 @@ HTML_TEMPLATE = '''
             }
         }
         
+        async function loadProgressTracking() {
+            try {
+                // 获取统计数据
+                const statsResp = await fetch('/api/stats');
+                const stats = await statsResp.json();
+
+                // 获取每日数据
+                const dailyResp = await fetch('/api/daily_stats');
+                const dailyStats = await dailyResp.json();
+
+                // 更新大进度条
+                const progress = Math.min(100, Math.max(0, stats.progress || 0));
+                const progressBar = document.getElementById('progress-bar-large');
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = formatNumber(progress, 1) + '%';
+
+                // 更新进度详情
+                const earned = stats.total_pnl || 0;
+                const remaining = Math.max(0, stats.target_profit - earned);
+                document.getElementById('progress-earned').textContent = formatNumber(earned, 2) + 'U';
+                document.getElementById('progress-remaining').textContent = formatNumber(remaining, 2) + 'U';
+
+                // 更新统计卡片
+                document.getElementById('progress-target').textContent = formatNumber(stats.target_profit, 2) + 'U';
+
+                const currentPnl = document.getElementById('progress-current');
+                currentPnl.textContent = formatCurrency(earned) + 'U';
+                currentPnl.className = 'progress-stat-value ' + (earned >= 0 ? 'positive' : 'negative');
+
+                // 计算平均日收益（基于最近7天）
+                let totalDailyPnl = 0;
+                let daysWithTrades = 0;
+                dailyStats.forEach(day => {
+                    if (day.trades > 0) {
+                        totalDailyPnl += day.daily_pnl || 0;
+                        daysWithTrades++;
+                    }
+                });
+
+                const avgDailyPnl = daysWithTrades > 0 ? totalDailyPnl / daysWithTrades : 0;
+                const avgDaily = document.getElementById('progress-daily-avg');
+                avgDaily.textContent = formatCurrency(avgDailyPnl) + 'U/天';
+                avgDaily.className = 'progress-stat-value ' + (avgDailyPnl >= 0 ? 'positive' : 'negative');
+
+                // 计算预计完成天数
+                const daysElement = document.getElementById('progress-days');
+                if (avgDailyPnl > 0 && remaining > 0) {
+                    const estimatedDays = Math.ceil(remaining / avgDailyPnl);
+                    daysElement.textContent = estimatedDays + '天';
+                    daysElement.className = 'progress-stat-value';
+                } else if (remaining <= 0) {
+                    daysElement.textContent = '已完成!';
+                    daysElement.className = 'progress-stat-value positive';
+                } else {
+                    daysElement.textContent = '-';
+                    daysElement.className = 'progress-stat-value';
+                }
+
+                // 渲染每日盈亏列表
+                const dailyListContainer = document.getElementById('daily-pnl-list');
+                if (dailyStats.length === 0) {
+                    dailyListContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 10px;">暂无数据</p>';
+                } else {
+                    let html = '';
+                    dailyStats.forEach(day => {
+                        const pnlColor = day.daily_pnl >= 0 ? 'positive' : 'negative';
+                        const winRate = day.trades > 0 ? (day.wins / day.trades * 100) : 0;
+                        html += `
+                            <div class="daily-item">
+                                <span class="daily-date">${day.date} (${day.trades}笔, 胜率${formatNumber(winRate, 0)}%)</span>
+                                <span class="daily-value ${pnlColor}">${formatCurrency(day.daily_pnl || 0)}U</span>
+                            </div>
+                        `;
+                    });
+                    dailyListContainer.innerHTML = html;
+                }
+
+            } catch (error) {
+                console.error('加载目标进度失败:', error);
+            }
+        }
+
         function updateAll() {
             loadStats();
             loadWatchlist();
             loadPositions();
             loadTrades();
+            loadProgressTracking();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
         }
-        
+
         // 初始加载
         updateAll();
-        
+
         // 每60秒刷新（但不会自动加载图表，除非用户已选择某个持仓）
         setInterval(updateAll, 60000);
     </script>
