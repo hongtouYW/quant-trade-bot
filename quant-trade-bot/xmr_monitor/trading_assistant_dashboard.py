@@ -528,7 +528,7 @@ def get_signal_suggestion(symbol):
         elif direction == 'SHORT' and current_price > ma7:
             confidence -= 10
 
-        # 最低60分才推荐
+        # 最低60分才推荐（高信心度信号）
         if confidence < 60 or direction is None:
             return None
 

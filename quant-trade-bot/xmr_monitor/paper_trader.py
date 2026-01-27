@@ -535,16 +535,16 @@ class PaperTradingAssistant:
         
         # 检查是否有足够资金
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
-        
-        # 最多同时持有3个仓位
-        if len(self.positions) < 3 and available > 200:
+
+        # 最多同时持有6个仓位（提高资金利用率）
+        if len(self.positions) < 6 and available > 200:
             # 开最强信号的仓
             if opportunities:
                 symbol, score, analysis = opportunities[0]
                 print(f"🎯 准备开仓: {symbol} (评分{score})")
                 self.open_position(symbol, analysis)
         else:
-            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/3, 可用{available:.0f}U)")
+            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/6, 可用{available:.0f}U)")
     
     def send_telegram(self, message):
         """发送Telegram通知"""
@@ -698,4 +698,4 @@ class PaperTradingAssistant:
 
 if __name__ == '__main__':
     trader = PaperTradingAssistant()
-    trader.run(interval=300)  # 5分钟扫描一次
+    trader.run(interval=60)  # 1分钟扫描一次（提高交易频率）
