@@ -20,7 +20,7 @@ import requests
 
 app = Flask(__name__)
 
-DB_PATH = '/Users/hongtou/newproject/quant-trade-bot/data/db/trading_assistant.db'
+DB_PATH = '/opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db'
 
 def get_db():
     """获取数据库连接"""
@@ -42,11 +42,13 @@ def get_stats():
         
         # 基本统计
         cursor.execute('''
-            SELECT 
+            SELECT
                 COUNT(*) as total_trades,
                 SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as win_trades,
                 SUM(CASE WHEN pnl < 0 THEN 1 ELSE 0 END) as loss_trades,
                 SUM(COALESCE(pnl, 0)) as total_pnl,
+                SUM(COALESCE(fee, 0)) as total_fees,
+                SUM(COALESCE(funding_fee, 0)) as total_funding_fees,
                 AVG(CASE WHEN status = 'CLOSED' THEN roi END) as avg_roi,
                 MAX(pnl) as best_trade,
                 MIN(pnl) as worst_trade
@@ -66,19 +68,28 @@ def get_stats():
         initial_capital = 2000
         current_capital = initial_capital + (stats['total_pnl'] or 0)
         target_profit = 3400
-        
-        stats['initial_capital'] = initial_capital
-        stats['current_capital'] = current_capital
-        stats['target_profit'] = target_profit
-        stats['progress'] = ((stats['total_pnl'] or 0) / target_profit * 100) if target_profit > 0 else 0
-        
-        # 持仓数
+
+        # 计算持仓占用保证金
         cursor.execute('''
-            SELECT COUNT(*) as open_positions
+            SELECT
+                COUNT(*) as open_positions,
+                COALESCE(SUM(amount), 0) as margin_used
             FROM real_trades
             WHERE mode = 'paper' AND assistant = '交易助手'
             AND status = 'OPEN'
         ''')
+
+        position_stats = dict(cursor.fetchone())
+        margin_used = position_stats['margin_used']
+        available_capital = current_capital - margin_used
+
+        stats['initial_capital'] = initial_capital
+        stats['current_capital'] = current_capital
+        stats['available_capital'] = available_capital
+        stats['margin_used'] = margin_used
+        stats['target_profit'] = target_profit
+        stats['progress'] = ((stats['total_pnl'] or 0) / target_profit * 100) if target_profit > 0 else 0
+        stats['open_positions'] = position_stats['open_positions']
         
         stats['open_positions'] = cursor.fetchone()['open_positions']
         
@@ -123,10 +134,10 @@ def get_trades():
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT 
+            SELECT
                 symbol, direction, entry_price, exit_price,
-                amount, leverage, pnl, roi, entry_time, exit_time,
-                status, reason
+                amount, leverage, pnl, roi, fee, funding_fee, entry_time, exit_time,
+                status, reason, stop_loss, take_profit
             FROM real_trades
             WHERE mode = 'paper' AND assistant = '交易助手'
             ORDER BY entry_time DESC
@@ -196,10 +207,14 @@ def get_kline(symbol):
         # 获取时间周期参数，默认5m
         interval = request.args.get('interval', '5m')
         
+        # Binance不支持10m，改用15m
+        if interval == '10m':
+            interval = '15m'
+
         # 时间周期对应的数据量（保持图表信息量一致）
         interval_limits = {
             '5m': 288,   # 24小时 = 288个5分钟K线
-            '10m': 144,  # 24小时 = 144个10分钟K线
+            '15m': 96,   # 24小时 = 96个15分钟K线
             '30m': 48,   # 24小时 = 48个30分钟K线
             '1h': 168,   # 7天 = 168个1小时K线
             '4h': 168,   # 28天 = 168个4小时K线
@@ -549,15 +564,23 @@ HTML_TEMPLATE = '''
         
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="label">当前资金</div>
-                <div class="value" id="current-capital">-</div>
-                <div class="subtext">初始: <span id="initial-capital">2000U</span></div>
+                <div class="label">资金统计</div>
+                <div class="value" id="current-capital" style="font-size: 1.5em;">-</div>
+                <div class="subtext" style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+                    <span>💰 初始: <span id="initial-capital">2000U</span></span>
+                    <span>💵 可用: <span id="available-capital" style="color: #10b981; font-weight: bold;">-</span></span>
+                    <span>🔒 占用: <span id="margin-used" style="color: #999;">-</span></span>
+                </div>
             </div>
             
             <div class="stat-card">
-                <div class="label">总盈亏</div>
+                <div class="label">总盈亏 (已扣费)</div>
                 <div class="value" id="total-pnl">-</div>
-                <div class="subtext">目标: <span id="target-profit">3400U</span></div>
+                <div class="subtext" style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+                    <span>🎯 目标: <span id="target-profit">3400U</span></span>
+                    <span>💳 交易费: <span id="total-fees" style="color: #ef4444;">-</span></span>
+                    <span>⚡ 资金费: <span id="total-funding-fees" style="color: #ef4444;">-</span></span>
+                </div>
             </div>
             
             <div class="stat-card">
@@ -637,24 +660,318 @@ HTML_TEMPLATE = '''
         let currentInterval = '5m';
         let currentPositions = [];
         let selectedPositionIndex = -1;
+        let currentTrades = [];
         
         // 查看指定持仓的图表
         function viewChart(symbol, index) {
             selectedPositionIndex = index;
-            
+
             // 显示图表控制区域
             document.getElementById('chart-controls').style.display = 'block';
-            
+
             // 更新持仓选择器
             const selector = document.getElementById('position-selector');
             selector.value = index;
-            
+
             // 滚动到图表区域
             document.getElementById('charts-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
+
             // 加载该持仓的图表
             if (currentPositions.length > 0 && index >= 0 && index < currentPositions.length) {
                 loadSingleChart(currentPositions[index]);
+            }
+        }
+
+        // 查看交易复盘图表
+        async function viewTradeChart(index) {
+            if (!currentTrades || index < 0 || index >= currentTrades.length) {
+                alert('无法加载交易数据');
+                return;
+            }
+
+            const trade = currentTrades[index];
+
+            // 隐藏常规图表控制
+            document.getElementById('chart-controls').style.display = 'none';
+
+            // 显示加载状态
+            const container = document.getElementById('charts-container');
+            container.innerHTML = '<div class="loading">加载复盘图表中...</div>';
+
+            // 滚动到图表区域
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            try {
+                // 获取K线数据（使用5分钟周期）
+                const klineResp = await fetch(`/api/kline/${trade.symbol}?interval=5m`);
+                const klineData = await klineResp.json();
+
+                // 创建图表容器
+                const chartDiv = document.createElement('div');
+                chartDiv.className = 'chart-wrapper';
+
+                const directionEmoji = trade.direction === 'LONG' ? '📈' : '📉';
+                const directionText = trade.direction === 'LONG' ? '做多' : '做空';
+                const directionColor = trade.direction === 'LONG' ? '#10b981' : '#ef4444';
+                const pnlColor = trade.pnl >= 0 ? '#10b981' : '#ef4444';
+                const roiColor = trade.roi >= 0 ? '#10b981' : '#ef4444';
+
+                const title = document.createElement('div');
+                title.className = 'chart-title';
+                title.innerHTML = `
+                    <span>📊</span>
+                    <span>${trade.symbol}/USDT 复盘</span>
+                    <span style="color: ${directionColor}; font-size: 0.9em;">${directionText}</span>
+                    <span style="color: #667eea; font-size: 0.85em;">${trade.leverage}x杠杆</span>
+                    <span style="color: #999; font-size: 0.75em; margin-left: auto;">已平仓</span>
+                `;
+
+                const info = document.createElement('div');
+                info.className = 'chart-info-grid';
+                info.innerHTML = `
+                    <div class="info-item">
+                        <span class="info-label">📍 入场价:</span>
+                        <span class="info-value" style="color: #3b82f6;">$${formatNumber(trade.entry_price, 6)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">🚪 出场价:</span>
+                        <span class="info-value" style="color: #f59e0b;">$${formatNumber(trade.exit_price, 6)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">💼 仓位:</span>
+                        <span class="info-value">${formatNumber(trade.amount, 0)}U × ${trade.leverage}x</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">💵 盈亏:</span>
+                        <span class="info-value" style="color: ${pnlColor}; font-size: 1.15em;">${formatCurrency(trade.pnl)}U</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">📊 ROI:</span>
+                        <span class="info-value" style="color: ${roiColor}; font-size: 1.15em;">${formatCurrency(trade.roi)}%</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">💳 交易手续费:</span>
+                        <span class="info-value" style="color: #999;">$${formatNumber(trade.fee, 2)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">⚡ 资金费率:</span>
+                        <span class="info-value" style="color: #999;">$${formatNumber(trade.funding_fee || 0, 2)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">💰 总费用:</span>
+                        <span class="info-value" style="color: #ef4444;">$${formatNumber((trade.fee || 0) + (trade.funding_fee || 0), 2)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">⏱ 入场时间:</span>
+                        <span class="info-value" style="font-size: 0.9em;">${formatTime(trade.entry_time)}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">⏱ 出场时间:</span>
+                        <span class="info-value" style="font-size: 0.9em;">${formatTime(trade.exit_time)}</span>
+                    </div>
+                    ${trade.reason ? `
+                    <div class="info-item" style="grid-column: 1 / -1;">
+                        <span class="info-label">📝 平仓原因:</span>
+                        <span class="info-value" style="color: #667eea;">${trade.reason}</span>
+                    </div>
+                    ` : ''}
+                `;
+
+                const canvas = document.createElement('canvas');
+                canvas.id = `trade-chart-${index}`;
+                canvas.style.maxHeight = '400px';
+
+                chartDiv.appendChild(title);
+                chartDiv.appendChild(info);
+                chartDiv.appendChild(canvas);
+                container.innerHTML = '';
+                container.appendChild(chartDiv);
+
+                // 准备图表数据
+                const timeFormat = {hour: '2-digit', minute: '2-digit'};
+                const labels = klineData.map(k => new Date(k.time).toLocaleString('zh-CN', timeFormat));
+                const prices = klineData.map(k => k.close);
+
+                // 找到入场和出场时间对应的索引
+                const entryTime = new Date(trade.entry_time).getTime();
+                const exitTime = new Date(trade.exit_time).getTime();
+
+                let entryIndex = 0;
+                let exitIndex = klineData.length - 1;
+
+                for (let i = 0; i < klineData.length; i++) {
+                    if (klineData[i].time >= entryTime && entryIndex === 0) {
+                        entryIndex = i;
+                    }
+                    if (klineData[i].time >= exitTime) {
+                        exitIndex = i;
+                        break;
+                    }
+                }
+
+                // 创建图表
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '价格走势',
+                            data: prices,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'top'
+                            },
+                            annotation: {
+                                annotations: {
+                                    // 入场价格线（蓝色虚线）
+                                    entryLine: {
+                                        type: 'line',
+                                        yMin: trade.entry_price,
+                                        yMax: trade.entry_price,
+                                        borderColor: '#3b82f6',
+                                        borderWidth: 2,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            content: `📍 入场 $${formatNumber(trade.entry_price, 6)}`,
+                                            enabled: true,
+                                            position: 'start',
+                                            backgroundColor: '#3b82f6',
+                                            color: '#ffffff',
+                                            font: {
+                                                size: 11,
+                                                weight: 'bold'
+                                            }
+                                        }
+                                    },
+                                    // 入场点标记
+                                    entryPoint: {
+                                        type: 'point',
+                                        xValue: entryIndex,
+                                        yValue: trade.entry_price,
+                                        backgroundColor: '#3b82f6',
+                                        borderColor: '#ffffff',
+                                        borderWidth: 3,
+                                        radius: 8
+                                    },
+                                    // 出场价格线（橙色虚线）
+                                    exitLine: {
+                                        type: 'line',
+                                        yMin: trade.exit_price,
+                                        yMax: trade.exit_price,
+                                        borderColor: '#f59e0b',
+                                        borderWidth: 2,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            content: `🚪 出场 $${formatNumber(trade.exit_price, 6)}`,
+                                            enabled: true,
+                                            position: 'end',
+                                            backgroundColor: '#f59e0b',
+                                            color: '#ffffff',
+                                            font: {
+                                                size: 11,
+                                                weight: 'bold'
+                                            }
+                                        }
+                                    },
+                                    // 出场点标记
+                                    exitPoint: {
+                                        type: 'point',
+                                        xValue: exitIndex,
+                                        yValue: trade.exit_price,
+                                        backgroundColor: '#f59e0b',
+                                        borderColor: '#ffffff',
+                                        borderWidth: 3,
+                                        radius: 8
+                                    },
+                                    // 止盈线（绿色虚线）
+                                    takeProfitLine: {
+                                        type: 'line',
+                                        yMin: trade.take_profit,
+                                        yMax: trade.take_profit,
+                                        borderColor: '#10b981',
+                                        borderWidth: 2,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            content: `🎯 止盈 $${formatNumber(trade.take_profit, 6)}`,
+                                            enabled: true,
+                                            position: 'start',
+                                            backgroundColor: '#10b981',
+                                            color: '#ffffff',
+                                            font: {
+                                                size: 11,
+                                                weight: 'bold'
+                                            }
+                                        }
+                                    },
+                                    // 止损线（红色虚线）
+                                    stopLossLine: {
+                                        type: 'line',
+                                        yMin: trade.stop_loss,
+                                        yMax: trade.stop_loss,
+                                        borderColor: '#ef4444',
+                                        borderWidth: 2,
+                                        borderDash: [8, 4],
+                                        label: {
+                                            content: `🛑 止损 $${formatNumber(trade.stop_loss, 6)}`,
+                                            enabled: true,
+                                            position: 'start',
+                                            backgroundColor: '#ef4444',
+                                            color: '#ffffff',
+                                            font: {
+                                                size: 11,
+                                                weight: 'bold'
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                display: true,
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                },
+                                ticks: {
+                                    color: '#999',
+                                    maxRotation: 45,
+                                    minRotation: 45
+                                }
+                            },
+                            y: {
+                                display: true,
+                                position: 'right',
+                                grid: {
+                                    display: true,
+                                    color: 'rgba(255, 255, 255, 0.05)'
+                                },
+                                ticks: {
+                                    color: '#999',
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(6);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error('加载复盘图表失败:', error);
+                container.innerHTML = '<p style="color: #ef4444;">加载图表失败</p>';
             }
         }
         
@@ -720,13 +1037,17 @@ HTML_TEMPLATE = '''
                 
                 document.getElementById('current-capital').textContent = formatNumber(stats.current_capital, 2) + 'U';
                 document.getElementById('current-capital').className = 'value ' + (stats.current_capital >= stats.initial_capital ? 'positive' : 'negative');
-                
+
                 document.getElementById('initial-capital').textContent = formatNumber(stats.initial_capital, 2) + 'U';
+                document.getElementById('available-capital').textContent = formatNumber(stats.available_capital, 2) + 'U';
+                document.getElementById('margin-used').textContent = formatNumber(stats.margin_used, 2) + 'U';
                 
                 document.getElementById('total-pnl').textContent = formatCurrency(stats.total_pnl) + 'U';
                 document.getElementById('total-pnl').className = 'value ' + (stats.total_pnl >= 0 ? 'positive' : 'negative');
-                
+
                 document.getElementById('target-profit').textContent = formatNumber(stats.target_profit, 2) + 'U';
+                document.getElementById('total-fees').textContent = formatNumber(stats.total_fees || 0, 2) + 'U';
+                document.getElementById('total-funding-fees').textContent = formatNumber(stats.total_funding_fees || 0, 2) + 'U';
                 
                 document.getElementById('win-rate').textContent = formatNumber(stats.win_rate, 1) + '%';
                 document.getElementById('win-count').textContent = stats.win_trades || 0;
@@ -841,13 +1162,13 @@ HTML_TEMPLATE = '''
                 
                 let html = '<table><thead><tr>';
                 html += '<th>币种</th><th>方向</th><th>状态</th><th>金额</th>';
-                html += '<th>入场/出场</th><th>盈亏</th><th>ROI</th><th>时间</th>';
+                html += '<th>入场/出场</th><th>盈亏</th><th>ROI</th><th>时间</th><th>操作</th>';
                 html += '</tr></thead><tbody>';
-                
-                trades.forEach(trade => {
+
+                trades.forEach((trade, index) => {
                     const pnl = trade.pnl || 0;
                     const roi = trade.roi || 0;
-                    
+
                     html += '<tr>';
                     html += `<td><strong>${trade.symbol}</strong></td>`;
                     html += `<td><span class="badge ${trade.direction.toLowerCase()}">${trade.direction === 'LONG' ? '做多' : '做空'}</span></td>`;
@@ -861,12 +1182,21 @@ HTML_TEMPLATE = '''
                     html += `<td style="color: ${pnl >= 0 ? '#10b981' : '#ef4444'}; font-weight: bold;">${formatCurrency(pnl)}U</td>`;
                     html += `<td style="color: ${roi >= 0 ? '#10b981' : '#ef4444'};">${formatCurrency(roi)}%</td>`;
                     html += `<td>${formatTime(trade.entry_time)}</td>`;
+                    // 添加查看图表按钮
+                    if (trade.status === 'CLOSED') {
+                        html += `<td><button class="btn-chart" onclick="viewTradeChart(${index})">📊 复盘</button></td>`;
+                    } else {
+                        html += `<td><span style="color: #999;">-</span></td>`;
+                    }
                     html += '</tr>';
                 });
                 
                 html += '</tbody></table>';
                 container.innerHTML = html;
-                
+
+                // 保存到全局变量
+                currentTrades = trades;
+
             } catch (error) {
                 console.error('加载交易历史失败:', error);
                 document.getElementById('trades-table').innerHTML = '<p style="color: #ef4444;">加载失败</p>';

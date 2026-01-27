@@ -31,7 +31,7 @@ class PaperTradingAssistant:
         self.watch_symbols = ['XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK']
         
         # 数据库路径
-        self.db_path = '/Users/hongtou/newproject/quant-trade-bot/data/db/trading_assistant.db'
+        self.db_path = '/opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db'
         
         # 当前持仓
         self.positions = {}  # {symbol: position_info}
@@ -49,7 +49,7 @@ class PaperTradingAssistant:
         
     def load_config(self):
         """加载配置"""
-        config_path = '/Users/hongtou/newproject/quant-trade-bot/config/config.json'
+        config_path = '/opt/trading-bot/quant-trade-bot/config/config.json'
         try:
             with open(config_path, 'r') as f:
                 return json.load(f)
@@ -437,25 +437,33 @@ class PaperTradingAssistant:
             entry_fee = position_value * self.fee_rate
             exit_fee = position_value * self.fee_rate
             total_fee = entry_fee + exit_fee
-            
-            # 最终盈亏 = 价格盈亏 - 手续费
-            pnl = pnl_before_fee - total_fee
-            
+
+            # 计算资金费率：每8小时收取0.01%
+            entry_time_str = position.get('entry_time', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            entry_time = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
+            exit_time_obj = datetime.now()
+            holding_hours = (exit_time_obj - entry_time).total_seconds() / 3600
+            funding_rate = 0.0001  # 0.01%
+            funding_fee = position_value * funding_rate * (holding_hours / 8)
+
+            # 最终盈亏 = 价格盈亏 - 手续费 - 资金费率
+            pnl = pnl_before_fee - total_fee - funding_fee
+
             # 更新资金
             self.current_capital += pnl
-            
+
             # 更新数据库
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
-            exit_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            
+
+            exit_time = exit_time_obj.strftime('%Y-%m-%d %H:%M:%S')
+
             cursor.execute('''
                 UPDATE real_trades
                 SET exit_price = ?, exit_time = ?, status = 'CLOSED',
-                    pnl = ?, roi = ?, fee = ?, reason = reason || ' | ' || ?
+                    pnl = ?, roi = ?, fee = ?, funding_fee = ?, reason = reason || ' | ' || ?
                 WHERE symbol = ? AND status = 'OPEN' AND mode = 'paper' AND assistant = '交易助手'
-            ''', (exit_price, exit_time, pnl, roi, total_fee, reason, symbol))
+            ''', (exit_price, exit_time, pnl, roi, total_fee, funding_fee, reason, symbol))
             
             conn.commit()
             conn.close()
