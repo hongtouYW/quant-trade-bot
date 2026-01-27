@@ -960,7 +960,12 @@ HTML_TEMPLATE = '''
             font-weight: bold;
             color: #333;
         }
-        
+
+        #charts-container {
+            height: 100%;
+            width: 100%;
+        }
+
         .placeholder {
             text-align: center;
             padding: 60px 20px;
@@ -1155,7 +1160,7 @@ HTML_TEMPLATE = '''
         }
 
         .center-panel-content {
-            flex: 1;
+            height: 600px;
             overflow-y: auto;
         }
 
@@ -1615,7 +1620,6 @@ HTML_TEMPLATE = '''
                 canvasWrapper.style.flex = '1';
                 canvasWrapper.style.minHeight = '0';
                 canvasWrapper.style.position = 'relative';
-                canvasWrapper.style.maxHeight = '800px';
 
                 const canvas = document.createElement('canvas');
                 canvas.id = `trade-chart-${index}`;
@@ -2231,12 +2235,11 @@ HTML_TEMPLATE = '''
                         <span class="info-value" style="font-size: 0.85em;">${formatTime(pos.entry_time)}</span>
                     </div>
                 `;
-                
+
                 const canvasWrapper = document.createElement('div');
                 canvasWrapper.style.flex = '1';
                 canvasWrapper.style.minHeight = '0';
                 canvasWrapper.style.position = 'relative';
-                canvasWrapper.style.height = '960px';
 
                 const canvas = document.createElement('canvas');
                 canvas.id = `chart-${pos.symbol}`;
