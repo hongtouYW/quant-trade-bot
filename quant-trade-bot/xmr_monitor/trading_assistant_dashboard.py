@@ -241,20 +241,20 @@ def get_daily_history():
 
 @app.route('/api/price/<symbol>')
 def get_current_price(symbol):
-    """获取币种当前价格（使用Binance API）"""
+    """获取币种当前价格（使用Binance期货API）"""
     try:
-        # 使用Binance API，更快更稳定
+        # 使用Binance期货API，与交易系统一致
         binance_symbol = f"{symbol}USDT"
-        url = f"https://api.binance.com/api/v3/ticker/price?symbol={binance_symbol}"
+        url = f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={binance_symbol}"
         response = requests.get(url, timeout=10)
         data = response.json()
-        
+
         if 'price' in data:
             price = float(data['price'])
             return jsonify({'symbol': symbol, 'price': price})
         else:
             return jsonify({'error': f'Price not found for {symbol}'}), 404
-            
+
     except Exception as e:
         return jsonify({'error': str(e), 'symbol': symbol}), 500
 
@@ -290,8 +290,9 @@ def get_kline(symbol):
             'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
         }
         binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
-        
-        url = f"https://api.binance.com/api/v3/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
+
+        # 使用期货API获取K线数据
+        url = f"https://fapi.binance.com/fapi/v1/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
         response = requests.get(url, timeout=10)
         klines = response.json()
         
@@ -428,7 +429,7 @@ def get_watchlist():
         return jsonify({'error': str(e)}), 500
 
 def get_price_value(symbol):
-    """获取币种当前价格（辅助函数）"""
+    """获取币种当前价格（期货价格）"""
     symbol_map = {
         # 原有币种
         'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
@@ -439,7 +440,8 @@ def get_price_value(symbol):
     }
     binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
-    url = f"https://api.binance.com/api/v3/ticker/price?symbol={binance_symbol}"
+    # 使用Binance期货API，与交易系统保持一致
+    url = f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={binance_symbol}"
     response = requests.get(url, timeout=5)
     data = response.json()
     return float(data['price'])
@@ -455,8 +457,8 @@ def get_signal_suggestion(symbol):
         }
         binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
-        # 获取K线数据
-        url = f"https://api.binance.com/api/v3/klines"
+        # 获取K线数据（使用期货API）
+        url = f"https://fapi.binance.com/fapi/v1/klines"
         params = {
             'symbol': binance_symbol,
             'interval': '5m',

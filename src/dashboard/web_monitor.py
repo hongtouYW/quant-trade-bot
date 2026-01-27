@@ -4,7 +4,7 @@
 实时监控Web面板
 """
 
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_from_directory
 import sqlite3
 import json
 from datetime import datetime, date
@@ -14,9 +14,10 @@ import ccxt
 # 使用绝对路径 - 项目根目录
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根目录
 DB_PATH = os.path.join(SCRIPT_DIR, 'data', 'db', 'paper_trading.db')
+HTML_DIR = os.path.join(SCRIPT_DIR, 'quant-trade-bot')
 
 # Flask app - 指定模板和静态文件目录
-app = Flask(__name__, 
+app = Flask(__name__,
             template_folder=os.path.join(SCRIPT_DIR, 'templates'),
             static_folder=os.path.join(SCRIPT_DIR, 'static'))
 
@@ -38,7 +39,22 @@ def get_current_price(symbol):
 @app.route('/')
 def index():
     """主页"""
-    return render_template('trading_monitor.html')
+    return send_from_directory(HTML_DIR, 'index.html')
+
+@app.route('/index.html')
+def index_html():
+    """主页"""
+    return send_from_directory(HTML_DIR, 'index.html')
+
+@app.route('/<path:filename>')
+def serve_files(filename):
+    """服务静态文件"""
+    if not filename.startswith('api/'):
+        try:
+            return send_from_directory(HTML_DIR, filename)
+        except:
+            pass
+    return "Not Found", 404
 
 @app.route('/api/stats')
 def get_stats():
@@ -94,9 +110,9 @@ def get_positions():
         cursor = conn.cursor()
         
         cursor.execute('''
-            SELECT * FROM positions 
+            SELECT * FROM positions
             WHERE status = 'open'
-            ORDER BY entry_time DESC
+            ORDER BY open_time DESC
         ''')
         
         positions = []
@@ -104,10 +120,13 @@ def get_positions():
             current_price = get_current_price(row['symbol'])
             
             if current_price:
-                position_value = row['quantity'] * current_price
-                entry_value = row['quantity'] * row['entry_price']
+                amount = row['amount']
+                position_value = amount * current_price
+                entry_value = amount * row['entry_price']
                 unrealized_pnl = (position_value - entry_value) * row['leverage']
-                unrealized_pnl_pct = (unrealized_pnl / row['cost']) * 100
+                # cost = entry_value / leverage (approximately)
+                cost = entry_value / row['leverage'] if row['leverage'] > 0 else entry_value
+                unrealized_pnl_pct = (unrealized_pnl / cost) * 100 if cost > 0 else 0
             else:
                 unrealized_pnl = 0
                 unrealized_pnl_pct = 0
@@ -115,14 +134,14 @@ def get_positions():
             
             positions.append({
                 'symbol': row['symbol'],
-                'quantity': row['quantity'],
+                'quantity': row['amount'],
                 'entry_price': row['entry_price'],
                 'current_price': current_price,
-                'entry_time': row['entry_time'],
+                'entry_time': row['open_time'],
                 'leverage': row['leverage'],
                 'stop_loss': row['stop_loss'],
                 'take_profit': row['take_profit'],
-                'cost': row['cost'],
+                'cost': 0,  # cost not in table
                 'unrealized_pnl': unrealized_pnl,
                 'unrealized_pnl_pct': unrealized_pnl_pct
             })
@@ -175,10 +194,10 @@ def get_daily_stats():
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
+
         # 获取最近7天的数据
         cursor.execute('''
-            SELECT 
+            SELECT
                 date(timestamp) as date,
                 COUNT(*) as trades,
                 SUM(CASE WHEN side='buy' THEN 1 ELSE 0 END) as buys,
@@ -190,7 +209,7 @@ def get_daily_stats():
             GROUP BY date(timestamp)
             ORDER BY date(timestamp) DESC
         ''')
-        
+
         daily_stats = []
         for row in cursor.fetchall():
             daily_stats.append({
@@ -201,9 +220,49 @@ def get_daily_stats():
                 'pnl': row['pnl'],
                 'fees': row['fees']
             })
-        
+
         conn.close()
         return jsonify(daily_stats)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/kline/<path:symbol>')
+def get_kline(symbol):
+    """获取K线数据"""
+    try:
+        timeframe = request.args.get('timeframe', '15m')
+        limit = int(request.args.get('limit', 100))
+
+        # 映射时间周期
+        timeframe_map = {
+            '5m': '5m',
+            '10m': '5m',  # Binance没有10m，用5m数据
+            '15m': '15m',
+            '1h': '1h',
+            '4h': '4h',
+            '8h': '4h',  # Binance没有8h，用4h数据
+            '1d': '1d'
+        }
+
+        binance_timeframe = timeframe_map.get(timeframe, '15m')
+
+        # 从Binance获取K线数据
+        exchange = ccxt.binance({'enableRateLimit': True, 'timeout': 10000})
+        ohlcv = exchange.fetch_ohlcv(symbol, binance_timeframe, limit=limit)
+
+        # 格式化数据
+        klines = []
+        for candle in ohlcv:
+            klines.append({
+                'timestamp': candle[0],
+                'open': candle[1],
+                'high': candle[2],
+                'low': candle[3],
+                'close': candle[4],
+                'volume': candle[5]
+            })
+
+        return jsonify(klines)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 

@@ -355,19 +355,19 @@
     <div class="top-stats">
         <div class="stat-card">
             <div class="stat-label">本金总额</div>
-            <div class="stat-value">$1,000.00</div>
+            <div class="stat-value" id="balanceValue">$0.00</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">交易次数</div>
-            <div class="stat-value">13</div>
+            <div class="stat-value" id="totalTradesValue">0</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">总盈亏</div>
-            <div class="stat-value">$0.00</div>
+            <div class="stat-value" id="totalPnlValue">$0.00</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">盈亏百分比</div>
-            <div class="stat-value">0.00%</div>
+            <div class="stat-value" id="pnlPercentValue">0.00%</div>
         </div>
     </div>
     
@@ -429,9 +429,13 @@
                     </div>
                 </div>
                 <div class="time-filters">
-                    <button class="time-btn active" onclick="changeTimeframe('15m')">ℹ️ 15分钟</button>
-                    <button class="time-btn" onclick="changeTimeframe('1h')">🕒 1小时</button>
-                    <button class="time-btn" onclick="changeTimeframe('1d')">📅 1天</button>
+                    <button class="time-btn active" onclick="changeTimeframe('5m', event)">5分钟</button>
+                    <button class="time-btn" onclick="changeTimeframe('10m', event)">10分钟</button>
+                    <button class="time-btn" onclick="changeTimeframe('15m', event)">15分钟</button>
+                    <button class="time-btn" onclick="changeTimeframe('1h', event)">1小时</button>
+                    <button class="time-btn" onclick="changeTimeframe('4h', event)">4小时</button>
+                    <button class="time-btn" onclick="changeTimeframe('8h', event)">8小时</button>
+                    <button class="time-btn" onclick="changeTimeframe('1d', event)">1天</button>
                 </div>
                 <div class="price-info">
                     <div class="price-item">
@@ -459,102 +463,14 @@
         <!-- 右侧持仓 -->
         <div class="positions-panel">
             <div class="panel-tabs">
-                <button class="tab-btn active" onclick="showTab('positions')">📼 持仓(13)</button>
+                <button class="tab-btn active" onclick="showTab('positions')">📼 持仓(<span id="positionCount">0</span>)</button>
                 <button class="tab-btn" onclick="showTab('history')">📊 历史</button>
             </div>
             
             <div id="positions-tab">
-            
-            <div class="position-item short" onclick="loadPositionChart('SOL/USDT', 124.58, 117.38, 135.92, 'short', this)">
-                <div class="position-symbol">SOL/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction short">空头</span><br>
-                    数量: 1.6054<br>
-                    入场: $124.58<br>
-                    时间: 17:04:08
-                </div>
+                <div style="text-align: center; color: #94a3b8; padding: 20px;">正在加载持仓数据...</div>
             </div>
-            
-            <div class="position-item long" onclick="loadPositionChart('XRP/USDT', 1.9209, 1.75, 2.20, 'long', this)">
-                <div class="position-symbol">XRP/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction long">多头</span><br>
-                    数量: 104.12<br>
-                    入场: $1.9209<br>
-                    时间: 17:04:08
-                </div>
-            </div>
-            
-            <div class="position-item short" onclick="loadPositionChart('AVAX/USDT', 11.77, 10.50, 13.50, 'short', this)">
-                <div class="position-symbol">AVAX/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction short">空头</span><br>
-                    数量: 16.99<br>
-                    入场: $11.77<br>
-                    时间: 17:03:37
-                </div>
-            </div>
-            
-            <div class="position-item long" onclick="loadPositionChart('DOT/USDT', 1.878, 1.65, 2.15, 'long', this)">
-                <div class="position-symbol">DOT/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction long">多头</span><br>
-                    数量: 106.50<br>
-                    入场: $1.878<br>
-                    时间: 17:03:36
-                </div>
-            </div>
-            
-            <div class="position-item short">
-                <div class="position-symbol">BTC/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction short">空头</span><br>
-                    数量: 0.0023<br>
-                    入场: $87,738.01<br>
-                    时间: 17:03:36
-                </div>
-            </div>
-            
-            <div class="position-item long">
-                <div class="position-symbol">BTC/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction long">多头</span><br>
-                    数量: 0.0023<br>
-                    入场: $87,368.11<br>
-                    时间: 16:19:08
-                </div>
-            </div>
-            
-            <div class="position-item short">
-                <div class="position-symbol">MATIC/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction short">空头</span><br>
-                    数量: 527.15<br>
-                    入场: $0.3794<br>
-                    时间: 16:18:36
-                </div>
-            </div>
-            
-            <div class="position-item short">
-                <div class="position-symbol">ATOM/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction short">空头</span><br>
-                    数量: 89.37<br>
-                    入场: $2.238<br>
-                    时间: 16:18:04
-                </div>
-            </div>
-            
-            <div class="position-item long">
-                <div class="position-symbol">DOGE/USDT</div>
-                <div class="position-details">
-                    方向: <span class="position-direction long">多头</span><br>
-                    数量: 1638.00<br>
-                    入场: $0.1221<br>
-                    时间: 15:55:00
-                </div>
-            </div>
-            
+
             <div id="history-tab" class="trade-history">
                 <div id="trade-history-content">
                     <div style="text-align: center; color: #94a3b8; padding: 20px;">
@@ -582,14 +498,16 @@
         </div>
     </div>
     
-    <!-- Chart.js 库 -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <!-- Chart.js 库 - 使用本地文件 -->
+    <script src="chart.min.js"></script>
+
     <script>
         // 图表初始化
         let chart;
-        let currentTimeframe = '15m';
+        let currentTimeframe = '5m';
         let currentPosition = null;
+        let chartRetryCount = 0;
+        const MAX_CHART_RETRY = 10; // 最多重试10次
         
         // 缓存系统
         let chartCache = {};
@@ -754,17 +672,19 @@
         }
         
         // 切换时间框架
-        function changeTimeframe(timeframe) {
+        function changeTimeframe(timeframe, evt) {
             currentTimeframe = timeframe;
-            
+
             // 更新按钮状态
             document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            }
+
             // 重新生成当前货币的数据
             const currentSymbol = document.getElementById('currentSymbol').textContent;
             createChart(currentSymbol);
-            
+
             addAlert(`🕒 已切换到${timeframe}时间框架`, '');
         }
         
@@ -853,9 +773,27 @@
         }
         
         // 创建图表
-        function createChart(symbol) {
+        async function createChart(symbol) {
             console.log(`🎨 开始创建图表: ${symbol}`);
-            
+
+            // 检查 Chart.js 是否已加载
+            if (typeof Chart === 'undefined') {
+                chartRetryCount++;
+                if (chartRetryCount > MAX_CHART_RETRY) {
+                    console.error('❌ Chart.js 加载失败，已达到最大重试次数');
+                    addAlert('❌ 图表库加载失败，请刷新页面', 'alert-warning');
+                    chartRetryCount = 0; // 重置计数器
+                    return;
+                }
+                console.warn(`⏳ Chart.js 还未加载，等待中... (${chartRetryCount}/${MAX_CHART_RETRY})`);
+                // 等待500ms后重试
+                setTimeout(() => createChart(symbol), 500);
+                return;
+            }
+
+            // Chart.js 已加载，重置计数器
+            chartRetryCount = 0;
+
             try {
                 // 清理旧图表
                 if (chart) {
@@ -863,39 +801,126 @@
                     chart.destroy();
                     chart = null;
                 }
-                
+
                 const canvas = document.getElementById('tradingChart');
                 if (!canvas) {
                     console.error('❌ 找不到图表容器');
                     addAlert('⚠️ 图表容器未找到', 'alert-warning');
                     return;
                 }
-                
+
                 console.log('✅ 找到图表容器');
                 const ctx = canvas.getContext('2d');
-                
-                // 确保有数据，如果没有则生成
-                if (!priceData[symbol] || !priceData[symbol].data || priceData[symbol].data.length === 0) {
-                    console.log(`⚙️ 为 ${symbol} 生成测试数据`);
-                    const basePrice = priceData[symbol] ? priceData[symbol].entryPrice : 100;
-                    generateSampleData(symbol, basePrice);
+
+                // 从API获取K线数据
+                console.log(`📡 从API获取 ${symbol} 的K线数据，时间周期: ${currentTimeframe}`);
+                const apiUrl = `/api/kline/${symbol}?timeframe=${currentTimeframe}&limit=100`;
+                console.log(`🔗 API URL: ${apiUrl}`);
+
+                const response = await fetch(apiUrl);
+                console.log(`📥 API 响应状态: ${response.status} ${response.statusText}`);
+
+                if (!response.ok) {
+                    throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
                 }
-                
-                console.log(`📊 创建图表，数据点数: ${priceData[symbol].data.length}`);
-                
+
+                const klines = await response.json();
+                console.log(`✅ 获取到 ${klines.length} 个K线数据点`);
+                console.log('📊 数据示例:', klines[0]);
+
+                if (!klines || klines.length === 0) {
+                    console.warn('⚠️ 没有获取到K线数据');
+                    addAlert('⚠️ 暂无数据', 'alert-warning');
+                    return;
+                }
+
+                // 检查数据格式
+                if (!klines[0].close || !klines[0].timestamp) {
+                    console.error('❌ 数据格式错误:', klines[0]);
+                    addAlert('❌ 数据格式错误', 'alert-warning');
+                    return;
+                }
+
+                // 格式化数据
+                const labels = klines.map(k => {
+                    const date = new Date(k.timestamp);
+                    if (currentTimeframe === '1d') {
+                        return date.toLocaleDateString();
+                    } else {
+                        return date.toLocaleTimeString().slice(0, -3);
+                    }
+                });
+                const closeData = klines.map(k => k.close);
+
+                console.log(`📊 创建图表，数据点数: ${closeData.length}`);
+
+                // 准备数据集
+                const datasets = [{
+                    label: symbol + ' 价格',
+                    data: closeData,
+                    borderColor: '#60a5fa',
+                    backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    order: 1
+                }];
+
+                // 如果有当前持仓信息，添加价位线
+                if (currentPosition && currentPosition.symbol === symbol) {
+                    console.log('📍 添加价位线:', currentPosition);
+
+                    // 入场价线（黄色虚线）
+                    if (currentPosition.entryPrice) {
+                        datasets.push({
+                            label: '入场价 $' + currentPosition.entryPrice.toFixed(4),
+                            data: new Array(labels.length).fill(currentPosition.entryPrice),
+                            borderColor: '#fbbf24',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0,
+                            order: 2
+                        });
+                    }
+
+                    // 止损线（红色虚线）
+                    if (currentPosition.stopPrice) {
+                        datasets.push({
+                            label: '止损价 $' + currentPosition.stopPrice.toFixed(4),
+                            data: new Array(labels.length).fill(currentPosition.stopPrice),
+                            borderColor: '#ef4444',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0,
+                            order: 2
+                        });
+                    }
+
+                    // 止盈线（绿色虚线）
+                    if (currentPosition.targetPrice) {
+                        datasets.push({
+                            label: '止盈价 $' + currentPosition.targetPrice.toFixed(4),
+                            data: new Array(labels.length).fill(currentPosition.targetPrice),
+                            borderColor: '#10b981',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0,
+                            tension: 0,
+                            order: 2
+                        });
+                    }
+                }
+
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
-                        labels: priceData[symbol].labels,
-                        datasets: [{
-                            label: symbol + ' 价格',
-                            data: priceData[symbol].data,
-                            borderColor: '#60a5fa',
-                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                            borderWidth: 2,
-                            fill: true,
-                            tension: 0.4
-                        }]
+                        labels: labels,
+                        datasets: datasets
                     },
                     options: {
                         responsive: true,
@@ -903,7 +928,13 @@
                         plugins: {
                             title: {
                                 display: true,
-                                text: symbol + ' 价格走势'
+                                text: symbol + ' 价格走势 (' + currentTimeframe + ')',
+                                color: '#e2e8f0'
+                            },
+                            legend: {
+                                labels: {
+                                    color: '#e2e8f0'
+                                }
                             }
                         },
                         scales: {
@@ -927,133 +958,21 @@
                         }
                     }
                 });
-                
+
                 console.log('✅ 图表创建成功');
                 addAlert(`📊 ${symbol} 图表已加载`, 'alert-success');
-                
+
             } catch (error) {
                 console.error('❌ 图表创建失败:', error);
+                console.error('错误详情:', {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack
+                });
                 addAlert('⚠️ 图表创建失败: ' + error.message, 'alert-warning');
             }
         }
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        fill: false,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index'
-                    },
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0',
-                                font: {
-                                    size: 12
-                                }
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: '#e2e8f0',
-                            bodyColor: '#e2e8f0',
-                            borderColor: '#60a5fa',
-                            borderWidth: 1,
-                            callbacks: {
-                                title: function(context) {
-                                    return `${symbol} - ${context[0].label}`;
-                                },
-                                label: function(context) {
-                                    const value = context.parsed.y;
-                                    const change = currentPosition ? 
-                                        ((value - currentPosition.entryPrice) / currentPosition.entryPrice * 100).toFixed(2) 
-                                        : '0.00';
-                                    return [
-                                        `${context.dataset.label}: $${value.toFixed(4)}`,
-                                        currentPosition ? `与入场价差异: ${change}%` : '',
-                                        currentPosition ? `方向: ${currentPosition.direction === 'long' || currentPosition.direction === 'buy' ? '多头' : '空头'}` : ''
-                                    ].filter(Boolean);
-                                },
-                                afterBody: function() {
-                                    const entry = priceData[symbol].entryPrice;
-                                    const stop = priceData[symbol].stopLoss;
-                                    const target = priceData[symbol].takeProfit;
-                                    return [
-                                        '',
-                                        `💰 入场价: $${entry.toLocaleString()}`,
-                                        `🛡️ 止损价: $${stop.toLocaleString()}`,
-                                        `🎯 止盈价: $${target.toLocaleString()}`
-                                    ];
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                maxTicksLimit: 10
-                            }
-                        },
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                callback: function(value) {
-                                    return '$' + value.toFixed(2);
-                                }
-                            }
-                        }
-                    },
-                    elements: {
-                        point: {
-                            radius: 3,
-                            hoverRadius: 6
-                        }
-                    }
-                }
-            });
-            
-            console.log(`✅ 图表创建成功: ${symbol} (${priceData[symbol].data.length}个数据点)`);
-            console.log(`💰 入场价: $${priceData[symbol].entryPrice.toLocaleString()}`);
-            console.log(`🛡️ 止损价: $${priceData[symbol].stopLoss.toLocaleString()}`);
-            console.log(`🎯 止盈价: $${priceData[symbol].takeProfit.toLocaleString()}`);
-            
-            // 更新状态显示
-            if (statusElement) {
-                statusElement.innerHTML = `✅ ${symbol} 图表已加载`;
-                statusElement.style.color = '#10b981';
-                
-                // 3秒后隐藏状态
-                setTimeout(() => {
-                    if (statusElement) {
-                        statusElement.style.opacity = '0.3';
-                    }
-                }, 3000);
-            }
-            
-            // 标记图表已缓存
-            chartCache[symbol] = true;
-            
-        } catch (error) {
-            console.error('❌ 创建图表失败:', error);
-            if (statusElement) {
-                statusElement.innerHTML = '❌ 图表创建失败';
-                statusElement.style.color = '#ef4444';
-            }
-            addAlert('⚠️ 图表创建失败: ' + error.message, 'alert-warning');
-        }
-        
+
         // 货币列表点击事件
         document.querySelectorAll('.currency-item').forEach(item => {
             item.addEventListener('click', function() {
@@ -1110,31 +1029,13 @@
             if (currencyItem) {
                 currencyItem.classList.add('active');
             }
-            
+
             // 更新图表头部信息
             document.getElementById('currentSymbol').textContent = symbol;
-            
-            // 确保货币数据存在
-            if (!priceData[symbol]) {
-                // 为新货币创建默认数据
-                const defaultPrice = 100; // 默认价格
-                priceData[symbol] = {
-                    labels: [],
-                    data: [],
-                    entryPrice: defaultPrice,
-                    stopLoss: defaultPrice * 0.95,
-                    takeProfit: defaultPrice * 1.05
-                };
-            }
-            
-            // 更新价格信息显示
-            document.getElementById('entryPrice').textContent = '$' + priceData[symbol].entryPrice.toFixed(2);
-            document.getElementById('stopLoss').textContent = '$' + priceData[symbol].stopLoss.toFixed(2);
-            document.getElementById('takeProfit').textContent = '$' + priceData[symbol].takeProfit.toFixed(2);
-            
-            // 始终创建图表
+
+            // 创建图表（从API加载真实数据）
             createChart(symbol);
-            
+
             addAlert(`📊 已切换到 ${symbol} 图表`, '');
         }
         
@@ -1294,16 +1195,124 @@
             }
         }
         
-        // 初始化
-        // 初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 确保Chart.js库已加载
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js 库未加载');
-                addAlert('⚠️ 图表库加载失败，请检查网络连接', 'alert-warning');
-                return;
+        // 从API加载账户统计数据
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+
+                console.log('📊 加载统计数据:', stats);
+
+                // 更新本金总额
+                document.getElementById('balanceValue').textContent = '$' + stats.balance.toFixed(2);
+
+                // 更新交易次数
+                document.getElementById('totalTradesValue').textContent = stats.total_trades;
+
+                // 更新总盈亏（带颜色）
+                const pnlElement = document.getElementById('totalPnlValue');
+                pnlElement.textContent = '$' + stats.total_pnl.toFixed(2);
+                if (stats.total_pnl > 0) {
+                    pnlElement.className = 'stat-value profit';
+                } else if (stats.total_pnl < 0) {
+                    pnlElement.className = 'stat-value loss';
+                } else {
+                    pnlElement.className = 'stat-value';
+                }
+
+                // 计算并更新盈亏百分比
+                const initialBalance = 2000; // 初始本金
+                const pnlPercent = (stats.total_pnl / initialBalance) * 100;
+                const percentElement = document.getElementById('pnlPercentValue');
+                percentElement.textContent = pnlPercent.toFixed(2) + '%';
+                if (pnlPercent > 0) {
+                    percentElement.className = 'stat-value profit';
+                } else if (pnlPercent < 0) {
+                    percentElement.className = 'stat-value loss';
+                } else {
+                    percentElement.className = 'stat-value';
+                }
+
+            } catch (error) {
+                console.error('❌ 加载统计数据失败:', error);
+                addAlert('⚠️ 加载统计数据失败', 'alert-warning');
             }
-            
+        }
+
+        // 从API加载真实持仓数据
+        async function loadPositions() {
+            try {
+                const response = await fetch('/api/positions');
+                const positions = await response.json();
+                const positionsPanel = document.getElementById('positions-tab');
+                if (!positionsPanel) return;
+
+                // 更新持仓数量显示
+                const positionCountElement = document.getElementById('positionCount');
+                if (positionCountElement) {
+                    positionCountElement.textContent = positions.length;
+                }
+
+                if (positions.length === 0) {
+                    positionsPanel.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px;">暂无持仓</div>';
+                    return;
+                }
+
+                positionsPanel.innerHTML = '';
+                positions.forEach(pos => {
+                    const direction = pos.unrealized_pnl >= 0 ? 'long' : 'short';
+                    const pnlClass = pos.unrealized_pnl >= 0 ? 'profit' : 'loss';
+                    const pnlSign = pos.unrealized_pnl >= 0 ? '+' : '';
+
+                    const div = document.createElement('div');
+                    div.className = 'position-item ' + direction;
+                    div.onclick = () => loadPositionChart(pos.symbol, pos.entry_price, pos.stop_loss, pos.take_profit, direction, div);
+                    div.innerHTML = `<div class="position-header">
+                        <span class="position-symbol">${pos.symbol}</span>
+                        <span class="position-badge ${direction}">${direction === 'long' ? '多' : '空'}${pos.leverage}x</span>
+                    </div>
+                    <div class="position-info">
+                        <div><div class="label">入场价</div><div class="value">${pos.entry_price.toFixed(4)}</div></div>
+                        <div><div class="label">当前价</div><div class="value">${pos.current_price.toFixed(4)}</div></div>
+                    </div>
+                    <div class="position-pnl ${pnlClass}">
+                        ${pnlSign}${pos.unrealized_pnl.toFixed(2)} (${pnlSign}${pos.unrealized_pnl_pct.toFixed(2)}%)
+                    </div>`;
+
+                    positionsPanel.appendChild(div);
+                });
+
+                // 自动加载第一个持仓的图表
+                if (positions.length > 0) {
+                    const firstPos = positions[0];
+                    const direction = firstPos.unrealized_pnl >= 0 ? 'long' : 'short';
+                    loadPositionChart(firstPos.symbol, firstPos.entry_price, firstPos.stop_loss, firstPos.take_profit, direction);
+                }
+            } catch (error) {
+                console.error('加载持仓失败:', error);
+                addAlert('⚠️ 加载持仓数据失败', 'alert-warning');
+            }
+        }
+
+        // 等待 Chart.js 加载完成
+        function waitForChart(callback, attempts = 0) {
+            if (typeof Chart !== 'undefined') {
+                console.log('✅ Chart.js 已加载');
+                callback();
+            } else if (attempts < 20) { // 最多等待10秒 (20 * 500ms)
+                console.log(`⏳ 等待 Chart.js 加载... (${attempts + 1}/20)`);
+                setTimeout(() => waitForChart(callback, attempts + 1), 500);
+            } else {
+                console.error('❌ Chart.js 加载超时');
+                addAlert('❌ 图表库加载失败，请刷新页面', 'alert-warning');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 等待 Chart.js 加载完成后再初始化
+            waitForChart(function() {
+                console.log('🎉 开始初始化应用...');
+
             // 检查图表容器
             const chartContainer = document.getElementById('tradingChart');
             if (!chartContainer) {
@@ -1311,26 +1320,57 @@
                 addAlert('⚠️ 图表容器未找到', 'alert-warning');
                 return;
             }
-            
+
             // 设置定期清理过期缓存（每分钟检查一次）
             setInterval(clearExpiredCache, 60000);
-            
+
             // 初始化时更新一次缓存状态
             updateCacheStatus();
-            
+
+            // 加载统计数据
+            loadStats();
+
+            // 加载持仓数据
+            loadPositions();
+
+            // 加载交易历史
+            loadTradeHistory();
+
             // 初始化图表
             setTimeout(() => {
                 createChart('BTC/USDT');
             }, 100);
-            
-            // 模拟实时提醒
-            simulateAlerts();
-            
+
+            // 🔄 设置1分钟自动刷新数据
+            setInterval(() => {
+                console.log('🔄 自动刷新数据（1分钟）');
+
+                // 刷新统计数据
+                loadStats();
+
+                // 刷新持仓数据
+                loadPositions();
+
+                // 刷新当前显示的图表
+                const currentSymbol = document.getElementById('currentSymbol');
+                if (currentSymbol && currentSymbol.textContent) {
+                    const symbol = currentSymbol.textContent;
+                    console.log(`🔄 刷新图表: ${symbol}`);
+                    createChart(symbol);
+                }
+
+                addAlert('🔄 数据已自动刷新', '');
+            }, 60000); // 60秒 = 1分钟
+
+            // 模拟实时提醒（禁用，避免干扰）
+            // simulateAlerts();
+
             // 添加启动提醒
             addAlert('🚀 量化交易图表已启动 - 端口5001 | 真实资金: $1000', '');
             setTimeout(() => {
                 addAlert('📊 支持持仓点击分析，历史记录查看 - 基于真实交易数据', '');
             }, 2000);
+            }); // 结束 waitForChart callback
         });
     </script>
 </body>
