@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.claude/hooks/play-tts.sh \"正在检查git状态并准备推送代码，我会先查看有哪些更改需要提交\")",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
