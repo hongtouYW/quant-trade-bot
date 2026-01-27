@@ -1,0 +1,7 @@
+#!/bin/bash
+# XMR监控便捷启动脚本
+
+XMR_DIR="/Users/hongtou/newproject/quant-trade-bot/xmr_monitor"
+
+cd "$XMR_DIR"
+./start_xmr_service.sh "$@"

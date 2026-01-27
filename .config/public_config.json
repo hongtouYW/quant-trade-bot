@@ -1,0 +1,28 @@
+{
+  "trading": {
+    "risk_per_trade": 0.02,
+    "max_positions": 5,
+    "min_trade_amount": 10
+  },
+  "monitoring": {
+    "check_interval": 30,
+    "dashboard_port": 5010,
+    "log_level": "INFO"
+  },
+  "strategy": {
+    "timeframes": [
+      "1h",
+      "4h",
+      "1d"
+    ],
+    "indicators": {
+      "ma_periods": [
+        20,
+        50,
+        200
+      ],
+      "rsi_period": 14,
+      "bb_period": 20
+    }
+  }
+}

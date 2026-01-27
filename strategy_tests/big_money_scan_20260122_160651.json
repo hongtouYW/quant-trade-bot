@@ -1,0 +1,791 @@
+{
+  "scan_time": "2026-01-22 16:06:51",
+  "symbols_scanned": 10,
+  "accumulation_analysis": [
+    {
+      "symbol": "BTC/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹"
+      ],
+      "score": 20,
+      "confidence": 0.2,
+      "net_flow": -10061375.123314857,
+      "total_volume": 30212835.584333938,
+      "analysis_time": "2026-01-22 16:06:51.206004"
+    },
+    {
+      "symbol": "ETH/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "低位大量吸筹",
+        "压盘吸筹"
+      ],
+      "score": 50,
+      "confidence": 0.5,
+      "net_flow": -9588185.27221759,
+      "total_volume": 42132075.32061287,
+      "analysis_time": "2026-01-22 16:06:51.206455"
+    },
+    {
+      "symbol": "BNB/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹"
+      ],
+      "score": 20,
+      "confidence": 0.2,
+      "net_flow": -2355690.813110262,
+      "total_volume": 25152530.265401386,
+      "analysis_time": "2026-01-22 16:06:51.206899"
+    },
+    {
+      "symbol": "SOL/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "低位大量吸筹",
+        "压盘吸筹",
+        "净买入9.6M"
+      ],
+      "score": 65,
+      "confidence": 0.65,
+      "net_flow": 9580860.25395722,
+      "total_volume": 45014384.72879019,
+      "analysis_time": "2026-01-22 16:06:51.207329"
+    },
+    {
+      "symbol": "ADA/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "低位大量吸筹",
+        "压盘吸筹",
+        "净买入3.9M"
+      ],
+      "score": 65,
+      "confidence": 0.65,
+      "net_flow": 3858542.2171880864,
+      "total_volume": 45359505.80243518,
+      "analysis_time": "2026-01-22 16:06:51.207744"
+    },
+    {
+      "symbol": "DOT/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹"
+      ],
+      "score": 20,
+      "confidence": 0.2,
+      "net_flow": -6521128.154850304,
+      "total_volume": 41188175.63591838,
+      "analysis_time": "2026-01-22 16:06:51.208159"
+    },
+    {
+      "symbol": "LINK/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹",
+        "净买入0.6M"
+      ],
+      "score": 35,
+      "confidence": 0.35,
+      "net_flow": 583426.5007374547,
+      "total_volume": 29380684.077833373,
+      "analysis_time": "2026-01-22 16:06:51.208577"
+    },
+    {
+      "symbol": "MATIC/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹",
+        "净买入3.1M"
+      ],
+      "score": 35,
+      "confidence": 0.35,
+      "net_flow": 3060310.9935038835,
+      "total_volume": 22272568.703065924,
+      "analysis_time": "2026-01-22 16:06:51.208994"
+    },
+    {
+      "symbol": "AVAX/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹",
+        "净买入3.1M"
+      ],
+      "score": 35,
+      "confidence": 0.35,
+      "net_flow": 3090557.083856974,
+      "total_volume": 40180313.360468596,
+      "analysis_time": "2026-01-22 16:06:51.209376"
+    },
+    {
+      "symbol": "ATOM/USDT",
+      "pattern_detected": true,
+      "signals": [
+        "压盘吸筹",
+        "净买入0.6M"
+      ],
+      "score": 35,
+      "confidence": 0.35,
+      "net_flow": 556413.4445257112,
+      "total_volume": 25762944.23562068,
+      "analysis_time": "2026-01-22 16:06:51.209833"
+    }
+  ],
+  "pump_preparation": [
+    {
+      "symbol": "BTC/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "成交量递增",
+        "接近技术突破位"
+      ],
+      "confidence": 0.4,
+      "risk_level": "中等",
+      "estimated_timeframe": "1-2周内",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "ETH/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "3笔大额买单",
+        "买盘深度增厚",
+        "接近技术突破位"
+      ],
+      "confidence": 0.6000000000000001,
+      "risk_level": "高",
+      "estimated_timeframe": "2-7天内",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "BNB/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "买盘深度增厚"
+      ],
+      "confidence": 0.15,
+      "risk_level": "极低",
+      "estimated_timeframe": "时间不明确",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "SOL/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "3笔大额买单",
+        "买盘深度增厚",
+        "接近技术突破位"
+      ],
+      "confidence": 0.6000000000000001,
+      "risk_level": "高",
+      "estimated_timeframe": "2-7天内",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "DOT/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "接近技术突破位"
+      ],
+      "confidence": 0.2,
+      "risk_level": "低",
+      "estimated_timeframe": "时间不明确",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "MATIC/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "成交量递增",
+        "买盘深度增厚",
+        "接近技术突破位"
+      ],
+      "confidence": 0.55,
+      "risk_level": "中等",
+      "estimated_timeframe": "2-7天内",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "AVAX/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "3笔大额买单",
+        "买盘深度增厚"
+      ],
+      "confidence": 0.4,
+      "risk_level": "中等",
+      "estimated_timeframe": "1-2周内",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    },
+    {
+      "symbol": "ATOM/USDT",
+      "preparation_detected": true,
+      "signals": [
+        "成交量递增",
+        "接近技术突破位"
+      ],
+      "confidence": 0.4,
+      "risk_level": "中等",
+      "estimated_timeframe": "1-2周内",
+      "target_analysis": {
+        "short_term_target": "5-15%",
+        "medium_term_target": "15-35%",
+        "risk_reward_ratio": "1:2",
+        "key_resistance_levels": [
+          "当前价格+10%",
+          "当前价格+25%",
+          "当前价格+50%"
+        ]
+      }
+    }
+  ],
+  "whale_monitoring": {
+    "scan_time": "2026-01-22 16:06:51.212437",
+    "active_whales": 9,
+    "high_alert_count": 5,
+    "whale_activities": [
+      {
+        "symbol": "DOT/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "大量抛售",
+          "alert_level": "high",
+          "impact_score": 10.18312065393701,
+          "net_flow": -10183120.65393701,
+          "buy_volume": 1016075.4901632823,
+          "sell_volume": 11199196.144100292,
+          "order_count": 7
+        },
+        "alert_level": "high",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 05:06:51.211581",
+            "type": "sell",
+            "size": 2270405.9600485517,
+            "price": 1001.5368182125654,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 07:24:51.211581",
+            "type": "buy",
+            "size": 1016075.4901632823,
+            "price": 983.2989503334957,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 07:36:51.211581",
+            "type": "sell",
+            "size": 539824.2400580914,
+            "price": 1005.3374364501715,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 08:48:51.211581",
+            "type": "sell",
+            "size": 2119461.7496419917,
+            "price": 996.0139748326463,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 10:54:51.211581",
+            "type": "sell",
+            "size": 1898820.7387853418,
+            "price": 990.6099854464105,
+            "price_level": "middle"
+          }
+        ]
+      },
+      {
+        "symbol": "BNB/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "大量吸筹",
+          "alert_level": "high",
+          "impact_score": 9.118348378804615,
+          "net_flow": 9118348.378804615,
+          "buy_volume": 11158475.919265954,
+          "sell_volume": 2040127.5404613395,
+          "order_count": 8
+        },
+        "alert_level": "high",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 06:24:51.211125",
+            "type": "buy",
+            "size": 622575.0838767895,
+            "price": 990.3199483627332,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 08:18:51.211125",
+            "type": "buy",
+            "size": 5000000,
+            "price": 1019.1904559502232,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 08:30:51.211125",
+            "type": "buy",
+            "size": 834518.4038934374,
+            "price": 989.5931264112155,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 11:06:51.211125",
+            "type": "buy",
+            "size": 1280631.359569071,
+            "price": 986.7376995097542,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 11:54:51.211125",
+            "type": "sell",
+            "size": 2040127.5404613395,
+            "price": 1015.0486669825586,
+            "price_level": "high"
+          }
+        ]
+      },
+      {
+        "symbol": "ATOM/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "大量吸筹",
+          "alert_level": "high",
+          "impact_score": 8.199537550254611,
+          "net_flow": 8199537.550254611,
+          "buy_volume": 12094277.290910851,
+          "sell_volume": 3894739.7406562404,
+          "order_count": 10
+        },
+        "alert_level": "high",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 06:30:51.212256",
+            "type": "buy",
+            "size": 5000000,
+            "price": 980.612762629047,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 06:54:51.212256",
+            "type": "buy",
+            "size": 659977.0150075683,
+            "price": 989.1638298467792,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 09:18:51.212256",
+            "type": "buy",
+            "size": 3242659.945004817,
+            "price": 1000.6381358909708,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 09:24:51.212256",
+            "type": "buy",
+            "size": 1127730.413189097,
+            "price": 1006.3052007573168,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 09:36:51.212256",
+            "type": "buy",
+            "size": 1154133.4267475235,
+            "price": 989.3623978361056,
+            "price_level": "low"
+          }
+        ]
+      },
+      {
+        "symbol": "ADA/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "大量吸筹",
+          "alert_level": "high",
+          "impact_score": 4.972397458557728,
+          "net_flow": 4972397.458557728,
+          "buy_volume": 5508446.65201446,
+          "sell_volume": 536049.1934567327,
+          "order_count": 3
+        },
+        "alert_level": "high",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 07:12:51.211429",
+            "type": "buy",
+            "size": 508446.6520144609,
+            "price": 980.3465909901224,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 10:42:51.211429",
+            "type": "buy",
+            "size": 5000000,
+            "price": 981.1956004820145,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 15:30:51.211429",
+            "type": "sell",
+            "size": 536049.1934567327,
+            "price": 1018.5227258702342,
+            "price_level": "high"
+          }
+        ]
+      },
+      {
+        "symbol": "AVAX/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "大量吸筹",
+          "alert_level": "high",
+          "impact_score": 4.71227332469195,
+          "net_flow": 4712273.32469195,
+          "buy_volume": 9804176.88716644,
+          "sell_volume": 5091903.56247449,
+          "order_count": 9
+        },
+        "alert_level": "high",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 06:48:51.212071",
+            "type": "buy",
+            "size": 648001.2022061353,
+            "price": 1015.1941603483048,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 07:00:51.212071",
+            "type": "sell",
+            "size": 796203.4234693255,
+            "price": 998.6939524005383,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 10:24:51.212071",
+            "type": "buy",
+            "size": 5000000,
+            "price": 1015.7029076194317,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 12:12:51.212071",
+            "type": "sell",
+            "size": 1448885.6855328435,
+            "price": 986.9921547733347,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 13:06:51.212071",
+            "type": "buy",
+            "size": 770206.8106680759,
+            "price": 990.7605625044278,
+            "price_level": "middle"
+          }
+        ]
+      },
+      {
+        "symbol": "SOL/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "积极买入",
+          "alert_level": "medium",
+          "impact_score": 1.6145197750422642,
+          "net_flow": 1614519.7750422643,
+          "buy_volume": 4228918.82129181,
+          "sell_volume": 2614399.0462495456,
+          "order_count": 5
+        },
+        "alert_level": "medium",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 04:18:51.211276",
+            "type": "sell",
+            "size": 1327044.4252920826,
+            "price": 1016.5027689617923,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 12:30:51.211276",
+            "type": "buy",
+            "size": 778405.9010437133,
+            "price": 994.3388520143795,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 13:00:51.211276",
+            "type": "buy",
+            "size": 2093444.3622085506,
+            "price": 982.3391930353097,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 13:48:51.211276",
+            "type": "sell",
+            "size": 1287354.620957463,
+            "price": 1007.3662586116802,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 15:36:51.211276",
+            "type": "buy",
+            "size": 1357068.558039546,
+            "price": 1013.5386535277553,
+            "price_level": "high"
+          }
+        ]
+      },
+      {
+        "symbol": "ETH/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "积极卖出",
+          "alert_level": "medium",
+          "impact_score": 1.3281896660649153,
+          "net_flow": -1328189.6660649152,
+          "buy_volume": 5555164.278732492,
+          "sell_volume": 6883353.944797407,
+          "order_count": 9
+        },
+        "alert_level": "medium",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 05:06:51.210970",
+            "type": "buy",
+            "size": 555164.2787324918,
+            "price": 3367.283103687573,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 05:42:51.210970",
+            "type": "sell",
+            "size": 2305756.278195401,
+            "price": 3417.6138815278964,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 05:48:51.210970",
+            "type": "buy",
+            "size": 5000000,
+            "price": 3463.4920051955887,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 06:24:51.210970",
+            "type": "sell",
+            "size": 594684.1291334645,
+            "price": 3412.875322205221,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 08:42:51.210970",
+            "type": "sell",
+            "size": 1388692.6883168854,
+            "price": 3376.9120753132165,
+            "price_level": "middle"
+          }
+        ]
+      },
+      {
+        "symbol": "BTC/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "积极卖出",
+          "alert_level": "medium",
+          "impact_score": 0.9059171389849932,
+          "net_flow": -905917.1389849931,
+          "buy_volume": 7496922.190264232,
+          "sell_volume": 8402839.329249226,
+          "order_count": 8
+        },
+        "alert_level": "medium",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 04:24:51.210812",
+            "type": "sell",
+            "size": 3402839.3292492265,
+            "price": 95395.09391586833,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 05:18:51.210812",
+            "type": "buy",
+            "size": 626510.313933039,
+            "price": 94393.1300196523,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 05:24:51.210812",
+            "type": "buy",
+            "size": 801262.216011664,
+            "price": 95995.40582946094,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 05:48:51.210812",
+            "type": "sell",
+            "size": 5000000,
+            "price": 93757.79017599276,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 07:12:51.210812",
+            "type": "buy",
+            "size": 3662469.532670881,
+            "price": 95117.6507186669,
+            "price_level": "middle"
+          }
+        ]
+      },
+      {
+        "symbol": "LINK/USDT",
+        "behavior": {
+          "significant": true,
+          "behavior_type": "积极卖出",
+          "alert_level": "medium",
+          "impact_score": 0.7651126429806473,
+          "net_flow": -765112.6429806473,
+          "buy_volume": 2212919.746662653,
+          "sell_volume": 2978032.3896433003,
+          "order_count": 5
+        },
+        "alert_level": "medium",
+        "orders": [
+          {
+            "timestamp": "2026-01-22 10:36:51.211730",
+            "type": "buy",
+            "size": 1425495.2668529921,
+            "price": 1015.8654642520426,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 14:30:51.211730",
+            "type": "sell",
+            "size": 1018286.6564949778,
+            "price": 1005.0761778180679,
+            "price_level": "middle"
+          },
+          {
+            "timestamp": "2026-01-22 14:54:51.211730",
+            "type": "buy",
+            "size": 787424.479809661,
+            "price": 1012.3612881108945,
+            "price_level": "high"
+          },
+          {
+            "timestamp": "2026-01-22 15:06:51.211730",
+            "type": "sell",
+            "size": 789215.5666996734,
+            "price": 985.9623918433851,
+            "price_level": "low"
+          },
+          {
+            "timestamp": "2026-01-22 15:30:51.211730",
+            "type": "sell",
+            "size": 1170530.1664486488,
+            "price": 994.198707748576,
+            "price_level": "middle"
+          }
+        ]
+      }
+    ],
+    "market_impact_summary": {
+      "overall_sentiment": "极度看多",
+      "total_impact_score": 41.79941658931873,
+      "net_market_flow": 15434736.385383604,
+      "risk_level": "high"
+    }
+  },
+  "alerts": [
+    {
+      "type": "pump_preparation",
+      "symbol": "ETH/USDT",
+      "level": "medium",
+      "message": "ETH/USDT 疑似拉盘准备",
+      "timeframe": "2-7天内"
+    },
+    {
+      "type": "pump_preparation",
+      "symbol": "SOL/USDT",
+      "level": "medium",
+      "message": "SOL/USDT 疑似拉盘准备",
+      "timeframe": "2-7天内"
+    },
+    {
+      "type": "whale_activity",
+      "level": "high",
+      "message": "检测到5个高风险鲸鱼活动",
+      "details": {
+        "overall_sentiment": "极度看多",
+        "total_impact_score": 41.79941658931873,
+        "net_market_flow": 15434736.385383604,
+        "risk_level": "high"
+      }
+    }
+  ]
+}

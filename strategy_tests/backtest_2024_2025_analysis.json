@@ -1,0 +1,88 @@
+[
+  {
+    "strategy": "BTC突破策略_2024",
+    "year_period": "2024-2025",
+    "market_condition": "BEARISH_TO_BULLISH",
+    "total_return": 60.56,
+    "win_rate": 46.3,
+    "total_trades": 630,
+    "winning_trades": 292,
+    "losing_trades": 338,
+    "total_pnl": 605.61,
+    "avg_trade": 0.96,
+    "max_drawdown": -7.45,
+    "leverage_range": "3-5x",
+    "currencies": [
+      "BTC/USDT"
+    ]
+  },
+  {
+    "strategy": "ETH量价策略_2024",
+    "year_period": "2024-2025",
+    "market_condition": "ACCUMULATION",
+    "total_return": 82.91,
+    "win_rate": 50.8,
+    "total_trades": 841,
+    "winning_trades": 427,
+    "losing_trades": 414,
+    "total_pnl": 829.11,
+    "avg_trade": 0.99,
+    "max_drawdown": -6.33,
+    "leverage_range": "2-4x",
+    "currencies": [
+      "ETH/USDT"
+    ]
+  },
+  {
+    "strategy": "BTC稳健策略_2024",
+    "year_period": "2024-2025",
+    "market_condition": "CONSOLIDATION",
+    "total_return": 25.29,
+    "win_rate": 51.2,
+    "total_trades": 381,
+    "winning_trades": 195,
+    "losing_trades": 186,
+    "total_pnl": 252.94,
+    "avg_trade": 0.66,
+    "max_drawdown": -5.66,
+    "leverage_range": "1-3x",
+    "currencies": [
+      "BTC/USDT"
+    ]
+  },
+  {
+    "strategy": "ETH增强策略_2024",
+    "year_period": "2024-2025",
+    "market_condition": "BREAKOUT",
+    "total_return": 319.25,
+    "win_rate": 43.1,
+    "total_trades": 545,
+    "winning_trades": 235,
+    "losing_trades": 310,
+    "total_pnl": 3192.49,
+    "avg_trade": 5.86,
+    "max_drawdown": -11.06,
+    "leverage_range": "3-6x",
+    "currencies": [
+      "ETH/USDT"
+    ]
+  },
+  {
+    "strategy": "双币套利_2024",
+    "year_period": "2024-2025",
+    "market_condition": "CORRELATION",
+    "total_return": 18.3,
+    "win_rate": 50.9,
+    "total_trades": 475,
+    "winning_trades": 242,
+    "losing_trades": 233,
+    "total_pnl": 183.02,
+    "avg_trade": 0.39,
+    "max_drawdown": -10.87,
+    "leverage_range": "2-4x",
+    "currencies": [
+      "BTC/USDT",
+      "ETH/USDT"
+    ]
+  }
+]

@@ -1,8 +1,13 @@
-# 私钥和敏感信息
+# 敏感配置文件
+config.json
+*.env
+.env
+.env.*
+
+# API密钥和证书
 *.pem
 *.key
-*.env
-.env.*
+rsa_*
 
 # 数据库文件
 *.db
@@ -24,12 +29,15 @@ __pycache__/
 venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
 # IDE配置
 .vscode/
 .idea/
 *.swp
 *.swo
+*~
 
 # 操作系统文件
 .DS_Store
@@ -38,7 +46,23 @@ Thumbs.db
 # 临时文件
 *.tmp
 *.bak
-*.swp
+
+# 数据和缓存文件
+data/
+cache/
+
+# 交易数据备份
+backups/
+*.csv
+*.json.bak
+
+# 系统文件
+.pytest_cache/
+.coverage
+htmlcov/
 
 # 音频文件（TTS生成的）
 .claude/audio/
+
+# 个人配置示例文件保留，实际配置文件忽略
+# config.json.example (示例文件应该被包含)
