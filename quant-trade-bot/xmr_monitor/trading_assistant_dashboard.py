@@ -247,6 +247,58 @@ def get_kline(symbol):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/watchlist')
+def get_watchlist():
+    """获取监控币种列表"""
+    try:
+        watch_symbols = ['XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK']
+
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 获取当前持仓
+        cursor.execute('''
+            SELECT symbol FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手' AND status = 'OPEN'
+        ''')
+        open_positions = set(row['symbol'] for row in cursor.fetchall())
+        conn.close()
+
+        # 获取每个币种的当前价格
+        watchlist = []
+        for symbol in watch_symbols:
+            try:
+                price_data = get_current_price(symbol)
+                watchlist.append({
+                    'symbol': symbol,
+                    'price': price_data,
+                    'has_position': symbol in open_positions
+                })
+            except Exception as e:
+                watchlist.append({
+                    'symbol': symbol,
+                    'price': 0,
+                    'has_position': symbol in open_positions,
+                    'error': str(e)
+                })
+
+        return jsonify(watchlist)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+def get_current_price(symbol):
+    """获取币种当前价格"""
+    symbol_map = {
+        'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
+        'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT'
+    }
+    binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+
+    url = f"https://api.binance.com/api/v3/ticker/price?symbol={binance_symbol}"
+    response = requests.get(url, timeout=5)
+    data = response.json()
+    return float(data['price'])
+
 # HTML模板
 HTML_TEMPLATE = '''
 <!DOCTYPE html>
@@ -402,7 +454,63 @@ HTML_TEMPLATE = '''
             background: #e5e7eb;
             color: #374151;
         }
-        
+
+        .watchlist-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .watch-card {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .watch-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .watch-card.has-position {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .watch-symbol {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .watch-card.has-position .watch-symbol {
+            color: #10b981;
+        }
+
+        .watch-price {
+            font-size: 0.95em;
+            color: #999;
+        }
+
+        .watch-status {
+            font-size: 0.75em;
+            margin-top: 8px;
+            padding: 3px 8px;
+            border-radius: 8px;
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            display: inline-block;
+        }
+
         .progress-bar {
             width: 100%;
             height: 30px;
@@ -603,7 +711,14 @@ HTML_TEMPLATE = '''
                 已赚: <span id="earned">0U</span> / 还需: <span id="remaining">3400U</span>
             </div>
         </div>
-        
+
+        <div class="section">
+            <h2>👁️ 监控列表</h2>
+            <div id="watchlist-container">
+                <div class="loading">加载中</div>
+            </div>
+        </div>
+
         <div class="section">
             <h2>📦 当前持仓</h2>
             <div id="positions-table">
@@ -1200,7 +1315,46 @@ HTML_TEMPLATE = '''
                 document.getElementById('trades-table').innerHTML = '<p style="color: #ef4444;">加载失败</p>';
             }
         }
-        
+
+        async function loadWatchlist() {
+            try {
+                const response = await fetch('/api/watchlist');
+                const watchlist = await response.json();
+
+                const container = document.getElementById('watchlist-container');
+
+                if (watchlist.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">无监控币种</p>';
+                    return;
+                }
+
+                let html = '<div class="watchlist-grid">';
+
+                watchlist.forEach(coin => {
+                    const hasPosition = coin.has_position ? 'has-position' : '';
+                    const positionBadge = coin.has_position ? '<span class="watch-status">✓ 持仓中</span>' : '';
+
+                    html += `
+                        <div class="watch-card ${hasPosition}">
+                            <div class="watch-symbol">
+                                <span>${coin.symbol}</span>
+                                ${coin.has_position ? '📊' : '👁️'}
+                            </div>
+                            <div class="watch-price">$${formatNumber(coin.price, 4)}</div>
+                            ${positionBadge}
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+
+            } catch (error) {
+                console.error('加载监控列表失败:', error);
+                document.getElementById('watchlist-container').innerHTML = '<p style="color: #ef4444;">加载失败</p>';
+            }
+        }
+
         async function loadSingleChart(pos) {
             const container = document.getElementById('charts-container');
             container.innerHTML = '<div class="loading">加载图表中</div>';
@@ -1489,6 +1643,7 @@ HTML_TEMPLATE = '''
         
         function updateAll() {
             loadStats();
+            loadWatchlist();
             loadPositions();
             loadTrades();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
