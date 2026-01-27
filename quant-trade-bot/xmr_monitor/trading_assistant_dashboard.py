@@ -678,6 +678,179 @@ HTML_TEMPLATE = '''
             font-size: 3em;
             margin-bottom: 20px;
         }
+
+        /* 三栏布局 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 380px;
+            gap: 20px;
+            margin-bottom: 20px;
+            height: calc(100vh - 400px);
+            min-height: 600px;
+        }
+
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .left-panel h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .left-panel-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .center-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .center-panel h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .center-panel-content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+
+        .right-panel-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .right-panel-section h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        /* 监控列表优化 - 垂直排列 */
+        .watchlist-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .watch-card-vertical {
+            background: rgba(102, 126, 234, 0.05);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .watch-card-vertical:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.4);
+        }
+
+        .watch-card-vertical.has-position {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: rgba(16, 185, 129, 0.4);
+        }
+
+        .watch-card-vertical .watch-info {
+            flex: 1;
+        }
+
+        .watch-card-vertical .watch-symbol {
+            font-size: 1em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 4px;
+        }
+
+        .watch-card-vertical.has-position .watch-symbol {
+            color: #10b981;
+        }
+
+        .watch-card-vertical .watch-price {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .watch-card-vertical .watch-icon {
+            font-size: 1.3em;
+        }
+
+        /* 滚动条样式 */
+        .left-panel-content::-webkit-scrollbar,
+        .center-panel-content::-webkit-scrollbar,
+        .right-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .left-panel-content::-webkit-scrollbar-track,
+        .center-panel-content::-webkit-scrollbar-track,
+        .right-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .left-panel-content::-webkit-scrollbar-thumb,
+        .center-panel-content::-webkit-scrollbar-thumb,
+        .right-panel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .left-panel-content::-webkit-scrollbar-thumb:hover,
+        .center-panel-content::-webkit-scrollbar-thumb:hover,
+        .right-panel::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* 响应式：小屏幕时恢复垂直布局 */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                height: auto;
+            }
+
+            .watchlist-vertical {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+
+            .watch-card-vertical {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 </head>
 <body>
@@ -731,54 +904,66 @@ HTML_TEMPLATE = '''
             </div>
         </div>
 
-        <div class="section">
-            <h2>👁️ 监控列表</h2>
-            <div id="watchlist-container">
-                <div class="loading">加载中</div>
+        <!-- 三栏布局 -->
+        <div class="main-layout">
+            <!-- 左侧：监控列表 -->
+            <div class="left-panel">
+                <h2>👁️ 监控列表</h2>
+                <div class="left-panel-content">
+                    <div id="watchlist-container">
+                        <div class="loading">加载中</div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <div class="section">
-            <h2>📦 当前持仓</h2>
-            <div id="positions-table">
-                <div class="loading">加载中</div>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h2>📈 持仓实时图表</h2>
-            <div id="chart-controls" style="display: none;">
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <div style="margin-bottom: 15px;">
-                        <label style="color: #666; font-size: 0.95em; margin-right: 10px;">选择持仓:</label>
-                        <select id="position-selector" onchange="loadSelectedChart()" style="padding: 8px 16px; border: 2px solid #667eea; border-radius: 8px; font-size: 0.95em; cursor: pointer; background: white;">
-                            <option value="">-- 请选择 --</option>
-                        </select>
+            <!-- 中间：持仓实时图表 -->
+            <div class="center-panel">
+                <h2>📈 持仓实时图表</h2>
+                <div id="chart-controls" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 15px;">
+                        <div style="margin-bottom: 12px;">
+                            <label style="color: #666; font-size: 0.95em; margin-right: 10px;">选择持仓:</label>
+                            <select id="position-selector" onchange="loadSelectedChart()" style="padding: 8px 16px; border: 2px solid #667eea; border-radius: 8px; font-size: 0.95em; cursor: pointer; background: white;">
+                                <option value="">-- 请选择 --</option>
+                            </select>
+                        </div>
+                        <div style="margin-bottom: 8px; color: #666; font-size: 0.9em;">选择时间周期</div>
+                        <div class="timeframe-selector">
+                            <button class="timeframe-btn active" data-interval="5m" onclick="changeTimeframe('5m', this)">5m</button>
+                            <button class="timeframe-btn" data-interval="10m" onclick="changeTimeframe('10m', this)">10m</button>
+                            <button class="timeframe-btn" data-interval="30m" onclick="changeTimeframe('30m', this)">30m</button>
+                            <button class="timeframe-btn" data-interval="1h" onclick="changeTimeframe('1h', this)">1h</button>
+                            <button class="timeframe-btn" data-interval="4h" onclick="changeTimeframe('4h', this)">4h</button>
+                            <button class="timeframe-btn" data-interval="1d" onclick="changeTimeframe('1d', this)">1d</button>
+                        </div>
                     </div>
-                    <div style="margin-bottom: 10px; color: #666; font-size: 0.95em;">选择时间周期查看K线图</div>
-                    <div class="timeframe-selector">
-                        <button class="timeframe-btn active" data-interval="5m" onclick="changeTimeframe('5m', this)">5分钟</button>
-                        <button class="timeframe-btn" data-interval="10m" onclick="changeTimeframe('10m', this)">10分钟</button>
-                        <button class="timeframe-btn" data-interval="30m" onclick="changeTimeframe('30m', this)">30分钟</button>
-                        <button class="timeframe-btn" data-interval="1h" onclick="changeTimeframe('1h', this)">1小时</button>
-                        <button class="timeframe-btn" data-interval="4h" onclick="changeTimeframe('4h', this)">4小时</button>
-                        <button class="timeframe-btn" data-interval="1d" onclick="changeTimeframe('1d', this)">1日</button>
+                </div>
+                <div class="center-panel-content">
+                    <div id="charts-container">
+                        <div class="placeholder">
+                            <div class="placeholder-icon">📊</div>
+                            <div style="font-size: 1.1em; margin-bottom: 8px;">请从右侧"当前持仓"点击查看</div>
+                            <div style="font-size: 0.9em; color: #999;">或使用上方下拉框选择</div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div id="charts-container">
-                <div class="placeholder">
-                    <div class="placeholder-icon">📊</div>
-                    <div style="font-size: 1.2em; margin-bottom: 10px;">请从上方"当前持仓"中点击"查看图表"按钮</div>
-                    <div style="font-size: 0.95em;">或使用下拉选择框选择要查看的持仓</div>
+
+            <!-- 右侧：当前持仓 + 交易历史 -->
+            <div class="right-panel">
+                <div class="right-panel-section">
+                    <h2>📦 当前持仓</h2>
+                    <div id="positions-table">
+                        <div class="loading">加载中</div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h2>📊 交易历史</h2>
-            <div id="trades-table">
-                <div class="loading">加载中</div>
+
+                <div class="right-panel-section">
+                    <h2>📊 交易历史</h2>
+                    <div id="trades-table">
+                        <div class="loading">加载中</div>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -1343,24 +1528,23 @@ HTML_TEMPLATE = '''
                 const container = document.getElementById('watchlist-container');
 
                 if (watchlist.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">无监控币种</p>';
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 15px; font-size: 0.9em;">无监控币种</p>';
                     return;
                 }
 
-                let html = '<div class="watchlist-grid">';
+                let html = '<div class="watchlist-vertical">';
 
                 watchlist.forEach(coin => {
                     const hasPosition = coin.has_position ? 'has-position' : '';
-                    const positionBadge = coin.has_position ? '<span class="watch-status">✓ 持仓中</span>' : '';
+                    const icon = coin.has_position ? '📊' : '👁️';
 
                     html += `
-                        <div class="watch-card ${hasPosition}">
-                            <div class="watch-symbol">
-                                <span>${coin.symbol}</span>
-                                ${coin.has_position ? '📊' : '👁️'}
+                        <div class="watch-card-vertical ${hasPosition}">
+                            <div class="watch-info">
+                                <div class="watch-symbol">${coin.symbol}</div>
+                                <div class="watch-price">$${formatNumber(coin.price, 4)}</div>
                             </div>
-                            <div class="watch-price">$${formatNumber(coin.price, 4)}</div>
-                            ${positionBadge}
+                            <div class="watch-icon">${icon}</div>
                         </div>
                     `;
                 });
@@ -1370,7 +1554,7 @@ HTML_TEMPLATE = '''
 
             } catch (error) {
                 console.error('加载监控列表失败:', error);
-                document.getElementById('watchlist-container').innerHTML = '<p style="color: #ef4444;">加载失败</p>';
+                document.getElementById('watchlist-container').innerHTML = '<p style="color: #ef4444; font-size: 0.9em;">加载失败</p>';
             }
         }
 
