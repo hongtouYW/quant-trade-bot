@@ -1,0 +1,14 @@
+# 量化交易系统 - 自动Git定时任务配置
+# 使用方法: crontab < cron_config.txt
+
+# 每天下午2:00执行本地git提交
+0 14 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/auto_git_commit.sh
+
+# 每天晚上11:00执行本地git提交  
+0 23 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/auto_git_commit.sh
+
+# 每天午夜12:00推送到GitHub
+0 0 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/auto_git_push.sh
+
+# 每小时检查系统状态(可选)
+# 0 * * * * /Users/hongtou/newproject/quant-trade-bot/scripts/health_check.sh

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 {{ strategy }} - 交易明细</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #2d3748;
+            font-size: 2em;
+        }
+
+        .back-btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .back-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .performance-summary {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metric {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f7fafc;
+        }
+
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #718096;
+            font-size: 0.9em;
+        }
+
+        .positive { color: #38a169; }
+        .negative { color: #e53e3e; }
+        .neutral { color: #3182ce; }
+
+        .trades-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .trades-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .trades-table th,
+        .trades-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .trades-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .trade-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .trade-row:hover {
+            background: #f7fafc;
+        }
+
+        .trade-type {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .trade-buy {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .trade-sell {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .pnl-value {
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: white;
+            font-size: 1.2em;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #718096;
+            font-size: 1.1em;
+        }
+
+        .table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .stats-row {
+            background: #f0f7ff;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .filter-buttons {
+                flex-wrap: wrap;
+            }
+
+            .trades-table {
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <h1>📈 {{ strategy }} - 交易明细</h1>
+                <a href="/" class="back-btn">← 返回概览</a>
+            </div>
+        </div>
+
+        <div id="loading" class="loading">
+            ⏳ 正在加载交易数据...
+        </div>
+
+        <div id="error" class="error" style="display: none;"></div>
+
+        <div id="content" style="display: none;">
+            <div class="performance-summary">
+                <div class="section-title">📊 策略绩效</div>
+                <div class="metrics-grid" id="performanceMetrics"></div>
+            </div>
+
+            <div class="trades-section">
+                <div class="section-title">
+                    💼 交易历史
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterTrades('all')">全部</button>
+                        <button class="filter-btn" onclick="filterTrades('buy')">买入</button>
+                        <button class="filter-btn" onclick="filterTrades('sell')">卖出</button>
+                        <button class="filter-btn" onclick="filterTrades('profit')">盈利</button>
+                        <button class="filter-btn" onclick="filterTrades('loss')">亏损</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="trades-table">
+                        <thead>
+                            <tr>
+                                <th>时间</th>
+                                <th>类型</th>
+                                <th>价格</th>
+                                <th>数量</th>
+                                <th>价值</th>
+                                <th>盈亏</th>
+                                <th>收益率</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tradesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="noData" class="no-data" style="display: none;">
+                    📭 暂无交易数据
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const strategyName = '{{ strategy }}';
+        let allTrades = [];
+        let performanceData = {};
+        let currentFilter = 'all';
+
+        async function loadData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                document.getElementById('error').style.display = 'none';
+                document.getElementById('content').style.display = 'none';
+
+                // 加载交易数据
+                const tradesResponse = await fetch(`/api/trades/${encodeURIComponent(strategyName)}`);
+                const tradesResult = await tradesResponse.json();
+
+                if (!tradesResult.success) {
+                    throw new Error(tradesResult.error);
+                }
+
+                allTrades = tradesResult.data || [];
+
+                // 加载绩效数据
+                const perfResponse = await fetch(`/api/performance/${encodeURIComponent(strategyName)}`);
+                const perfResult = await perfResponse.json();
+
+                if (perfResult.success) {
+                    performanceData = perfResult.data;
+                    renderPerformance();
+                }
+
+                renderTrades();
+                document.getElementById('content').style.display = 'block';
+
+            } catch (error) {
+                showError('加载数据失败: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function renderPerformance() {
+            const metrics = [
+                {
+                    value: `${performanceData.return_pct?.toFixed(2) || '0.00'}%`,
+                    label: '6个月收益',
+                    class: (performanceData.return_pct || 0) >= 0 ? 'positive' : 'negative'
+                },
+                {
+                    value: `${performanceData.annual_return?.toFixed(2) || '0.00'}%`,
+                    label: '年化收益',
+                    class: (performanceData.annual_return || 0) >= 0 ? 'positive' : 'negative'
+                },
+                {
+                    value: `${((performanceData.win_rate || 0) * 100).toFixed(1)}%`,
+                    label: '胜率',
+                    class: (performanceData.win_rate || 0) >= 0.5 ? 'positive' : 'neutral'
+                },
+                {
+                    value: performanceData.sell_trades || 0,
+                    label: '交易次数',
+                    class: 'neutral'
+                },
+                {
+                    value: `${performanceData.total_pnl?.toFixed(2) || '0.00'} USDT`,
+                    label: '总盈亏',
+                    class: (performanceData.total_pnl || 0) >= 0 ? 'positive' : 'negative'
+                },
+                {
+                    value: `${performanceData.final_equity?.toFixed(2) || '0.00'} USDT`,
+                    label: '最终资金',
+                    class: 'neutral'
+                }
+            ];
+
+            const metricsHtml = metrics.map(metric => `
+                <div class="metric">
+                    <div class="metric-value ${metric.class}">${metric.value}</div>
+                    <div class="metric-label">${metric.label}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('performanceMetrics').innerHTML = metricsHtml;
+        }
+
+        function renderTrades() {
+            if (!allTrades || allTrades.length === 0) {
+                document.getElementById('noData').style.display = 'block';
+                document.querySelector('.table-container').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('noData').style.display = 'none';
+            document.querySelector('.table-container').style.display = 'block';
+
+            let filteredTrades = filterTradesByType(allTrades, currentFilter);
+
+            const tradesHtml = filteredTrades.map((trade, index) => {
+                const date = new Date(trade.timestamp);
+                const formattedDate = date.toLocaleString('zh-CN');
+                
+                const pnlClass = trade.pnl > 0 ? 'positive' : trade.pnl < 0 ? 'negative' : 'neutral';
+                const pnlText = trade.pnl ? `${trade.pnl.toFixed(2)} USDT` : '-';
+                
+                // 计算收益率（对于卖出交易）
+                const returnRate = trade.pnl && trade.value ? 
+                    `${((trade.pnl / trade.value) * 100).toFixed(2)}%` : '-';
+
+                return `
+                    <tr class="trade-row">
+                        <td>${formattedDate}</td>
+                        <td>
+                            <span class="trade-type trade-${trade.type}">
+                                ${trade.type === 'buy' ? '📈 买入' : '📉 卖出'}
+                            </span>
+                        </td>
+                        <td>$${trade.price.toLocaleString()}</td>
+                        <td>${trade.amount.toFixed(6)}</td>
+                        <td>$${trade.value.toLocaleString()}</td>
+                        <td class="pnl-value ${pnlClass}">${pnlText}</td>
+                        <td class="pnl-value ${pnlClass}">${returnRate}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            // 添加统计行
+            const stats = calculateTradeStats(filteredTrades);
+            const statsHtml = `
+                <tr class="stats-row">
+                    <td colspan="4"><strong>📊 统计汇总</strong></td>
+                    <td><strong>$${stats.totalValue.toLocaleString()}</strong></td>
+                    <td class="pnl-value ${stats.totalPnl >= 0 ? 'positive' : 'negative'}">
+                        <strong>${stats.totalPnl.toFixed(2)} USDT</strong>
+                    </td>
+                    <td class="pnl-value ${stats.avgReturn >= 0 ? 'positive' : 'negative'}">
+                        <strong>${stats.avgReturn.toFixed(2)}%</strong>
+                    </td>
+                </tr>
+            `;
+
+            document.getElementById('tradesTableBody').innerHTML = tradesHtml + statsHtml;
+        }
+
+        function filterTradesByType(trades, filterType) {
+            switch(filterType) {
+                case 'buy':
+                    return trades.filter(t => t.type === 'buy');
+                case 'sell':
+                    return trades.filter(t => t.type === 'sell');
+                case 'profit':
+                    return trades.filter(t => t.pnl && t.pnl > 0);
+                case 'loss':
+                    return trades.filter(t => t.pnl && t.pnl < 0);
+                default:
+                    return trades;
+            }
+        }
+
+        function calculateTradeStats(trades) {
+            const totalValue = trades.reduce((sum, t) => sum + (t.value || 0), 0);
+            const totalPnl = trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+            const sellTrades = trades.filter(t => t.type === 'sell' && t.pnl);
+            const avgReturn = sellTrades.length > 0 ? 
+                sellTrades.reduce((sum, t) => sum + ((t.pnl / t.value) * 100), 0) / sellTrades.length : 0;
+
+            return { totalValue, totalPnl, avgReturn };
+        }
+
+        function filterTrades(filterType) {
+            currentFilter = filterType;
+            
+            // 更新按钮状态
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 重新渲染交易表格
+            renderTrades();
+        }
+
+        function showError(message) {
+            document.getElementById('error').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // 页面加载时自动加载数据
+        window.onload = loadData;
+    </script>
+</body>
+</html>

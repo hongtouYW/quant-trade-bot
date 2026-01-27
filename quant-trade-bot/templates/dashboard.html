@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实盘模拟交易监控面板</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .update-time {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .card-value.profit {
+            color: #10b981;
+        }
+
+        .card-value.loss {
+            color: #ef4444;
+        }
+
+        .card-subtitle {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .position-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .position-symbol {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .position-type {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .position-type.long {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .position-type.short {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .position-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .position-detail {
+            color: #666;
+        }
+
+        .position-detail strong {
+            color: #333;
+        }
+
+        .trade-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .trade-table th {
+            background: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .trade-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+
+        .trade-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .badge.buy {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge.sell {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .profit-text {
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .loss-text {
+            color: #ef4444;
+            font-weight: bold;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .chart-container {
+            height: 300px;
+            margin-top: 20px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .updating {
+            animation: pulse 1s ease-in-out infinite;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部 -->
+        <div class="header">
+            <h1>🚀 实盘模拟交易监控面板</h1>
+            <div class="subtitle">实时监控交易数据 | 3倍杠杆</div>
+            <div class="update-time" id="updateTime">更新时间: --</div>
+        </div>
+
+        <!-- 账户统计卡片 -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title">💰 当前余额</div>
+                <div class="card-value" id="balance">$0.00</div>
+                <div class="card-subtitle">可用资金</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📊 总盈亏</div>
+                <div class="card-value" id="totalPnl">$0.00</div>
+                <div class="card-subtitle" id="totalReturn">收益率: 0.00%</div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">📈 总交易</div>
+                <div class="card-value" id="totalTrades">0</div>
+                <div class="card-subtitle">
+                    <span style="color: #10b981;" id="winningTrades">0</span> 盈 | 
+                    <span style="color: #ef4444;" id="losingTrades">0</span> 亏
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">🎯 胜率</div>
+                <div class="card-value" id="winRate">0%</div>
+                <div class="card-subtitle" id="totalFees">手续费: $0.00</div>
+            </div>
+        </div>
+
+        <!-- 今日统计 -->
+        <div class="section">
+            <div class="section-title">📅 今日统计</div>
+            <div class="grid">
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">今日交易</div>
+                    <div style="font-size: 24px; font-weight: bold;" id="todayTrades">0 笔</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">今日盈亏</div>
+                    <div style="font-size: 24px; font-weight: bold;" id="todayPnl">$0.00</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">买入/卖出</div>
+                    <div style="font-size: 24px; font-weight: bold;" id="todayBuySell">0 / 0</div>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 5px;">今日手续费</div>
+                    <div style="font-size: 24px; font-weight: bold;" id="todayFees">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 当前持仓 -->
+        <div class="section">
+            <div class="section-title">📊 当前持仓</div>
+            <div id="positionsContainer">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+
+        <!-- 最近交易 -->
+        <div class="section">
+            <div class="section-title">📋 最近交易 (最新20笔)</div>
+            <div style="overflow-x: auto;">
+                <table class="trade-table">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>交易对</th>
+                            <th>方向</th>
+                            <th>价格</th>
+                            <th>数量</th>
+                            <th>杠杆</th>
+                            <th>盈亏</th>
+                            <th>手续费</th>
+                            <th>原因</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tradesTable">
+                        <tr>
+                            <td colspan="9" class="loading">加载中...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 盈亏图表 -->
+        <div class="section">
+            <div class="section-title">📈 最近7天盈亏趋势</div>
+            <div class="chart-container">
+                <canvas id="pnlChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let pnlChart = null;
+
+        // 格式化金额
+        function formatMoney(amount) {
+            return '$' + Number(amount).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // 格式化时间
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', { 
+                month: '2-digit', 
+                day: '2-digit', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+        }
+
+        // 更新账户信息
+        async function updateAccount() {
+            try {
+                const response = await fetch('/api/account');
+                const data = await response.json();
+                
+                document.getElementById('balance').textContent = formatMoney(data.balance);
+                
+                const pnlElement = document.getElementById('totalPnl');
+                pnlElement.textContent = formatMoney(data.total_pnl);
+                pnlElement.className = 'card-value ' + (data.total_pnl >= 0 ? 'profit' : 'loss');
+                
+                const returnPct = ((data.total_pnl / 1000) * 100).toFixed(2);
+                document.getElementById('totalReturn').textContent = '收益率: ' + returnPct + '%';
+                
+                document.getElementById('totalTrades').textContent = data.total_trades;
+                document.getElementById('winningTrades').textContent = data.winning_trades;
+                document.getElementById('losingTrades').textContent = data.losing_trades;
+                document.getElementById('winRate').textContent = data.win_rate.toFixed(1) + '%';
+                document.getElementById('totalFees').textContent = '手续费: ' + formatMoney(data.total_fees);
+                
+                document.getElementById('updateTime').textContent = '更新时间: ' + formatTime(data.timestamp);
+            } catch (error) {
+                console.error('更新账户信息失败:', error);
+            }
+        }
+
+        // 更新持仓
+        async function updatePositions() {
+            try {
+                const response = await fetch('/api/positions');
+                const positions = await response.json();
+                
+                const container = document.getElementById('positionsContainer');
+                
+                if (positions.length === 0) {
+                    container.innerHTML = '<div class="loading">暂无持仓</div>';
+                    return;
+                }
+                
+                container.innerHTML = positions.map(pos => `
+                    <div class="position-item">
+                        <div class="position-header">
+                            <div class="position-symbol">${pos.symbol}</div>
+                            <div class="position-type long">📈 做多 ${pos.leverage}x</div>
+                        </div>
+                        <div class="position-details">
+                            <div class="position-detail">
+                                入场价: <strong>${formatMoney(pos.entry_price)}</strong>
+                            </div>
+                            <div class="position-detail">
+                                数量: <strong>${pos.quantity.toFixed(6)}</strong>
+                            </div>
+                            <div class="position-detail">
+                                保证金: <strong>${formatMoney(pos.cost)}</strong>
+                            </div>
+                            <div class="position-detail">
+                                止损: <strong>${formatMoney(pos.stop_loss)}</strong>
+                            </div>
+                            <div class="position-detail">
+                                止盈: <strong>${formatMoney(pos.take_profit)}</strong>
+                            </div>
+                            <div class="position-detail">
+                                时间: <strong>${formatTime(pos.entry_time)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('更新持仓失败:', error);
+            }
+        }
+
+        // 更新交易记录
+        async function updateTrades() {
+            try {
+                const response = await fetch('/api/trades?limit=20');
+                const trades = await response.json();
+                
+                const tbody = document.getElementById('tradesTable');
+                
+                if (trades.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="9" class="loading">暂无交易记录</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = trades.map(trade => {
+                    const pnlClass = trade.pnl > 0 ? 'profit-text' : (trade.pnl < 0 ? 'loss-text' : '');
+                    const pnlText = trade.pnl ? `${formatMoney(trade.pnl)} (${trade.pnl_pct.toFixed(2)}%)` : '-';
+                    
+                    return `
+                        <tr>
+                            <td>${formatTime(trade.timestamp)}</td>
+                            <td><strong>${trade.symbol}</strong></td>
+                            <td><span class="badge ${trade.side}">${trade.side === 'buy' ? '📈 买入' : '📉 卖出'}</span></td>
+                            <td>${formatMoney(trade.price)}</td>
+                            <td>${trade.quantity.toFixed(6)}</td>
+                            <td>${trade.leverage}x</td>
+                            <td class="${pnlClass}">${pnlText}</td>
+                            <td>${formatMoney(trade.fee)}</td>
+                            <td>${trade.reason || '-'}</td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('更新交易记录失败:', error);
+            }
+        }
+
+        // 更新今日统计
+        async function updateToday() {
+            try {
+                const response = await fetch('/api/today');
+                const data = await response.json();
+                
+                document.getElementById('todayTrades').textContent = data.total_trades + ' 笔';
+                
+                const todayPnlElement = document.getElementById('todayPnl');
+                todayPnlElement.textContent = formatMoney(data.pnl);
+                todayPnlElement.className = data.pnl >= 0 ? 'profit-text' : 'loss-text';
+                
+                document.getElementById('todayBuySell').textContent = `${data.buy_count} / ${data.sell_count}`;
+                document.getElementById('todayFees').textContent = formatMoney(data.fees);
+            } catch (error) {
+                console.error('更新今日统计失败:', error);
+            }
+        }
+
+        // 更新图表
+        async function updateChart() {
+            try {
+                const response = await fetch('/api/daily_stats?days=7');
+                const data = await response.json();
+                
+                const labels = data.map(d => d.date.substring(5));
+                const pnlData = data.map(d => d.pnl);
+                
+                if (pnlChart) {
+                    pnlChart.data.labels = labels;
+                    pnlChart.data.datasets[0].data = pnlData;
+                    pnlChart.update();
+                } else {
+                    const ctx = document.getElementById('pnlChart').getContext('2d');
+                    pnlChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: '每日盈亏',
+                                data: pnlData,
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('更新图表失败:', error);
+            }
+        }
+
+        // 全量更新
+        async function updateAll() {
+            await Promise.all([
+                updateAccount(),
+                updatePositions(),
+                updateTrades(),
+                updateToday(),
+                updateChart()
+            ]);
+        }
+
+        // 初始加载
+        updateAll();
+
+        // 每5秒自动刷新
+        setInterval(updateAll, 5000);
+    </script>
+</body>
+</html>

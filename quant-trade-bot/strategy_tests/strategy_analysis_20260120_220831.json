@@ -1,0 +1,62 @@
+[
+  {
+    "strategy": "BTC突破策略",
+    "total_return": 56.87,
+    "win_rate": 46.8,
+    "total_trades": 556,
+    "winning_trades": 260,
+    "losing_trades": 296,
+    "total_pnl": 568.7,
+    "avg_trade": 1.02,
+    "max_drawdown": -7.96,
+    "leverage_range": "3-5x"
+  },
+  {
+    "strategy": "ETH量价策略",
+    "total_return": 53.97,
+    "win_rate": 48.1,
+    "total_trades": 729,
+    "winning_trades": 351,
+    "losing_trades": 378,
+    "total_pnl": 539.73,
+    "avg_trade": 0.74,
+    "max_drawdown": -6.04,
+    "leverage_range": "2-4x"
+  },
+  {
+    "strategy": "主流币策略",
+    "total_return": 21.64,
+    "win_rate": 47.6,
+    "total_trades": 548,
+    "winning_trades": 261,
+    "losing_trades": 287,
+    "total_pnl": 216.36,
+    "avg_trade": 0.39,
+    "max_drawdown": -5.13,
+    "leverage_range": "2-3x"
+  },
+  {
+    "strategy": "小币高频策略",
+    "total_return": 551.96,
+    "win_rate": 46.8,
+    "total_trades": 731,
+    "winning_trades": 342,
+    "losing_trades": 389,
+    "total_pnl": 5519.56,
+    "avg_trade": 7.55,
+    "max_drawdown": -7.4,
+    "leverage_range": "5-10x"
+  },
+  {
+    "strategy": "稳健策略",
+    "total_return": 4.84,
+    "win_rate": 56.9,
+    "total_trades": 181,
+    "winning_trades": 103,
+    "losing_trades": 78,
+    "total_pnl": 48.37,
+    "avg_trade": 0.27,
+    "max_drawdown": -7.49,
+    "leverage_range": "1-2x"
+  }
+]

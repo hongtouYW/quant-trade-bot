@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>简单图表测试</title>
+</head>
+<body style="background: #000; color: white; padding: 20px; font-family: Arial;">
+    <h1>最基础图表测试</h1>
+    
+    <div style="width: 600px; height: 400px; background: #333; margin: 20px 0; padding: 20px;">
+        <canvas id="myChart" width="560" height="360"></canvas>
+    </div>
+    
+    <div id="log" style="background: #222; padding: 10px; margin: 20px 0; border-radius: 4px;"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const log = document.getElementById('log');
+        function addLog(msg) {
+            log.innerHTML += new Date().toLocaleTimeString() + ': ' + msg + '<br>';
+            console.log(msg);
+        }
+        
+        addLog('开始测试...');
+        
+        // 检查Chart.js
+        if (typeof Chart === 'undefined') {
+            addLog('❌ Chart.js 未加载');
+        } else {
+            addLog('✅ Chart.js 已加载: ' + (Chart.version || '版本未知'));
+            
+            // 检查Canvas
+            const canvas = document.getElementById('myChart');
+            if (!canvas) {
+                addLog('❌ Canvas元素未找到');
+            } else {
+                addLog('✅ Canvas元素已找到');
+                
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    addLog('❌ 无法获取2D上下文');
+                } else {
+                    addLog('✅ 2D上下文获取成功');
+                    
+                    // 尝试创建图表
+                    try {
+                        const chart = new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ['1', '2', '3', '4', '5'],
+                                datasets: [{
+                                    label: '测试数据',
+                                    data: [10, 20, 15, 25, 30],
+                                    borderColor: '#60a5fa',
+                                    backgroundColor: 'rgba(96, 165, 250, 0.2)',
+                                    borderWidth: 2
+                                }]
+                            },
+                            options: {
+                                responsive: false,
+                                plugins: {
+                                    legend: {
+                                        labels: {
+                                            color: 'white'
+                                        }
+                                    }
+                                },
+                                scales: {
+                                    x: {
+                                        ticks: { color: 'white' },
+                                        grid: { color: 'rgba(255,255,255,0.1)' }
+                                    },
+                                    y: {
+                                        ticks: { color: 'white' },
+                                        grid: { color: 'rgba(255,255,255,0.1)' }
+                                    }
+                                }
+                            }
+                        });
+                        addLog('✅ 图表创建成功！');
+                    } catch (error) {
+                        addLog('❌ 图表创建失败: ' + error.message);
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

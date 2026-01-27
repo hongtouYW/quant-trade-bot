@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量化交易专业面板</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f1419 0%, #1a202c 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+        
+        /* 顶部统计区 */
+        .top-stats {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .stat-label {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .stat-value {
+            color: #f1f5f9;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .profit { color: #10b981; }
+        .loss { color: #ef4444; }
+        
+        /* 主容器 */
+        .main-container {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            height: calc(100vh - 120px);
+            gap: 1px;
+        }
+        
+        /* 左侧货币列表 */
+        .currency-list {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .currency-list h3 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+        
+        .currency-item {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 8px 0;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .currency-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #60a5fa;
+        }
+        
+        .currency-item.active {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .currency-symbol {
+            font-weight: bold;
+            color: #f1f5f9;
+        }
+        
+        .currency-price {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+        
+        /* 中间图表区 */
+        .chart-container {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: #f1f5f9;
+        }
+        
+        .price-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .price-item {
+            text-align: center;
+        }
+        
+        .price-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .price-value {
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .entry-price { color: #60a5fa; }
+        .stop-loss { color: #ef4444; }
+        .take-profit { color: #10b981; }
+        
+        .chart-wrapper {
+            flex: 1;
+            position: relative;
+            min-height: 400px;
+        }
+        
+        /* 右侧持仓 */
+        .positions-panel {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        .positions-panel h3 {
+            color: #60a5fa;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 8px;
+        }
+        
+        .position-item {
+            background: rgba(255, 255, 255, 0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #60a5fa;
+        }
+        
+        .position-item.long {
+            border-left-color: #10b981;
+        }
+        
+        .position-item.short {
+            border-left-color: #ef4444;
+        }
+        
+        .position-symbol {
+            font-weight: bold;
+            color: #f1f5f9;
+            margin-bottom: 8px;
+        }
+        
+        .position-details {
+            font-size: 12px;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+        
+        .position-direction {
+            font-weight: bold;
+        }
+        
+        .position-direction.long { color: #10b981; }
+        .position-direction.short { color: #ef4444; }
+        
+        /* 底部提醒区 */
+        .alerts-panel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        
+        .alert-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            margin: 5px 0;
+            border-radius: 6px;
+            border-left: 3px solid #fbbf24;
+            font-size: 13px;
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .alert-time {
+            color: #94a3b8;
+            margin-right: 10px;
+        }
+        
+        .alert-big-money {
+            border-left-color: #10b981;
+        }
+        
+        .alert-warning {
+            border-left-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部统计 -->
+    <div class="top-stats">
+        <div class="stat-card">
+            <div class="stat-label">本金总额</div>
+            <div class="stat-value">$10,000.00</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">交易次数</div>
+            <div class="stat-value">13</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">总盈利</div>
+            <div class="stat-value profit">+$1,254.32</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">盈利百分比</div>
+            <div class="stat-value profit">+12.54%</div>
+        </div>
+    </div>
+    
+    <!-- 主容器 -->
+    <div class="main-container">
+        <!-- 左侧货币列表 -->
+        <div class="currency-list">
+            <h3>📊 关注货币</h3>
+            <div class="currency-item active" data-symbol="BTC/USDT">
+                <div class="currency-symbol">BTC/USDT</div>
+                <div class="currency-price">$87,738.01</div>
+            </div>
+            <div class="currency-item" data-symbol="ETH/USDT">
+                <div class="currency-symbol">ETH/USDT</div>
+                <div class="currency-price">$3,245.67</div>
+            </div>
+            <div class="currency-item" data-symbol="SOL/USDT">
+                <div class="currency-symbol">SOL/USDT</div>
+                <div class="currency-price">$124.58</div>
+            </div>
+            <div class="currency-item" data-symbol="XRP/USDT">
+                <div class="currency-symbol">XRP/USDT</div>
+                <div class="currency-price">$1.9209</div>
+            </div>
+            <div class="currency-item" data-symbol="AVAX/USDT">
+                <div class="currency-symbol">AVAX/USDT</div>
+                <div class="currency-price">$11.77</div>
+            </div>
+            <div class="currency-item" data-symbol="DOT/USDT">
+                <div class="currency-symbol">DOT/USDT</div>
+                <div class="currency-price">$1.878</div>
+            </div>
+            <div class="currency-item" data-symbol="MATIC/USDT">
+                <div class="currency-symbol">MATIC/USDT</div>
+                <div class="currency-price">$0.3794</div>
+            </div>
+            <div class="currency-item" data-symbol="ATOM/USDT">
+                <div class="currency-symbol">ATOM/USDT</div>
+                <div class="currency-price">$2.238</div>
+            </div>
+            <div class="currency-item" data-symbol="DOGE/USDT">
+                <div class="currency-symbol">DOGE/USDT</div>
+                <div class="currency-price">$0.1221</div>
+            </div>
+            <div class="currency-item" data-symbol="FTM/USDT">
+                <div class="currency-symbol">FTM/USDT</div>
+                <div class="currency-price">$0.6994</div>
+            </div>
+        </div>
+        
+        <!-- 中间图表区 -->
+        <div class="chart-container">
+            <div class="chart-header">
+                <div class="chart-symbol" id="currentSymbol">BTC/USDT</div>
+                <div class="price-info">
+                    <div class="price-item">
+                        <div class="price-label">买入价</div>
+                        <div class="price-value entry-price" id="entryPrice">$87,738.01</div>
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">止损价</div>
+                        <div class="price-value stop-loss" id="stopLoss">$85,000.00</div>
+                    </div>
+                    <div class="price-item">
+                        <div class="price-label">止盈价</div>
+                        <div class="price-value take-profit" id="takeProfit">$95,000.00</div>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="tradingChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- 右侧持仓 -->
+        <div class="positions-panel">
+            <h3>💼 当前持仓 (13)</h3>
+            
+            <div class="position-item short">
+                <div class="position-symbol">SOL/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction short">空头</span><br>
+                    数量: 1.6054<br>
+                    入场: $124.58<br>
+                    时间: 17:04:08
+                </div>
+            </div>
+            
+            <div class="position-item long">
+                <div class="position-symbol">XRP/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction long">多头</span><br>
+                    数量: 104.12<br>
+                    入场: $1.9209<br>
+                    时间: 17:04:08
+                </div>
+            </div>
+            
+            <div class="position-item short">
+                <div class="position-symbol">AVAX/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction short">空头</span><br>
+                    数量: 16.99<br>
+                    入场: $11.77<br>
+                    时间: 17:03:37
+                </div>
+            </div>
+            
+            <div class="position-item long">
+                <div class="position-symbol">DOT/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction long">多头</span><br>
+                    数量: 106.50<br>
+                    入场: $1.878<br>
+                    时间: 17:03:36
+                </div>
+            </div>
+            
+            <div class="position-item short">
+                <div class="position-symbol">BTC/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction short">空头</span><br>
+                    数量: 0.0023<br>
+                    入场: $87,738.01<br>
+                    时间: 17:03:36
+                </div>
+            </div>
+            
+            <div class="position-item long">
+                <div class="position-symbol">BTC/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction long">多头</span><br>
+                    数量: 0.0023<br>
+                    入场: $87,368.11<br>
+                    时间: 16:19:08
+                </div>
+            </div>
+            
+            <div class="position-item short">
+                <div class="position-symbol">MATIC/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction short">空头</span><br>
+                    数量: 527.15<br>
+                    入场: $0.3794<br>
+                    时间: 16:18:36
+                </div>
+            </div>
+            
+            <div class="position-item short">
+                <div class="position-symbol">ATOM/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction short">空头</span><br>
+                    数量: 89.37<br>
+                    入场: $2.238<br>
+                    时间: 16:18:04
+                </div>
+            </div>
+            
+            <div class="position-item long">
+                <div class="position-symbol">DOGE/USDT</div>
+                <div class="position-details">
+                    方向: <span class="position-direction long">多头</span><br>
+                    数量: 1638.00<br>
+                    入场: $0.1221<br>
+                    时间: 15:55:00
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 底部提醒 -->
+    <div class="alerts-panel" id="alertsPanel">
+        <div class="alert-item">
+            <span class="alert-time">02:30:15</span>
+            📊 量化助理提醒: 监控13个货币对，5个多头，8个空头仓位
+        </div>
+        <div class="alert-item alert-big-money">
+            <span class="alert-time">02:29:43</span>
+            💰 大资金流入: BTC/USDT 检测到3.2M USDT买盘支撑
+        </div>
+        <div class="alert-item alert-warning">
+            <span class="alert-time">02:28:21</span>
+            ⚠️ 风险提醒: SOL/USDT 空头仓位价格接近止损线
+        </div>
+    </div>
+    
+    <script>
+        // 图表初始化
+        const ctx = document.getElementById('tradingChart').getContext('2d');
+        let chart;
+        
+        // 模拟价格数据
+        const priceData = {
+            'BTC/USDT': {
+                labels: [],
+                data: [],
+                entryPrice: 87738.01,
+                stopLoss: 85000.00,
+                takeProfit: 95000.00
+            },
+            'SOL/USDT': {
+                labels: [],
+                data: [],
+                entryPrice: 124.58,
+                stopLoss: 115.00,
+                takeProfit: 140.00
+            },
+            'XRP/USDT': {
+                labels: [],
+                data: [],
+                entryPrice: 1.9209,
+                stopLoss: 1.75,
+                takeProfit: 2.20
+            },
+            'AVAX/USDT': {
+                labels: [],
+                data: [],
+                entryPrice: 11.77,
+                stopLoss: 10.50,
+                takeProfit: 13.50
+            },
+            'DOT/USDT': {
+                labels: [],
+                data: [],
+                entryPrice: 1.878,
+                stopLoss: 1.65,
+                takeProfit: 2.15
+            },
+            'ETH/USDT': {
+                labels: [],
+                data: [],
+                entryPrice: 3245.67,
+                stopLoss: 3000.00,
+                takeProfit: 3500.00
+            }
+        };
+        
+        // 生成模拟数据
+        function generateMockData(symbol) {
+            const basePrice = priceData[symbol].entryPrice;
+            const labels = [];
+            const data = [];
+            const now = new Date();
+            
+            for (let i = 29; i >= 0; i--) {
+                const time = new Date(now.getTime() - i * 60000);
+                labels.push(time.toLocaleTimeString().slice(0, -3));
+                
+                // 生成随机价格变动
+                const variation = (Math.random() - 0.5) * basePrice * 0.02;
+                const price = basePrice + variation;
+                data.push(price);
+            }
+            
+            priceData[symbol].labels = labels;
+            priceData[symbol].data = data;
+        }
+        
+        // 创建图表
+        function createChart(symbol) {
+            if (chart) {
+                chart.destroy();
+            }
+            
+            generateMockData(symbol);
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: priceData[symbol].labels,
+                    datasets: [{
+                        label: symbol + ' 价格',
+                        data: priceData[symbol].data,
+                        borderColor: '#60a5fa',
+                        backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }, {
+                        label: '买入价',
+                        data: Array(30).fill(priceData[symbol].entryPrice),
+                        borderColor: '#60a5fa',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }, {
+                        label: '止损价',
+                        data: Array(30).fill(priceData[symbol].stopLoss),
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }, {
+                        label: '止盈价',
+                        data: Array(30).fill(priceData[symbol].takeProfit),
+                        borderColor: '#10b981',
+                        borderWidth: 1,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        // 货币列表点击事件
+        document.querySelectorAll('.currency-item').forEach(item => {
+            item.addEventListener('click', function() {
+                // 移除其他active状态
+                document.querySelectorAll('.currency-item').forEach(i => i.classList.remove('active'));
+                // 添加active状态
+                this.classList.add('active');
+                
+                const symbol = this.getAttribute('data-symbol');
+                
+                // 更新图表头部信息
+                document.getElementById('currentSymbol').textContent = symbol;
+                
+                if (priceData[symbol]) {
+                    document.getElementById('entryPrice').textContent = '$' + priceData[symbol].entryPrice.toFixed(2);
+                    document.getElementById('stopLoss').textContent = '$' + priceData[symbol].stopLoss.toFixed(2);
+                    document.getElementById('takeProfit').textContent = '$' + priceData[symbol].takeProfit.toFixed(2);
+                    
+                    // 重新创建图表
+                    createChart(symbol);
+                }
+            });
+        });
+        
+        // 添加实时提醒
+        function addAlert(message, type = '') {
+            const alertsPanel = document.getElementById('alertsPanel');
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-item ' + type;
+            
+            const now = new Date();
+            const timeStr = now.toTimeString().slice(0, 8);
+            
+            alertDiv.innerHTML = `
+                <span class="alert-time">${timeStr}</span>
+                ${message}
+            `;
+            
+            alertsPanel.insertBefore(alertDiv, alertsPanel.firstChild);
+            
+            // 限制提醒数量
+            const alerts = alertsPanel.querySelectorAll('.alert-item');
+            if (alerts.length > 5) {
+                alertsPanel.removeChild(alerts[alerts.length - 1]);
+            }
+        }
+        
+        // 模拟实时提醒
+        function simulateAlerts() {
+            const alerts = [
+                { message: '📊 量化助理提醒: XRP/USDT 价格突破阻力位', type: '' },
+                { message: '💰 大资金监控: ETH/USDT 发现5M买入订单', type: 'alert-big-money' },
+                { message: '⚠️ 风险提醒: AVAX/USDT 空头仓位盈利达到8%', type: 'alert-warning' },
+                { message: '🚨 交易信号: DOGE/USDT 多头信号强度增强', type: '' },
+                { message: '💼 持仓更新: SOL/USDT 空头仓位自动调整止损', type: '' },
+                { message: '💰 大资金流入: BTC/USDT 检测到8M买盘订单', type: 'alert-big-money' },
+                { message: '📈 技术指标: MATIC/USDT RSI突破70超买区', type: 'alert-warning' },
+                { message: '🔄 仓位调整: DOT/USDT 多头仓位部分获利了结', type: '' }
+            ];
+            
+            setInterval(() => {
+                const randomAlert = alerts[Math.floor(Math.random() * alerts.length)];
+                addAlert(randomAlert.message, randomAlert.type);
+            }, 8000); // 每8秒添加一个提醒
+        }
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            createChart('BTC/USDT');
+            simulateAlerts();
+            
+            // 每30秒更新图表数据
+            setInterval(() => {
+                const currentSymbol = document.getElementById('currentSymbol').textContent;
+                if (priceData[currentSymbol]) {
+                    createChart(currentSymbol);
+                }
+            }, 30000);
+            
+            // 添加启动提醒
+            addAlert('🚀 量化交易专业面板已启动 - 端口5001', '');
+            setTimeout(() => {
+                addAlert('📊 正在监控13个开仓货币对', '');
+            }, 2000);
+        });
+    </script>
+</body>
+</html>

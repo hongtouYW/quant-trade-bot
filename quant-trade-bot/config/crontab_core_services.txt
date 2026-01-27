@@ -1,0 +1,5 @@
+# 核心服务自动保活 - 每5分钟检查一次
+*/5 * * * * /Users/hongtou/newproject/quant-trade-bot/scripts/keep_alive.sh
+
+# 每天早上9点重启服务（可选）
+# 0 9 * * * /Users/hongtou/newproject/quant-trade-bot/scripts/restart_core_services.sh

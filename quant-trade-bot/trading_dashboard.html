@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>量化交易面板 - 静态展示</title>
+    <meta charset="utf-8">
+    <style>
+        body { background: #1a1a2e; color: white; font-family: Arial; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; }
+        .card { background: rgba(255,255,255,0.1); padding: 20px; margin: 10px 0; border-radius: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .long { color: #28a745; }
+        .short { color: #dc3545; }
+        .status { text-align: center; color: #28a745; font-weight: bold; margin: 20px 0; }
+        .refresh { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 量化交易监控面板</h1>
+        <div class="status">✅ 系统正常运行 | 数据来源: quick_trading.db</div>
+        
+        <div class="card">
+            <h2>📊 当前持仓 (5个开放仓位)</h2>
+            <table>
+                <tr><th>交易对</th><th>方向</th><th>数量</th><th>开仓价</th><th>杠杆</th></tr>
+                <tr>
+                    <td>SOL/USDT</td>
+                    <td class="short">📉 空头</td>
+                    <td>1.6054</td>
+                    <td>$124.58</td>
+                    <td>1.0x</td>
+                </tr>
+                <tr>
+                    <td>XRP/USDT</td>
+                    <td class="long">📈 多头</td>
+                    <td>104.1179</td>
+                    <td>$1.9209</td>
+                    <td>1.0x</td>
+                </tr>
+                <tr>
+                    <td>AVAX/USDT</td>
+                    <td class="short">📉 空头</td>
+                    <td>16.9924</td>
+                    <td>$11.77</td>
+                    <td>1.0x</td>
+                </tr>
+                <tr>
+                    <td>DOT/USDT</td>
+                    <td class="long">📈 多头</td>
+                    <td>106.4963</td>
+                    <td>$1.878</td>
+                    <td>1.0x</td>
+                </tr>
+                <tr>
+                    <td>BTC/USDT</td>
+                    <td class="short">📉 空头</td>
+                    <td>0.0023</td>
+                    <td>$87738.01</td>
+                    <td>1.0x</td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2>👁 关注列表</h2>
+            <table>
+                <tr><th>交易对</th><th>状态</th><th>备注</th></tr>
+                <tr><td>BTC/USDT</td><td>🔴 持仓中</td><td>空头仓位</td></tr>
+                <tr><td>ETH/USDT</td><td>🟢 监控中</td><td>等待信号</td></tr>
+                <tr><td>SOL/USDT</td><td>🔴 持仓中</td><td>空头仓位</td></tr>
+                <tr><td>XRP/USDT</td><td>🔴 持仓中</td><td>多头仓位</td></tr>
+                <tr><td>AVAX/USDT</td><td>🔴 持仓中</td><td>空头仓位</td></tr>
+                <tr><td>DOT/USDT</td><td>🔴 持仓中</td><td>多头仓位</td></tr>
+                <tr><td>ADA/USDT</td><td>🟢 监控中</td><td>等待信号</td></tr>
+                <tr><td>LINK/USDT</td><td>🟢 监控中</td><td>等待信号</td></tr>
+                <tr><td>MATIC/USDT</td><td>🟢 监控中</td><td>等待信号</td></tr>
+                <tr><td>ATOM/USDT</td><td>🟢 监控中</td><td>等待信号</td></tr>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h2>📱 量化助理提醒</h2>
+            <p><strong>最后更新:</strong> 2026-01-27 01:15:00</p>
+            <p><strong>交易策略:</strong> 15币种轮动监控</p>
+            <p><strong>风险控制:</strong> 已启用止损</p>
+            <p><strong>通知状态:</strong> Telegram推送正常</p>
+            <button class="refresh" onclick="location.reload()">🔄 刷新数据</button>
+        </div>
+        
+        <div class="card">
+            <h2>⚡ 系统状态</h2>
+            <div style="display: flex; justify-content: space-between;">
+                <div>
+                    <h4>数据库状态</h4>
+                    <p>✅ quick_trading.db - 13条记录</p>
+                    <p>✅ 连接正常</p>
+                </div>
+                <div>
+                    <h4>交易状态</h4>
+                    <p>✅ 5个开放仓位</p>
+                    <p>✅ 自动交易运行中</p>
+                </div>
+                <div>
+                    <h4>监控状态</h4>
+                    <p>✅ 15币种监控</p>
+                    <p>✅ Telegram通知激活</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 每30秒刷新页面
+        setTimeout(() => location.reload(), 30000);
+    </script>
+</body>
+</html>

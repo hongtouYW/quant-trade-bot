@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>遗爱寺线图演示</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background: #222; color: #eee; font-family: sans-serif; }
+        #container { width: 90vw; max-width: 900px; margin: 40px auto; background: #2d3748; border-radius: 12px; padding: 32px; box-shadow: 0 4px 24px #0004; }
+        h2 { text-align: center; margin-bottom: 24px; }
+        canvas { background: #fff; border-radius: 8px; }
+    </style>
+</head>
+<body>
+<div id="container">
+    <h2>遗爱寺线图（示例）</h2>
+    <canvas id="yiasiChart" width="800" height="400"></canvas>
+</div>
+<script>
+// 示例数据：遗爱寺每日游客量（虚构）
+const labels = [
+    '1月1日', '1月2日', '1月3日', '1月4日', '1月5日', '1月6日', '1月7日',
+    '1月8日', '1月9日', '1月10日', '1月11日', '1月12日', '1月13日', '1月14日'
+];
+const data = [
+    120, 135, 150, 170, 160, 180, 200, 210, 190, 220, 230, 225, 240, 250
+];
+const ctx = document.getElementById('yiasiChart').getContext('2d');
+const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: '遗爱寺游客量',
+            data: data,
+            borderColor: '#60a5fa',
+            backgroundColor: 'rgba(96,165,250,0.08)',
+            borderWidth: 3,
+            pointRadius: 4,
+            pointBackgroundColor: '#2563eb',
+            tension: 0.3,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { labels: { color: '#eee', font: { size: 16 } } },
+            title: { display: true, text: '遗爱寺每日游客量趋势', color: '#fff', font: { size: 20 } }
+        },
+        scales: {
+            x: { ticks: { color: '#eee' }, grid: { color: '#444' } },
+            y: { ticks: { color: '#eee' }, grid: { color: '#444' }, beginAtZero: true }
+        }
+    }
+});
+</script>
+</body>
+</html>

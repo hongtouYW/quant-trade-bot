@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>简单图表测试</title>
+</head>
+<body>
+    <h1>Chart.js 测试</h1>
+    <canvas id="myChart" width="800" height="400"></canvas>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        console.log('开始测试Chart.js...');
+        
+        // 检查Chart.js是否加载
+        if (typeof Chart === 'undefined') {
+            document.body.innerHTML += '<p style="color:red;">❌ Chart.js未加载</p>';
+        } else {
+            document.body.innerHTML += '<p style="color:green;">✅ Chart.js已加载，版本: ' + (Chart.version || '未知') + '</p>';
+        }
+        
+        // 等待DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('myChart').getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['1', '2', '3', '4', '5'],
+                    datasets: [{
+                        label: '测试数据',
+                        data: [12, 19, 3, 5, 2],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            document.body.innerHTML += '<p style="color:blue;">📊 图表已创建</p>';
+        });
+    </script>
+</body>
+</html>

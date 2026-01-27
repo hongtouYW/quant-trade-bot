@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>量化交易面板 - 简化版</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            background: linear-gradient(135deg, #0f1419 0%, #1a202c 100%);
+            color: #e2e8f0;
+            font-family: 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 20px;
+            height: 80vh;
+        }
+        .panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .chart-panel {
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-header {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chart-symbol {
+            font-size: 24px;
+            font-weight: bold;
+            color: #60a5fa;
+        }
+        .chart-container {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+            position: relative;
+        }
+        #tradingChart {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .currency-item, .position-item {
+            background: rgba(255,255,255,0.05);
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            border-left: 3px solid #60a5fa;
+        }
+        .currency-item:hover, .position-item:hover {
+            background: rgba(96,165,250,0.2);
+        }
+        .currency-item.active, .position-item.selected {
+            background: rgba(96,165,250,0.3);
+            border-left-color: #60a5fa;
+        }
+        h3 { margin-bottom: 15px; color: #60a5fa; }
+        .status {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center; margin-bottom: 20px;">量化交易面板 - 简化测试版</h1>
+    
+    <div class="container">
+        <!-- 左侧货币列表 -->
+        <div class="panel">
+            <h3>监控货币</h3>
+            <div class="currency-item active" onclick="switchChart('BTC/USDT')">
+                <div><strong>BTC/USDT</strong></div>
+                <div style="color: #94a3b8;">$87,738.01</div>
+            </div>
+            <div class="currency-item" onclick="switchChart('SOL/USDT')">
+                <div><strong>SOL/USDT</strong></div>
+                <div style="color: #94a3b8;">$124.58</div>
+            </div>
+            <div class="currency-item" onclick="switchChart('XRP/USDT')">
+                <div><strong>XRP/USDT</strong></div>
+                <div style="color: #94a3b8;">$1.9209</div>
+            </div>
+        </div>
+        
+        <!-- 中间图表区 -->
+        <div class="panel chart-panel">
+            <div class="chart-header">
+                <div class="chart-symbol" id="currentSymbol">BTC/USDT</div>
+                <div id="chartStatus" class="status">图表加载中...</div>
+            </div>
+            <div class="chart-container">
+                <canvas id="tradingChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- 右侧持仓 -->
+        <div class="panel">
+            <h3>持仓</h3>
+            <div class="position-item" onclick="loadPosition('SOL/USDT', 124.58, 117.38, 135.92)">
+                <div><strong>SOL/USDT</strong></div>
+                <div style="color: #94a3b8;">空头 | $124.58</div>
+            </div>
+            <div class="position-item" onclick="loadPosition('XRP/USDT', 1.9209, 1.75, 2.20)">
+                <div><strong>XRP/USDT</strong></div>
+                <div style="color: #94a3b8;">多头 | $1.9209</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chart.js CDN库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js"></script>
+    <script>
+        // 添加Chart.js加载检测和备用加载
+        window.addEventListener('load', function() {
+            if (typeof Chart === 'undefined') {
+                console.error('CDN版本Chart.js加载失败，尝试备用版本');
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js';
+                script.onload = function() {
+                    console.log('备用Chart.js加载成功');
+                    initApp();
+                };
+                script.onerror = function() {
+                    document.getElementById('chartStatus').innerHTML = '❌ Chart.js加载失败';
+                    document.getElementById('chartStatus').style.color = '#ef4444';
+                };
+                document.head.appendChild(script);
+            } else {
+                console.log('Chart.js CDN加载成功');
+                initApp();
+            }
+        });
+        
+        function initApp() {
+            // 应用初始化逻辑会在这里
+        }
+    </script>
+    
+    <script>
+        let chart;
+        let currentSymbol = 'BTC/USDT';
+        
+        // 价格数据
+        const priceData = {
+            'BTC/USDT': { price: 87738.01, entry: 87738.01, stop: 85000, target: 95000 },
+            'SOL/USDT': { price: 124.58, entry: 124.58, stop: 117.38, target: 135.92 },
+            'XRP/USDT': { price: 1.9209, entry: 1.9209, stop: 1.75, target: 2.20 }
+        };
+        
+        // 状态更新
+        function updateStatus(message, color = '#60a5fa') {
+            const status = document.getElementById('chartStatus');
+            if (status) {
+                status.textContent = message;
+                status.style.color = color;
+            }
+            console.log(message);
+        }
+        
+        // 生成示例数据
+        function generateData(symbol) {
+            const labels = [];
+            const data = [];
+            const basePrice = priceData[symbol].price;
+            
+            for (let i = 0; i < 24; i++) {
+                const time = new Date(Date.now() - (24-i) * 60000);
+                labels.push(time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
+                data.push(basePrice + (Math.random() - 0.5) * basePrice * 0.02);
+            }
+            
+            return { labels, data };
+        }
+        
+        // 创建图表
+        function createChart(symbol) {
+            updateStatus('正在创建图表...', '#f59e0b');
+            
+            try {
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                const canvas = document.getElementById('tradingChart');
+                const ctx = canvas.getContext('2d');
+                
+                const { labels, data } = generateData(symbol);
+                
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: symbol + ' 价格',
+                            data: data,
+                            borderColor: '#60a5fa',
+                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                            borderWidth: 2,
+                            fill: true
+                        }, {
+                            label: '入场价',
+                            data: Array(data.length).fill(priceData[symbol].entry),
+                            borderColor: '#10b981',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            pointRadius: 0,
+                            fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#e2e8f0' }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            },
+                            y: {
+                                ticks: { 
+                                    color: '#94a3b8',
+                                    callback: v => '$' + v.toFixed(2)
+                                },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            }
+                        }
+                    }
+                });
+                
+                updateStatus(symbol + ' 图表已加载', '#10b981');
+                
+            } catch (error) {
+                updateStatus('图表创建失败: ' + error.message, '#ef4444');
+                console.error('图表创建失败:', error);
+            }
+        }
+        
+        // 切换图表
+        function switchChart(symbol) {
+            currentSymbol = symbol;
+            document.getElementById('currentSymbol').textContent = symbol;
+            
+            // 更新活跃状态
+            document.querySelectorAll('.currency-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.currency-item').classList.add('active');
+            
+            createChart(symbol);
+        }
+        
+        // 加载持仓
+        function loadPosition(symbol, entry, stop, target) {
+            priceData[symbol].entry = entry;
+            priceData[symbol].stop = stop;
+            priceData[symbol].target = target;
+            
+            // 更新选中状态
+            document.querySelectorAll('.position-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.closest('.position-item').classList.add('selected');
+            
+            switchChart(symbol);
+        }
+        
+        // 初始化
+        function initApp() {
+            updateStatus('正在初始化...', '#f59e0b');
+            
+            if (typeof Chart === 'undefined') {
+                updateStatus('Chart.js 未加载', '#ef4444');
+                return;
+            }
+            
+            updateStatus('Chart.js 已加载', '#10b981');
+            console.log('Chart.js版本:', Chart.version);
+            
+            setTimeout(() => {
+                createChart('BTC/USDT');
+            }, 500);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // initApp会在Chart.js加载后调用
+            if (typeof Chart !== 'undefined') {
+                initApp();
+            }
+        });
+    </script>
+</body>
+</html>

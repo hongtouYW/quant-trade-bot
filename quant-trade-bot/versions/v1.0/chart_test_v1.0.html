@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>图表测试页面</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        
+        .chart-container {
+            width: 800px;
+            height: 400px;
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        #testChart {
+            width: 100% !important;
+            height: 350px !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>图表功能测试</h1>
+    <div class="chart-container">
+        <h3>BTC/USDT 价格走势</h3>
+        <canvas id="testChart"></canvas>
+    </div>
+    
+    <div>
+        <button onclick="testChart()">测试图表创建</button>
+        <button onclick="updateChart()">更新图表数据</button>
+    </div>
+    
+    <div id="status" style="margin-top: 20px; padding: 10px; background: #333; border-radius: 4px;">
+        等待测试...
+    </div>
+    
+    <script>
+        let chart = null;
+        
+        function updateStatus(message) {
+            document.getElementById('status').innerHTML = message;
+            console.log(message);
+        }
+        
+        function testChart() {
+            try {
+                updateStatus('开始创建图表...');
+                
+                if (!window.Chart) {
+                    updateStatus('❌ Chart.js 库未加载');
+                    return;
+                }
+                
+                const canvas = document.getElementById('testChart');
+                if (!canvas) {
+                    updateStatus('❌ 找不到图表容器');
+                    return;
+                }
+                
+                const ctx = canvas.getContext('2d');
+                
+                // 销毁现有图表
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                // 生成测试数据
+                const labels = [];
+                const data = [];
+                const basePrice = 87500;
+                
+                for (let i = 0; i < 30; i++) {
+                    labels.push(`${i}分钟前`);
+                    const variation = (Math.random() - 0.5) * 1000;
+                    data.push(basePrice + variation);
+                }
+                
+                // 创建图表
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'BTC/USDT 价格',
+                            data: data,
+                            borderColor: '#60a5fa',
+                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e2e8f0'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#94a3b8'
+                                }
+                            },
+                            y: {
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.1)'
+                                },
+                                ticks: {
+                                    color: '#94a3b8',
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(0);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                updateStatus('✅ 图表创建成功！');
+                
+            } catch (error) {
+                updateStatus('❌ 图表创建失败: ' + error.message);
+                console.error('图表错误:', error);
+            }
+        }
+        
+        function updateChart() {
+            if (!chart) {
+                updateStatus('⚠️ 请先创建图表');
+                return;
+            }
+            
+            try {
+                // 更新数据
+                const newData = [];
+                const basePrice = 87500;
+                
+                for (let i = 0; i < 30; i++) {
+                    const variation = (Math.random() - 0.5) * 1000;
+                    newData.push(basePrice + variation);
+                }
+                
+                chart.data.datasets[0].data = newData;
+                chart.update();
+                
+                updateStatus('✅ 图表数据已更新');
+                
+            } catch (error) {
+                updateStatus('❌ 更新失败: ' + error.message);
+            }
+        }
+        
+        // 页面加载完成后自动测试
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('页面加载完成，准备测试...');
+            setTimeout(() => {
+                testChart();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

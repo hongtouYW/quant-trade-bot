@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>图表诊断工具</title>
+    <style>
+        body { background: #1a1a1a; color: white; font-family: monospace; padding: 20px; }
+        .test { background: #333; margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .pass { border-left: 4px solid #10b981; }
+        .fail { border-left: 4px solid #ef4444; }
+        canvas { border: 1px solid #666; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Chart.js 诊断工具</h1>
+    
+    <div id="tests"></div>
+    
+    <h2>🎯 实际测试</h2>
+    <canvas id="testCanvas" width="400" height="200"></canvas>
+    
+    <script>
+        const tests = document.getElementById('tests');
+        
+        function addTest(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${name}</strong><br>
+                ${details}
+            `;
+            tests.appendChild(div);
+            return passed;
+        }
+        
+        console.log('开始诊断...');
+        
+        // 测试1: 基本浏览器功能
+        addTest('浏览器基本功能', true, 'JavaScript 执行正常');
+        
+        // 测试2: Canvas支持
+        const canvas = document.getElementById('testCanvas');
+        const hasCanvas = !!canvas.getContext;
+        addTest('Canvas 支持', hasCanvas, hasCanvas ? 'Canvas API 可用' : 'Canvas 不支持');
+        
+        // 测试3: 2D Context
+        let ctx = null;
+        if (hasCanvas) {
+            ctx = canvas.getContext('2d');
+            addTest('2D Context', !!ctx, ctx ? 'CanvasRenderingContext2D 获取成功' : '无法获取2D上下文');
+        }
+        
+        // 测试4: 基本绘图
+        if (ctx) {
+            try {
+                ctx.fillStyle = '#60a5fa';
+                ctx.fillRect(10, 10, 100, 50);
+                ctx.fillStyle = '#10b981';
+                ctx.fillRect(120, 10, 100, 50);
+                addTest('基本绘图', true, '矩形绘制成功');
+            } catch (e) {
+                addTest('基本绘图', false, '绘图失败: ' + e.message);
+            }
+        }
+        
+        // 测试5: Chart.js加载
+        function testChartJs() {
+            const hasChart = typeof Chart !== 'undefined';
+            if (hasChart) {
+                addTest('Chart.js 库', true, `版本: ${Chart.version || '未知'}`);
+                
+                // 测试6: Chart.js实例化
+                try {
+                    const testChart = new Chart(canvas, {
+                        type: 'line',
+                        data: {
+                            labels: ['A', 'B', 'C'],
+                            datasets: [{
+                                label: '测试',
+                                data: [1, 2, 3],
+                                borderColor: '#60a5fa'
+                            }]
+                        },
+                        options: {
+                            responsive: false
+                        }
+                    });
+                    addTest('Chart.js 实例化', true, '图表创建成功');
+                    
+                    setTimeout(() => {
+                        testChart.destroy();
+                        addTest('Chart.js 销毁', true, '图表销毁成功');
+                    }, 1000);
+                    
+                } catch (e) {
+                    addTest('Chart.js 实例化', false, '失败: ' + e.message);
+                }
+            } else {
+                addTest('Chart.js 库', false, 'Chart.js 未加载，正在尝试加载...');
+                
+                // 尝试动态加载
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.min.js';
+                script.onload = () => {
+                    addTest('Chart.js 动态加载', true, '动态加载成功');
+                    testChartJs(); // 递归测试
+                };
+                script.onerror = () => {
+                    addTest('Chart.js 动态加载', false, 'CDN 无法访问');
+                };
+                document.head.appendChild(script);
+            }
+        }
+        
+        // 延迟测试Chart.js，给页面时间加载
+        setTimeout(testChartJs, 100);
+    </script>
+    
+    <!-- 尝试加载Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>

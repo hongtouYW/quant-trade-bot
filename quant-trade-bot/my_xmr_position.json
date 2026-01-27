@@ -1,0 +1,13 @@
+{
+  "symbol": "XMR/USDT",
+  "side": "LONG",
+  "entry_price": 464.65,
+  "quantity": 21.521575379317767,
+  "position_size": 1000,
+  "leverage": 10,
+  "liquidation_price": 418.185,
+  "stop_loss": 441.41749999999996,
+  "take_profit": 511.115,
+  "entry_time": "2026-01-26T17:40:46.248443",
+  "status": "OPEN"
+}

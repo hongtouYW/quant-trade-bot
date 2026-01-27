@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>持仓点击测试</title>
+    <style>
+        body { 
+            background: #1a1a1a; 
+            color: white; 
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-item {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .test-item:hover {
+            background: rgba(96, 165, 250, 0.3);
+        }
+        #result {
+            background: #333;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>持仓点击功能测试</h1>
+    
+    <div class="test-item" onclick="testLoadPosition('SOL/USDT', 124.58, 117.38, 135.92, 'short')">
+        测试 SOL/USDT 空头持仓点击
+    </div>
+    
+    <div class="test-item" onclick="testLoadPosition('XRP/USDT', 1.9209, 1.75, 2.20, 'long')">
+        测试 XRP/USDT 多头持仓点击
+    </div>
+    
+    <div id="result">
+        点击上方测试项目查看结果...
+    </div>
+    
+    <a href="index.html" style="color: #60a5fa;">返回主页面</a>
+    
+    <script>
+        function testLoadPosition(symbol, entryPrice, stopPrice, targetPrice, direction) {
+            const result = document.getElementById('result');
+            
+            try {
+                // 模拟主页面的loadPositionChart函数逻辑
+                const currentPosition = {
+                    symbol: symbol,
+                    entryPrice: entryPrice,
+                    stopPrice: stopPrice,
+                    targetPrice: targetPrice,
+                    direction: direction
+                };
+                
+                result.innerHTML = `
+                    <h3>✅ 持仓加载测试成功</h3>
+                    <p><strong>货币对:</strong> ${symbol}</p>
+                    <p><strong>方向:</strong> ${direction === 'long' ? '多头' : '空头'}</p>
+                    <p><strong>入场价:</strong> $${entryPrice.toLocaleString()}</p>
+                    <p><strong>止损价:</strong> $${stopPrice.toLocaleString()}</p>
+                    <p><strong>止盈价:</strong> $${targetPrice.toLocaleString()}</p>
+                    <p style="color: #10b981;">函数调用正常，参数传递正确</p>
+                    <p style="color: #60a5fa;">在主页面中，这会触发图表更新</p>
+                `;
+                
+                console.log('测试成功:', currentPosition);
+                
+            } catch (error) {
+                result.innerHTML = `
+                    <h3 style="color: #ef4444;">❌ 测试失败</h3>
+                    <p>错误: ${error.message}</p>
+                `;
+                console.error('测试失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>

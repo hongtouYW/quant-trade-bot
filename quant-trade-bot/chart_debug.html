@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>图表测试</title>
+    <style>
+        body {
+            background: #1a1a1a;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .chart-container {
+            width: 800px;
+            height: 400px;
+            background: #2a2a2a;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #testChart {
+            width: 100% !important;
+            height: 360px !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>图表加载测试</h1>
+    
+    <div class="chart-container">
+        <h3>Chart.js 测试图表</h3>
+        <canvas id="testChart"></canvas>
+    </div>
+    
+    <div id="status" style="margin: 20px; padding: 10px; background: #333; border-radius: 4px;">
+        正在检测 Chart.js 状态...
+    </div>
+    
+    <!-- Chart.js 库 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script>
+        const status = document.getElementById('status');
+        
+        // 检查 Chart.js 是否加载
+        if (typeof Chart === 'undefined') {
+            status.innerHTML = '❌ Chart.js 库未加载 - CDN 可能被阻塞';
+            status.style.color = '#ef4444';
+        } else {
+            status.innerHTML = '✅ Chart.js 库已加载成功';
+            status.style.color = '#10b981';
+            
+            // 创建测试图表
+            try {
+                const ctx = document.getElementById('testChart').getContext('2d');
+                
+                // 生成测试数据
+                const labels = [];
+                const data = [];
+                const basePrice = 100;
+                
+                for (let i = 0; i < 20; i++) {
+                    const time = new Date(Date.now() - (20-i) * 15 * 60000);
+                    labels.push(time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }));
+                    data.push(basePrice + Math.random() * 20 - 10);
+                }
+                
+                const chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'BTC/USDT 价格',
+                            data: data,
+                            borderColor: '#60a5fa',
+                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }, {
+                            label: '入场价',
+                            data: Array(data.length).fill(100),
+                            borderColor: '#10b981',
+                            borderWidth: 1,
+                            borderDash: [5, 5],
+                            fill: false,
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#e2e8f0'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    color: '#94a3b8'
+                                },
+                                grid: {
+                                    color: 'rgba(148, 163, 184, 0.1)'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    color: '#94a3b8',
+                                    callback: function(value) {
+                                        return '$' + value.toFixed(2);
+                                    }
+                                },
+                                grid: {
+                                    color: 'rgba(148, 163, 184, 0.1)'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                status.innerHTML += '<br>📊 测试图表创建成功！';
+                
+            } catch (error) {
+                status.innerHTML += '<br>❌ 图表创建失败: ' + error.message;
+                status.style.color = '#ef4444';
+                console.error('图表创建失败:', error);
+            }
+        }
+    </script>
+</body>
+</html>
