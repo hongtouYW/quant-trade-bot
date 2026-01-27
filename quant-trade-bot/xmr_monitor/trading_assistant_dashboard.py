@@ -331,38 +331,104 @@ def get_watchlist():
         conn = get_db()
         cursor = conn.cursor()
 
-        # 获取当前持仓
+        # 获取当前持仓（包含方向、杠杆、止盈止损信息）
         cursor.execute('''
-            SELECT symbol FROM real_trades
+            SELECT symbol, direction, leverage, take_profit, stop_loss FROM real_trades
             WHERE mode = 'paper' AND assistant = '交易助手' AND status = 'OPEN'
         ''')
-        open_positions = set(row['symbol'] for row in cursor.fetchall())
+        positions_dict = {row['symbol']: {
+            'direction': row['direction'],
+            'leverage': row['leverage'],
+            'take_profit': row['take_profit'],
+            'stop_loss': row['stop_loss']
+        } for row in cursor.fetchall()}
         conn.close()
 
-        # 获取每个币种的当前价格
+        # 获取每个币种的当前价格和建议
         watchlist = []
         for symbol in watch_symbols:
             try:
-                price_data = get_current_price(symbol)
+                price_data = get_price_value(symbol)
+                has_position = symbol in positions_dict
+
+                # 获取信号建议（包括持仓和非持仓币种）
+                suggestion_data = None
+                confidence = 0
+                suggested_direction = None
+                stop_loss = None
+                take_profit = None
+                leverage = None
+                profit_pct = None
+                loss_pct = None
+
+                if has_position:
+                    # 持仓币种：使用实际的杠杆、止盈、止损
+                    pos_info = positions_dict[symbol]
+                    leverage = pos_info['leverage']
+                    take_profit = pos_info['take_profit']
+                    stop_loss = pos_info['stop_loss']
+
+                    # 获取信号数据用于信心度
+                    suggestion_data = get_signal_suggestion(symbol)
+                    if suggestion_data:
+                        confidence = suggestion_data['confidence']
+                else:
+                    # 非持仓币种：计算预估盈亏%
+                    leverage = 10  # 默认10倍杠杆
+                    suggestion_data = get_signal_suggestion(symbol)
+                    if suggestion_data:
+                        confidence = suggestion_data['confidence']
+                        stop_loss = suggestion_data['stop_loss']
+                        take_profit = suggestion_data['take_profit']
+                        suggested_direction = suggestion_data['direction']
+
+                        # 计算预估盈利%和亏损%（考虑杠杆）
+                        if suggested_direction == 'LONG':
+                            profit_pct = ((take_profit - price_data) / price_data) * leverage * 100
+                            loss_pct = ((price_data - stop_loss) / price_data) * leverage * 100
+                        else:  # SHORT
+                            profit_pct = ((price_data - take_profit) / price_data) * leverage * 100
+                            loss_pct = ((stop_loss - price_data) / price_data) * leverage * 100
+
                 watchlist.append({
                     'symbol': symbol,
                     'price': price_data,
-                    'has_position': symbol in open_positions
+                    'has_position': has_position,
+                    'direction': positions_dict[symbol]['direction'] if has_position else None,  # 当前持仓方向
+                    'suggested_direction': suggested_direction,  # 建议方向（仅非持仓）
+                    'confidence': confidence,  # 信心度分数
+                    'stop_loss': stop_loss,  # 止损价位
+                    'take_profit': take_profit,  # 止盈价位
+                    'leverage': leverage,  # 杠杆倍数
+                    'profit_pct': profit_pct,  # 预估盈利%（仅非持仓）
+                    'loss_pct': loss_pct  # 预估亏损%（仅非持仓）
                 })
             except Exception as e:
+                has_position = symbol in positions_dict
                 watchlist.append({
                     'symbol': symbol,
                     'price': 0,
-                    'has_position': symbol in open_positions,
+                    'has_position': has_position,
+                    'direction': positions_dict[symbol]['direction'] if has_position else None,
+                    'suggested_direction': None,
+                    'confidence': 0,
+                    'stop_loss': None,
+                    'take_profit': None,
+                    'leverage': positions_dict[symbol]['leverage'] if has_position else 10,
+                    'profit_pct': None,
+                    'loss_pct': None,
                     'error': str(e)
                 })
+
+        # 排序：1. 有持仓的在最前 2. 按信心度降序
+        watchlist.sort(key=lambda x: (not x['has_position'], -x['confidence']))
 
         return jsonify(watchlist)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-def get_current_price(symbol):
-    """获取币种当前价格"""
+def get_price_value(symbol):
+    """获取币种当前价格（辅助函数）"""
     symbol_map = {
         # 原有币种
         'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
@@ -377,6 +443,112 @@ def get_current_price(symbol):
     response = requests.get(url, timeout=5)
     data = response.json()
     return float(data['price'])
+
+def get_signal_suggestion(symbol):
+    """获取币种信号建议（做多/做空）+ 信心度 + 止盈止损"""
+    try:
+        symbol_map = {
+            'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
+            'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
+            'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
+            'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
+        }
+        binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+
+        # 获取K线数据
+        url = f"https://api.binance.com/api/v3/klines"
+        params = {
+            'symbol': binance_symbol,
+            'interval': '5m',
+            'limit': 50
+        }
+        response = requests.get(url, params=params, timeout=5)
+        klines = response.json()
+
+        if not klines or len(klines) < 30:
+            return None
+
+        # 计算简单RSI
+        closes = [float(k[4]) for k in klines]
+        changes = [closes[i] - closes[i-1] for i in range(1, len(closes))]
+        gains = [c if c > 0 else 0 for c in changes]
+        losses = [abs(c) if c < 0 else 0 for c in changes]
+
+        avg_gain = sum(gains[-14:]) / 14 if len(gains) >= 14 else 0
+        avg_loss = sum(losses[-14:]) / 14 if len(losses) >= 14 else 0
+
+        if avg_loss == 0:
+            rsi = 100
+        else:
+            rs = avg_gain / avg_loss
+            rsi = 100 - (100 / (1 + rs))
+
+        # 计算MA趋势
+        ma7 = sum(closes[-7:]) / 7
+        ma25 = sum(closes[-25:]) / 25
+        current_price = closes[-1]
+
+        # 计算信心度分数 (0-100)
+        confidence = 0
+        direction = None
+
+        # RSI 分数 (40分)
+        if rsi < 30:
+            confidence += 40
+            direction = 'LONG'
+        elif rsi > 70:
+            confidence += 40
+            direction = 'SHORT'
+        elif rsi < 40:
+            confidence += 20
+            direction = 'LONG'
+        elif rsi > 60:
+            confidence += 20
+            direction = 'SHORT'
+
+        # MA 趋势分数 (30分)
+        if ma7 > ma25:
+            confidence += 30
+            if direction != 'SHORT':
+                direction = 'LONG'
+        elif ma7 < ma25:
+            confidence += 30
+            if direction != 'LONG':
+                direction = 'SHORT'
+
+        # 价格位置分数 (30分)
+        if direction == 'LONG' and current_price > ma7:
+            confidence += 30
+        elif direction == 'SHORT' and current_price < ma7:
+            confidence += 30
+        elif direction == 'LONG' and current_price < ma7:
+            confidence -= 10
+        elif direction == 'SHORT' and current_price > ma7:
+            confidence -= 10
+
+        # 最低60分才推荐
+        if confidence < 60 or direction is None:
+            return None
+
+        # 计算止盈止损 (基于当前价格)
+        if direction == 'LONG':
+            stop_loss = current_price * 0.95  # -5%
+            take_profit = current_price * 1.10  # +10%
+        else:  # SHORT
+            stop_loss = current_price * 1.05  # +5%
+            take_profit = current_price * 0.90  # -10%
+
+        return {
+            'direction': direction,
+            'confidence': min(confidence, 100),  # 最高100分
+            'stop_loss': stop_loss,
+            'take_profit': take_profit,
+            'current_price': current_price,
+            'rsi': rsi
+        }
+
+    except Exception as e:
+        return None
 
 # HTML模板
 HTML_TEMPLATE = '''
@@ -1219,30 +1391,37 @@ HTML_TEMPLATE = '''
         }
 
         .watch-card-vertical .watch-symbol {
-            font-size: 1em;
+            font-size: 1.1em;
             font-weight: bold;
             color: #667eea;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
         }
 
         .watch-card-vertical.has-position .watch-symbol {
             color: #10b981;
+            font-size: 1.15em;
         }
 
         .watch-card-vertical .watch-price {
-            font-size: 0.85em;
-            color: #666;
+            font-size: 0.95em;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 3px;
         }
 
         .watch-card-vertical .watch-confidence {
-            font-size: 0.75em;
+            font-size: 0.8em;
             color: #667eea;
-            font-weight: 600;
-            margin-top: 2px;
+            font-weight: 700;
+            margin-top: 3px;
         }
 
         .watch-card-vertical .watch-icon {
-            font-size: 1.3em;
+            font-size: 1.5em;
         }
 
         /* 顶部按钮栏 */
@@ -1375,8 +1554,10 @@ HTML_TEMPLATE = '''
             <!-- 左侧：监控列表 -->
             <div class="left-panel">
                 <div class="panel-header">
-                    <h2>👁️ 监控列表</h2>
-                    <button class="header-btn" onclick="alert('图表功能开发中')">📊 图表</button>
+                    <h2 style="font-size: 1.2em;">👁️ 监控列表</h2>
+                    <div style="font-size: 0.75em; color: #999; margin-top: 4px;">
+                        <span id="watchlist-countdown">刷新: --</span>
+                    </div>
                 </div>
                 <div class="left-panel-content">
                     <div id="watchlist-container">
@@ -2129,18 +2310,60 @@ HTML_TEMPLATE = '''
 
                 watchlist.forEach(coin => {
                     const hasPosition = coin.has_position ? 'has-position' : '';
-                    const icon = coin.has_position ? '📊' : '👁️';
-                    // 临时模拟信心度（后续从API获取）
-                    const confidence = coin.confidence || Math.floor(Math.random() * 30) + 70;
+                    // 使用真实信心度
+                    const confidence = coin.confidence || 0;
+
+                    // 方向/建议标签
+                    let directionBadge = '';
+                    if (coin.has_position && coin.direction) {
+                        // 有持仓：显示当前方向
+                        const isLong = coin.direction === 'LONG';
+                        const directionText = isLong ? '做多' : '做空';
+                        const directionEmoji = isLong ? '📈' : '📉';
+                        const directionColor = isLong ? '#10b981' : '#ef4444';
+                        directionBadge = `<span style="font-size: 0.75em; background: ${directionColor}; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 6px;">${directionEmoji} ${directionText}</span>`;
+                    } else if (!coin.has_position && coin.suggested_direction) {
+                        // 无持仓：显示建议
+                        const isLong = coin.suggested_direction === 'LONG';
+                        const suggestionText = isLong ? '建议做多' : '建议做空';
+                        const suggestionEmoji = isLong ? '📈' : '📉';
+                        const suggestionColor = isLong ? '#10b981' : '#f59e0b';
+                        directionBadge = `<span style="font-size: 0.7em; background: ${suggestionColor}; color: white; padding: 2px 5px; border-radius: 4px; margin-left: 6px; opacity: 0.8;">${suggestionEmoji} ${suggestionText}</span>`;
+                    }
+
+                    // 止盈止损和杠杆信息
+                    let detailsInfo = '';
+
+                    if (coin.has_position) {
+                        // 持仓币种：显示信心度、杠杆、止盈、止损
+                        detailsInfo = `
+                            <div style="font-size: 0.7em; color: #666; margin-top: 4px; line-height: 1.4;">
+                                ${confidence > 0 ? `<div>💪 信心度: ${confidence}%</div>` : ''}
+                                ${coin.leverage ? `<div>⚡ 杠杆: ${coin.leverage}x</div>` : ''}
+                                ${coin.take_profit ? `<div>🎯 止盈: $${formatNumber(coin.take_profit, 4)}</div>` : ''}
+                                ${coin.stop_loss ? `<div>🛑 止损: $${formatNumber(coin.stop_loss, 4)}</div>` : ''}
+                            </div>
+                        `;
+                    } else {
+                        // 非持仓币种：显示杠杆、止盈止损价位、预估盈利%、预估亏损%
+                        detailsInfo = `
+                            <div style="font-size: 0.7em; color: #666; margin-top: 4px; line-height: 1.4;">
+                                ${coin.leverage ? `<div>⚡ 杠杆: ${coin.leverage}x</div>` : ''}
+                                ${coin.take_profit ? `<div>🎯 止盈: $${formatNumber(coin.take_profit, 4)}</div>` : ''}
+                                ${coin.stop_loss ? `<div>🛑 止损: $${formatNumber(coin.stop_loss, 4)}</div>` : ''}
+                                ${coin.profit_pct !== null ? `<div style="color: #10b981;">📈 预估盈利: ${formatNumber(coin.profit_pct, 2)}%</div>` : ''}
+                                ${coin.loss_pct !== null ? `<div style="color: #ef4444;">📉 预估亏损: ${formatNumber(coin.loss_pct, 2)}%</div>` : ''}
+                            </div>
+                        `;
+                    }
 
                     html += `
                         <div class="watch-card-vertical ${hasPosition}">
                             <div class="watch-info">
-                                <div class="watch-symbol">${coin.symbol}</div>
+                                <div class="watch-symbol">${coin.symbol} ${directionBadge}</div>
                                 <div class="watch-price">$${formatNumber(coin.price, 4)}</div>
-                                <div class="watch-confidence">信心度: ${confidence}%</div>
+                                ${detailsInfo}
                             </div>
-                            <div class="watch-icon">${icon}</div>
                         </div>
                     `;
                 });
@@ -2543,8 +2766,37 @@ HTML_TEMPLATE = '''
         // 初始加载
         updateAll();
 
-        // 每60秒刷新（但不会自动加载图表，除非用户已选择某个持仓）
-        setInterval(updateAll, 60000);
+        // 每60秒刷新统计、持仓、交易历史
+        setInterval(() => {
+            loadStats();
+            loadPositions();
+            loadTrades();
+            loadProgressTracking();
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
+        }, 60000);
+
+        // 每10分钟刷新监控列表（包含信号分析，比较耗时）
+        let watchlistCountdown = 600;  // 10分钟 = 600秒
+
+        // 更新倒计时显示
+        function updateWatchlistCountdown() {
+            const minutes = Math.floor(watchlistCountdown / 60);
+            const seconds = watchlistCountdown % 60;
+            const countdownText = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('watchlist-countdown').textContent = `刷新: ${countdownText}`;
+
+            watchlistCountdown--;
+
+            if (watchlistCountdown < 0) {
+                watchlistCountdown = 600;
+                console.log('🔄 刷新监控列表（10分钟定时）');
+                loadWatchlist();
+            }
+        }
+
+        // 每秒更新倒计时
+        setInterval(updateWatchlistCountdown, 1000);
+        updateWatchlistCountdown();  // 立即显示初始倒计时
     </script>
 </body>
 </html>
