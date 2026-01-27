@@ -27,8 +27,18 @@ class PaperTradingAssistant:
         self.min_score = 70  # 最低开仓分数70
         self.fee_rate = 0.0005  # 手续费率 0.05% (Binance合约)
         
-        # 监控币种
-        self.watch_symbols = ['XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK']
+        # 监控币种 (13个)
+        self.watch_symbols = [
+            # 原有监控 (7个)
+            'XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK',
+            # 新增高分币种 (6个)
+            'VET',   # 得分100 - VeChain
+            'BNB',   # 得分80 - Binance Coin
+            'INJ',   # 得分80 - Injective
+            'LINK',  # 得分70 - Chainlink
+            'OP',    # 得分70 - Optimism
+            'FIL'    # 得分70 - Filecoin
+        ]
         
         # 数据库路径
         self.db_path = '/opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db'

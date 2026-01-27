@@ -222,8 +222,12 @@ def get_kline(symbol):
         limit = interval_limits.get(interval, 288)
         
         symbol_map = {
+            # 原有币种
             'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
-            'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT'
+            'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
+            # 新增币种
+            'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
+            'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
         }
         binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
         
@@ -251,7 +255,18 @@ def get_kline(symbol):
 def get_watchlist():
     """获取监控币种列表"""
     try:
-        watch_symbols = ['XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK']
+        # 监控币种 (13个)
+        watch_symbols = [
+            # 原有监控 (7个)
+            'XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK',
+            # 新增高分币种 (6个)
+            'VET',   # 得分100 - VeChain
+            'BNB',   # 得分80 - Binance Coin
+            'INJ',   # 得分80 - Injective
+            'LINK',  # 得分70 - Chainlink
+            'OP',    # 得分70 - Optimism
+            'FIL'    # 得分70 - Filecoin
+        ]
 
         conn = get_db()
         cursor = conn.cursor()
@@ -289,8 +304,12 @@ def get_watchlist():
 def get_current_price(symbol):
     """获取币种当前价格"""
     symbol_map = {
+        # 原有币种
         'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
-        'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT'
+        'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
+        # 新增币种
+        'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
+        'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
     }
     binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
