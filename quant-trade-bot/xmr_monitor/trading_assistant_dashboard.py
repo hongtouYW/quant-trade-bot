@@ -90,9 +90,7 @@ def get_stats():
         stats['target_profit'] = target_profit
         stats['progress'] = ((stats['total_pnl'] or 0) / target_profit * 100) if target_profit > 0 else 0
         stats['open_positions'] = position_stats['open_positions']
-        
-        stats['open_positions'] = cursor.fetchone()['open_positions']
-        
+
         conn.close()
         
         return jsonify(stats)
