@@ -40,9 +40,13 @@ def get_db():
     return conn
 
 def get_current_price(symbol):
-    """获取当前价格"""
+    """获取当前价格（期货市场）"""
     try:
-        exchange = ccxt.binance({'enableRateLimit': True, 'timeout': 10000})
+        exchange = ccxt.binance({
+            'enableRateLimit': True,
+            'timeout': 10000,
+            'options': {'defaultType': 'future'}
+        })
         ticker = exchange.fetch_ticker(symbol)
         return ticker['last']
     except:
@@ -165,19 +169,20 @@ def get_positions():
 
 @app.route('/api/trades')
 def get_trades():
-    """获取交易记录（完整的开仓+平仓记录）"""
+    """获取交易记录（完整的开仓+平仓记录）- 支持分页"""
     try:
         limit = int(request.args.get('limit', 20))
+        offset = int(request.args.get('offset', 0))
 
         conn = get_db()
         cursor = conn.cursor()
 
-        # 从positions表读取已平仓的完整交易记录
+        # 从positions表读取已平仓的完整交易记录（支持分页）
         cursor.execute(f'''
             SELECT * FROM positions
             WHERE status = 'closed'
             ORDER BY close_time DESC
-            LIMIT {limit}
+            LIMIT {limit} OFFSET {offset}
         ''')
 
         trades = []
@@ -290,16 +295,22 @@ def get_kline(symbol):
 def get_recommendations():
     """获取策略推荐的货币对"""
     try:
-        # 监控的货币对列表
+        # 监控的货币对列表（期货市场）
         symbols = [
             'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'XRP/USDT',
-            'AVAX/USDT', 'DOT/USDT', 'MATIC/USDT', 'ATOM/USDT',
+            'AVAX/USDT', 'DOT/USDT', 'ATOM/USDT',
             'DOGE/USDT', 'LINK/USDT', 'ADA/USDT', 'LTC/USDT',
             'UNI/USDT', 'AAVE/USDT', 'FIL/USDT'
         ]
+        # 注意：MATIC已下架，改为POL
 
         recommendations = []
-        exchange = ccxt.binance({'enableRateLimit': True, 'timeout': 10000})
+        # 使用期货市场，与auto_trader保持一致
+        exchange = ccxt.binance({
+            'enableRateLimit': True,
+            'timeout': 10000,
+            'options': {'defaultType': 'future'}
+        })
 
         for symbol in symbols:
             try:
