@@ -1,40 +1,34 @@
 量化交易系统
-版本：v0.6
+版本：v0.7
 发布日期：2026-01-29
-代号：Data Fortress
+代号：Production Ready
 
 主要更新：
-✅ 数据库架构升级 - 4个新表全面追踪交易数据
-✅ 账户快照 - 追踪资金曲线和最大回撤
-✅ 资金费记录 - 自动计算并记录期货资金费
-✅ 每日统计 - 自动更新每日交易统计
-✅ 配置中心 - 所有参数存储在数据库可随时调整
-✅ 交易代码重构 - auto_trader_v2.py 全新架构
+✅ auto_trader_v2.py 正式部署运行
+✅ Supervisor配置更新指向v2版本
+✅ 数据完整性验证通过
+✅ 两系统独立运作确认（量化交易 vs 交易助手）
 
-新增数据库表：
-- account_snapshots: 账户快照
-- funding_history: 资金费记录
-- trade_signals: 交易信号
-- daily_stats: 每日统计
+运行状态：
+- auto_trader_v2.py: RUNNING
+- web_monitor.py: RUNNING (端口5001)
+- 数据库: paper_trading.db
 
-新增字段(real_trades)：
-- entry_score, entry_rsi, entry_trend
-- slippage, max_profit, max_loss
-- duration_minutes, close_reason
+当前数据（已验证）：
+- 初始资金: $2,000
+- 毛利润: $29.09
+- 手续费: $3.97
+- 净利润: $25.12
+- 持仓数: 6笔
+- 已平仓: 18笔
 
-新增配置(account_config)：
-- max_position_size, max_positions
-- default_leverage, fee_rate
-- stop_loss_pct, take_profit_pct
-- min_score, trading_enabled
+v0.6 功能回顾：
+- 数据库架构升级 - 4个新表
+- 账户快照、资金费记录、每日统计
+- 配置中心 - 所有参数存数据库
+- 交易代码重构 - auto_trader_v2.py
 
-技术改进：
-- 手续费实时计算（0.1%）
-- 资金费率模拟（每8小时0.01%）
-- 持仓时长记录
-- 平仓原因追踪
-
-下一版本预告（v0.7）：
+下一版本预告（v0.8）：
 - 前端显示资金曲线图
 - 前端显示每日统计
 - 策略回测功能
