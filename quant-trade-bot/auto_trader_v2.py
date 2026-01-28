@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-量化交易机器人 v2.0
-- 使用 real_trades 表统一管理交易
-- 从 account_config 读取配置
-- 记录完整交易数据（费用、评分、原因等）
-- 创建账户快照追踪资金曲线
-- 更新每日统计
+量化交易机器人 v2.1
+- 追踪止损功能
+- 保存原始/最终止盈止损
+- 记录止损止盈变化历史
 """
 
 import sqlite3
@@ -46,7 +44,10 @@ class AutoTraderV2:
         # 快照计数器
         self.snapshot_counter = 0
 
-        print("🤖 量化交易机器人 v2.0 已启动")
+        # 记录每个持仓的最高/最低价
+        self.price_extremes = {}
+
+        print("🤖 量化交易机器人 v2.1 已启动")
         print(f"💰 初始资金: ${self.initial_capital}")
         print(f"🎯 目标利润: ${self.target_profit}")
         print(f"📊 最大持仓: {self.max_positions}")
@@ -54,6 +55,7 @@ class AutoTraderV2:
         print(f"⭐ 最低评分: {self.min_score}分")
         print(f"🔧 默认杠杆: {self.default_leverage}x")
         print(f"💸 手续费率: {self.fee_rate * 100}%")
+        print(f"🎯 追踪止损: 已启用")
         print("=" * 60)
 
     def load_config_from_db(self):
@@ -184,31 +186,118 @@ class AutoTraderV2:
         entry_time = datetime.now().isoformat()
         reason_text = ', '.join(reasons) if reasons else f"评分{score}分"
 
+        # 保存原始止盈止损
         cursor.execute("""
             INSERT INTO real_trades (
                 symbol, direction, entry_price, amount, leverage,
                 stop_loss, take_profit, entry_time, status,
                 fee, score, reason, entry_score, entry_rsi, entry_trend,
+                original_stop_loss, original_take_profit,
                 assistant, mode
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, '量化交易', 'paper')
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'OPEN', ?, ?, ?, ?, ?, ?, ?, ?, '量化交易', 'paper')
         """, (
             symbol, direction, price, margin, self.default_leverage,
             stop_loss, take_profit, entry_time,
-            entry_fee, score, reason_text, score, rsi, trend
+            entry_fee, score, reason_text, score, rsi, trend,
+            stop_loss, take_profit  # 保存原始值
         ))
+
+        trade_id = cursor.lastrowid
+
+        # 初始化价格极值
+        self.price_extremes[trade_id] = {
+            'highest': price,
+            'lowest': price
+        }
 
         # 记录交易信号
         cursor.execute("""
             INSERT INTO trade_signals (
                 symbol, signal_type, score, rsi, trend, reasons, executed, trade_id
             ) VALUES (?, ?, ?, ?, ?, ?, 1, ?)
-        """, (symbol, signal, score, rsi, trend, json.dumps(reasons), cursor.lastrowid))
+        """, (symbol, signal, score, rsi, trend, json.dumps(reasons), trade_id))
 
         conn.commit()
         conn.close()
 
         print(f"✅ 开仓成功！")
         return True
+
+    def update_trailing_stop(self, trade, current_price):
+        """追踪止损逻辑"""
+        trade_id = trade['id']
+        direction = trade['direction']
+        entry_price = trade['entry_price']
+        current_sl = trade['stop_loss']
+        current_tp = trade['take_profit']
+
+        # 获取或初始化价格极值
+        if trade_id not in self.price_extremes:
+            self.price_extremes[trade_id] = {
+                'highest': entry_price,
+                'lowest': entry_price
+            }
+
+        extremes = self.price_extremes[trade_id]
+
+        if direction == 'long':
+            # 更新最高价
+            if current_price > extremes['highest']:
+                extremes['highest'] = current_price
+
+            # 计算新止损 = 最高价 * (1 - 止损百分比)
+            new_sl = extremes['highest'] * (1 - self.stop_loss_pct / 100)
+
+            # 止损只能上移，不能下移
+            if new_sl > current_sl:
+                self._record_sl_change(trade_id, current_sl, new_sl, current_tp, current_tp,
+                                       f"追踪止损上移 (最高价${extremes['highest']:.4f})",
+                                       current_price, extremes['highest'], None)
+                self._update_stop_loss(trade_id, new_sl)
+                print(f"   📈 {trade['symbol']} 止损上移: ${current_sl:.4f} → ${new_sl:.4f}")
+                return new_sl
+        else:
+            # 更新最低价
+            if current_price < extremes['lowest']:
+                extremes['lowest'] = current_price
+
+            # 计算新止损 = 最低价 * (1 + 止损百分比)
+            new_sl = extremes['lowest'] * (1 + self.stop_loss_pct / 100)
+
+            # 止损只能下移，不能上移
+            if new_sl < current_sl:
+                self._record_sl_change(trade_id, current_sl, new_sl, current_tp, current_tp,
+                                       f"追踪止损下移 (最低价${extremes['lowest']:.4f})",
+                                       current_price, None, extremes['lowest'])
+                self._update_stop_loss(trade_id, new_sl)
+                print(f"   📉 {trade['symbol']} 止损下移: ${current_sl:.4f} → ${new_sl:.4f}")
+                return new_sl
+
+        return current_sl
+
+    def _update_stop_loss(self, trade_id, new_sl):
+        """更新止损价"""
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE real_trades
+            SET stop_loss = ?, sl_tp_adjustments = COALESCE(sl_tp_adjustments, 0) + 1
+            WHERE id = ?
+        """, (new_sl, trade_id))
+        conn.commit()
+        conn.close()
+
+    def _record_sl_change(self, trade_id, old_sl, new_sl, old_tp, new_tp, reason, current_price, highest, lowest):
+        """记录止损止盈变化"""
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO sl_tp_history (trade_id, old_stop_loss, new_stop_loss, old_take_profit, new_take_profit,
+                                       reason, current_price, highest_price, lowest_price)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (trade_id, old_sl, new_sl, old_tp, new_tp, reason, current_price, highest, lowest))
+        conn.commit()
+        conn.close()
 
     def check_and_close_positions(self):
         """检查并平仓"""
@@ -223,33 +312,134 @@ class AutoTraderV2:
 
             direction = pos['direction']
             entry_price = pos['entry_price']
-            stop_loss = pos['stop_loss']
+
+            # 先更新追踪止损
+            stop_loss = self.update_trailing_stop(pos, current_price)
             take_profit = pos['take_profit']
+
+            # 更新最大浮盈/浮亏
+            self._update_max_profit_loss(pos, current_price)
 
             should_close = False
             close_reason = ""
 
+            # 1. 检查止盈止损
             if direction == 'long':
                 if current_price >= take_profit:
                     should_close = True
                     close_reason = "止盈"
                 elif current_price <= stop_loss:
                     should_close = True
-                    close_reason = "止损"
+                    close_reason = "追踪止损" if stop_loss != pos.get('original_stop_loss') else "止损"
             else:  # short
                 if current_price <= take_profit:
                     should_close = True
                     close_reason = "止盈"
                 elif current_price >= stop_loss:
                     should_close = True
-                    close_reason = "止损"
+                    close_reason = "追踪止损" if stop_loss != pos.get('original_stop_loss') else "止损"
+
+            # 2. 智能评估 - 主动止损
+            if not should_close:
+                smart_exit, smart_reason = self.evaluate_position_health(pos, current_price)
+                if smart_exit:
+                    should_close = True
+                    close_reason = f"智能止损: {smart_reason}"
 
             if should_close:
                 self.close_position(pos, current_price, close_reason)
                 closed_count += 1
+                # 清理价格极值记录
+                if pos['id'] in self.price_extremes:
+                    del self.price_extremes[pos['id']]
                 time.sleep(1)
 
         return closed_count
+
+    def evaluate_position_health(self, pos, current_price):
+        """智能评估持仓健康度，决定是否提前止损"""
+        symbol = pos['symbol']
+        direction = pos['direction']
+        entry_price = pos['entry_price']
+        entry_time = datetime.fromisoformat(pos['entry_time'])
+        holding_minutes = (datetime.now() - entry_time).total_seconds() / 60
+
+        # 计算当前盈亏百分比
+        if direction == 'long':
+            pnl_pct = (current_price - entry_price) / entry_price * 100
+        else:
+            pnl_pct = (entry_price - current_price) / entry_price * 100
+
+        # 获取当前市场指标
+        try:
+            ticker_symbol = symbol.replace('/', '')
+            response = requests.get(f"http://localhost:5001/api/analysis/{ticker_symbol}", timeout=10)
+            if response.status_code == 200:
+                analysis = response.json()
+                current_rsi = analysis.get('rsi', 50)
+                current_trend = analysis.get('trend', 'neutral')
+            else:
+                return False, None
+        except:
+            return False, None
+
+        # 规则1: 持仓超2小时且亏损
+        if holding_minutes > 120 and pnl_pct < 0:
+            return True, f"持仓{int(holding_minutes)}分钟无盈利"
+
+        # 规则2: 趋势反转
+        entry_trend = pos.get('entry_trend', 'neutral')
+        if direction == 'long' and current_trend == 'bearish' and entry_trend != 'bearish':
+            if pnl_pct < 0.5:
+                return True, f"趋势反转({entry_trend}→{current_trend})"
+        elif direction == 'short' and current_trend == 'bullish' and entry_trend != 'bullish':
+            if pnl_pct < 0.5:
+                return True, f"趋势反转({entry_trend}→{current_trend})"
+
+        # 规则3: RSI反向极端时获利了结
+        if direction == 'long' and current_rsi > 75 and pnl_pct > 0.5:
+            return True, f"RSI超买({current_rsi:.0f})获利了结"
+        elif direction == 'short' and current_rsi < 25 and pnl_pct > 0.5:
+            return True, f"RSI超卖({current_rsi:.0f})获利了结"
+
+        # 规则4: 浮亏超1%且持仓超30分钟
+        if pnl_pct < -1.0 and holding_minutes > 30:
+            return True, f"浮亏{pnl_pct:.1f}%超时"
+
+        return False, None
+
+    def _update_max_profit_loss(self, pos, current_price):
+        """更新最大浮盈/浮亏"""
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+
+        direction = pos['direction']
+        entry_price = pos['entry_price']
+        margin = pos['amount']
+        leverage = pos['leverage']
+
+        # 计算当前盈亏百分比
+        if direction == 'long':
+            pnl_pct = (current_price - entry_price) / entry_price * 100
+        else:
+            pnl_pct = (entry_price - current_price) / entry_price * 100
+
+        # 更新最大浮盈/浮亏
+        if pnl_pct > 0:
+            cursor.execute("""
+                UPDATE real_trades
+                SET max_profit = MAX(COALESCE(max_profit, 0), ?)
+                WHERE id = ?
+            """, (pnl_pct, pos['id']))
+        else:
+            cursor.execute("""
+                UPDATE real_trades
+                SET max_loss = MIN(COALESCE(max_loss, 0), ?)
+                WHERE id = ?
+            """, (pnl_pct, pos['id']))
+
+        conn.commit()
+        conn.close()
 
     def close_position(self, position, exit_price, reason):
         """平仓 - 计算完整费用"""
@@ -260,6 +450,10 @@ class AutoTraderV2:
         margin = position['amount']
         leverage = position['leverage']
         entry_time_str = position['entry_time']
+
+        # 获取当前止盈止损（可能已被追踪止损修改）
+        current_sl = position['stop_loss']
+        current_tp = position['take_profit']
 
         # 计算盈亏
         if direction == 'long':
@@ -289,6 +483,11 @@ class AutoTraderV2:
         pnl = pnl_before_fee - exit_fee - funding_fee
         roi = (pnl / margin) * 100
 
+        # 获取原始止盈止损
+        original_sl = position.get('original_stop_loss', position['stop_loss'])
+        original_tp = position.get('original_take_profit', position['take_profit'])
+        adjustments = position.get('sl_tp_adjustments', 0)
+
         print(f"\n{'='*60}")
         print(f"🔔 平仓: {symbol}")
         print(f"   方向: {direction.upper()}")
@@ -296,6 +495,8 @@ class AutoTraderV2:
         print(f"   出场: ${exit_price:.4f}")
         print(f"   保证金: ${margin:.2f}")
         print(f"   持仓时长: {duration_minutes}分钟")
+        print(f"   原始止损: ${original_sl:.4f} → 最终: ${current_sl:.4f}")
+        print(f"   止损调整次数: {adjustments}")
         print(f"   价格盈亏: ${pnl_before_fee:+.2f}")
         print(f"   手续费: -${total_fee:.4f}")
         print(f"   资金费: -${funding_fee:.4f}")
@@ -319,9 +520,12 @@ class AutoTraderV2:
                 fee = ?,
                 funding_fee = ?,
                 duration_minutes = ?,
-                close_reason = ?
+                close_reason = ?,
+                final_stop_loss = ?,
+                final_take_profit = ?
             WHERE id = ?
-        """, (exit_price, exit_time_str, pnl, roi, total_fee, funding_fee, duration_minutes, reason, pos_id))
+        """, (exit_price, exit_time_str, pnl, roi, total_fee, funding_fee, duration_minutes, reason,
+              current_sl, current_tp, pos_id))
 
         # 记录资金费
         if funding_fee > 0:
@@ -521,24 +725,24 @@ class AutoTraderV2:
         if trades_made > 0:
             print(f"\n✅ 本轮开仓 {trades_made} 个")
 
-        # 4. 保存快照（每6次循环保存一次，约1小时）
+        # 4. 保存快照（每60次循环保存一次，约1小时）
         self.snapshot_counter += 1
-        if self.snapshot_counter % 6 == 0:
+        if self.snapshot_counter % 60 == 0:
             self.save_account_snapshot()
 
         # 5. 更新每日统计
         self.update_daily_stats()
 
-    def run(self, interval=600):
+    def run(self, interval=60):
         """持续运行"""
         print("\n🚀 量化交易开始运行...")
-        print(f"⏰ 扫描间隔: {interval // 60}分钟")
+        print(f"⏰ 扫描间隔: {interval}秒")
         print("⚠️  按 Ctrl+C 停止\n")
 
         while True:
             try:
                 self.run_once()
-                print(f"\n😴 等待{interval // 60}分钟...\n")
+                print(f"\n😴 等待{interval}秒...\n")
                 time.sleep(interval)
             except KeyboardInterrupt:
                 print("\n\n⛔ 收到停止信号")
@@ -555,4 +759,4 @@ class AutoTraderV2:
 
 if __name__ == '__main__':
     trader = AutoTraderV2()
-    trader.run(interval=600)  # 10分钟扫描一次
+    trader.run(interval=60)  # 1分钟扫描一次

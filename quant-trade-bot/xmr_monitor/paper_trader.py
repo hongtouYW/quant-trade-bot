@@ -54,8 +54,8 @@ class PaperTradingAssistant:
             'NEAR'   # Near Protocol - 分片公链
         ]
         
-        # 数据库路径
-        self.db_path = '/opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db'
+        # 数据库路径（独立数据库，与量化助手分开）
+        self.db_path = '/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db'
         
         # 当前持仓
         self.positions = {}  # {symbol: position_info}

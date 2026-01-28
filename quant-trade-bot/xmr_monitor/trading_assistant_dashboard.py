@@ -20,7 +20,7 @@ import requests
 
 app = Flask(__name__)
 
-DB_PATH = '/opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db'
+DB_PATH = '/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db'  # Paper Trader 独立数据库
 
 def get_db():
     """获取数据库连接"""
@@ -280,7 +280,8 @@ def get_trades():
             SELECT
                 symbol, direction, entry_price, exit_price,
                 amount, leverage, pnl, roi, fee, funding_fee, entry_time, exit_time,
-                status, reason, stop_loss, take_profit
+                status, reason, stop_loss, take_profit,
+                initial_stop_loss, final_stop_loss, stop_move_count
             FROM real_trades
             WHERE mode = 'paper' AND assistant = '交易助手'
             ORDER BY entry_time DESC
@@ -2648,6 +2649,21 @@ HTML_TEMPLATE = '''
                                 <div class="trade-card-detail">
                                     <span class="trade-card-detail-label">杠杆</span>
                                     <span class="trade-card-detail-value">${trade.leverage}x</span>
+                                </div>
+                            </div>
+
+                            <div class="trade-card-details" style="margin-top: 4px;">
+                                <div class="trade-card-detail">
+                                    <span class="trade-card-detail-label">初始止损</span>
+                                    <span class="trade-card-detail-value">${trade.initial_stop_loss ? '$' + formatNumber(trade.initial_stop_loss, 4) : '-'}</span>
+                                </div>
+                                <div class="trade-card-detail">
+                                    <span class="trade-card-detail-label">最终止损</span>
+                                    <span class="trade-card-detail-value">${trade.final_stop_loss ? '$' + formatNumber(trade.final_stop_loss, 4) : (trade.stop_loss ? '$' + formatNumber(trade.stop_loss, 4) : '-')}</span>
+                                </div>
+                                <div class="trade-card-detail">
+                                    <span class="trade-card-detail-label">移动次数</span>
+                                    <span class="trade-card-detail-value">${trade.stop_move_count !== null && trade.stop_move_count !== undefined ? trade.stop_move_count : '-'}</span>
                                 </div>
                             </div>
                         </div>
