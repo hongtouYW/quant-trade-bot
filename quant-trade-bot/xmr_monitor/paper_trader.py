@@ -27,17 +27,31 @@ class PaperTradingAssistant:
         self.min_score = 70  # 最低开仓分数70
         self.fee_rate = 0.0005  # 手续费率 0.05% (Binance合约)
         
-        # 监控币种 (13个)
+        # 监控币种 (25个 - 激进策略：增加交易机会)
         self.watch_symbols = [
             # 原有监控 (7个)
             'XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK',
-            # 新增高分币种 (6个)
+            # 高分币种 (6个)
             'VET',   # 得分100 - VeChain
             'BNB',   # 得分80 - Binance Coin
             'INJ',   # 得分80 - Injective
             'LINK',  # 得分70 - Chainlink
             'OP',    # 得分70 - Optimism
-            'FIL'    # 得分70 - Filecoin
+            'FIL',   # 得分70 - Filecoin
+            # 高流动性币种 (6个)
+            'ETH',   # 以太坊 - 市值第2
+            'AVAX',  # Avalanche - 高流动性
+            'DOT',   # Polkadot - 老牌公链
+            'ATOM',  # Cosmos - 跨链龙头
+            'MATIC', # Polygon - Layer2龙头
+            'ARB',   # Arbitrum - L2新秀
+            # 高波动性币种 (6个)
+            'APT',   # Aptos - 新公链
+            'SUI',   # Sui - 高波动
+            'SEI',   # Sei - DeFi链
+            'TIA',   # Celestia - 模块化区块链
+            'WLD',   # Worldcoin - AI概念
+            'NEAR'   # Near Protocol - 分片公链
         ]
         
         # 数据库路径
@@ -130,10 +144,16 @@ class PaperTradingAssistant:
         """获取币种价格（使用Binance期货API）"""
         try:
             symbol_map = {
+                # 原有币种
                 'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
                 'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT',
                 'DUSK': 'DUSKUSDT', 'VET': 'VETUSDT', 'BNB': 'BNBUSDT',
-                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
+                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
+                # 新增币种
+                'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
+                'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
+                'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
+                'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
             }
             binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
@@ -150,10 +170,16 @@ class PaperTradingAssistant:
         """获取K线数据（使用Binance期货API）"""
         try:
             symbol_map = {
+                # 原有币种
                 'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
                 'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT',
                 'DUSK': 'DUSKUSDT', 'VET': 'VETUSDT', 'BNB': 'BNBUSDT',
-                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
+                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
+                # 新增币种
+                'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
+                'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
+                'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
+                'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
             }
             binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
@@ -528,8 +554,8 @@ class PaperTradingAssistant:
         # 检查是否有足够资金
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
 
-        # 最多同时持有6个仓位（提高资金利用率）
-        if len(self.positions) < 6 and available > 200:
+        # 最多同时持有8个仓位（激进策略：增加资金利用率）
+        if len(self.positions) < 8 and available > 200:
             # 开最强信号的仓
             if opportunities:
                 symbol, score, analysis = opportunities[0]

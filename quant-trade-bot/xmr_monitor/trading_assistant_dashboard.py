@@ -316,17 +316,31 @@ def get_kline(symbol):
 def get_watchlist():
     """获取监控币种列表"""
     try:
-        # 监控币种 (13个)
+        # 监控币种 (25个 - 激进策略：增加交易机会)
         watch_symbols = [
             # 原有监控 (7个)
             'XMR', 'MEMES', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK',
-            # 新增高分币种 (6个)
+            # 高分币种 (6个)
             'VET',   # 得分100 - VeChain
             'BNB',   # 得分80 - Binance Coin
             'INJ',   # 得分80 - Injective
             'LINK',  # 得分70 - Chainlink
             'OP',    # 得分70 - Optimism
-            'FIL'    # 得分70 - Filecoin
+            'FIL',   # 得分70 - Filecoin
+            # 高流动性币种 (6个)
+            'ETH',   # 以太坊
+            'AVAX',  # Avalanche
+            'DOT',   # Polkadot
+            'ATOM',  # Cosmos
+            'MATIC', # Polygon
+            'ARB',   # Arbitrum
+            # 高波动性币种 (6个)
+            'APT',   # Aptos
+            'SUI',   # Sui
+            'SEI',   # Sei
+            'TIA',   # Celestia
+            'WLD',   # Worldcoin
+            'NEAR'   # Near Protocol
         ]
 
         conn = get_db()
@@ -433,9 +447,13 @@ def get_price_value(symbol):
         # 原有币种
         'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
         'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
-        # 新增币种
         'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
-        'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
+        'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
+        # 新增币种
+        'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
+        'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
+        'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
+        'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
     }
     binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
@@ -452,7 +470,11 @@ def get_signal_suggestion(symbol):
             'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
             'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
             'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
-            'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
+            'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
+            'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
+            'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
+            'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
+            'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
         }
         binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
 
@@ -539,8 +561,8 @@ def get_signal_suggestion(symbol):
             stop_loss = None
             take_profit = None
 
-        # 最低60分才标记为可交易（但始终返回数据供监控列表显示）
-        tradeable = confidence >= 60 and direction is not None
+        # 最低50分才标记为可交易（激进策略：增加交易频率）
+        tradeable = confidence >= 50 and direction is not None
 
         return {
             'direction': direction,
@@ -1480,6 +1502,35 @@ HTML_TEMPLATE = '''
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
         }
 
+        /* 筛选按钮组 */
+        .filter-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .filter-btn {
+            padding: 5px 12px;
+            background: #2d3748;
+            color: #a0aec0;
+            border: 1px solid #4a5568;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover {
+            background: #374151;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
         /* 滚动条样式 */
         .left-panel-content::-webkit-scrollbar,
         .center-panel-content::-webkit-scrollbar,
@@ -1632,7 +1683,11 @@ HTML_TEMPLATE = '''
                 <div class="right-panel-section">
                     <div class="panel-header">
                         <h2>📦 当前持仓</h2>
-                        <button class="header-btn" onclick="alert('图表功能开发中')">📊 图表</button>
+                    </div>
+                    <div class="filter-buttons" style="margin-bottom: 12px;">
+                        <button class="filter-btn active" onclick="filterPositions('all')">全部</button>
+                        <button class="filter-btn" onclick="filterPositions('long')">📈 做多</button>
+                        <button class="filter-btn" onclick="filterPositions('short')">📉 做空</button>
                     </div>
                     <div id="positions-table">
                         <div class="loading">加载中</div>
@@ -1706,9 +1761,25 @@ HTML_TEMPLATE = '''
         // 全局变量
         let currentInterval = '5m';
         let currentPositions = [];
+        let allPositions = []; // 存储所有持仓（未筛选）
+        let positionFilter = 'all'; // 持仓筛选状态: all, long, short
         let selectedPositionIndex = -1;
         let currentTrades = [];
-        
+
+        // 筛选持仓
+        function filterPositions(filter) {
+            positionFilter = filter;
+
+            // 更新按钮样式
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // 重新渲染持仓
+            renderPositions();
+        }
+
         // 查看指定持仓的图表
         function viewChart(symbol, index) {
             selectedPositionIndex = index;
@@ -2131,6 +2202,7 @@ HTML_TEMPLATE = '''
 
                 if (positions.length === 0) {
                     container.innerHTML = '<p style="text-align: center; color: #999; padding: 15px; font-size: 0.9em;">暂无持仓</p>';
+                    allPositions = [];
                     currentPositions = [];
                     document.getElementById('position-selector').innerHTML = '<option value="">-- 暂无持仓 --</option>';
                     return;
@@ -2142,99 +2214,135 @@ HTML_TEMPLATE = '''
                 );
                 const prices = await Promise.all(pricePromises);
 
-                let html = '<div class="position-cards">';
-
+                // 为每个持仓添加当前价格
                 positions.forEach((pos, i) => {
-                    const currentPrice = prices[i].price || 0;
-
-                    let pricePct = 0;
-                    if (pos.direction === 'LONG') {
-                        pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
-                    } else {
-                        pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
-                    }
-
-                    const roi = pricePct * pos.leverage * 100;
-                    const pnl = pos.amount * pricePct * pos.leverage;
-
-                    const directionText = pos.direction === 'LONG' ? '做多' : '做空';
-                    const directionClass = pos.direction.toLowerCase();
-                    const directionEmoji = pos.direction === 'LONG' ? '📈' : '📉';
-                    const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
-
-                    html += `
-                        <div class="position-card ${directionClass}" onclick="viewChart('${pos.symbol}', ${i})">
-                            <div class="position-card-header">
-                                <div class="position-card-title">
-                                    <span class="position-card-symbol">${directionEmoji} ${pos.symbol}</span>
-                                    <span class="badge-sm ${directionClass}">${directionText}</span>
-                                    <span class="badge-sm" style="background: #667eea; color: white;">${pos.leverage}x</span>
-                                </div>
-                                <button class="mini-btn" onclick="event.stopPropagation(); viewChart('${pos.symbol}', ${i})">📊 图表</button>
-                            </div>
-
-                            <div class="position-card-body">
-                                <div class="position-card-main">
-                                    <div>
-                                        <div style="font-size: 0.75em; color: #999;">当前价</div>
-                                        <div style="font-size: 1.1em; font-weight: bold; color: #667eea;">$${formatNumber(currentPrice, 4)}</div>
-                                    </div>
-                                    <div style="text-align: right;">
-                                        <div style="font-size: 0.75em; color: #999;">盈亏</div>
-                                        <div class="position-card-pnl" style="color: ${pnlColor};">
-                                            ${formatCurrency(pnl)}U
-                                        </div>
-                                        <div style="font-size: 0.85em; color: ${pnlColor};">
-                                            ${formatCurrency(roi)}%
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="position-card-info">
-                                    <span class="position-card-label">入场:</span>
-                                    <span class="position-card-value">$${formatNumber(pos.entry_price, 4)}</span>
-                                </div>
-
-                                <div class="position-card-info">
-                                    <span class="position-card-label">金额:</span>
-                                    <span class="position-card-value">${formatNumber(pos.amount, 0)}U</span>
-                                </div>
-                            </div>
-
-                            <div class="position-card-footer">
-                                <span>🎯 ${formatNumber(pos.take_profit, 4)}</span>
-                                <span>🛑 ${formatNumber(pos.stop_loss, 4)}</span>
-                            </div>
-                        </div>
-                    `;
+                    pos.currentPrice = prices[i].price || 0;
                 });
 
-                html += '</div>';
-                container.innerHTML = html;
-                
                 // 保存到全局变量
-                currentPositions = positions;
-                
-                // 填充持仓选择器
-                const selector = document.getElementById('position-selector');
-                selector.innerHTML = '<option value="">-- 请选择 --</option>';
-                positions.forEach((pos, idx) => {
-                    const direction = pos.direction === 'LONG' ? '做多' : '做空';
-                    selector.innerHTML += `<option value="${idx}">${pos.symbol} ${direction} ${pos.leverage}x</option>`;
-                });
-                
-                // 如果之前有选中的持仓，保持显示
-                if (selectedPositionIndex >= 0 && selectedPositionIndex < positions.length) {
-                    selector.value = selectedPositionIndex;
-                    loadSingleChart(positions[selectedPositionIndex]);
-                }
-                
+                allPositions = positions;
+
+                // 渲染持仓（应用筛选）
+                renderPositions();
+
             } catch (error) {
                 console.error('加载持仓失败:', error);
                 document.getElementById('positions-table').innerHTML = '<p style="color: #ef4444;">加载失败</p>';
             }
         }
-        
+
+        function renderPositions() {
+            const container = document.getElementById('positions-table');
+
+            if (!allPositions || allPositions.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 15px; font-size: 0.9em;">暂无持仓</p>';
+                return;
+            }
+
+            // 根据筛选器过滤持仓
+            let filteredPositions = allPositions;
+            if (positionFilter === 'long') {
+                filteredPositions = allPositions.filter(pos => pos.direction === 'LONG');
+            } else if (positionFilter === 'short') {
+                filteredPositions = allPositions.filter(pos => pos.direction === 'SHORT');
+            }
+
+            if (filteredPositions.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999; padding: 15px; font-size: 0.9em;">无匹配持仓</p>';
+                return;
+            }
+
+            let html = '<div class="position-cards">';
+
+            filteredPositions.forEach((pos, i) => {
+                const currentPrice = pos.currentPrice || 0;
+
+                let pricePct = 0;
+                if (pos.direction === 'LONG') {
+                    pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
+                } else {
+                    pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
+                }
+
+                const roi = pricePct * pos.leverage * 100;
+                const pnl = pos.amount * pricePct * pos.leverage;
+
+                const directionText = pos.direction === 'LONG' ? '做多' : '做空';
+                const directionClass = pos.direction.toLowerCase();
+                const directionEmoji = pos.direction === 'LONG' ? '📈' : '📉';
+                const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+
+                // 找到在allPositions中的原始索引（用于viewChart）
+                const originalIndex = allPositions.indexOf(pos);
+
+                html += `
+                    <div class="position-card ${directionClass}" onclick="viewChart('${pos.symbol}', ${originalIndex})">
+                        <div class="position-card-header">
+                            <div class="position-card-title">
+                                <span class="position-card-symbol">${directionEmoji} ${pos.symbol}</span>
+                                <span class="badge-sm ${directionClass}">${directionText}</span>
+                                <span class="badge-sm" style="background: #667eea; color: white;">${pos.leverage}x</span>
+                            </div>
+                            <button class="mini-btn" onclick="event.stopPropagation(); viewChart('${pos.symbol}', ${originalIndex})">📊 图表</button>
+                        </div>
+
+                        <div class="position-card-body">
+                            <div class="position-card-main">
+                                <div>
+                                    <div style="font-size: 0.75em; color: #999;">当前价</div>
+                                    <div style="font-size: 1.1em; font-weight: bold; color: #667eea;">$${formatNumber(currentPrice, 4)}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.75em; color: #999;">盈亏</div>
+                                    <div class="position-card-pnl" style="color: ${pnlColor};">
+                                        ${formatCurrency(pnl)}U
+                                    </div>
+                                    <div style="font-size: 0.85em; color: ${pnlColor};">
+                                        ${formatCurrency(roi)}%
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="position-card-info">
+                                <span class="position-card-label">入场:</span>
+                                <span class="position-card-value">$${formatNumber(pos.entry_price, 4)}</span>
+                            </div>
+
+                            <div class="position-card-info">
+                                <span class="position-card-label">金额:</span>
+                                <span class="position-card-value">${formatNumber(pos.amount, 0)}U</span>
+                            </div>
+                        </div>
+
+                        <div class="position-card-footer">
+                            <span>🎯 ${formatNumber(pos.take_profit, 4)}</span>
+                            <span>🛑 ${formatNumber(pos.stop_loss, 4)}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            container.innerHTML = html;
+
+            // 更新currentPositions为所有持仓（用于其他功能）
+            currentPositions = allPositions;
+
+            // 填充持仓选择器
+            const selector = document.getElementById('position-selector');
+            selector.innerHTML = '<option value="">-- 请选择 --</option>';
+            allPositions.forEach((pos, idx) => {
+                const direction = pos.direction === 'LONG' ? '做多' : '做空';
+                selector.innerHTML += `<option value="${idx}">${pos.symbol} ${direction} ${pos.leverage}x</option>`;
+            });
+
+            // 如果之前有选中的持仓，保持显示
+            if (selectedPositionIndex >= 0 && selectedPositionIndex < allPositions.length) {
+                selector.value = selectedPositionIndex;
+                loadSingleChart(allPositions[selectedPositionIndex]);
+            }
+        }
+
         async function loadTrades() {
             try {
                 const response = await fetch('/api/trades');
