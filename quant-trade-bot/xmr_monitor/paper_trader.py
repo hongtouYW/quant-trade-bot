@@ -59,13 +59,19 @@ class PaperTradingAssistant:
         
         # 当前持仓
         self.positions = {}  # {symbol: position_info}
-        
+
+        # 风险控制参数
+        self.risk_pause = False  # 风险暂停标志
+        self.last_risk_check = None  # 上次风险检查时间
+        self.peak_capital = self.initial_capital  # 历史最高资金
+        self.risk_position_multiplier = 1.0  # 风险调整后的仓位倍数 (1.0=正常, 0.5=减半)
+
         # 初始化数据库
         self.init_database()
-        
+
         # 加载现有持仓
         self.load_positions()
-        
+
         print(f"【交易助手-模拟】🧪 系统启动")
         print(f"初始本金: {self.initial_capital}U")
         print(f"目标利润: {self.target_profit}U")
@@ -328,12 +334,18 @@ class PaperTradingAssistant:
             score = analysis['score']
             direction = analysis['direction']
             entry_price = analysis['price']
-            
+
             # 计算仓位大小和杠杆
             amount, leverage = self.calculate_position_size(score)
-            
+
+            # 根据风险等级调整仓位大小
+            if self.risk_position_multiplier < 1.0:
+                original_amount = amount
+                amount = int(amount * self.risk_position_multiplier)
+                print(f"⚠️ 风险调整: 仓位 {original_amount}U → {amount}U ({self.risk_position_multiplier*100:.0f}%)")
+
             if amount < 100:
-                print(f"{symbol} 资金不足，跳过开仓")
+                print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
             # 计算止损止盈
@@ -534,23 +546,28 @@ class PaperTradingAssistant:
     def scan_market(self):
         """扫描市场寻找机会"""
         print(f"\n━━━━ 市场扫描 {datetime.now().strftime('%H:%M:%S')} ━━━━")
-        
+
+        # 检查是否处于风险暂停状态
+        if self.risk_pause:
+            print(f"⏸️ 风险过高，暂停开新仓")
+            return
+
         opportunities = []
-        
+
         for symbol in self.watch_symbols:
             # 如果已经持仓，跳过
             if symbol in self.positions:
                 continue
-            
+
             score, analysis = self.analyze_signal(symbol)
-            
+
             if score >= self.min_score:
                 opportunities.append((symbol, score, analysis))
                 print(f"✨ {symbol}: {score}分 - {analysis['direction']}")
-        
+
         # 按分数排序
         opportunities.sort(key=lambda x: x[1], reverse=True)
-        
+
         # 检查是否有足够资金
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
 
@@ -562,7 +579,7 @@ class PaperTradingAssistant:
                 print(f"🎯 准备开仓: {symbol} (评分{score})")
                 self.open_position(symbol, analysis)
         else:
-            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/6, 可用{available:.0f}U)")
+            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/8, 可用{available:.0f}U)")
     
     def send_telegram(self, message):
         """发送Telegram通知"""
@@ -652,30 +669,436 @@ class PaperTradingAssistant:
             
         except Exception as e:
             print(f"生成报告失败: {e}")
-    
+
+    def calculate_risk_metrics(self):
+        """计算风险指标"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            conn.row_factory = sqlite3.Row
+            cursor = conn.cursor()
+
+            # 1. 计算最大回撤和当前回撤 (兼容所有SQLite版本)
+            cursor.execute('''
+                SELECT exit_time, pnl
+                FROM real_trades
+                WHERE mode = 'paper' AND assistant = '交易助手'
+                AND status = 'CLOSED'
+                ORDER BY exit_time
+            ''')
+
+            trades_data = cursor.fetchall()
+            max_drawdown = 0
+            peak_capital = self.initial_capital
+            current_drawdown = 0
+            cumulative_capital = self.initial_capital
+
+            # 手动计算累积盈亏和回撤
+            for trade in trades_data:
+                cumulative_capital += trade['pnl']
+                if cumulative_capital > peak_capital:
+                    peak_capital = cumulative_capital
+                    self.peak_capital = peak_capital  # 更新峰值
+                drawdown_pct = ((peak_capital - cumulative_capital) / peak_capital * 100) if peak_capital > 0 else 0
+                max_drawdown = max(max_drawdown, drawdown_pct)
+
+            if self.current_capital < self.peak_capital:
+                current_drawdown = (self.peak_capital - self.current_capital) / self.peak_capital * 100
+
+            # 2. 计算连续亏损次数
+            cursor.execute('''
+                SELECT pnl
+                FROM real_trades
+                WHERE mode = 'paper' AND assistant = '交易助手'
+                AND status = 'CLOSED'
+                ORDER BY exit_time DESC
+                LIMIT 10
+            ''')
+
+            recent_trades = cursor.fetchall()
+            consecutive_losses = 0
+            for trade in recent_trades:
+                if trade['pnl'] < 0:
+                    consecutive_losses += 1
+                else:
+                    break
+
+            # 3. 计算持仓集中度
+            if len(self.positions) > 0:
+                position_amounts = [p['amount'] for p in self.positions.values()]
+                max_position_amount = max(position_amounts)
+                total_position = sum(position_amounts)
+                max_position_pct = (max_position_amount / total_position * 100) if total_position > 0 else 0
+            else:
+                max_position_pct = 0
+
+            # 4. 计算多空比例
+            long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
+            short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
+            total_positions = len(self.positions)
+
+            if total_positions > 0:
+                long_ratio = (long_count / total_positions) * 100
+                short_ratio = (short_count / total_positions) * 100
+            else:
+                long_ratio = 0
+                short_ratio = 0
+
+            # 5. 计算杠杆倍率
+            if len(self.positions) > 0:
+                leverages = [p['leverage'] for p in self.positions.values()]
+                avg_leverage = sum(leverages) / len(leverages)
+            else:
+                avg_leverage = 0
+
+            conn.close()
+
+            # 6. 计算风险评分 (0-10)
+            risk_score = 0
+
+            # 回撤风险 (0-3分)
+            if current_drawdown > 15:
+                risk_score += 3
+            elif current_drawdown > 10:
+                risk_score += 2
+            elif current_drawdown > 5:
+                risk_score += 1
+
+            # 连续亏损 (0-2分)
+            if consecutive_losses >= 3:
+                risk_score += 2
+            elif consecutive_losses >= 2:
+                risk_score += 1
+
+            # 持仓集中度 (0-2分)
+            if max_position_pct > 40:
+                risk_score += 2
+            elif max_position_pct > 30:
+                risk_score += 1
+
+            # 方向失衡 (0-2分)
+            if max(long_ratio, short_ratio) > 85:
+                risk_score += 2
+            elif max(long_ratio, short_ratio) > 70:
+                risk_score += 1
+
+            # 杠杆风险 (0-1分)
+            if avg_leverage > 3:
+                risk_score += 1
+
+            risk_metrics = {
+                'max_drawdown': max_drawdown,
+                'current_drawdown': current_drawdown,
+                'consecutive_losses': consecutive_losses,
+                'max_position_pct': max_position_pct,
+                'long_ratio': long_ratio,
+                'short_ratio': short_ratio,
+                'avg_leverage': avg_leverage,
+                'risk_score': risk_score
+            }
+
+            return risk_metrics
+
+        except Exception as e:
+            print(f"计算风险指标失败: {e}")
+            return None
+
+    def auto_reduce_positions(self):
+        """高风险时自动减仓 - 关闭亏损最大的仓位"""
+        try:
+            if not self.positions:
+                return 0
+
+            # 计算每个持仓的当前盈亏
+            losing_positions = []
+            for symbol, pos in self.positions.items():
+                try:
+                    current_price = self.get_current_price(symbol)
+                    if not current_price:
+                        continue
+
+                    if pos['direction'] == 'LONG':
+                        pnl_pct = (current_price - pos['entry_price']) / pos['entry_price'] * 100
+                    else:
+                        pnl_pct = (pos['entry_price'] - current_price) / pos['entry_price'] * 100
+
+                    pnl_pct *= pos['leverage']
+
+                    if pnl_pct < 0:  # 只关注亏损的
+                        losing_positions.append((symbol, pnl_pct, current_price))
+                except:
+                    continue
+
+            # 按亏损排序，关闭亏损最大的
+            losing_positions.sort(key=lambda x: x[1])
+
+            closed_count = 0
+            # 最多关闭一半的亏损仓位
+            max_close = max(1, len(losing_positions) // 2)
+
+            for symbol, pnl_pct, current_price in losing_positions[:max_close]:
+                print(f"🔴 自动减仓: {symbol} (亏损 {pnl_pct:.2f}%)")
+                self.close_position(symbol, current_price, "风险过高-自动减仓")
+                closed_count += 1
+
+            return closed_count
+
+        except Exception as e:
+            print(f"自动减仓失败: {e}")
+            return 0
+
+    def force_close_all(self):
+        """极高风险时强制清仓"""
+        try:
+            if not self.positions:
+                return 0
+
+            closed_count = 0
+            symbols_to_close = list(self.positions.keys())
+
+            for symbol in symbols_to_close:
+                try:
+                    current_price = self.get_current_price(symbol)
+                    if current_price:
+                        print(f"🚨 强制清仓: {symbol}")
+                        self.close_position(symbol, current_price, "极高风险-强制清仓")
+                        closed_count += 1
+                except:
+                    continue
+
+            return closed_count
+
+        except Exception as e:
+            print(f"强制清仓失败: {e}")
+            return 0
+
+    def tighten_stop_loss(self):
+        """高风险时收紧止损"""
+        try:
+            tightened_count = 0
+            for symbol, pos in self.positions.items():
+                # 将止损收紧到原来的一半
+                original_stop = pos.get('stop_loss_pct', 5)
+                new_stop = max(2, original_stop * 0.6)  # 最小2%
+
+                if new_stop < original_stop:
+                    pos['stop_loss_pct'] = new_stop
+                    print(f"⚡ 收紧止损: {symbol} {original_stop}% → {new_stop:.1f}%")
+                    tightened_count += 1
+
+            return tightened_count
+
+        except Exception as e:
+            print(f"收紧止损失败: {e}")
+            return 0
+
+    def check_risk_level(self):
+        """检查风险等级并发出预警"""
+        try:
+            risk_metrics = self.calculate_risk_metrics()
+            if not risk_metrics:
+                return
+
+            risk_score = risk_metrics['risk_score']
+            current_drawdown = risk_metrics['current_drawdown']
+            consecutive_losses = risk_metrics['consecutive_losses']
+
+            # 判断风险等级并执行自动响应
+            actions_taken = []
+
+            # 极高风险 (>=9): 强制清仓
+            if risk_score >= 9:
+                risk_level = "🚨 极高风险"
+                should_pause = True
+                closed = self.force_close_all()
+                if closed > 0:
+                    actions_taken.append(f"强制清仓 {closed} 个")
+                self.risk_position_multiplier = 0  # 完全停止开仓
+
+            # 高风险 (7-8): 自动减仓 + 收紧止损
+            elif risk_score >= 7:
+                risk_level = "🔴 高风险"
+                should_pause = True
+                reduced = self.auto_reduce_positions()
+                if reduced > 0:
+                    actions_taken.append(f"自动减仓 {reduced} 个")
+                tightened = self.tighten_stop_loss()
+                if tightened > 0:
+                    actions_taken.append(f"收紧止损 {tightened} 个")
+                self.risk_position_multiplier = 0.3  # 新仓位减至30%
+
+            # 中风险 (4-6): 减少新仓位大小
+            elif risk_score >= 4:
+                risk_level = "🟡 中风险"
+                should_pause = False
+                self.risk_position_multiplier = 0.5  # 新仓位减半
+
+            # 低风险 (<4): 正常交易
+            else:
+                risk_level = "🟢 低风险"
+                should_pause = False
+                self.risk_position_multiplier = 1.0  # 正常仓位
+
+            # 记录当前时间
+            now = datetime.now()
+
+            # 极高风险预警 (>=9)
+            if risk_score >= 9:
+                if not self.last_risk_check or (now - self.last_risk_check).seconds >= 1800:
+                    actions_str = '\n'.join([f"• {a}" for a in actions_taken]) if actions_taken else "• 无"
+                    msg = f"""🚨🚨🚨 【极高风险预警】🚨🚨🚨
+
+【交易助手-模拟】检测到极高风险！已执行紧急措施！
+
+━━━━ 风险指标 ━━━━
+🚨 风险等级：{risk_level}
+📊 风险评分：{risk_score}/10
+
+━━━━ 详细指标 ━━━━
+📉 最大回撤：{risk_metrics['max_drawdown']:.2f}%
+⚠️ 当前回撤：{current_drawdown:.2f}%
+🔴 连续亏损：{consecutive_losses}笔
+⚖️ 持仓集中：{risk_metrics['max_position_pct']:.1f}%
+📊 多/空比例：{risk_metrics['long_ratio']:.0f}%/{risk_metrics['short_ratio']:.0f}%
+💪 杠杆倍率：{risk_metrics['avg_leverage']:.1f}x
+
+━━━━ 已执行措施 ━━━━
+{actions_str}
+
+🛑 系统已强制清仓并停止交易！
+⏰ 时间：{now.strftime('%Y-%m-%d %H:%M:%S')}
+"""
+                    self.send_telegram(msg)
+                    print(f"\n{msg}\n")
+                    self.last_risk_check = now
+
+                # 设置风险暂停
+                if should_pause and not self.risk_pause:
+                    self.risk_pause = True
+                    print("🛑 极高风险，强制清仓并停止交易")
+
+            # 高风险预警 (7-8)
+            elif risk_score >= 7:
+                if not self.last_risk_check or (now - self.last_risk_check).seconds >= 1800:
+                    actions_str = '\n'.join([f"• {a}" for a in actions_taken]) if actions_taken else "• 无"
+                    msg = f"""⚠️⚠️⚠️ 【高风险预警】⚠️⚠️⚠️
+
+【交易助手-模拟】检测到高风险状态！
+
+━━━━ 风险指标 ━━━━
+🔴 风险等级：{risk_level}
+📊 风险评分：{risk_score}/10
+
+━━━━ 详细指标 ━━━━
+📉 最大回撤：{risk_metrics['max_drawdown']:.2f}%
+⚠️ 当前回撤：{current_drawdown:.2f}%
+🔴 连续亏损：{consecutive_losses}笔
+⚖️ 持仓集中：{risk_metrics['max_position_pct']:.1f}%
+📊 多/空比例：{risk_metrics['long_ratio']:.0f}%/{risk_metrics['short_ratio']:.0f}%
+💪 杠杆倍率：{risk_metrics['avg_leverage']:.1f}x
+
+━━━━ 已执行措施 ━━━━
+{actions_str}
+• 新仓位大小降至30%
+
+⏸️ 系统已暂停开新仓！
+⏰ 时间：{now.strftime('%Y-%m-%d %H:%M:%S')}
+"""
+                    self.send_telegram(msg)
+                    print(f"\n{msg}\n")
+                    self.last_risk_check = now
+
+                # 设置风险暂停
+                if should_pause and not self.risk_pause:
+                    self.risk_pause = True
+                    print("⏸️ 高风险，暂停开新仓")
+
+            # 中风险预警（每小时最多发送一次）
+            elif risk_score >= 4:
+                if not self.last_risk_check or (now - self.last_risk_check).seconds >= 3600:
+                    msg = f"""⚠️ 【风险提醒】
+
+【交易助手-模拟】检测到中等风险
+
+━━━━ 风险指标 ━━━━
+🟡 风险等级：{risk_level}
+📊 风险评分：{risk_score}/10
+
+━━━━ 详细指标 ━━━━
+📉 最大回撤：{risk_metrics['max_drawdown']:.2f}%
+⚠️ 当前回撤：{current_drawdown:.2f}%
+🔴 连续亏损：{consecutive_losses}笔
+⚖️ 持仓集中：{risk_metrics['max_position_pct']:.1f}%
+📊 多/空比例：{risk_metrics['long_ratio']:.0f}%/{risk_metrics['short_ratio']:.0f}%
+💪 杠杆倍率：{risk_metrics['avg_leverage']:.1f}x
+
+━━━━ 风险调整 ━━━━
+• 新仓位大小降至50%
+
+💡 建议：密切关注市场，谨慎开仓
+⏰ 时间：{now.strftime('%Y-%m-%d %H:%M:%S')}
+"""
+                    self.send_telegram(msg)
+                    print(f"\n{msg}\n")
+                    self.last_risk_check = now
+
+            # 低风险状态：如果之前处于暂停状态，可以恢复
+            else:
+                if self.risk_pause:
+                    self.risk_pause = False
+                    msg = f"""✅ 【风险恢复】
+
+【交易助手-模拟】风险等级已降低
+
+━━━━ 风险指标 ━━━━
+🟢 风险等级：{risk_level}
+📊 风险评分：{risk_score}/10
+
+系统已恢复正常交易
+⏰ 时间：{now.strftime('%Y-%m-%d %H:%M:%S')}
+"""
+                    self.send_telegram(msg)
+                    print(f"\n{msg}\n")
+
+            return risk_metrics
+
+        except Exception as e:
+            print(f"风险检查失败: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
     def run(self, interval=300):
         """运行主循环"""
         last_report_time = datetime.now().replace(hour=0, minute=0, second=0)
         scan_count = 0
-        
+
         print(f"\n🚀 Paper Trading系统开始运行 (每{interval}秒扫描一次)\n")
-        
+
         while True:
             try:
                 # 检查现有持仓
                 for symbol in list(self.positions.keys()):
                     self.check_position(symbol, self.positions[symbol])
-                
+
+                # 检查风险等级（每次扫描都检查）
+                risk_metrics = self.check_risk_level()
+
                 # 扫描新机会
                 self.scan_market()
-                
+
                 scan_count += 1
-                
+
                 # 每12次扫描（1小时）发送一次简报
                 if scan_count % 12 == 0:
                     total_profit = self.current_capital - self.initial_capital
                     progress = (total_profit / self.target_profit) * 100
-                    print(f"\n💼 资金: {self.current_capital:.2f}U | 盈亏: {total_profit:+.2f}U | 进度: {progress:.1f}% | 持仓: {len(self.positions)}\n")
+
+                    # 包含风险信息的简报
+                    if risk_metrics:
+                        risk_level = "🔴高" if risk_metrics['risk_score'] >= 7 else "🟡中" if risk_metrics['risk_score'] >= 4 else "🟢低"
+                        print(f"\n💼 资金: {self.current_capital:.2f}U | 盈亏: {total_profit:+.2f}U | 进度: {progress:.1f}% | 持仓: {len(self.positions)} | 风险: {risk_level} ({risk_metrics['risk_score']}/10)\n")
+                    else:
+                        print(f"\n💼 资金: {self.current_capital:.2f}U | 盈亏: {total_profit:+.2f}U | 进度: {progress:.1f}% | 持仓: {len(self.positions)}\n")
                 
                 # 每天发送一次报告
                 now = datetime.now()

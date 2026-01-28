@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Trading Assistant Dashboard - 交易助手仪表盘 v1.2
+Trading Assistant Dashboard - 交易助手仪表盘 v1.3
 Port: 5111
 独立于量化助手(5001)
 
@@ -91,8 +91,153 @@ def get_stats():
         stats['progress'] = ((stats['total_pnl'] or 0) / target_profit * 100) if target_profit > 0 else 0
         stats['open_positions'] = position_stats['open_positions']
 
+        # === 风险监控指标 ===
+
+        # 1. 计算最大回撤和当前回撤
+        cursor.execute('''
+            SELECT exit_time, pnl
+            FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手'
+            AND status = 'CLOSED'
+            ORDER BY exit_time
+        ''')
+
+        trades_data = cursor.fetchall()
+        max_drawdown = 0
+        peak_capital = initial_capital
+        current_drawdown = 0
+        cumulative_capital = initial_capital
+
+        # 手动计算累积盈亏和回撤
+        for trade in trades_data:
+            cumulative_capital += trade['pnl']
+            if cumulative_capital > peak_capital:
+                peak_capital = cumulative_capital
+
+            drawdown_pct = ((peak_capital - cumulative_capital) / peak_capital * 100) if peak_capital > 0 else 0
+            max_drawdown = max(max_drawdown, drawdown_pct)
+
+        # 当前回撤
+        if current_capital < peak_capital:
+            current_drawdown = (peak_capital - current_capital) / peak_capital * 100
+
+        stats['max_drawdown'] = round(max_drawdown, 2)
+        stats['current_drawdown'] = round(current_drawdown, 2)
+        stats['peak_capital'] = round(peak_capital, 2)
+
+        # 2. 连续亏损次数
+        cursor.execute('''
+            SELECT pnl
+            FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手'
+            AND status = 'CLOSED'
+            ORDER BY exit_time DESC
+            LIMIT 10
+        ''')
+
+        recent_trades = cursor.fetchall()
+        consecutive_losses = 0
+        for trade in recent_trades:
+            if trade['pnl'] < 0:
+                consecutive_losses += 1
+            else:
+                break
+
+        stats['consecutive_losses'] = consecutive_losses
+
+        # 3. 持仓风险分析
+        cursor.execute('''
+            SELECT
+                symbol,
+                direction,
+                amount,
+                leverage
+            FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手'
+            AND status = 'OPEN'
+        ''')
+
+        open_positions = cursor.fetchall()
+
+        # 持仓集中度
+        max_position_pct = 0
+        total_margin = sum(p['amount'] for p in open_positions)
+        if total_margin > 0:
+            for pos in open_positions:
+                pos_pct = (pos['amount'] / total_margin * 100)
+                max_position_pct = max(max_position_pct, pos_pct)
+
+        stats['max_position_concentration'] = round(max_position_pct, 1)
+
+        # 多空比例
+        long_count = sum(1 for p in open_positions if p['direction'] == 'LONG')
+        short_count = sum(1 for p in open_positions if p['direction'] == 'SHORT')
+        total_positions = long_count + short_count
+
+        long_ratio = (long_count / total_positions * 100) if total_positions > 0 else 0
+        short_ratio = (short_count / total_positions * 100) if total_positions > 0 else 0
+
+        stats['long_ratio'] = round(long_ratio, 1)
+        stats['short_ratio'] = round(short_ratio, 1)
+
+        # 杠杆风险暴露
+        total_leverage_exposure = sum(p['amount'] * p['leverage'] for p in open_positions)
+        leverage_ratio = (total_leverage_exposure / current_capital) if current_capital > 0 else 0
+
+        stats['leverage_exposure'] = round(total_leverage_exposure, 0)
+        stats['leverage_ratio'] = round(leverage_ratio, 2)
+
+        # 风险评级 (0-10, 10为最高风险)
+        risk_score = 0
+
+        # 回撤风险 (0-3分)
+        if current_drawdown > 15:
+            risk_score += 3
+        elif current_drawdown > 10:
+            risk_score += 2
+        elif current_drawdown > 5:
+            risk_score += 1
+
+        # 连续亏损风险 (0-2分)
+        if consecutive_losses >= 3:
+            risk_score += 2
+        elif consecutive_losses >= 2:
+            risk_score += 1
+
+        # 持仓集中风险 (0-2分)
+        if max_position_pct > 40:
+            risk_score += 2
+        elif max_position_pct > 30:
+            risk_score += 1
+
+        # 单边风险 (0-2分)
+        if max(long_ratio, short_ratio) > 85:
+            risk_score += 2
+        elif max(long_ratio, short_ratio) > 70:
+            risk_score += 1
+
+        # 杠杆风险 (0-1分)
+        if leverage_ratio > 3:
+            risk_score += 1
+
+        stats['risk_score'] = risk_score
+
+        # 风险等级
+        if risk_score >= 7:
+            risk_level = '高风险'
+            risk_color = '#ef4444'
+        elif risk_score >= 4:
+            risk_level = '中风险'
+            risk_color = '#f59e0b'
+        else:
+            risk_level = '低风险'
+            risk_color = '#10b981'
+
+        stats['risk_level'] = risk_level
+        stats['risk_color'] = risk_color
+
         conn.close()
-        
+
         return jsonify(stats)
         
     except Exception as e:
@@ -1589,7 +1734,7 @@ HTML_TEMPLATE = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧪 交易助手仪表盘 v1.2</h1>
+            <h1>🧪 交易助手仪表盘 v1.3</h1>
             <div class="subtitle">Paper Trading System - 按需加载 - Port 5111</div>
         </div>
         
@@ -1623,7 +1768,45 @@ HTML_TEMPLATE = '''
             <div class="stat-card">
                 <div class="label">持仓数</div>
                 <div class="value" id="open-positions">-</div>
-                <div class="subtext">最多同时3个</div>
+                <div class="subtext">最多同时8个</div>
+            </div>
+        </div>
+
+        <!-- 风险监控面板 -->
+        <div class="risk-panel" id="risk-panel" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 12px; border-left: 4px solid #10b981;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="margin: 0; color: white; font-size: 1.1em;">⚠️ 风险监控</h3>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 0.85em; color: #999;">风险等级:</span>
+                    <span id="risk-level-badge" style="padding: 4px 12px; border-radius: 6px; font-size: 0.85em; font-weight: bold; background: #10b981; color: white;">低风险</span>
+                    <span id="risk-score-display" style="font-size: 0.85em; color: #999;">评分: <span id="risk-score">0</span>/10</span>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
+                <div class="risk-item">
+                    <div style="font-size: 0.8em; color: #999;">📉 最大回撤</div>
+                    <div id="max-drawdown" style="font-size: 1.2em; font-weight: bold; color: #ef4444;">-</div>
+                </div>
+                <div class="risk-item">
+                    <div style="font-size: 0.8em; color: #999;">⚠️ 当前回撤</div>
+                    <div id="current-drawdown" style="font-size: 1.2em; font-weight: bold; color: #f59e0b;">-</div>
+                </div>
+                <div class="risk-item">
+                    <div style="font-size: 0.8em; color: #999;">🔴 连续亏损</div>
+                    <div id="consecutive-losses" style="font-size: 1.2em; font-weight: bold; color: #ef4444;">-</div>
+                </div>
+                <div class="risk-item">
+                    <div style="font-size: 0.8em; color: #999;">⚖️ 持仓集中</div>
+                    <div id="position-concentration" style="font-size: 1.2em; font-weight: bold; color: #f59e0b;">-</div>
+                </div>
+                <div class="risk-item">
+                    <div style="font-size: 0.8em; color: #999;">📊 多/空比例</div>
+                    <div id="long-short-ratio" style="font-size: 1.2em; font-weight: bold; color: #667eea;">-</div>
+                </div>
+                <div class="risk-item">
+                    <div style="font-size: 0.8em; color: #999;">💪 杠杆倍率</div>
+                    <div id="leverage-ratio" style="font-size: 1.2em; font-weight: bold; color: #10b981;">-</div>
+                </div>
             </div>
         </div>
 
@@ -2154,10 +2337,13 @@ HTML_TEMPLATE = '''
         }
         
         async function loadStats() {
+            console.log('=== loadStats 开始 ===');
             try {
                 const response = await fetch('/api/stats');
+                console.log('API响应状态:', response.status);
                 const stats = await response.json();
-                
+                console.log('Stats数据:', JSON.stringify(stats).substring(0, 200));
+
                 document.getElementById('current-capital').textContent = formatNumber(stats.current_capital, 2) + 'U';
                 document.getElementById('current-capital').className = 'value ' + (stats.current_capital >= stats.initial_capital ? 'positive' : 'negative');
 
@@ -2179,15 +2365,66 @@ HTML_TEMPLATE = '''
                 document.getElementById('open-positions').textContent = stats.open_positions || 0;
                 
                 const progress = Math.min(100, Math.max(0, stats.progress || 0));
-                const progressBar = document.getElementById('progress-bar');
-                progressBar.style.width = progress + '%';
-                progressBar.textContent = formatNumber(progress, 1) + '%';
+                const progressBar = document.getElementById('progress-bar-large');
+                if (progressBar) {
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = formatNumber(progress, 1) + '%';
+                }
                 
                 const earned = stats.total_pnl || 0;
                 const remaining = Math.max(0, stats.target_profit - earned);
-                document.getElementById('earned').textContent = formatNumber(earned, 2) + 'U';
-                document.getElementById('remaining').textContent = formatNumber(remaining, 2) + 'U';
-                
+                const earnedEl = document.getElementById('progress-earned');
+                const remainingEl = document.getElementById('progress-remaining');
+                if (earnedEl) earnedEl.textContent = formatNumber(earned, 2) + 'U';
+                if (remainingEl) remainingEl.textContent = formatNumber(remaining, 2) + 'U';
+
+                // 更新风险监控指标
+                console.log('风险数据:', stats.max_drawdown, stats.current_drawdown, stats.consecutive_losses);
+                if (stats.max_drawdown !== undefined) {
+                    console.log('正在更新风险指标...');
+                    // 最大回撤
+                    document.getElementById('max-drawdown').textContent = formatNumber(stats.max_drawdown, 2) + '%';
+                    console.log('最大回撤已更新:', formatNumber(stats.max_drawdown, 2) + '%');
+
+                    // 当前回撤
+                    const currentDrawdown = stats.current_drawdown || 0;
+                    document.getElementById('current-drawdown').textContent = formatNumber(currentDrawdown, 2) + '%';
+                    document.getElementById('current-drawdown').style.color = currentDrawdown > 10 ? '#ef4444' : (currentDrawdown > 5 ? '#f59e0b' : '#10b981');
+
+                    // 连续亏损
+                    const consecutiveLosses = stats.consecutive_losses || 0;
+                    document.getElementById('consecutive-losses').textContent = consecutiveLosses + '次';
+                    document.getElementById('consecutive-losses').style.color = consecutiveLosses >= 3 ? '#ef4444' : (consecutiveLosses >= 2 ? '#f59e0b' : '#10b981');
+
+                    // 持仓集中度
+                    const concentration = stats.max_position_concentration || 0;
+                    document.getElementById('position-concentration').textContent = formatNumber(concentration, 1) + '%';
+                    document.getElementById('position-concentration').style.color = concentration > 40 ? '#ef4444' : (concentration > 30 ? '#f59e0b' : '#10b981');
+
+                    // 多空比例
+                    const longRatio = stats.long_ratio || 0;
+                    const shortRatio = stats.short_ratio || 0;
+                    document.getElementById('long-short-ratio').textContent = formatNumber(longRatio, 0) + '% / ' + formatNumber(shortRatio, 0) + '%';
+
+                    // 杠杆倍率
+                    const leverageRatio = stats.leverage_ratio || 0;
+                    document.getElementById('leverage-ratio').textContent = formatNumber(leverageRatio, 2) + 'x';
+                    document.getElementById('leverage-ratio').style.color = leverageRatio > 3 ? '#ef4444' : (leverageRatio > 2 ? '#f59e0b' : '#10b981');
+
+                    // 风险评级
+                    const riskScore = stats.risk_score || 0;
+                    const riskLevel = stats.risk_level || '低风险';
+                    const riskColor = stats.risk_color || '#10b981';
+
+                    document.getElementById('risk-score').textContent = riskScore;
+                    document.getElementById('risk-level-badge').textContent = riskLevel;
+                    document.getElementById('risk-level-badge').style.background = riskColor;
+
+                    // 更新风险面板边框颜色
+                    const riskPanel = document.getElementById('risk-panel');
+                    riskPanel.style.borderLeftColor = riskColor;
+                }
+
             } catch (error) {
                 console.error('加载统计失败:', error);
             }
@@ -2940,7 +3177,7 @@ HTML_TEMPLATE = '''
 
 if __name__ == '__main__':
     print("=" * 60)
-    print("🧪 交易助手仪表盘 v1.2 启动")
+    print("🧪 交易助手仪表盘 v1.3 启动")
     print("=" * 60)
     print(f"📊 端口: 5111")
     print(f"💾 数据库: {DB_PATH}")

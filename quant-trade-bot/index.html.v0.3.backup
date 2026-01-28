@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="version" content="v0.3">
-    <meta name="description" content="量化交易系统 - 性能优化版">
-    <title>量化助理 v0.3</title>
+    <title>量化助理</title>
     <style>
         * {
             margin: 0;
@@ -669,10 +667,7 @@
         let currentPosition = null;
         let chartRetryCount = 0;
         const MAX_CHART_RETRY = 10; // 最多重试10次
-
-        // ⚡ 用户正在查看图表标志（刷新时不打断）
-        let userViewingChart = false;
-
+        
         // 缓存系统
         let chartCache = {};
         let tradeHistoryCache = null;
@@ -856,9 +851,6 @@
         function loadPositionChart(symbol, entryPrice, stopPrice, targetPrice, direction, clickedElement = null, openTime = null, closeTime = null, closePrice = null) {
             console.log(`🎯 加载持仓图表: ${symbol}, 方向: ${direction}, 入场价: ${entryPrice}`);
 
-            // ⚡ 标记用户正在查看图表，防止自动刷新打断
-            userViewingChart = true;
-
             // 更新当前持仓信息
             currentPosition = {
                 symbol: symbol,
@@ -870,33 +862,6 @@
                 closeTime: closeTime,
                 closePrice: closePrice
             };
-
-            // ⚡ 复盘模式：根据持仓时长自动选择时间周期
-            if (openTime && closeTime) {
-                const openTs = new Date(openTime).getTime();
-                const closeTs = new Date(closeTime).getTime();
-                const durationHours = (closeTs - openTs) / (1000 * 60 * 60);
-
-                // 根据持仓时长选择合适的时间周期
-                if (durationHours < 1) {
-                    currentTimeframe = '5m';
-                } else if (durationHours < 4) {
-                    currentTimeframe = '15m';
-                } else if (durationHours < 24) {
-                    currentTimeframe = '1h';
-                } else if (durationHours < 72) {
-                    currentTimeframe = '4h';
-                } else {
-                    currentTimeframe = '1d';
-                }
-                console.log(`📊 复盘模式: 持仓${durationHours.toFixed(1)}小时，使用${currentTimeframe}周期`);
-
-                // 隐藏时间周期选择按钮，显示复盘标识
-                document.querySelectorAll('.timeframe-btn').forEach(btn => btn.style.opacity = '0.5');
-            } else {
-                // 非复盘模式，恢复按钮
-                document.querySelectorAll('.timeframe-btn').forEach(btn => btn.style.opacity = '1');
-            }
             
             // 确保数据存在，优先使用缓存
             if (!priceData[symbol] || !chartCache[symbol]) {
@@ -1009,31 +974,9 @@
                 console.log('✅ 找到图表容器');
                 const ctx = canvas.getContext('2d');
 
-                // ⚡ 获取K线数据
+                // ⚡ 优化：减少K线数量（50 → 30），加快渲染
                 console.log(`📡 从API获取 ${symbol} 的K线数据，时间周期: ${currentTimeframe}`);
-
-                let apiUrl = `/api/kline/${symbol}?timeframe=${currentTimeframe}&limit=30`;
-
-                // 复盘模式：获取开仓到平仓时间段的K线，前后各加30根参考
-                if (currentPosition.openTime && currentPosition.closeTime) {
-                    const openTs = new Date(currentPosition.openTime).getTime();
-                    const closeTs = new Date(currentPosition.closeTime).getTime();
-                    const durationMs = closeTs - openTs;
-
-                    // 根据时间周期计算需要的K线数量
-                    const tfMinutes = { '5m': 5, '15m': 15, '1h': 60, '4h': 240, '1d': 1440 };
-                    const minutes = tfMinutes[currentTimeframe] || 5;
-                    const tradingKlines = Math.ceil(durationMs / (minutes * 60 * 1000));
-
-                    // 前30根 + 交易期间 + 后10根 = 总数
-                    const klineCount = 30 + tradingKlines + 10;
-
-                    // 开始时间往前推30根K线
-                    const sinceTs = openTs - (30 * minutes * 60 * 1000);
-
-                    apiUrl = `/api/kline/${symbol}?timeframe=${currentTimeframe}&limit=${klineCount}&since=${sinceTs}`;
-                    console.log(`📊 复盘模式: 前30根 + ${tradingKlines}根交易期 + 后10根 = ${klineCount}根K线`);
-                }
+                const apiUrl = `/api/kline/${symbol}?timeframe=${currentTimeframe}&limit=30`;
                 console.log(`🔗 API URL: ${apiUrl}`);
 
                 const response = await fetch(apiUrl);
@@ -1086,8 +1029,6 @@
                     const allTrades = await tradesRes.json();
                     const symbolTrades = allTrades.filter(t => t.symbol === symbol);
 
-                    // ⚡ 当前持仓的止盈止损线（复盘模式下不显示）
-                    if (!currentPosition.openTime) {
                     symbolPositions.forEach((pos, idx) => {
                         const suffix = symbolPositions.length > 1 ? `_${idx}` : '';
 
@@ -1149,7 +1090,6 @@
                             };
                         }
                     });
-                    }
 
                     // ⚡ 历史交易标记（仅在非复盘模式下显示）
                     if (!currentPosition.openTime) {
@@ -1203,8 +1143,7 @@
                         });
                     }
 
-                    // 添加持仓开仓点标记（复盘模式下不显示，只显示当前选中的交易）
-                    if (!currentPosition.openTime) {
+                    // 添加持仓开仓点标记
                     symbolPositions.forEach((pos, idx) => {
                         const suffix = symbolPositions.length > 1 ? `_${idx}` : '';
                         if (pos.entry_time) {
@@ -1249,7 +1188,6 @@
                             }
                         }
                     });
-                    }
 
                     // 添加复盘标记：显示当时的开仓、平仓、止损、止盈位置
                     if (currentPosition.openTime) {
@@ -1594,10 +1532,9 @@
                     const priceChange = closePrice - entryPrice;
                     const priceChangeSign = priceChange >= 0 ? '+' : '';
 
-                    const tradeId = trade.id || '-';
                     html += `
-                        <div class="trade-item ${direction}" data-id="${tradeId}" onclick="loadPositionChart('${trade.symbol}', ${entryPrice}, ${stopPrice}, ${targetPrice}, '${direction}', this, '${trade.open_time}', '${trade.timestamp}', ${closePrice})">
-                            <div class="trade-symbol"><span style="color: #666; font-size: 11px;">#${tradeId}</span> ${trade.symbol}</div>
+                        <div class="trade-item ${direction}" onclick="loadPositionChart('${trade.symbol}', ${entryPrice}, ${stopPrice}, ${targetPrice}, '${direction}', this, '${trade.open_time}', '${trade.timestamp}', ${closePrice})">
+                            <div class="trade-symbol">${trade.symbol}</div>
                             <div class="trade-details">
                                 方向: <span style="color: ${directionColor}; font-weight: bold;">${directionText} ${trade.leverage}x</span><br>
                                 开仓: $${entryPrice.toFixed(4)} → 平仓: $${closePrice.toFixed(4)} (${priceChangeSign}${priceChange.toFixed(4)})<br>
@@ -1956,8 +1893,8 @@
                     positionsPanel.appendChild(div);
                 });
 
-                // 自动加载第一个持仓的图表（仅在用户没有正在查看图表时）
-                if (positions.length > 0 && !userViewingChart) {
+                // 自动加载第一个持仓的图表
+                if (positions.length > 0) {
                     const firstPos = positions[0];
                     const direction = firstPos.unrealized_pnl >= 0 ? 'long' : 'short';
                     loadPositionChart(firstPos.symbol, firstPos.entry_price, firstPos.stop_loss, firstPos.take_profit, direction);
@@ -2071,9 +2008,9 @@
             // simulateAlerts();
 
             // 添加启动提醒
-            addAlert('🚀 量化交易系统 v0.3 已启动 - 性能优化版 | 端口5001', '');
+            addAlert('🚀 量化交易图表已启动 - 端口5001 | 真实资金: $1000', '');
             setTimeout(() => {
-                addAlert('⚡ 新特性：加载速度提升50%，复盘功能极简优化', '');
+                addAlert('📊 支持持仓点击分析，历史记录查看 - 基于真实交易数据', '');
             }, 2000);
             }); // 结束 waitForChart callback
         });

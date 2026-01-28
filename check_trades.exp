@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+        # 成功登录
+    }
+}
+
+# 查询所有交易记录
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT COUNT(*) as total FROM real_trades WHERE mode=\"paper\" AND assistant=\"交易助手\";'\r"
+expect "*#"
+
+# 查询已完成交易
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT COUNT(*) as closed, SUM(pnl) as total_pnl FROM real_trades WHERE mode=\"paper\" AND assistant=\"交易助手\" AND status=\"CLOSED\";'\r"
+expect "*#"
+
+# 查询当前持仓
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT COUNT(*) as open_positions FROM real_trades WHERE mode=\"paper\" AND assistant=\"交易助手\" AND status=\"OPEN\";'\r"
+expect "*#"
+
+# 查询最近24小时的交易
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT COUNT(*) as last_24h FROM real_trades WHERE mode=\"paper\" AND assistant=\"交易助手\" AND datetime(entry_time) > datetime(\"now\", \"-1 day\");'\r"
+expect "*#"
+
+# 查询最近的5笔已完成交易
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT symbol, direction, entry_price, exit_price, pnl, roi, entry_time, exit_time FROM real_trades WHERE mode=\"paper\" AND assistant=\"交易助手\" AND status=\"CLOSED\" ORDER BY exit_time DESC LIMIT 5;'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

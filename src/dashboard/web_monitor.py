@@ -177,9 +177,9 @@ def get_trades():
         conn = get_db()
         cursor = conn.cursor()
 
-        # 从positions表读取已平仓的完整交易记录（支持分页）
+        # 从positions表读取已平仓的完整交易记录（支持分页，包含ID）
         cursor.execute(f'''
-            SELECT * FROM positions
+            SELECT rowid as id, * FROM positions
             WHERE status = 'closed'
             ORDER BY close_time DESC
             LIMIT {limit} OFFSET {offset}
@@ -192,6 +192,7 @@ def get_trades():
             side = 'buy' if direction == 'long' else 'sell'
 
             trades.append({
+                'id': row['id'],                  # 交易ID
                 'timestamp': row['close_time'],  # 使用平仓时间作为记录时间
                 'open_time': row['open_time'],   # 开仓时间
                 'symbol': row['symbol'],
@@ -253,10 +254,11 @@ def get_daily_stats():
 
 @app.route('/api/kline/<path:symbol>')
 def get_kline(symbol):
-    """获取K线数据"""
+    """获取K线数据（支持复盘模式指定时间范围）"""
     try:
         timeframe = request.args.get('timeframe', '15m')
         limit = int(request.args.get('limit', 100))
+        since = request.args.get('since')  # 开始时间戳（毫秒）
 
         # 映射时间周期
         timeframe_map = {
@@ -273,7 +275,13 @@ def get_kline(symbol):
 
         # 从Binance获取K线数据
         exchange = ccxt.binance({'enableRateLimit': True, 'timeout': 10000})
-        ohlcv = exchange.fetch_ohlcv(symbol, binance_timeframe, limit=limit)
+
+        # 如果指定了since参数，从指定时间开始获取
+        if since:
+            since_ts = int(since)
+            ohlcv = exchange.fetch_ohlcv(symbol, binance_timeframe, since=since_ts, limit=limit)
+        else:
+            ohlcv = exchange.fetch_ohlcv(symbol, binance_timeframe, limit=limit)
 
         # 格式化数据
         klines = []

@@ -93,7 +93,30 @@
       "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_combined_history.exp)",
       "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_server_status.exp)",
       "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_logs_and_page.exp)",
-      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_async_fix.exp)"
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_async_fix.exp)",
+      "Bash(~/.claude/hooks/play-tts.sh \"评估项目表现\")",
+      "Bash(~/.claude/hooks/play-tts.sh:*)",
+      "WebFetch(domain:139.162.41.38)",
+      "Bash(.claude/hooks/bmad-speak.sh:*)",
+      "Bash(./upload_trader.exp)",
+      "Bash(./check_trader_log.exp)",
+      "Bash(./check_trader_status.exp:*)",
+      "Bash(./check_trades.exp)",
+      "Bash(./upload_dashboard.exp)",
+      "Bash(./check_dashboard_log.exp)",
+      "Bash(./test_api_error.exp)",
+      "Bash(linode-cli:*)",
+      "Bash(env)",
+      "Bash(/Users/hongtou/.claude/hooks/play-tts.sh:*)",
+      "Bash(for i in 1 2 3 4 5)",
+      "Bash(do sleep 10)",
+      "Bash(if ping -c 1 -W 3 139.162.41.38)",
+      "Bash(then echo \"✅ 服务器恢复\")",
+      "Bash(/usr/bin/expect:*)",
+      "Bash(break)",
+      "Bash(else echo \"❌ 尝试 $i: 服务器仍不可达\")",
+      "Bash(fi)",
+      "Bash(done)"
     ]
   }
 }
