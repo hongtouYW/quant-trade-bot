@@ -25,7 +25,7 @@ except ImportError:
 
 # 使用绝对路径 - 项目根目录
 SCRIPT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # 项目根目录
-DB_PATH = os.path.join(SCRIPT_DIR, 'data', 'db', 'paper_trading.db')
+DB_PATH = os.path.join(SCRIPT_DIR, 'data', 'db', 'paper_trading.db')  # 量化交易独立数据库
 HTML_DIR = os.path.join(SCRIPT_DIR, 'quant-trade-bot')
 
 # Flask app - 指定模板和静态文件目录
@@ -74,45 +74,74 @@ def serve_files(filename):
 
 @app.route('/api/stats')
 def get_stats():
-    """获取统计数据"""
+    """获取统计数据（从 real_trades 表计算）"""
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
-        # 获取最新统计
+
+        # 从数据库读取账户配置
+        cursor.execute("SELECT key, value FROM account_config WHERE key IN ('initial_capital', 'target_profit')")
+        config = {row['key']: float(row['value']) for row in cursor.fetchall()}
+        initial_capital = config.get('initial_capital', 2000)
+        target_profit = config.get('target_profit', 3400)
+
+        # 从 real_trades 表计算统计
         cursor.execute('''
-            SELECT * FROM stats 
-            ORDER BY timestamp DESC 
-            LIMIT 1
+            SELECT
+                COUNT(*) as total_trades,
+                SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as win_trades,
+                SUM(CASE WHEN pnl < 0 THEN 1 ELSE 0 END) as loss_trades,
+                SUM(pnl) as total_pnl,
+                SUM(fee) as total_fees,
+                SUM(funding_fee) as total_funding_fees,
+                MAX(pnl) as best_trade,
+                MIN(pnl) as worst_trade,
+                AVG(roi) as avg_roi
+            FROM real_trades
+            WHERE status = 'CLOSED'
         ''')
-        stats = cursor.fetchone()
-        
-        if stats:
-            result = {
-                'balance': stats['balance'],
-                'total_pnl': stats['total_pnl'],
-                'total_trades': stats['total_trades'],
-                'winning_trades': stats['winning_trades'],
-                'losing_trades': stats['losing_trades'],
-                'win_rate': stats['win_rate'],
-                'total_fees': stats['total_fees']
-            }
-        else:
-            # 如果没有统计数据，从trades表计算
-            cursor.execute('SELECT balance_after FROM trades ORDER BY timestamp DESC LIMIT 1')
-            last_trade = cursor.fetchone()
-            balance = last_trade['balance_after'] if last_trade else 1000
-            
-            result = {
-                'balance': balance,
-                'total_pnl': 0,
-                'total_trades': 0,
-                'winning_trades': 0,
-                'losing_trades': 0,
-                'win_rate': 0,
-                'total_fees': 0
-            }
-        
+        closed_stats = cursor.fetchone()
+
+        # 获取未平仓持仓
+        cursor.execute('''
+            SELECT COUNT(*) as open_count, SUM(amount) as margin_used
+            FROM real_trades
+            WHERE status = 'OPEN'
+        ''')
+        open_stats = cursor.fetchone()
+
+        total_pnl = closed_stats['total_pnl'] or 0
+        total_fees = closed_stats['total_fees'] or 0
+        total_trades = closed_stats['total_trades'] or 0
+        win_trades = closed_stats['win_trades'] or 0
+        loss_trades = closed_stats['loss_trades'] or 0
+
+        current_capital = initial_capital + total_pnl
+        win_rate = (win_trades / total_trades * 100) if total_trades > 0 else 0
+        progress = (total_pnl / target_profit * 100) if target_profit > 0 else 0
+
+        available = current_capital - (open_stats['margin_used'] or 0)
+        result = {
+            'initial_capital': initial_capital,
+            'current_capital': current_capital,
+            'target_profit': target_profit,
+            'total_pnl': total_pnl,
+            'total_fees': total_fees,
+            'total_funding_fees': closed_stats['total_funding_fees'] or 0,
+            'total_trades': total_trades,
+            'win_trades': win_trades,
+            'loss_trades': loss_trades,
+            'win_rate': win_rate,
+            'progress': progress,
+            'best_trade': closed_stats['best_trade'],
+            'worst_trade': closed_stats['worst_trade'],
+            'avg_roi': closed_stats['avg_roi'],
+            'open_positions': open_stats['open_count'] or 0,
+            'margin_used': open_stats['margin_used'] or 0,
+            'available_capital': available,
+            'balance': available  # 前端使用的字段名
+        }
+
         conn.close()
         return jsonify(result)
     except Exception as e:
@@ -120,48 +149,61 @@ def get_stats():
 
 @app.route('/api/positions')
 def get_positions():
-    """获取持仓"""
+    """获取持仓（从 real_trades 表读取 status=OPEN）"""
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            SELECT * FROM positions
-            WHERE status = 'open'
-            ORDER BY open_time DESC
+            SELECT * FROM real_trades
+            WHERE status = 'OPEN'
+            ORDER BY entry_time DESC
         ''')
-        
+
         positions = []
         for row in cursor.fetchall():
-            current_price = get_current_price(row['symbol'])
-            
+            symbol = row['symbol']
+            direction = row['direction'].upper() if row['direction'] else 'LONG'
+
+            current_price = get_current_price(symbol)
+
             if current_price:
-                amount = row['amount']
-                position_value = amount * current_price
-                entry_value = amount * row['entry_price']
-                unrealized_pnl = (position_value - entry_value) * row['leverage']
-                # cost = entry_value / leverage (approximately)
-                cost = entry_value / row['leverage'] if row['leverage'] > 0 else entry_value
-                unrealized_pnl_pct = (unrealized_pnl / cost) * 100 if cost > 0 else 0
+                margin = row['amount']
+                leverage = row['leverage'] or 1
+                entry_price = row['entry_price']
+
+                position_value_usdt = margin * leverage
+                coin_quantity = position_value_usdt / entry_price
+                current_value_usdt = coin_quantity * current_price
+
+                if direction == 'LONG':
+                    unrealized_pnl = current_value_usdt - position_value_usdt
+                else:
+                    unrealized_pnl = position_value_usdt - current_value_usdt
+
+                unrealized_pnl_pct = (unrealized_pnl / margin) * 100 if margin > 0 else 0
             else:
                 unrealized_pnl = 0
                 unrealized_pnl_pct = 0
                 current_price = row['entry_price']
-            
+
             positions.append({
-                'symbol': row['symbol'],
+                'id': row['id'],
+                'symbol': symbol,
                 'quantity': row['amount'],
                 'entry_price': row['entry_price'],
                 'current_price': current_price,
-                'entry_time': row['open_time'],
-                'leverage': row['leverage'],
+                'entry_time': row['entry_time'],
+                'leverage': row['leverage'] or 1,
                 'stop_loss': row['stop_loss'],
                 'take_profit': row['take_profit'],
-                'cost': 0,  # cost not in table
+                'direction': direction.lower(),
+                'cost': 0,
                 'unrealized_pnl': unrealized_pnl,
-                'unrealized_pnl_pct': unrealized_pnl_pct
+                'unrealized_pnl_pct': unrealized_pnl_pct,
+                'score': row['score'] if 'score' in row.keys() else 0
             })
-        
+
         conn.close()
         return jsonify(positions)
     except Exception as e:
@@ -169,7 +211,7 @@ def get_positions():
 
 @app.route('/api/trades')
 def get_trades():
-    """获取交易记录（完整的开仓+平仓记录）- 支持分页"""
+    """获取交易记录（从 real_trades 表读取 status=CLOSED）- 支持分页"""
     try:
         limit = int(request.args.get('limit', 20))
         offset = int(request.args.get('offset', 0))
@@ -177,42 +219,41 @@ def get_trades():
         conn = get_db()
         cursor = conn.cursor()
 
-        # 从positions表读取已平仓的完整交易记录（支持分页，包含ID）
         cursor.execute(f'''
-            SELECT rowid as id, * FROM positions
-            WHERE status = 'closed'
-            ORDER BY close_time DESC
+            SELECT * FROM real_trades
+            WHERE status = 'CLOSED'
+            ORDER BY exit_time DESC
             LIMIT {limit} OFFSET {offset}
         ''')
 
         trades = []
         for row in cursor.fetchall():
-            # 计算交易方向的显示文本
-            direction = row['direction'] if 'direction' in row.keys() else 'long'
-            side = 'buy' if direction == 'long' else 'sell'
-
+            direction = row['direction'].upper() if row['direction'] else 'LONG'
             trades.append({
-                'id': row['id'],                  # 交易ID
-                'timestamp': row['close_time'],  # 使用平仓时间作为记录时间
-                'open_time': row['open_time'],   # 开仓时间
+                'id': row['id'],
+                'timestamp': row['exit_time'],
+                'open_time': row['entry_time'],
                 'symbol': row['symbol'],
-                'side': side,
-                'direction': direction,
-                'entry_price': row['entry_price'],   # 开仓价
-                'close_price': row['close_price'],   # 平仓价
-                'price': row['close_price'],          # 兼容前端
+                'side': 'buy' if direction == 'LONG' else 'sell',
+                'direction': direction.lower(),
+                'entry_price': row['entry_price'],
+                'close_price': row['exit_price'],
+                'price': row['exit_price'],
                 'quantity': row['amount'],
-                'leverage': row['leverage'],
+                'leverage': row['leverage'] or 1,
                 'stop_loss': row['stop_loss'],
                 'take_profit': row['take_profit'],
                 'pnl': row['pnl'] if row['pnl'] else 0,
-                'pnl_pct': row['pnl_pct'] if row['pnl_pct'] else 0,
+                'pnl_pct': row['roi'] if row['roi'] else 0,
+                'fee': row['fee'] if row['fee'] else 0,
+                'score': row['score'] if 'score' in row.keys() else 0
             })
 
         conn.close()
         return jsonify(trades)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/api/daily_stats')
 def get_daily_stats():
@@ -338,145 +379,129 @@ def get_recommendations():
         return jsonify({'error': str(e)}), 500
 
 def analyze_symbol_simple(exchange, symbol):
-    """简化版策略分析（不依赖TA-Lib）"""
+    """策略分析 - 与交易助手使用相同的100分评分系统"""
     try:
-        # 获取15分钟K线数据
-        ohlcv_15m = exchange.fetch_ohlcv(symbol, '15m', limit=100)
-        # 获取1小时K线数据
-        ohlcv_1h = exchange.fetch_ohlcv(symbol, '1h', limit=50)
+        # 获取1小时K线数据 (与交易助手一致)
+        ohlcv = exchange.fetch_ohlcv(symbol, '1h', limit=100)
 
-        if not ohlcv_15m or not ohlcv_1h:
+        if not ohlcv or len(ohlcv) < 50:
             return None
 
-        # 转换为DataFrame
-        df_15m = pd.DataFrame(ohlcv_15m, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df_1h = pd.DataFrame(ohlcv_1h, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        # 提取数据
+        closes = [float(k[4]) for k in ohlcv]
+        volumes = [float(k[5]) for k in ohlcv]
+        highs = [float(k[2]) for k in ohlcv]
+        lows = [float(k[3]) for k in ohlcv]
 
-        # 计算简单指标
-        close_15m = df_15m['close'].values
-        close_1h = df_1h['close'].values
-        volume_15m = df_15m['volume'].values
+        current_price = closes[-1]
 
-        # 使用TA-Lib或手动计算
-        if TALIB_AVAILABLE:
-            # RSI
-            rsi_15m = talib.RSI(close_15m, timeperiod=14)
-            rsi_1h = talib.RSI(close_1h, timeperiod=14)
+        # 计算RSI
+        rsi = calculate_rsi_simple(np.array(closes), 14)[-1]
+        if np.isnan(rsi):
+            rsi = 50
 
-            # MACD
-            macd_15m, signal_15m, hist_15m = talib.MACD(close_15m, fastperiod=12, slowperiod=26, signalperiod=9)
-
-            # EMA
-            ema_fast_1h = talib.EMA(close_1h, timeperiod=20)
-            ema_slow_1h = talib.EMA(close_1h, timeperiod=50)
-
-            # 布林带
-            upper, middle, lower = talib.BBANDS(close_15m, timeperiod=20, nbdevup=2, nbdevdn=2)
+        # 1. RSI分析 (40分)
+        if rsi < 30:
+            rsi_score = 40  # 超卖，做多机会
+            direction = 'buy'
+            reasons = ["RSI超卖"]
+        elif rsi > 70:
+            rsi_score = 40  # 超买，做空机会
+            direction = 'sell'
+            reasons = ["RSI超买"]
+        elif 40 <= rsi <= 60:
+            rsi_score = 20
+            direction = 'buy' if rsi < 50 else 'sell'
+            reasons = ["RSI中性"]
         else:
-            # 手动计算简化指标
-            rsi_15m = calculate_rsi_simple(close_15m, 14)
-            rsi_1h = calculate_rsi_simple(close_1h, 14)
-            ema_fast_1h = calculate_ema_simple(close_1h, 20)
-            ema_slow_1h = calculate_ema_simple(close_1h, 50)
-            macd_15m = np.array([0] * len(close_15m))
-            signal_15m = np.array([0] * len(close_15m))
-            middle = calculate_sma_simple(close_15m, 20)
+            rsi_score = 10
+            direction = 'buy' if rsi < 50 else 'sell'
+            reasons = ["RSI偏移"]
 
-        # 当前值
-        current_price = close_15m[-1]
-        current_rsi_15m = rsi_15m[-1] if not np.isnan(rsi_15m[-1]) else 50
-        current_rsi_1h = rsi_1h[-1] if not np.isnan(rsi_1h[-1]) else 50
+        # 2. 趋势分析 (25分)
+        ma7 = sum(closes[-7:]) / 7
+        ma20 = sum(closes[-20:]) / 20
+        ma50 = sum(closes[-50:]) / 50
 
-        # 判断趋势（1小时）
-        trend = 'neutral'
-        if ema_fast_1h[-1] > ema_slow_1h[-1]:
+        if current_price > ma7 > ma20 > ma50:
+            trend_score = 25
+            direction = 'buy'
+            reasons.append("多头排列")
+        elif current_price < ma7 < ma20 < ma50:
+            trend_score = 25
+            direction = 'sell'
+            reasons.append("空头排列")
+        elif current_price > ma7 > ma20:
+            trend_score = 15
+            reasons.append("短期多头")
+        elif current_price < ma7 < ma20:
+            trend_score = 15
+            reasons.append("短期空头")
+        else:
+            trend_score = 5
+            reasons.append("趋势不明")
+
+        # 3. 成交量分析 (20分)
+        avg_volume = sum(volumes[-20:]) / 20
+        recent_volume = volumes[-1]
+        volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
+
+        if volume_ratio > 1.5:
+            volume_score = 20
+            reasons.append("成交量放大")
+        elif volume_ratio > 1.2:
+            volume_score = 15
+        elif volume_ratio > 1:
+            volume_score = 10
+        else:
+            volume_score = 5
+
+        # 4. 价格位置 (15分)
+        high_50 = max(highs[-50:])
+        low_50 = min(lows[-50:])
+        price_position = (current_price - low_50) / (high_50 - low_50) if high_50 > low_50 else 0.5
+
+        if price_position < 0.3:  # 接近底部
+            position_score = 15
+            direction = 'buy'
+            reasons.append("接近底部")
+        elif price_position > 0.7:  # 接近顶部
+            position_score = 15
+            direction = 'sell'
+            reasons.append("接近顶部")
+        else:
+            position_score = 5
+
+        # 计算总分 (满分100)
+        total_score = rsi_score + trend_score + volume_score + position_score
+
+        # 最低50分才显示推荐
+        if total_score < 50:
+            return None
+
+        signal = direction
+
+        # 计算止损止盈 (与交易助手一致：1.5%止损, 2.5%止盈)
+        if signal == 'buy':
+            stop_loss = current_price * 0.985   # -1.5%
+            take_profit = current_price * 1.025  # +2.5%
             trend = 'bullish'
-        elif ema_fast_1h[-1] < ema_slow_1h[-1]:
-            trend = 'bearish'
-
-        # 成交量分析
-        avg_volume = np.mean(volume_15m[-20:])
-        current_volume = volume_15m[-1]
-        volume_surge = current_volume > avg_volume * 1.5
-
-        # 生成信号
-        signal = 'neutral'
-        score = 0
-        reasons = []
-
-        # 多头信号
-        if trend == 'bullish':
-            if current_rsi_15m < 35:
-                score += 3
-                reasons.append("RSI超卖")
-            elif current_rsi_15m < 45:
-                score += 2
-                reasons.append("RSI偏低")
-            elif current_rsi_15m < 55:
-                score += 1
-                reasons.append("趋势上涨")
-
-            if TALIB_AVAILABLE and len(macd_15m) > 1:
-                if macd_15m[-1] > signal_15m[-1] and macd_15m[-2] <= signal_15m[-2]:
-                    score += 3
-                    reasons.append("MACD金叉")
-
-            if volume_surge:
-                score += 2
-                reasons.append("成交量放大")
-
-            # 降低门槛：只需要2分即可
-            if score >= 2:
-                signal = 'buy'
-
-        # 空头信号
-        elif trend == 'bearish':
-            if current_rsi_15m > 65:
-                score += 3
-                reasons.append("RSI超买")
-            elif current_rsi_15m > 55:
-                score += 2
-                reasons.append("RSI偏高")
-            elif current_rsi_15m > 45:
-                score += 1
-                reasons.append("趋势下跌")
-
-            if TALIB_AVAILABLE and len(macd_15m) > 1:
-                if macd_15m[-1] < signal_15m[-1] and macd_15m[-2] >= signal_15m[-2]:
-                    score += 3
-                    reasons.append("MACD死叉")
-
-            if volume_surge:
-                score += 2
-                reasons.append("成交量放大")
-
-            # 降低门槛：只需要2分即可
-            if score >= 2:
-                signal = 'sell'
-
-        if signal == 'neutral':
-            return None
-
-        # 计算止损止盈
-        if TALIB_AVAILABLE:
-            stop_loss = lower[-1] if signal == 'buy' else upper[-1]
-            take_profit = upper[-1] if signal == 'buy' else lower[-1]
         else:
-            atr = np.std(close_15m[-20:])
-            stop_loss = current_price - (2 * atr) if signal == 'buy' else current_price + (2 * atr)
-            take_profit = current_price + (3 * atr) if signal == 'buy' else current_price - (3 * atr)
+            stop_loss = current_price * 1.015   # +1.5%
+            take_profit = current_price * 0.975  # -2.5%
+            trend = 'bearish'
 
         return {
             'symbol': symbol,
             'signal': signal,  # 'buy' or 'sell'
             'price': float(current_price),
-            'score': int(score),
-            'rsi': float(current_rsi_15m),
+            'score': int(total_score),  # 使用100分制的总分
+            'rsi': float(rsi),
             'trend': trend,
             'reasons': reasons,
-            'stop_loss': float(stop_loss) if not np.isnan(stop_loss) else float(current_price * 0.97),
-            'take_profit': float(take_profit) if not np.isnan(take_profit) else float(current_price * 1.05),
-            'volume_surge': bool(volume_surge)
+            'stop_loss': float(stop_loss),
+            'take_profit': float(take_profit),
+            'volume_surge': volume_ratio > 1.5
         }
 
     except Exception as e:
@@ -514,6 +539,91 @@ def calculate_ema_simple(prices, period):
 def calculate_sma_simple(prices, period):
     """简单SMA计算"""
     return np.convolve(prices, np.ones(period)/period, mode='same')
+
+@app.route('/api/real_trades')
+def get_real_trades():
+    """获取真实的Binance交易历史"""
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(os.path.join(SCRIPT_DIR, 'quant-trade-bot', '.env'))
+
+        api_key = os.getenv('BINANCE_API_KEY')
+        api_secret = os.getenv('BINANCE_API_SECRET')
+
+        if not api_key or not api_secret:
+            return jsonify({'error': 'API未配置', 'trades': []})
+
+        exchange = ccxt.binance({
+            'apiKey': api_key,
+            'secret': api_secret,
+            'enableRateLimit': True,
+            'options': {'defaultType': 'future'}
+        })
+
+        # 获取最近的交易记录
+        symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'DOGE/USDT']
+        all_trades = []
+
+        for symbol in symbols:
+            try:
+                trades = exchange.fetch_my_trades(symbol, limit=20)
+                for t in trades:
+                    all_trades.append({
+                        'id': t['id'],
+                        'symbol': t['symbol'],
+                        'side': t['side'],
+                        'price': t['price'],
+                        'amount': t['amount'],
+                        'cost': t['cost'],
+                        'fee': t['fee']['cost'] if t['fee'] else 0,
+                        'timestamp': t['datetime'],
+                        'pnl': t.get('info', {}).get('realizedPnl', 0)
+                    })
+            except:
+                continue
+
+        # 按时间排序
+        all_trades.sort(key=lambda x: x['timestamp'], reverse=True)
+
+        return jsonify({
+            'trades': all_trades[:50],
+            'count': len(all_trades)
+        })
+    except Exception as e:
+        return jsonify({'error': str(e), 'trades': []})
+
+@app.route('/api/real_balance')
+def get_real_balance():
+    """获取真实的Binance账户余额"""
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(os.path.join(SCRIPT_DIR, 'quant-trade-bot', '.env'))
+
+        api_key = os.getenv('BINANCE_API_KEY')
+        api_secret = os.getenv('BINANCE_API_SECRET')
+
+        if not api_key or not api_secret:
+            return jsonify({'error': 'API未配置'})
+
+        exchange = ccxt.binance({
+            'apiKey': api_key,
+            'secret': api_secret,
+            'enableRateLimit': True,
+            'options': {'defaultType': 'future'}
+        })
+
+        balance = exchange.fetch_balance()
+
+        return jsonify({
+            'USDT': {
+                'total': balance.get('USDT', {}).get('total', 0),
+                'free': balance.get('USDT', {}).get('free', 0),
+                'used': balance.get('USDT', {}).get('used', 0)
+            },
+            'timestamp': datetime.now().isoformat()
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)})
 
 if __name__ == '__main__':
     print("🌐 启动Web监控面板...")

@@ -503,13 +503,13 @@
     </div>
     <!-- 顶部统计 -->
     <div class="top-stats">
-        <!-- 本金总额 -->
+        <!-- 资产总览 -->
         <div class="stat-card">
-            <div class="stat-label">💰 本金总额</div>
+            <div class="stat-label">💰 资产总览</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
                 <div>
-                    <div style="font-size: 11px; color: #94a3b8;">初始</div>
-                    <div style="font-size: 16px; font-weight: bold; color: #60a5fa;" id="initialBalanceValue">$2000</div>
+                    <div style="font-size: 11px; color: #94a3b8;">初始金额</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #60a5fa;" id="initialBalanceValue">$2,000</div>
                 </div>
                 <div>
                     <div style="font-size: 11px; color: #94a3b8;">可用</div>
@@ -656,7 +656,31 @@
             ⚠️ 风险提醒: SOL/USDT 空头仓位价格接近止损线
         </div>
     </div>
-    
+
+    <!-- 📊 底部交易历史区域 -->
+    <div class="bottom-trades-section" style="margin: 20px; background: linear-gradient(135deg, rgba(15, 23, 42, 0.98) 0%, rgba(30, 41, 59, 0.95) 100%); border-radius: 16px; padding: 24px; border: 1px solid rgba(96, 165, 250, 0.3); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid rgba(96, 165, 250, 0.2);">
+            <h3 style="color: #f1f5f9; margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 24px;">📈</span>
+                交易历史记录
+                <span id="bottomTradeCount" style="font-size: 12px; color: #60a5fa; background: rgba(96, 165, 250, 0.2); padding: 4px 10px; border-radius: 12px;">0条</span>
+            </h3>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <div style="text-align: right;">
+                    <div style="font-size: 11px; color: #94a3b8;">总盈亏</div>
+                    <div id="bottomTotalPnl" style="font-size: 16px; font-weight: bold; color: #10b981;">$0.00</div>
+                </div>
+                <button onclick="loadBottomTrades()" style="background: linear-gradient(135deg, #3b82f6, #60a5fa); border: none; color: white; padding: 8px 16px; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">🔄 刷新</button>
+            </div>
+        </div>
+        <div id="bottomTradesContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 12px; max-height: 400px; overflow-y: auto; padding-right: 5px;">
+            <div style="text-align: center; color: #94a3b8; padding: 40px; grid-column: 1 / -1;">
+                <div style="font-size: 32px; margin-bottom: 10px;">📊</div>
+                <div>正在加载交易历史...</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Chart.js 库 - 使用本地文件 -->
     <script src="chart.min.js"></script>
     <!-- Chart.js Annotation 插件 - 用于在图表上添加标注 -->
@@ -1595,6 +1619,10 @@
                     const priceChangeSign = priceChange >= 0 ? '+' : '';
 
                     const tradeId = trade.id || '-';
+                    // 处理日期格式（支持 "YYYY-MM-DD HH:MM:SS" 和 "YYYY-MM-DDTHH:MM:SS" 两种格式）
+                    const openTimeStr = trade.open_time ? trade.open_time.replace('T', ' ').split('.')[0] : '-';
+                    const closeTimeStr = trade.timestamp ? trade.timestamp.replace('T', ' ').split('.')[0] : '-';
+
                     html += `
                         <div class="trade-item ${direction}" data-id="${tradeId}" onclick="loadPositionChart('${trade.symbol}', ${entryPrice}, ${stopPrice}, ${targetPrice}, '${direction}', this, '${trade.open_time}', '${trade.timestamp}', ${closePrice})">
                             <div class="trade-symbol"><span style="color: #666; font-size: 11px;">#${tradeId}</span> ${trade.symbol}</div>
@@ -1603,8 +1631,8 @@
                                 开仓: $${entryPrice.toFixed(4)} → 平仓: $${closePrice.toFixed(4)} (${priceChangeSign}${priceChange.toFixed(4)})<br>
                                 数量: ${parseFloat(trade.quantity).toFixed(2)}<br>
                                 盈亏: <span style="color: ${pnlColor}; font-weight: bold;">${pnlSign}$${pnl.toFixed(2)} (${pnlSign}${pnlPct.toFixed(2)}%)</span><br>
-                                开仓: ${trade.open_time.split('T')[0]} ${trade.open_time.split('T')[1].split('.')[0]}<br>
-                                平仓: ${trade.timestamp.split('T')[0]} ${trade.timestamp.split('T')[1].split('.')[0]}
+                                开仓: ${openTimeStr}<br>
+                                平仓: ${closeTimeStr}
                             </div>
                         </div>
                     `;
@@ -1846,18 +1874,18 @@
 
                 console.log('📊 加载统计数据:', stats);
 
-                const initialBalance = 2000;
-
                 // 计算占用资金（当前持仓占用的保证金）
+                // 注意：amount字段就是投入的保证金（USDT），不需要再计算
                 let usedBalance = 0;
                 positions.forEach(pos => {
-                    if (pos.status === 'open') {
-                        usedBalance += (pos.entry_price * pos.amount) / pos.leverage;
-                    }
+                    const margin = pos.quantity || pos.amount || 0;
+                    usedBalance += margin;
                 });
 
-                // 可用余额 = 当前余额 - 占用余额
-                const availableBalance = stats.balance - usedBalance;
+                // 使用API返回的available_capital（可用余额）
+                const availableBalance = stats.available_capital || 0;
+                // 总资产 = 可用 + 占用
+                const totalAssets = availableBalance + usedBalance;
 
                 // 计算盈利和亏损总额
                 let totalProfit = 0;
@@ -1871,7 +1899,8 @@
                     }
                 });
 
-                // 更新本金总额区块
+                // 更新资产总览区块（初始金额固定为$2000，不更新）
+                // document.getElementById('initialBalanceValue').textContent = '$2,000';
                 document.getElementById('availableBalanceValue').textContent = '$' + availableBalance.toFixed(2);
                 document.getElementById('usedBalanceValue').textContent = '$' + usedBalance.toFixed(2);
 
@@ -1892,8 +1921,10 @@
                 document.getElementById('profitValue').textContent = '+$' + totalProfit.toFixed(2);
                 document.getElementById('lossValue').textContent = '-$' + totalLoss.toFixed(2);
 
-                // 更新盈亏百分比区块
-                const pnlPercent = (netPnl / initialBalance) * 100;
+                // 更新盈亏百分比区块（基于初始本金计算）
+                // 初始本金固定为 $2000
+                const estimatedInitial = 2000;
+                const pnlPercent = estimatedInitial > 0 ? (netPnl / estimatedInitial) * 100 : 0;
                 const percentElement = document.getElementById('pnlPercentValue');
                 percentElement.textContent = pnlPercent.toFixed(2) + '%';
                 if (pnlPercent > 0) {
@@ -1933,9 +1964,17 @@
 
                 positionsPanel.innerHTML = '';
                 positions.forEach(pos => {
-                    const direction = pos.unrealized_pnl >= 0 ? 'long' : 'short';
+                    // 使用API返回的direction字段，默认long
+                    const direction = pos.direction || 'long';
                     const pnlClass = pos.unrealized_pnl >= 0 ? 'profit' : 'loss';
                     const pnlSign = pos.unrealized_pnl >= 0 ? '+' : '';
+
+                    // 投入金额：数据库中的amount字段就是投入的保证金（USDT）
+                    const cost = pos.quantity || pos.amount || 0;
+
+                    // 计算评分星级显示
+                    const score = pos.score || 0;
+                    const scoreStars = score >= 85 ? '⭐⭐⭐' : score >= 75 ? '⭐⭐' : score >= 70 ? '⭐' : '';
 
                     const div = document.createElement('div');
                     div.className = 'position-item ' + direction;
@@ -1943,11 +1982,12 @@
                     div.innerHTML = `<div class="position-header">
                         <span class="position-symbol">${pos.symbol}</span>
                         <span class="position-badge ${direction}">${direction === 'long' ? '多' : '空'}${pos.leverage}x</span>
+                        ${score > 0 ? `<span style="font-size: 11px; color: #fbbf24; margin-left: auto;">${score}分 ${scoreStars}</span>` : ''}
                     </div>
                     <div class="position-info">
+                        <div><div class="label">💰 投入</div><div class="value" style="color: #fbbf24; font-weight: bold;">$${cost.toFixed(2)}</div></div>
                         <div><div class="label">入场价</div><div class="value">${pos.entry_price.toFixed(4)}</div></div>
                         <div><div class="label">当前价</div><div class="value">${pos.current_price.toFixed(4)}</div></div>
-                        <div><div class="label">数量</div><div class="value">${pos.quantity ? pos.quantity.toFixed(2) : pos.amount.toFixed(2)}</div></div>
                     </div>
                     <div class="position-pnl ${pnlClass}">
                         ${pnlSign}${pos.unrealized_pnl.toFixed(2)} (${pnlSign}${pos.unrealized_pnl_pct.toFixed(2)}%)
@@ -1959,7 +1999,7 @@
                 // 自动加载第一个持仓的图表（仅在用户没有正在查看图表时）
                 if (positions.length > 0 && !userViewingChart) {
                     const firstPos = positions[0];
-                    const direction = firstPos.unrealized_pnl >= 0 ? 'long' : 'short';
+                    const direction = firstPos.direction || 'long';
                     loadPositionChart(firstPos.symbol, firstPos.entry_price, firstPos.stop_loss, firstPos.take_profit, direction);
                 }
             } catch (error) {
@@ -2020,6 +2060,86 @@
                 }
             }
 
+            // 📈 加载底部交易历史（模拟交易记录）
+            async function loadBottomTrades() {
+                const container = document.getElementById('bottomTradesContainer');
+                const countEl = document.getElementById('bottomTradeCount');
+                const totalPnlEl = document.getElementById('bottomTotalPnl');
+
+                try {
+                    const response = await fetch('/api/trades?limit=50');
+                    const trades = await response.json();
+
+                    countEl.textContent = `${trades.length}条`;
+
+                    // 计算总盈亏
+                    let totalPnl = 0;
+                    trades.forEach(t => totalPnl += parseFloat(t.pnl || 0));
+                    totalPnlEl.textContent = `${totalPnl >= 0 ? '+' : ''}$${totalPnl.toFixed(2)}`;
+                    totalPnlEl.style.color = totalPnl >= 0 ? '#10b981' : '#ef4444';
+
+                    if (trades.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 40px; grid-column: 1 / -1;">暂无交易记录</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    trades.forEach(trade => {
+                        const tradeId = trade.id || '-';
+                        const direction = trade.direction || 'long';
+                        const isLong = direction === 'long';
+                        const dirColor = isLong ? '#10b981' : '#ef4444';
+                        const dirText = isLong ? '做多' : '做空';
+                        const dirIcon = isLong ? '📈' : '📉';
+
+                        const entryPrice = parseFloat(trade.entry_price || 0);
+                        const closePrice = parseFloat(trade.close_price || trade.price || 0);
+                        const pnl = parseFloat(trade.pnl || 0);
+                        const pnlPct = parseFloat(trade.pnl_pct || 0);
+                        const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+                        const pnlSign = pnl >= 0 ? '+' : '';
+                        const pnlIcon = pnl >= 0 ? '✅' : '❌';
+
+                        // 评分显示
+                        const score = trade.score || 0;
+                        const scoreStars = score >= 85 ? '⭐⭐⭐' : score >= 75 ? '⭐⭐' : score >= 70 ? '⭐' : '';
+                        const scoreHtml = score > 0 ? `<span style="background: rgba(251, 191, 36, 0.2); color: #fbbf24; padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">${score}分 ${scoreStars}</span>` : '';
+
+                        const openTime = trade.open_time ? trade.open_time.replace('T', ' ').split('.')[0] : '-';
+                        const closeTime = trade.timestamp ? trade.timestamp.replace('T', ' ').split('.')[0] : '-';
+
+                        html += `
+                            <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.9) 0%, rgba(51, 65, 85, 0.7) 100%); padding: 16px; border-radius: 12px; border-left: 4px solid ${dirColor}; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.2);"
+                                 onclick="loadPositionChart('${trade.symbol}', ${entryPrice}, ${trade.stop_loss || entryPrice * 0.95}, ${trade.take_profit || entryPrice * 1.05}, '${direction}', this, '${trade.open_time}', '${trade.timestamp}', ${closePrice})"
+                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(96,165,250,0.2)'"
+                                 onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.2)'">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                    <div>
+                                        <span style="color: #60a5fa; font-size: 11px; opacity: 0.7;">#${tradeId}</span>
+                                        <div style="font-weight: bold; color: #f1f5f9; font-size: 16px;">${trade.symbol} ${scoreHtml}</div>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: ${pnlColor}; font-weight: bold; font-size: 18px;">${pnlIcon} ${pnlSign}$${pnl.toFixed(2)}</div>
+                                        <div style="color: ${pnlColor}; font-size: 12px;">${pnlSign}${pnlPct.toFixed(2)}%</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                    <span style="background: ${dirColor}20; color: ${dirColor}; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold;">${dirIcon} ${dirText} ${trade.leverage || 3}x</span>
+                                    <div style="font-size: 11px; color: #94a3b8; text-align: right;">
+                                        <div>$${entryPrice.toFixed(2)} → $${closePrice.toFixed(2)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+
+                } catch (error) {
+                    console.error('加载交易历史失败:', error);
+                    container.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 20px; grid-column: 1 / -1;">❌ 加载失败</div>`;
+                }
+            }
+
             // ⚡ 优化的加载流程：按优先级依次加载
             async function initializeApp() {
                 try {
@@ -2043,6 +2163,12 @@
                         console.log('🔄 开始加载策略推荐...');
                         loadRecommendations();
                     }, 5000);
+
+                    // 加载底部交易历史（延迟3秒）
+                    setTimeout(() => {
+                        console.log('📈 加载底部交易历史...');
+                        loadBottomTrades();
+                    }, 3000);
                 } catch (error) {
                     console.error('❌ 初始化失败:', error);
                     hideLoading();

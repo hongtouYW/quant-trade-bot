@@ -1,22 +1,40 @@
 量化交易系统
-版本：v0.4
+版本：v0.6
 发布日期：2026-01-29
-代号：Trailing Stop
+代号：Data Fortress
 
 主要更新：
-✅ 移动止盈策略 - 自动锁住利润，让利润继续跑
-✅ 止损优化 - 5%→1.5%，更快止损减少亏损
-✅ 持仓跟踪 - 新增highest/lowest价格跟踪
-✅ 智能平仓 - 回落时自动触发，保住利润
+✅ 数据库架构升级 - 4个新表全面追踪交易数据
+✅ 账户快照 - 追踪资金曲线和最大回撤
+✅ 资金费记录 - 自动计算并记录期货资金费
+✅ 每日统计 - 自动更新每日交易统计
+✅ 配置中心 - 所有参数存储在数据库可随时调整
+✅ 交易代码重构 - auto_trader_v2.py 全新架构
+
+新增数据库表：
+- account_snapshots: 账户快照
+- funding_history: 资金费记录
+- trade_signals: 交易信号
+- daily_stats: 每日统计
+
+新增字段(real_trades)：
+- entry_score, entry_rsi, entry_trend
+- slippage, max_profit, max_loss
+- duration_minutes, close_reason
+
+新增配置(account_config)：
+- max_position_size, max_positions
+- default_leverage, fee_rate
+- stop_loss_pct, take_profit_pct
+- min_score, trading_enabled
 
 技术改进：
-- check_position() 移动止盈逻辑
-- open_position() 跟踪字段初始化
-- load_positions() 加载跟踪字段
-- 日志增强：止损移动通知
+- 手续费实时计算（0.1%）
+- 资金费率模拟（每8小时0.01%）
+- 持仓时长记录
+- 平仓原因追踪
 
-下一版本预告（v0.5）：
-- 分批止盈策略
-- 时间止盈策略
-- ATR动态止损
-- 策略回测验证
+下一版本预告（v0.7）：
+- 前端显示资金曲线图
+- 前端显示每日统计
+- 策略回测功能
