@@ -165,36 +165,44 @@ def get_positions():
 
 @app.route('/api/trades')
 def get_trades():
-    """获取交易记录"""
+    """获取交易记录（完整的开仓+平仓记录）"""
     try:
         limit = int(request.args.get('limit', 20))
-        
+
         conn = get_db()
         cursor = conn.cursor()
-        
+
+        # 从positions表读取已平仓的完整交易记录
         cursor.execute(f'''
-            SELECT * FROM trades 
-            ORDER BY timestamp DESC 
+            SELECT * FROM positions
+            WHERE status = 'closed'
+            ORDER BY close_time DESC
             LIMIT {limit}
         ''')
-        
+
         trades = []
         for row in cursor.fetchall():
+            # 计算交易方向的显示文本
+            direction = row['direction'] if 'direction' in row.keys() else 'long'
+            side = 'buy' if direction == 'long' else 'sell'
+
             trades.append({
-                'timestamp': row['timestamp'],
+                'timestamp': row['close_time'],  # 使用平仓时间作为记录时间
+                'open_time': row['open_time'],   # 开仓时间
                 'symbol': row['symbol'],
-                'side': row['side'],
-                'price': row['price'],
-                'quantity': row['quantity'],
+                'side': side,
+                'direction': direction,
+                'entry_price': row['entry_price'],   # 开仓价
+                'close_price': row['close_price'],   # 平仓价
+                'price': row['close_price'],          # 兼容前端
+                'quantity': row['amount'],
                 'leverage': row['leverage'],
-                'cost': row['cost'],
-                'fee': row['fee'],
+                'stop_loss': row['stop_loss'],
+                'take_profit': row['take_profit'],
                 'pnl': row['pnl'] if row['pnl'] else 0,
                 'pnl_pct': row['pnl_pct'] if row['pnl_pct'] else 0,
-                'reason': row['reason'] if row['reason'] else '',
-                'balance_after': row['balance_after']
             })
-        
+
         conn.close()
         return jsonify(trades)
     except Exception as e:

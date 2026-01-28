@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>量化交易专业面板</title>
+    <title>量化助理</title>
     <style>
         * {
             margin: 0;
@@ -23,7 +23,7 @@
             background: rgba(0, 0, 0, 0.3);
             padding: 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
@@ -338,11 +338,72 @@
             color: #94a3b8;
             line-height: 1.4;
         }
-        
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .position-badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .position-badge.long {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .position-badge.short {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .position-info {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .position-info .label {
+            font-size: 10px;
+            color: #64748b;
+            margin-bottom: 2px;
+        }
+
+        .position-info .value {
+            font-size: 12px;
+            color: #e2e8f0;
+            font-weight: 500;
+        }
+
+        .position-pnl {
+            text-align: center;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .position-pnl.profit {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .position-pnl.loss {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
         .position-direction {
             font-weight: bold;
         }
-        
+
         .position-direction.long { color: #10b981; }
         .position-direction.short { color: #ef4444; }
         
@@ -387,21 +448,62 @@
 <body>
     <!-- 顶部统计 -->
     <div class="top-stats">
+        <!-- 本金总额 -->
         <div class="stat-card">
-            <div class="stat-label">本金总额</div>
-            <div class="stat-value" id="balanceValue">$0.00</div>
+            <div class="stat-label">💰 本金总额</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                <div>
+                    <div style="font-size: 11px; color: #94a3b8;">初始</div>
+                    <div style="font-size: 16px; font-weight: bold; color: #60a5fa;" id="initialBalanceValue">$2000</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: #94a3b8;">可用</div>
+                    <div style="font-size: 16px; font-weight: bold; color: #10b981;" id="availableBalanceValue">$0</div>
+                </div>
+            </div>
+            <div style="margin-top: 8px;">
+                <div style="font-size: 11px; color: #94a3b8;">占用</div>
+                <div style="font-size: 16px; font-weight: bold; color: #fbbf24;" id="usedBalanceValue">$0</div>
+            </div>
         </div>
+
+        <!-- 总盈亏 -->
         <div class="stat-card">
-            <div class="stat-label">交易次数</div>
-            <div class="stat-value" id="totalTradesValue">0</div>
+            <div class="stat-label">📈 总盈亏 (已扣费)</div>
+            <div style="font-size: 24px; font-weight: bold; margin: 8px 0;" id="totalPnlValue">$0.00</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                    <div style="font-size: 11px; color: #94a3b8;">交易费</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #ef4444;" id="totalFeesValue">-$0</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: #94a3b8;">资金费</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #ef4444;" id="fundingFeesValue">-$0</div>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                <div>
+                    <div style="font-size: 11px; color: #94a3b8;">盈利</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #10b981;" id="profitValue">+$0</div>
+                </div>
+                <div>
+                    <div style="font-size: 11px; color: #94a3b8;">亏损</div>
+                    <div style="font-size: 14px; font-weight: bold; color: #ef4444;" id="lossValue">-$0</div>
+                </div>
+            </div>
         </div>
+
+        <!-- 盈亏百分比 -->
         <div class="stat-card">
-            <div class="stat-label">总盈亏</div>
-            <div class="stat-value" id="totalPnlValue">$0.00</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">盈亏百分比</div>
-            <div class="stat-value" id="pnlPercentValue">0.00%</div>
+            <div class="stat-label">📊 盈亏百分比</div>
+            <div style="font-size: 36px; font-weight: bold; margin: 12px 0;" id="pnlPercentValue">0.00%</div>
+            <div style="font-size: 12px; color: #94a3b8;">
+                总盈亏 / 初始本金 × 100
+            </div>
+            <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div style="font-size: 11px; color: #94a3b8;">交易次数</div>
+                <div style="font-size: 18px; font-weight: bold; color: #f1f5f9;" id="totalTradesValue">0</div>
+            </div>
         </div>
     </div>
     
@@ -410,6 +512,9 @@
         <!-- 左侧货币列表 -->
         <div class="currency-list">
             <h3>📊 策略推荐 (<span id="recommendCount">0</span>)</h3>
+            <div style="font-size: 10px; color: #60a5fa; margin-bottom: 10px; text-align: center;">
+                <span id="lastUpdateTime">等待更新...</span> | ⏰ 10分钟刷新
+            </div>
             <div id="currencyListContainer">
                 <div style="text-align: center; color: #94a3b8; padding: 20px; font-size: 12px;">
                     🔍 正在扫描市场机会...
@@ -499,6 +604,8 @@
     
     <!-- Chart.js 库 - 使用本地文件 -->
     <script src="chart.min.js"></script>
+    <!-- Chart.js Annotation 插件 - 用于在图表上添加标注 -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@2.2.1/dist/chartjs-plugin-annotation.min.js"></script>
 
     <script>
         // 图表初始化
@@ -688,16 +795,19 @@
         }
         
         // 加载持仓图表分析
-        function loadPositionChart(symbol, entryPrice, stopPrice, targetPrice, direction, clickedElement = null) {
+        function loadPositionChart(symbol, entryPrice, stopPrice, targetPrice, direction, clickedElement = null, openTime = null, closeTime = null, closePrice = null) {
             console.log(`🎯 加载持仓图表: ${symbol}, 方向: ${direction}, 入场价: ${entryPrice}`);
-            
+
             // 更新当前持仓信息
             currentPosition = {
                 symbol: symbol,
                 entryPrice: entryPrice,
                 stopPrice: stopPrice,
                 targetPrice: targetPrice,
-                direction: direction
+                direction: direction,
+                openTime: openTime,
+                closeTime: closeTime,
+                closePrice: closePrice
             };
             
             // 确保数据存在，优先使用缓存
@@ -811,9 +921,9 @@
                 console.log('✅ 找到图表容器');
                 const ctx = canvas.getContext('2d');
 
-                // 从API获取K线数据
+                // 从API获取K线数据（减少数量加快加载）
                 console.log(`📡 从API获取 ${symbol} 的K线数据，时间周期: ${currentTimeframe}`);
-                const apiUrl = `/api/kline/${symbol}?timeframe=${currentTimeframe}&limit=100`;
+                const apiUrl = `/api/kline/${symbol}?timeframe=${currentTimeframe}&limit=50`;
                 console.log(`🔗 API URL: ${apiUrl}`);
 
                 const response = await fetch(apiUrl);
@@ -853,73 +963,328 @@
 
                 console.log(`📊 创建图表，数据点数: ${closeData.length}`);
 
-                // 准备数据集
-                const datasets = [{
-                    label: symbol + ' 价格',
-                    data: closeData,
-                    borderColor: '#60a5fa',
-                    backgroundColor: 'rgba(96, 165, 250, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4,
-                    order: 1
-                }];
+                // 构建annotation配置
+                const annotations = {};
 
-                // 如果有当前持仓信息，添加价位线
-                if (currentPosition && currentPosition.symbol === symbol) {
-                    console.log('📍 添加价位线:', currentPosition);
+                // 添加持仓价位注释
+                try {
+                    const positionsRes = await fetch('/api/positions');
+                    const allPositions = await positionsRes.json();
+                    const symbolPositions = allPositions.filter(p => p.symbol === symbol);
 
-                    // 入场价线（黄色虚线）
-                    if (currentPosition.entryPrice) {
-                        datasets.push({
-                            label: '入场价 $' + currentPosition.entryPrice.toFixed(4),
-                            data: new Array(labels.length).fill(currentPosition.entryPrice),
+                    const tradesRes = await fetch('/api/trades?limit=50');
+                    const allTrades = await tradesRes.json();
+                    const symbolTrades = allTrades.filter(t => t.symbol === symbol);
+
+                    symbolPositions.forEach((pos, idx) => {
+                        const suffix = symbolPositions.length > 1 ? `_${idx}` : '';
+
+                        // 入场价线
+                        annotations[`entry${suffix}`] = {
+                            type: 'line',
+                            yMin: pos.entry_price,
+                            yMax: pos.entry_price,
                             borderColor: '#fbbf24',
                             borderWidth: 2,
                             borderDash: [5, 5],
-                            fill: false,
-                            pointRadius: 0,
-                            tension: 0,
-                            order: 2
+                            label: {
+                                display: true,
+                                content: `入场 $${pos.entry_price.toFixed(4)}`,
+                                position: 'end',
+                                backgroundColor: 'rgba(251, 191, 36, 0.8)',
+                                color: '#000',
+                                font: { size: 11, weight: 'bold' }
+                            }
+                        };
+
+                        // 止损线
+                        if (pos.stop_loss) {
+                            annotations[`stop${suffix}`] = {
+                                type: 'line',
+                                yMin: pos.stop_loss,
+                                yMax: pos.stop_loss,
+                                borderColor: '#ef4444',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    display: true,
+                                    content: `止损 $${pos.stop_loss.toFixed(4)}`,
+                                    position: 'end',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                                    color: '#fff',
+                                    font: { size: 11, weight: 'bold' }
+                                }
+                            };
+                        }
+
+                        // 止盈线
+                        if (pos.take_profit) {
+                            annotations[`target${suffix}`] = {
+                                type: 'line',
+                                yMin: pos.take_profit,
+                                yMax: pos.take_profit,
+                                borderColor: '#10b981',
+                                borderWidth: 2,
+                                borderDash: [5, 5],
+                                label: {
+                                    display: true,
+                                    content: `止盈 $${pos.take_profit.toFixed(4)}`,
+                                    position: 'end',
+                                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                                    color: '#fff',
+                                    font: { size: 11, weight: 'bold' }
+                                }
+                            };
+                        }
+                    });
+
+                    // 添加历史交易点位标记 (x, y)
+                    symbolTrades.slice(0, 10).forEach((trade, idx) => {
+                        const isBuy = trade.side === 'buy';
+                        const color = isBuy ? '#10b981' : '#ef4444';
+                        const label = isBuy ? '买' : '卖';
+                        const tradeTime = new Date(trade.timestamp);
+                        const tradePrice = parseFloat(trade.price);
+
+                        // 查找交易时间在K线数据中的位置
+                        const tradeTimestamp = tradeTime.getTime();
+                        const klineTimestamps = klines.map(k => new Date(k.timestamp).getTime());
+
+                        // 找到最接近的K线索引
+                        let closestIndex = -1;
+                        let minDiff = Infinity;
+
+                        klineTimestamps.forEach((ts, i) => {
+                            const diff = Math.abs(ts - tradeTimestamp);
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                closestIndex = i;
+                            }
                         });
+
+                        // 如果找到了对应的时间点，添加点标记
+                        if (closestIndex >= 0 && minDiff < 24 * 60 * 60 * 1000) { // 24小时内
+                            const timeLabel = labels[closestIndex];
+                            const timeStr = `${tradeTime.getMonth()+1}/${tradeTime.getDate()} ${tradeTime.getHours()}:${String(tradeTime.getMinutes()).padStart(2,'0')}`;
+
+                            annotations[`trade_point_${idx}`] = {
+                                type: 'point',
+                                xValue: timeLabel,
+                                yValue: tradePrice,
+                                backgroundColor: color,
+                                borderColor: '#fff',
+                                borderWidth: 1,
+                                radius: 4,
+                                label: {
+                                    display: true,
+                                    content: `${label} $${tradePrice.toFixed(4)}`,
+                                    position: 'top',
+                                    backgroundColor: isBuy ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)',
+                                    color: '#fff',
+                                    font: { size: 9, weight: 'bold' },
+                                    padding: 3,
+                                    yAdjust: -10
+                                }
+                            };
+                        }
+                    });
+
+                    // 添加持仓开仓点标记
+                    symbolPositions.forEach((pos, idx) => {
+                        const suffix = symbolPositions.length > 1 ? `_${idx}` : '';
+                        if (pos.entry_time) {
+                            const entryTime = new Date(pos.entry_time);
+                            const entryTimestamp = entryTime.getTime();
+                            const klineTimestamps = klines.map(k => new Date(k.timestamp).getTime());
+
+                            let closestIndex = -1;
+                            let minDiff = Infinity;
+
+                            klineTimestamps.forEach((ts, i) => {
+                                const diff = Math.abs(ts - entryTimestamp);
+                                if (diff < minDiff) {
+                                    minDiff = diff;
+                                    closestIndex = i;
+                                }
+                            });
+
+                            if (closestIndex >= 0 && minDiff < 24 * 60 * 60 * 1000) {
+                                const timeLabel = labels[closestIndex];
+                                const timeStr = `${entryTime.getMonth()+1}/${entryTime.getDate()} ${entryTime.getHours()}:${String(entryTime.getMinutes()).padStart(2,'0')}`;
+
+                                annotations[`position_point${suffix}`] = {
+                                    type: 'point',
+                                    xValue: timeLabel,
+                                    yValue: pos.entry_price,
+                                    backgroundColor: '#fbbf24',
+                                    borderColor: '#fff',
+                                    borderWidth: 1,
+                                    radius: 5,
+                                    label: {
+                                        display: true,
+                                        content: `开仓 $${pos.entry_price.toFixed(4)}`,
+                                        position: 'top',
+                                        backgroundColor: 'rgba(251, 191, 36, 0.95)',
+                                        color: '#000',
+                                        font: { size: 9, weight: 'bold' },
+                                        padding: 3,
+                                        yAdjust: -10
+                                    }
+                                };
+                            }
+                        }
+                    });
+
+                    // 添加复盘标记：显示当时的开仓、平仓、止损、止盈位置
+                    if (currentPosition.openTime) {
+                        const openTime = new Date(currentPosition.openTime);
+                        const openTimestamp = openTime.getTime();
+                        const klineTimestamps = klines.map(k => new Date(k.timestamp).getTime());
+
+                        // 找到开仓时间最接近的K线索引
+                        let openIndex = -1;
+                        let minDiff = Infinity;
+                        klineTimestamps.forEach((ts, i) => {
+                            const diff = Math.abs(ts - openTimestamp);
+                            if (diff < minDiff) {
+                                minDiff = diff;
+                                openIndex = i;
+                            }
+                        });
+
+                        if (openIndex >= 0 && minDiff < 24 * 60 * 60 * 1000) {
+                            const openLabel = labels[openIndex];
+
+                            // 开仓点标记
+                            annotations['review_entry'] = {
+                                type: 'point',
+                                xValue: openLabel,
+                                yValue: currentPosition.entryPrice,
+                                backgroundColor: '#fbbf24',
+                                borderColor: '#fff',
+                                borderWidth: 2,
+                                radius: 6,
+                                label: {
+                                    display: true,
+                                    content: `开仓 $${currentPosition.entryPrice.toFixed(4)}`,
+                                    position: 'top',
+                                    backgroundColor: 'rgba(251, 191, 36, 0.95)',
+                                    color: '#000',
+                                    font: { size: 10, weight: 'bold' },
+                                    padding: 4,
+                                    yAdjust: -12
+                                }
+                            };
+
+                            // 当时的止损位标记
+                            if (currentPosition.stopPrice) {
+                                annotations['review_stop'] = {
+                                    type: 'point',
+                                    xValue: openLabel,
+                                    yValue: currentPosition.stopPrice,
+                                    backgroundColor: '#ef4444',
+                                    borderColor: '#fff',
+                                    borderWidth: 2,
+                                    radius: 5,
+                                    label: {
+                                        display: true,
+                                        content: `止损 $${currentPosition.stopPrice.toFixed(4)}`,
+                                        position: currentPosition.direction === 'long' ? 'bottom' : 'top',
+                                        backgroundColor: 'rgba(239, 68, 68, 0.95)',
+                                        color: '#fff',
+                                        font: { size: 9, weight: 'bold' },
+                                        padding: 3,
+                                        yAdjust: currentPosition.direction === 'long' ? 12 : -12
+                                    }
+                                };
+                            }
+
+                            // 当时的止盈位标记
+                            if (currentPosition.targetPrice) {
+                                annotations['review_target'] = {
+                                    type: 'point',
+                                    xValue: openLabel,
+                                    yValue: currentPosition.targetPrice,
+                                    backgroundColor: '#10b981',
+                                    borderColor: '#fff',
+                                    borderWidth: 2,
+                                    radius: 5,
+                                    label: {
+                                        display: true,
+                                        content: `止盈 $${currentPosition.targetPrice.toFixed(4)}`,
+                                        position: currentPosition.direction === 'long' ? 'top' : 'bottom',
+                                        backgroundColor: 'rgba(16, 185, 129, 0.95)',
+                                        color: '#fff',
+                                        font: { size: 9, weight: 'bold' },
+                                        padding: 3,
+                                        yAdjust: currentPosition.direction === 'long' ? -12 : 12
+                                    }
+                                };
+                            }
+                        }
+
+                        // 如果有平仓时间和价格，添加平仓点标记
+                        if (currentPosition.closeTime && currentPosition.closePrice) {
+                            const closeTime = new Date(currentPosition.closeTime);
+                            const closeTimestamp = closeTime.getTime();
+
+                            // 找到平仓时间最接近的K线索引
+                            let closeIndex = -1;
+                            minDiff = Infinity;
+                            klineTimestamps.forEach((ts, i) => {
+                                const diff = Math.abs(ts - closeTimestamp);
+                                if (diff < minDiff) {
+                                    minDiff = diff;
+                                    closeIndex = i;
+                                }
+                            });
+
+                            if (closeIndex >= 0 && minDiff < 24 * 60 * 60 * 1000) {
+                                const closeLabel = labels[closeIndex];
+                                const isProfitable = currentPosition.direction === 'long'
+                                    ? currentPosition.closePrice > currentPosition.entryPrice
+                                    : currentPosition.closePrice < currentPosition.entryPrice;
+
+                                annotations['review_exit'] = {
+                                    type: 'point',
+                                    xValue: closeLabel,
+                                    yValue: currentPosition.closePrice,
+                                    backgroundColor: isProfitable ? '#10b981' : '#ef4444',
+                                    borderColor: '#fff',
+                                    borderWidth: 2,
+                                    radius: 6,
+                                    label: {
+                                        display: true,
+                                        content: `平仓 $${currentPosition.closePrice.toFixed(4)}`,
+                                        position: 'top',
+                                        backgroundColor: isProfitable ? 'rgba(16, 185, 129, 0.95)' : 'rgba(239, 68, 68, 0.95)',
+                                        color: '#fff',
+                                        font: { size: 10, weight: 'bold' },
+                                        padding: 4,
+                                        yAdjust: -12
+                                    }
+                                };
+                            }
+                        }
                     }
 
-                    // 止损线（红色虚线）
-                    if (currentPosition.stopPrice) {
-                        datasets.push({
-                            label: '止损价 $' + currentPosition.stopPrice.toFixed(4),
-                            data: new Array(labels.length).fill(currentPosition.stopPrice),
-                            borderColor: '#ef4444',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            fill: false,
-                            pointRadius: 0,
-                            tension: 0,
-                            order: 2
-                        });
-                    }
-
-                    // 止盈线（绿色虚线）
-                    if (currentPosition.targetPrice) {
-                        datasets.push({
-                            label: '止盈价 $' + currentPosition.targetPrice.toFixed(4),
-                            data: new Array(labels.length).fill(currentPosition.targetPrice),
-                            borderColor: '#10b981',
-                            borderWidth: 2,
-                            borderDash: [5, 5],
-                            fill: false,
-                            pointRadius: 0,
-                            tension: 0,
-                            order: 2
-                        });
-                    }
+                } catch (error) {
+                    console.error('❌ 获取价位数据失败:', error);
                 }
 
                 chart = new Chart(ctx, {
                     type: 'line',
                     data: {
                         labels: labels,
-                        datasets: datasets
+                        datasets: [{
+                            label: symbol + ' 价格',
+                            data: closeData,
+                            borderColor: '#60a5fa',
+                            backgroundColor: 'rgba(96, 165, 250, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
                     },
                     options: {
                         responsive: true,
@@ -934,6 +1299,9 @@
                                 labels: {
                                     color: '#e2e8f0'
                                 }
+                            },
+                            annotation: {
+                                annotations: annotations
                             }
                         },
                         scales: {
@@ -1052,7 +1420,7 @@
             historyContent.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px;">📊 正在从数据库加载交易历史...</div>';
             
             try {
-                const response = await fetch('http://localhost:5002/api/trades');
+                const response = await fetch('/api/trades');
                 if (!response.ok) {
                     throw new Error(`HTTP错误: ${response.status}`);
                 }
@@ -1070,21 +1438,35 @@
                 
                 let html = '';
                 trades.forEach(trade => {
-                    const sideClass = trade.side === 'buy' ? 'buy' : 'sell';
-                    const sideText = trade.side === 'buy' ? '买入' : '卖出';
-                    const sideColor = trade.side === 'buy' ? '#10b981' : '#ef4444';
-                    const stopPrice = trade.price * 0.95;
-                    const targetPrice = trade.price * 1.05;
-                    
+                    const direction = trade.direction || 'long';
+                    const directionText = direction === 'long' ? '做多' : '做空';
+                    const directionColor = direction === 'long' ? '#10b981' : '#ef4444';
+
+                    const entryPrice = parseFloat(trade.entry_price);
+                    const closePrice = parseFloat(trade.close_price);
+                    const stopPrice = trade.stop_loss || entryPrice * 0.95;
+                    const targetPrice = trade.take_profit || entryPrice * 1.05;
+
+                    // 盈亏显示
+                    const pnl = parseFloat(trade.pnl || 0);
+                    const pnlPct = parseFloat(trade.pnl_pct || 0);
+                    const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
+                    const pnlSign = pnl >= 0 ? '+' : '';
+
+                    // 价格变化
+                    const priceChange = closePrice - entryPrice;
+                    const priceChangeSign = priceChange >= 0 ? '+' : '';
+
                     html += `
-                        <div class="trade-item ${sideClass}" onclick="loadPositionChart('${trade.symbol}', ${trade.price}, ${stopPrice}, ${targetPrice}, '${trade.side}', this)">
+                        <div class="trade-item ${direction}" onclick="loadPositionChart('${trade.symbol}', ${entryPrice}, ${stopPrice}, ${targetPrice}, '${direction}', this, '${trade.open_time}', '${trade.timestamp}', ${closePrice})">
                             <div class="trade-symbol">${trade.symbol}</div>
                             <div class="trade-details">
-                                操作: <span style="color: ${sideColor}; font-weight: bold;">${sideText}</span><br>
-                                价格: $${parseFloat(trade.price).toLocaleString()}<br>
-                                数量: ${parseFloat(trade.amount).toLocaleString()}<br>
-                                时间: ${trade.timestamp}<br>
-                                余额: $${parseFloat(trade.balance_after).toLocaleString()}
+                                方向: <span style="color: ${directionColor}; font-weight: bold;">${directionText} ${trade.leverage}x</span><br>
+                                开仓: $${entryPrice.toFixed(4)} → 平仓: $${closePrice.toFixed(4)} (${priceChangeSign}${priceChange.toFixed(4)})<br>
+                                数量: ${parseFloat(trade.quantity).toFixed(2)}<br>
+                                盈亏: <span style="color: ${pnlColor}; font-weight: bold;">${pnlSign}$${pnl.toFixed(2)} (${pnlSign}${pnlPct.toFixed(2)}%)</span><br>
+                                开仓: ${trade.open_time.split('T')[0]} ${trade.open_time.split('T')[1].split('.')[0]}<br>
+                                平仓: ${trade.timestamp.split('T')[0]} ${trade.timestamp.split('T')[1].split('.')[0]}
                             </div>
                         </div>
                     `;
@@ -1097,7 +1479,7 @@
                 
             } catch (error) {
                 console.error('❌ 加载交易历史失败:', error);
-                const errorHtml = '<div style="text-align: center; color: #ef4444; padding: 20px;">⚠️ 加载失败<br><small>请检查API服务器是否运行在端口5002</small><br><button onclick="loadTradeHistory()" style="margin-top:10px; background:#60a5fa; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">重新加载</button></div>';
+                const errorHtml = '<div style="text-align: center; color: #ef4444; padding: 20px;">⚠️ 加载失败<br><small>请检查网络连接或稍后重试</small><br><button onclick="loadTradeHistory()" style="margin-top:10px; background:#60a5fa; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer;">重新加载</button></div>';
                 historyContent.innerHTML = errorHtml;
             }
         }
@@ -1213,6 +1595,14 @@
                     countElement.textContent = recommendations.length;
                 }
 
+                // 更新刷新时间
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                const updateTimeElement = document.getElementById('lastUpdateTime');
+                if (updateTimeElement) {
+                    updateTimeElement.textContent = `上次更新: ${timeStr}`;
+                }
+
                 if (recommendations.length === 0) {
                     container.innerHTML = '<div style="text-align: center; color: #94a3b8; padding: 20px; font-size: 12px;">暂无推荐机会</div>';
                     return;
@@ -1281,40 +1671,76 @@
         // 从API加载账户统计数据
         async function loadStats() {
             try {
-                const response = await fetch('/api/stats');
-                const stats = await response.json();
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+
+                const positionsResponse = await fetch('/api/positions');
+                const positions = await positionsResponse.json();
+
+                const tradesResponse = await fetch('/api/trades?limit=100');
+                const trades = await tradesResponse.json();
 
                 console.log('📊 加载统计数据:', stats);
 
-                // 更新本金总额
-                document.getElementById('balanceValue').textContent = '$' + stats.balance.toFixed(2);
+                const initialBalance = 2000;
 
-                // 更新交易次数
-                document.getElementById('totalTradesValue').textContent = stats.total_trades;
+                // 计算占用资金（当前持仓占用的保证金）
+                let usedBalance = 0;
+                positions.forEach(pos => {
+                    if (pos.status === 'open') {
+                        usedBalance += (pos.entry_price * pos.amount) / pos.leverage;
+                    }
+                });
 
-                // 更新总盈亏（带颜色）
+                // 可用余额 = 当前余额 - 占用余额
+                const availableBalance = stats.balance - usedBalance;
+
+                // 计算盈利和亏损总额
+                let totalProfit = 0;
+                let totalLoss = 0;
+                trades.forEach(trade => {
+                    const pnl = parseFloat(trade.pnl || 0);
+                    if (pnl > 0) {
+                        totalProfit += pnl;
+                    } else if (pnl < 0) {
+                        totalLoss += Math.abs(pnl);
+                    }
+                });
+
+                // 更新本金总额区块
+                document.getElementById('availableBalanceValue').textContent = '$' + availableBalance.toFixed(2);
+                document.getElementById('usedBalanceValue').textContent = '$' + usedBalance.toFixed(2);
+
+                // 更新总盈亏区块（扣除手续费后的净盈亏）
+                const netPnl = stats.total_pnl - stats.total_fees;
                 const pnlElement = document.getElementById('totalPnlValue');
-                pnlElement.textContent = '$' + stats.total_pnl.toFixed(2);
-                if (stats.total_pnl > 0) {
-                    pnlElement.className = 'stat-value profit';
-                } else if (stats.total_pnl < 0) {
-                    pnlElement.className = 'stat-value loss';
+                pnlElement.textContent = '$' + netPnl.toFixed(2);
+                if (netPnl > 0) {
+                    pnlElement.style.color = '#10b981';
+                } else if (netPnl < 0) {
+                    pnlElement.style.color = '#ef4444';
                 } else {
-                    pnlElement.className = 'stat-value';
+                    pnlElement.style.color = '#f1f5f9';
                 }
 
-                // 计算并更新盈亏百分比
-                const initialBalance = 2000; // 初始本金
-                const pnlPercent = (stats.total_pnl / initialBalance) * 100;
+                document.getElementById('totalFeesValue').textContent = '-$' + stats.total_fees.toFixed(2);
+                document.getElementById('fundingFeesValue').textContent = '-$0.00'; // 暂时为0，后续可以添加资金费率
+                document.getElementById('profitValue').textContent = '+$' + totalProfit.toFixed(2);
+                document.getElementById('lossValue').textContent = '-$' + totalLoss.toFixed(2);
+
+                // 更新盈亏百分比区块
+                const pnlPercent = (netPnl / initialBalance) * 100;
                 const percentElement = document.getElementById('pnlPercentValue');
                 percentElement.textContent = pnlPercent.toFixed(2) + '%';
                 if (pnlPercent > 0) {
-                    percentElement.className = 'stat-value profit';
+                    percentElement.style.color = '#10b981';
                 } else if (pnlPercent < 0) {
-                    percentElement.className = 'stat-value loss';
+                    percentElement.style.color = '#ef4444';
                 } else {
-                    percentElement.className = 'stat-value';
+                    percentElement.style.color = '#f1f5f9';
                 }
+
+                document.getElementById('totalTradesValue').textContent = stats.total_trades;
 
             } catch (error) {
                 console.error('❌ 加载统计数据失败:', error);
@@ -1357,6 +1783,7 @@
                     <div class="position-info">
                         <div><div class="label">入场价</div><div class="value">${pos.entry_price.toFixed(4)}</div></div>
                         <div><div class="label">当前价</div><div class="value">${pos.current_price.toFixed(4)}</div></div>
+                        <div><div class="label">数量</div><div class="value">${pos.quantity ? pos.quantity.toFixed(2) : pos.amount.toFixed(2)}</div></div>
                     </div>
                     <div class="position-pnl ${pnlClass}">
                         ${pnlSign}${pos.unrealized_pnl.toFixed(2)} (${pnlSign}${pos.unrealized_pnl_pct.toFixed(2)}%)
@@ -1419,8 +1846,11 @@
             // 加载交易历史
             loadTradeHistory();
 
-            // 加载策略推荐（会自动加载第一个推荐的图表）
-            loadRecommendations();
+            // 延迟加载策略推荐（避免阻塞页面渲染，2秒后再加载）
+            setTimeout(() => {
+                console.log('🔄 开始加载策略推荐...');
+                loadRecommendations();
+            }, 2000);
 
             // 🔄 设置1分钟自动刷新数据
             setInterval(() => {

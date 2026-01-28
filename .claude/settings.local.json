@@ -69,7 +69,31 @@
       "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_simple.exp)",
       "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_schema.exp)",
       "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/upload_stats_update.exp)",
-      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/update_monitor.exp:*)"
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/update_monitor.exp:*)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_history_fix.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/test_history_api.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/quick_test_trades.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_pnl_fix.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_chart_markers.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_annotation.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_time_markers.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_point_markers.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_larger_points.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_normal_size.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_matic_position.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/quick_check_matic.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_auto_close.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/restart_trader.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/fix_db_schema.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_final_status.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_smaller_points.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_and_fix_trades.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/fix_trade_count_simple.exp)",
+      "Bash(scp:*)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_combined_history.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_server_status.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/check_logs_and_page.exp)",
+      "Bash(/private/tmp/claude/-Users-hongtou-newproject/22a22414-c9ef-44c6-aadc-358f3edcf52a/scratchpad/deploy_async_fix.exp)"
     ]
   }
 }

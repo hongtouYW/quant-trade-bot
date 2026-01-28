@@ -127,32 +127,38 @@ class PaperTradingAssistant:
             print(f"加载现有持仓: {list(self.positions.keys())}")
     
     def get_price(self, symbol):
-        """获取币种价格"""
+        """获取币种价格（使用Binance期货API）"""
         try:
-            coin_id_map = {
-                'XMR': 'monero', 'MEMES': 'meme', 'AXS': 'axie-infinity',
-                'ROSE': 'oasis-network', 'XRP': 'ripple', 'SOL': 'solana', 'DUSK': 'dusk-network'
+            symbol_map = {
+                'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
+                'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT',
+                'DUSK': 'DUSKUSDT', 'VET': 'VETUSDT', 'BNB': 'BNBUSDT',
+                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
             }
-            coin_id = coin_id_map.get(symbol, symbol.lower())
-            
-            url = f"https://api.coingecko.com/api/v3/simple/price?ids={coin_id}&vs_currencies=usd"
+            binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+
+            # 使用Binance期货API
+            url = f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={binance_symbol}"
             response = requests.get(url, timeout=10)
             data = response.json()
-            return data[coin_id]['usd']
+            return float(data['price'])
         except Exception as e:
             print(f"获取{symbol}价格失败: {e}")
             return None
     
     def get_kline_data(self, symbol, interval='1h', limit=100):
-        """获取K线数据"""
+        """获取K线数据（使用Binance期货API）"""
         try:
             symbol_map = {
                 'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
-                'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT'
+                'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT',
+                'DUSK': 'DUSKUSDT', 'VET': 'VETUSDT', 'BNB': 'BNBUSDT',
+                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
             }
             binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
-            
-            url = f"https://api.binance.com/api/v3/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
+
+            # 使用Binance期货API
+            url = f"https://fapi.binance.com/fapi/v1/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
             response = requests.get(url, timeout=10)
             return response.json()
         except Exception as e:
@@ -317,16 +323,10 @@ class PaperTradingAssistant:
                 'direction': direction,
                 'entry_price': entry_price,
                 'amount': amount,
-                'initial_amount': amount,  # 初始金额（用于计算已平仓比例）
                 'leverage': leverage,
                 'stop_loss': stop_loss,
                 'take_profit': take_profit,
-                'entry_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'highest_price': entry_price if direction == 'LONG' else entry_price,  # 跟踪最高价（做多）或最低价（做空）
-                'trailing_activated': False,  # 移动止损是否已激活
-                'closed_percentage': 0,  # 已平仓百分比
-                'first_tp_done': False,  # 第一批止盈（+5% 50%）
-                'second_tp_done': False  # 第二批止盈（+8% 30%）
+                'entry_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
             # 写入数据库
@@ -378,250 +378,40 @@ class PaperTradingAssistant:
             traceback.print_exc()
     
     def check_position(self, symbol, position):
-        """检查持仓是否需要平仓（包含移动止损逻辑）"""
+        """检查持仓是否需要平仓（简单止盈止损）"""
         try:
             current_price = self.get_price(symbol)
             if not current_price:
                 return
 
             direction = position['direction']
-            entry_price = position['entry_price']
             stop_loss = position['stop_loss']
             take_profit = position['take_profit']
-            leverage = position['leverage']
 
-            # 获取或初始化最高价/最低价
-            if 'highest_price' not in position:
-                position['highest_price'] = entry_price
-                position['trailing_activated'] = False
-
-            # 计算当前盈亏百分比
-            if direction == 'LONG':
-                price_change_pct = (current_price - entry_price) / entry_price
-            else:
-                price_change_pct = (entry_price - current_price) / entry_price
-
-            profit_pct = price_change_pct * 100
-
-            # 移动止损逻辑
-            stop_loss_updated = False
-            if direction == 'LONG':
-                # 更新最高价
-                if current_price > position['highest_price']:
-                    position['highest_price'] = current_price
-
-                # 当盈利达到+5%时，启动移动止损
-                if profit_pct >= 5.0 and not position.get('trailing_activated', False):
-                    # 设置止损为入场价+2%（保护2%利润）
-                    new_stop_loss = entry_price * 1.02
-                    if new_stop_loss > stop_loss:
-                        position['stop_loss'] = new_stop_loss
-                        position['trailing_activated'] = True
-                        stop_loss = new_stop_loss
-                        stop_loss_updated = True
-                        print(f"✅ {symbol} 移动止损启动！止损从${stop_loss:.4f}调整到${new_stop_loss:.4f} (+2%保护)")
-
-                # 如果已启动移动止损，根据最高价持续更新
-                elif position.get('trailing_activated', False):
-                    # 止损保持在最高价-3%（保护利润）
-                    new_stop_loss = position['highest_price'] * 0.97
-                    if new_stop_loss > stop_loss:
-                        position['stop_loss'] = new_stop_loss
-                        stop_loss = new_stop_loss
-                        stop_loss_updated = True
-                        highest_profit = (position['highest_price'] - entry_price) / entry_price * 100
-                        protected_profit = (new_stop_loss - entry_price) / entry_price * 100
-                        print(f"📈 {symbol} 移动止损更新：最高+{highest_profit:.2f}% → 保护+{protected_profit:.2f}%利润")
-
-            else:  # SHORT
-                # 更新最低价
-                if 'highest_price' not in position or current_price < position['highest_price']:
-                    position['highest_price'] = current_price  # 对于做空，这里存的是最低价
-
-                # 当盈利达到+5%时，启动移动止损
-                if profit_pct >= 5.0 and not position.get('trailing_activated', False):
-                    # 设置止损为入场价-2%（保护2%利润）
-                    new_stop_loss = entry_price * 0.98
-                    if new_stop_loss < stop_loss:
-                        position['stop_loss'] = new_stop_loss
-                        position['trailing_activated'] = True
-                        stop_loss = new_stop_loss
-                        stop_loss_updated = True
-                        print(f"✅ {symbol} 移动止损启动！止损从${stop_loss:.4f}调整到${new_stop_loss:.4f} (+2%保护)")
-
-                # 如果已启动移动止损，根据最低价持续更新
-                elif position.get('trailing_activated', False):
-                    # 止损保持在最低价+3%（保护利润）
-                    new_stop_loss = position['highest_price'] * 1.03
-                    if new_stop_loss < stop_loss:
-                        position['stop_loss'] = new_stop_loss
-                        stop_loss = new_stop_loss
-                        stop_loss_updated = True
-                        highest_profit = (entry_price - position['highest_price']) / entry_price * 100
-                        protected_profit = (entry_price - new_stop_loss) / entry_price * 100
-                        print(f"📉 {symbol} 移动止损更新：最高+{highest_profit:.2f}% → 保护+{protected_profit:.2f}%利润")
-
-            # 如果止损更新了，同步到数据库
-            if stop_loss_updated:
-                try:
-                    conn = sqlite3.connect(self.db_path)
-                    cursor = conn.cursor()
-                    cursor.execute('''
-                        UPDATE real_trades
-                        SET stop_loss = ?
-                        WHERE symbol = ? AND status = 'OPEN' AND mode = 'paper' AND assistant = '交易助手'
-                    ''', (stop_loss, symbol))
-                    conn.commit()
-                    conn.close()
-                except Exception as e:
-                    print(f"更新数据库止损失败: {e}")
-
-            # 分批止盈逻辑
-            # 第一批：+5% 平仓50%
-            if profit_pct >= 5.0 and not position.get('first_tp_done', False):
-                self.partial_close_position(symbol, current_price, 0.50, "第一批止盈 +5%")
-                position['first_tp_done'] = True
-
-            # 第二批：+8% 平仓30%
-            elif profit_pct >= 8.0 and not position.get('second_tp_done', False):
-                self.partial_close_position(symbol, current_price, 0.30, "第二批止盈 +8%")
-                position['second_tp_done'] = True
-
-            # 检查止损止盈（剩余20%仓位）
+            # 检查止损止盈
             should_close = False
             reason = ""
 
             if direction == 'LONG':
                 if current_price >= take_profit:
                     should_close = True
-                    reason = "触发止盈（剩余仓位+10%）"
+                    reason = "触发止盈"
                 elif current_price <= stop_loss:
                     should_close = True
-                    if position.get('trailing_activated', False):
-                        reason = "触发移动止损（锁定利润）"
-                    else:
-                        reason = "触发止损"
+                    reason = "触发止损"
             else:  # SHORT
                 if current_price <= take_profit:
                     should_close = True
-                    reason = "触发止盈（剩余仓位+10%）"
+                    reason = "触发止盈"
                 elif current_price >= stop_loss:
                     should_close = True
-                    if position.get('trailing_activated', False):
-                        reason = "触发移动止损（锁定利润）"
-                    else:
-                        reason = "触发止损"
+                    reason = "触发止损"
 
             if should_close:
                 self.close_position(symbol, current_price, reason)
 
         except Exception as e:
             print(f"检查{symbol}持仓失败: {e}")
-
-    def partial_close_position(self, symbol, exit_price, close_percentage, reason):
-        """部分平仓"""
-        try:
-            position = self.positions.get(symbol)
-            if not position:
-                return False
-
-            direction = position['direction']
-            entry_price = position['entry_price']
-            initial_amount = position.get('initial_amount', position['amount'])
-            current_amount = position['amount']
-            leverage = position['leverage']
-
-            # 计算本次平仓金额
-            close_amount = initial_amount * close_percentage
-
-            if close_amount > current_amount:
-                close_amount = current_amount  # 不能超过剩余金额
-
-            # 计算盈亏
-            if direction == 'LONG':
-                price_change_pct = (exit_price - entry_price) / entry_price
-            else:
-                price_change_pct = (entry_price - exit_price) / entry_price
-
-            roi = price_change_pct * leverage * 100
-            pnl_before_fee = close_amount * price_change_pct * leverage
-
-            # 计算手续费（仅平仓手续费）
-            position_value = close_amount * leverage
-            exit_fee = position_value * self.fee_rate
-
-            # 计算资金费率（按持仓时间计算）
-            entry_time_str = position.get('entry_time', datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            entry_time = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
-            exit_time_obj = datetime.now()
-            holding_hours = (exit_time_obj - entry_time).total_seconds() / 3600
-            funding_rate = 0.0001
-            funding_fee = position_value * funding_rate * (holding_hours / 8)
-
-            # 最终盈亏
-            pnl = pnl_before_fee - exit_fee - funding_fee
-
-            # 更新资金
-            self.current_capital += pnl
-
-            # 更新持仓金额
-            position['amount'] -= close_amount
-            position['closed_percentage'] += close_percentage * 100
-
-            # 如果完全平仓，删除持仓
-            if position['amount'] <= 1:  # 剩余金额小于1U，视为全部平仓
-                del self.positions[symbol]
-
-                # 更新数据库为已平仓
-                conn = sqlite3.connect(self.db_path)
-                cursor = conn.cursor()
-                exit_time = exit_time_obj.strftime('%Y-%m-%d %H:%M:%S')
-                cursor.execute('''
-                    UPDATE real_trades
-                    SET exit_price = ?, exit_time = ?, status = 'CLOSED',
-                        pnl = ?, roi = ?, fee = ?, funding_fee = ?, reason = reason || ' | ' || ?
-                    WHERE symbol = ? AND status = 'OPEN' AND mode = 'paper' AND assistant = '交易助手'
-                ''', (exit_price, exit_time, pnl, roi, exit_fee, funding_fee, f"{reason} (分批完成)", symbol))
-                conn.commit()
-                conn.close()
-            else:
-                # 更新数据库金额
-                conn = sqlite3.connect(self.db_path)
-                cursor = conn.cursor()
-                cursor.execute('''
-                    UPDATE real_trades
-                    SET amount = ?
-                    WHERE symbol = ? AND status = 'OPEN' AND mode = 'paper' AND assistant = '交易助手'
-                ''', (position['amount'], symbol))
-                conn.commit()
-                conn.close()
-
-            # 发送通知
-            remaining_pct = (position['amount'] / initial_amount * 100) if symbol in self.positions else 0
-            msg = f"""【交易助手-模拟】📤 部分平仓
-
-💰 币种：{symbol}/USDT
-📊 方向：{'做多' if direction == 'LONG' else '做空'}
-💵 平仓金额：{close_amount:.0f}U ({close_percentage*100:.0f}%)
-📍 平仓价：${exit_price:.6f}
-
-💹 本批盈亏：{pnl:+.2f}U
-📈 本批ROI：{roi:+.2f}%
-📝 原因：{reason}
-
-💼 剩余持仓：{position['amount']:.0f}U ({remaining_pct:.0f}%) if symbol in self.positions else "已全部平仓"
-💰 当前资金：{self.current_capital:.2f}U
-"""
-            self.send_telegram(msg)
-            print(f"✅ {symbol} 部分平仓 {close_percentage*100:.0f}% @ ${exit_price:.6f} | 盈亏: {pnl:+.2f}U")
-
-            return True
-
-        except Exception as e:
-            print(f"部分平仓失败: {e}")
-            import traceback
-            traceback.print_exc()
-            return False
 
     def close_position(self, symbol, exit_price, reason):
         """平仓"""

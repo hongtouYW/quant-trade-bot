@@ -362,32 +362,31 @@ def get_watchlist():
                 profit_pct = None
                 loss_pct = None
 
+                # 获取信号数据（总是返回数据，包括信心度）
+                suggestion_data = get_signal_suggestion(symbol)
+                if suggestion_data:
+                    confidence = suggestion_data['confidence']
+
                 if has_position:
                     # 持仓币种：使用实际的杠杆、止盈、止损
                     pos_info = positions_dict[symbol]
                     leverage = pos_info['leverage']
                     take_profit = pos_info['take_profit']
                     stop_loss = pos_info['stop_loss']
-
-                    # 获取信号数据用于信心度
-                    suggestion_data = get_signal_suggestion(symbol)
-                    if suggestion_data:
-                        confidence = suggestion_data['confidence']
                 else:
-                    # 非持仓币种：计算预估盈亏%
+                    # 非持仓币种：显示建议的止盈止损，计算预估盈亏%
                     leverage = 10  # 默认10倍杠杆
-                    suggestion_data = get_signal_suggestion(symbol)
-                    if suggestion_data:
-                        confidence = suggestion_data['confidence']
+                    if suggestion_data and suggestion_data.get('tradeable', False):
+                        # 只有可交易的信号才显示建议方向和止盈止损
                         stop_loss = suggestion_data['stop_loss']
                         take_profit = suggestion_data['take_profit']
                         suggested_direction = suggestion_data['direction']
 
                         # 计算预估盈利%和亏损%（考虑杠杆）
-                        if suggested_direction == 'LONG':
+                        if suggested_direction == 'LONG' and take_profit and stop_loss:
                             profit_pct = ((take_profit - price_data) / price_data) * leverage * 100
                             loss_pct = ((price_data - stop_loss) / price_data) * leverage * 100
-                        else:  # SHORT
+                        elif suggested_direction == 'SHORT' and take_profit and stop_loss:
                             profit_pct = ((price_data - take_profit) / price_data) * leverage * 100
                             loss_pct = ((stop_loss - price_data) / price_data) * leverage * 100
 
@@ -528,25 +527,29 @@ def get_signal_suggestion(symbol):
         elif direction == 'SHORT' and current_price > ma7:
             confidence -= 10
 
-        # 最低60分才推荐（高信心度信号）
-        if confidence < 60 or direction is None:
-            return None
-
-        # 计算止盈止损 (基于当前价格)
+        # 计算止盈止损 (基于当前价格或方向)
         if direction == 'LONG':
             stop_loss = current_price * 0.95  # -5%
             take_profit = current_price * 1.10  # +10%
-        else:  # SHORT
+        elif direction == 'SHORT':
             stop_loss = current_price * 1.05  # +5%
             take_profit = current_price * 0.90  # -10%
+        else:
+            # 无明确方向，返回基本信息
+            stop_loss = None
+            take_profit = None
+
+        # 最低60分才标记为可交易（但始终返回数据供监控列表显示）
+        tradeable = confidence >= 60 and direction is not None
 
         return {
             'direction': direction,
-            'confidence': min(confidence, 100),  # 最高100分
+            'confidence': max(0, min(confidence, 100)),  # 0-100分
             'stop_loss': stop_loss,
             'take_profit': take_profit,
             'current_price': current_price,
-            'rsi': rsi
+            'rsi': rsi,
+            'tradeable': tradeable  # 是否可交易
         }
 
     except Exception as e:
@@ -559,7 +562,7 @@ HTML_TEMPLATE = '''
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>交易助手仪表盘 v1.2 - Paper Trading</title>
+    <title>交易助理 - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
     <style>
@@ -811,17 +814,39 @@ HTML_TEMPLATE = '''
 
         .position-card {
             background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
-            border: 1px solid rgba(102, 126, 234, 0.2);
+            border: 2px solid rgba(102, 126, 234, 0.2);
             border-radius: 8px;
             padding: 8px;
             transition: all 0.2s;
             cursor: pointer;
         }
 
+        /* 做多持仓 - 绿色边框 */
+        .position-card.long {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(5, 150, 105, 0.05) 100%);
+            border: 2px solid rgba(16, 185, 129, 0.4);
+        }
+
+        .position-card.long:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.6);
+        }
+
+        /* 做空持仓 - 红色边框 */
+        .position-card.short {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
+            border: 2px solid rgba(239, 68, 68, 0.4);
+        }
+
+        .position-card.short:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.6);
+        }
+
         .position-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-            border-color: rgba(102, 126, 234, 0.4);
         }
 
         .position-card-header {
@@ -2138,7 +2163,7 @@ HTML_TEMPLATE = '''
                     const pnlColor = pnl >= 0 ? '#10b981' : '#ef4444';
 
                     html += `
-                        <div class="position-card" onclick="viewChart('${pos.symbol}', ${i})">
+                        <div class="position-card ${directionClass}" onclick="viewChart('${pos.symbol}', ${i})">
                             <div class="position-card-header">
                                 <div class="position-card-title">
                                     <span class="position-card-symbol">${directionEmoji} ${pos.symbol}</span>
@@ -2347,9 +2372,10 @@ HTML_TEMPLATE = '''
                             </div>
                         `;
                     } else {
-                        // 非持仓币种：显示杠杆、止盈止损价位、预估盈利%、预估亏损%
+                        // 非持仓币种：显示信心度、杠杆、止盈止损价位、预估盈利%、预估亏损%
                         detailsInfo = `
                             <div style="font-size: 0.7em; color: #666; margin-top: 4px; line-height: 1.4;">
+                                ${confidence >= 0 ? `<div>💪 信心度: ${confidence}%</div>` : ''}
                                 ${coin.leverage ? `<div>⚡ 杠杆: ${coin.leverage}x</div>` : ''}
                                 ${coin.take_profit ? `<div>🎯 止盈: $${formatNumber(coin.take_profit, 4)}</div>` : ''}
                                 ${coin.stop_loss ? `<div>🛑 止损: $${formatNumber(coin.stop_loss, 4)}</div>` : ''}

@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+# SSH连接到服务器
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "Permission denied" {
+        puts "\n❌ SSH连接失败"
+        exit 1
+    }
+    "*#" {
+        # 成功登录，继续执行命令
+    }
+}
+
+# 停止旧进程
+send "cd /opt/trading-bot/quant-trade-bot/xmr_monitor\r"
+expect "*#"
+
+send "pkill -f paper_trader.py\r"
+expect "*#"
+sleep 2
+
+# 启动新进程
+send "nohup python3 paper_trader.py > /tmp/paper_trader.log 2>&1 &\r"
+expect "*#"
+sleep 1
+
+# 验证进程启动
+send "ps aux | grep paper_trader.py | grep -v grep\r"
+expect "*#"
+
+send "exit\r"
+expect eof
+
+puts "\n✅ Paper Trader服务已重启"
