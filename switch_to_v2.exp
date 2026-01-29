@@ -1,0 +1,50 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 备份旧配置
+send "cp /etc/supervisord.d/auto-trader.ini /etc/supervisord.d/auto-trader.ini.bak\r"
+expect "*#"
+
+# 2. 更新配置指向v2
+send "sed -i 's/auto_trader.py/auto_trader_v2.py/g' /etc/supervisord.d/auto-trader.ini\r"
+expect "*#"
+
+# 3. 确认更新
+send "echo '=== 新配置 ===' && cat /etc/supervisord.d/auto-trader.ini\r"
+expect "*#"
+
+# 4. 重载supervisor配置
+send "supervisorctl reread\r"
+expect "*#"
+
+send "supervisorctl update\r"
+expect "*#"
+
+# 5. 重启auto-trader
+send "supervisorctl restart auto-trader\r"
+expect "*#"
+
+# 6. 确认状态
+send "sleep 2 && supervisorctl status auto-trader\r"
+expect "*#"
+
+# 7. 查看日志确认v2启动
+send "echo '=== 最新日志 ===' && tail -20 /opt/trading-bot/logs/auto-trader-stdout.log\r"
+expect "*#"
+
+send "exit\r"
+expect eof

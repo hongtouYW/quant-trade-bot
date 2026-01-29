@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查持仓的原始数据
+send "echo '=== 持仓原始数据 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, direction, amount, leverage, entry_price FROM real_trades WHERE status='OPEN';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

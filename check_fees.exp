@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查数据库表结构
+send "echo '=== 表结构 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema real_trades'\r"
+expect "*#"
+
+# 检查fee和funding_fee字段
+send "echo '=== 费用数据 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, fee, funding_fee FROM real_trades WHERE status='CLOSED' LIMIT 10;\"\r"
+expect "*#"
+
+# 汇总费用
+send "echo '=== 费用汇总 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT SUM(fee) as total_fee, SUM(funding_fee) as total_funding FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

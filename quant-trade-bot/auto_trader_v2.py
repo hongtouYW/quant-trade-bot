@@ -361,7 +361,9 @@ class AutoTraderV2:
         symbol = pos['symbol']
         direction = pos['direction']
         entry_price = pos['entry_price']
-        entry_time = datetime.fromisoformat(pos['entry_time'])
+        # Python 3.6 兼容
+        entry_time_str = pos['entry_time'].replace('T', ' ').split('.')[0]
+        entry_time = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
         holding_minutes = (datetime.now() - entry_time).total_seconds() / 60
 
         # 计算当前盈亏百分比
@@ -470,7 +472,9 @@ class AutoTraderV2:
         total_fee = entry_fee + exit_fee
 
         # 计算资金费（每8小时0.01%）
-        entry_time = datetime.fromisoformat(entry_time_str)
+        # Python 3.6 兼容
+        entry_time_clean = entry_time_str.replace('T', ' ').split('.')[0]
+        entry_time = datetime.strptime(entry_time_clean, '%Y-%m-%d %H:%M:%S')
         exit_time = datetime.now()
         holding_hours = (exit_time - entry_time).total_seconds() / 3600
         funding_rate = 0.0001  # 0.01%
@@ -483,10 +487,10 @@ class AutoTraderV2:
         pnl = pnl_before_fee - exit_fee - funding_fee
         roi = (pnl / margin) * 100
 
-        # 获取原始止盈止损
-        original_sl = position.get('original_stop_loss', position['stop_loss'])
-        original_tp = position.get('original_take_profit', position['take_profit'])
-        adjustments = position.get('sl_tp_adjustments', 0)
+        # 获取原始止盈止损（兼容旧数据，None时用当前值）
+        original_sl = position.get('original_stop_loss') or current_sl
+        original_tp = position.get('original_take_profit') or current_tp
+        adjustments = position.get('sl_tp_adjustments') or 0
 
         print(f"\n{'='*60}")
         print(f"🔔 平仓: {symbol}")
@@ -495,8 +499,10 @@ class AutoTraderV2:
         print(f"   出场: ${exit_price:.4f}")
         print(f"   保证金: ${margin:.2f}")
         print(f"   持仓时长: {duration_minutes}分钟")
-        print(f"   原始止损: ${original_sl:.4f} → 最终: ${current_sl:.4f}")
-        print(f"   止损调整次数: {adjustments}")
+        orig_sl_str = f"${original_sl:.4f}" if original_sl else "N/A"
+        curr_sl_str = f"${current_sl:.4f}" if current_sl else "N/A"
+        print(f"   原始止损: {orig_sl_str} → 最终: {curr_sl_str}")
+        print(f"   止损调整次数: {adjustments or 0}")
         print(f"   价格盈亏: ${pnl_before_fee:+.2f}")
         print(f"   手续费: -${total_fee:.4f}")
         print(f"   资金费: -${funding_fee:.4f}")

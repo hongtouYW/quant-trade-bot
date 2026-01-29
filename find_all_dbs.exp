@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 查找所有数据库文件
+send "find /opt -name '*.db' 2>/dev/null\r"
+expect "*#"
+
+# 检查交易助手paper_trader.py使用哪个数据库
+send "grep -n 'DB\\|database\\|sqlite' /opt/trading-bot/quant-trade-bot/xmr_monitor/paper_trader.py | head -20\r"
+expect "*#"
+
+# 检查xmr_monitor目录结构
+send "ls -la /opt/trading-bot/quant-trade-bot/xmr_monitor/\r"
+expect "*#"
+
+send "exit\r"
+expect eof

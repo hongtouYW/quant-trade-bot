@@ -1,0 +1,49 @@
+#!/usr/bin/expect -f
+
+set timeout 120
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+# 创建新数据库目录
+send "mkdir -p /opt/trading-bot/quant-trade-bot/data/db\r"
+expect "*#"
+
+# 复制数据到新数据库
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \".dump real_trades\" | sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db\r"
+expect "*#"
+
+# 验证新数据库
+send "echo '=== 新数据库验证 ==='\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT COUNT(*) as total FROM real_trades;\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT id, symbol, status FROM real_trades ORDER BY id;\"\r"
+expect "*#"
+
+# 从原数据库删除我的记录（保持原数据库干净）
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"DELETE FROM real_trades WHERE assistant='交易助手' AND mode='paper';\"\r"
+expect "*#"
+
+send "echo '=== 原数据库清理完成 ==='\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"SELECT COUNT(*) FROM real_trades;\"\r"
+expect "*#"
+
+send "ls -la /opt/trading-bot/quant-trade-bot/data/db/\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -116,7 +116,18 @@
       "Bash(break)",
       "Bash(else echo \"❌ 尝试 $i: 服务器仍不可达\")",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(# 检查是否有Linode CLI或API配置 which linode-cli || echo \"\"无Linode CLI\"\" cat ~/.linode-cli || echo \"\"无配置文件\"\" env)",
+      "Bash(# 多角度诊断 echo \"\"=== DNS检查 ===\"\" nslookup 139.162.41.38 || host 139.162.41.38 || echo \"\"DNS查询失败\"\" echo -e \"\"\\\\n=== 端口检查 ===\"\" nc -z -w 3 139.162.41.38 22 2>&1 && echo \"\"SSH端口开放\"\" || echo \"\"SSH端口无响应\"\" nc -z -w 3 139.162.41.38 5001 2>&1 && echo \"\"Web端口开放\"\" || echo \"\"Web端口无响应\"\" echo -e \"\"\\\\n=== 路由追踪 ===\"\" traceroute -m 10 -w 2 139.162.41.38 2>&1)",
+      "Bash(__NEW_LINE_6fc1e0f1a62f1507__ echo -e \"\\\\n2. 尝试curl API:\")",
+      "Bash(__NEW_LINE_3807b0019ca6657d__ echo -e \"\\\\n3. 本地网络测试:\")",
+      "Bash(for i in 1 2 3 4 5 6)",
+      "Bash(do)",
+      "Bash(then)",
+      "Bash(exit 0)",
+      "Bash(for i in 1 2 3 4 5 6 7 8)",
+      "Bash(/Users/hongtou/newproject/.claude/hooks/play-tts.sh:*)",
+      "Bash(grep:*)"
     ]
   }
 }

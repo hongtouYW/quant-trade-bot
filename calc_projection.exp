@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 查看运行时间和盈利
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT MIN(entry_time), MAX(exit_time) FROM real_trades\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT COUNT(*) as trades, ROUND(SUM(pnl),2) as pnl, ROUND(SUM(fee),2) as fee FROM real_trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,44 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn scp -o StrictHostKeyChecking=no /Users/hongtou/newproject/src/dashboard/web_monitor.py root@$host:/opt/trading-bot/src/dashboard/web_monitor.py
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {
+    }
+    eof {
+    }
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 重启web-monitor服务
+send "supervisorctl restart web-monitor\r"
+expect "*#"
+
+# 等待启动
+send "sleep 2\r"
+expect "*#"
+
+# 验证API返回balance字段
+send "curl -s http://localhost:5001/api/stats | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'balance: {d.get(\\\"balance\\\", \\\"MISSING\\\")}'); print(f'available_capital: {d.get(\\\"available_capital\\\")}'); print(f'current_capital: {d.get(\\\"current_capital\\\")}')\" \r"
+expect "*#"
+
+send "exit\r"
+expect eof

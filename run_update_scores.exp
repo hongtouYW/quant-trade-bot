@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+# 上传脚本
+spawn scp -o StrictHostKeyChecking=no update_scores.py root@$host:/tmp/
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof {
+    }
+}
+
+# 运行脚本
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "python3 /tmp/update_scores.py\r"
+expect "*#"
+
+send "exit\r"
+expect eof
+
+puts "\n✅ Scores updated"

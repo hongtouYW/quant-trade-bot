@@ -1,0 +1,47 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "echo '=== 量化交易系统数据验证 ==='\r"
+expect "*#"
+
+# 核心数据
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '初始资金: ' || value FROM account_config WHERE key='initial_capital'\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '已平仓盈亏: ' || ROUND(SUM(pnl),2) || ' (共' || COUNT(*) || '笔)' FROM real_trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '总手续费: ' || ROUND(SUM(fee),2) FROM real_trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '持仓中保证金: ' || ROUND(SUM(amount),2) || ' (共' || COUNT(*) || '笔)' FROM real_trades WHERE status='OPEN'\"\r"
+expect "*#"
+
+# 验证计算
+send "echo '--- 验算 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '当前资金 = 2000 + ' || ROUND(SUM(pnl),2) || ' = ' || ROUND(2000+SUM(pnl),2) FROM real_trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+# API返回
+send "echo '--- API返回 ---'\r"
+expect "*#"
+send "curl -s http://localhost:5001/api/stats | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'初始资金: {d[\\\"initial_capital\\\"]}'); print(f'当前资金: {d[\\\"current_capital\\\"]}'); print(f'总盈亏: {d[\\\"total_pnl\\\"]}'); print(f'可用余额: {d[\\\"available_capital\\\"]}'); print(f'持仓保证金: {d[\\\"margin_used\\\"]}')\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

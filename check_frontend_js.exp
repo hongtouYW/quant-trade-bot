@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 找到profitValue相关的JS代码
+send "grep -n -A5 -B5 'profitValue' /opt/trading-bot/quant-trade-bot/index.html | head -50\r"
+expect "*#"
+
+# 检查stats如何更新
+send "grep -n 'stats.total_pnl\\|total_fees\\|净盈亏' /opt/trading-bot/quant-trade-bot/index.html\r"
+expect "*#"
+
+send "exit\r"
+expect eof

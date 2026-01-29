@@ -1,0 +1,34 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+# SSH连接添加score列
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+        # 成功登录
+    }
+}
+
+# 添加score列到paper_trading.db的positions表
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db 'ALTER TABLE positions ADD COLUMN score INTEGER DEFAULT 0;' 2>/dev/null || echo 'score column already exists in paper_trading.db'\r"
+expect "*#"
+
+# 添加score列到trading_assistant.db的real_trades表
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'ALTER TABLE real_trades ADD COLUMN score INTEGER DEFAULT 0;' 2>/dev/null || echo 'score column already exists in trading_assistant.db'\r"
+expect "*#"
+
+send "echo '✅ Score columns added'\r"
+expect "*#"
+
+send "exit\r"
+expect eof
+
+puts "\n✅ Database updated"

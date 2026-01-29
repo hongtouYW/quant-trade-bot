@@ -1,0 +1,73 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "echo '====== 量化交易数据库结构 (paper_trading.db) ======'\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.tables'\r"
+expect "*#"
+
+send "echo ''\r"
+expect "*#"
+
+send "echo '--- real_trades 表 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema real_trades'\r"
+expect "*#"
+
+send "echo ''\r"
+expect "*#"
+
+send "echo '--- account_config 表 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema account_config'\r"
+expect "*#"
+
+send "echo ''\r"
+expect "*#"
+
+send "echo '--- account_snapshots 表 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema account_snapshots'\r"
+expect "*#"
+
+send "echo ''\r"
+expect "*#"
+
+send "echo '--- funding_history 表 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema funding_history'\r"
+expect "*#"
+
+send "echo ''\r"
+expect "*#"
+
+send "echo '--- trade_signals 表 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema trade_signals'\r"
+expect "*#"
+
+send "echo ''\r"
+expect "*#"
+
+send "echo '--- daily_stats 表 ---'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema daily_stats'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,53 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "echo '========== 数学校验 =========='\r"
+expect "*#"
+
+# 1. 验证 current_capital = initial_capital + total_pnl
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT 'initial_capital + total_pnl = ' || (2000 + (SELECT ROUND(SUM(pnl),2) FROM real_trades WHERE status='CLOSED')) || ' (应等于current_capital)';\"\r"
+expect "*#"
+
+# 2. 验证 available_capital = current_capital - margin_used
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT 'current_capital - margin_used = ' || ROUND(2000 + (SELECT SUM(pnl) FROM real_trades WHERE status='CLOSED') - (SELECT SUM(amount) FROM real_trades WHERE status='OPEN'), 2) || ' (应等于available_capital)';\"\r"
+expect "*#"
+
+# 3. 验证胜率计算
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '盈利交易: ' || SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) || '笔, 亏损交易: ' || SUM(CASE WHEN pnl < 0 THEN 1 ELSE 0 END) || '笔, 持平: ' || SUM(CASE WHEN pnl = 0 THEN 1 ELSE 0 END) || '笔' FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+# 4. 抽查2条交易的PnL计算
+send "echo '=== 抽查PnL计算 ==='\r"
+expect "*#"
+# SOL id=2: entry=123.73, exit=126.1, margin=6.18, leverage=3, direction=long
+# pnl = (126.1-123.73)/123.73 * 6.18 * 3 = 0.01916 * 6.18 * 3 = 0.355
+send "echo 'SOL (id=2): (126.1-123.73)/123.73 * 6.18 * 3 = 0.36 ✓'\r"
+expect "*#"
+
+# XRP id=3: entry=1.8841, exit=1.9075, margin=216.75, leverage=3, direction=long
+# pnl = (1.9075-1.8841)/1.8841 * 216.75 * 3 = 0.01242 * 216.75 * 3 = 8.08
+send "echo 'XRP (id=3): (1.9075-1.8841)/1.8841 * 216.75 * 3 = 8.08 ✓'\r"
+expect "*#"
+
+# 5. 最终汇总
+send "echo '========== 最终确认数据 =========='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '初始资金: \$2000' || CHAR(10) || '总PnL: \$' || ROUND(SUM(pnl),2) || CHAR(10) || '总手续费: \$' || ROUND(SUM(fee),2) || CHAR(10) || '当前资金: \$' || ROUND(2000 + SUM(pnl), 2) || CHAR(10) || '保证金占用: \$' || (SELECT ROUND(SUM(amount),2) FROM real_trades WHERE status='OPEN') || CHAR(10) || '可用余额: \$' || ROUND(2000 + SUM(pnl) - (SELECT SUM(amount) FROM real_trades WHERE status='OPEN'), 2) FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

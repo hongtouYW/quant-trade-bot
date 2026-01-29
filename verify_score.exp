@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "echo '=== 测试策略推荐评分 ===' && curl -s http://localhost:5001/api/recommendations | python3 -m json.tool 2>/dev/null | head -40\r"
+expect "*#"
+
+send "exit\r"
+expect eof

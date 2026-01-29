@@ -1,0 +1,42 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 修复已平仓交易的amount字段（转换为USDT保证金）
+# 对于amount明显是币数量的记录，转换为: margin = coins * entry_price / leverage
+
+# 批量更新：对于calc_coins > 100的记录，amount是币数量，需要转换
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET amount = ROUND(amount * entry_price / leverage, 2) WHERE status = 'CLOSED' AND (amount * leverage / entry_price) > 100;\"\r"
+expect "*#"
+
+# 对于BTC等高价币（entry_price > 1000），amount如果<1说明是币数量
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET amount = ROUND(amount * entry_price / leverage, 2) WHERE status = 'CLOSED' AND entry_price > 1000 AND amount < 1;\"\r"
+expect "*#"
+
+# 重新计算手续费 (0.1% of position value = margin * leverage * 0.001)
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET fee = ROUND(amount * leverage * 0.001, 4) WHERE status = 'CLOSED';\"\r"
+expect "*#"
+
+# 验证修复结果
+send "echo '=== 修复后的数据 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, ROUND(amount, 2) as margin, leverage, ROUND(amount * leverage, 2) as position_value, ROUND(fee, 2) as fee, ROUND(pnl, 2) as pnl FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+# 汇总
+send "echo '=== 汇总 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT ROUND(SUM(fee), 2) as total_fees, ROUND(SUM(pnl), 2) as total_pnl, COUNT(*) as trades FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+        # 成功登录
+    }
+}
+
+send "ps aux | grep paper_trader.py | grep -v grep\r"
+expect "*#"
+
+send "cat /tmp/paper_trader.log\r"
+expect "*#"
+
+# 杀掉重新启动，直接看输出
+send "pkill -f paper_trader.py\r"
+expect "*#"
+
+send "cd /opt/trading-bot/quant-trade-bot/xmr_monitor && timeout 10 python3 paper_trader.py 2>&1 || true\r"
+expect {
+    "*#" {}
+    timeout {
+        send "\x03"
+        expect "*#"
+    }
+}
+
+send "exit\r"
+expect eof

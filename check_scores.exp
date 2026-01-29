@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查positions表的score
+send "echo '=== paper_trading.db positions ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db 'SELECT symbol, score FROM positions LIMIT 10;'\r"
+expect "*#"
+
+# 检查positions表结构
+send "echo '=== positions table schema ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema positions'\r"
+expect "*#"
+
+# 检查trading_assistant的real_trades
+send "echo '=== trading_assistant.db real_trades ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT symbol, score FROM real_trades ORDER BY entry_time DESC LIMIT 10;'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

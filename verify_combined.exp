@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "echo '=== 测试合并后的API ===' && curl -s 'http://localhost:5001/api/trades?limit=25' | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'总记录数: {len(d)}'); \[print(f\\\"{t.get('id')}: {t.get('symbol')} score={t.get('score')} pnl={t.get('pnl',0):.2f}\\\") for t in d\[:10\]\]\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

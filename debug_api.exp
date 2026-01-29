@@ -1,0 +1,36 @@
+#!/usr/bin/expect -f
+
+set timeout 45
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "grep -A5 'def get_stats' /opt/trading-bot/src/dashboard/web_monitor.py | head -10\r"
+expect "*#"
+
+send "grep 'real_trades' /opt/trading-bot/src/dashboard/web_monitor.py | head -5\r"
+expect "*#"
+
+# 直接测试数据库查询
+send "python3 << 'PYEOF'
+import sqlite3
+conn = sqlite3.connect('/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db')
+cursor = conn.cursor()
+cursor.execute('SELECT COUNT(*), SUM(pnl) FROM real_trades WHERE status = \"CLOSED\"')
+print('CLOSED:', cursor.fetchone())
+cursor.execute('SELECT COUNT(*) FROM real_trades WHERE status = \"OPEN\"')
+print('OPEN:', cursor.fetchone())
+PYEOF\r"
+expect "*#"
+
+send "exit\r"
+expect eof

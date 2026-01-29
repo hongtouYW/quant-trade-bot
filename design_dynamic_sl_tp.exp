@@ -1,0 +1,46 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 添加原始止盈止损字段到real_trades
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN original_stop_loss REAL\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN original_take_profit REAL\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN final_stop_loss REAL\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN final_take_profit REAL\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN sl_tp_adjustments INTEGER DEFAULT 0\"\r"
+expect "*#"
+
+# 2. 创建止盈止损变化记录表
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"CREATE TABLE IF NOT EXISTS sl_tp_history (id INTEGER PRIMARY KEY AUTOINCREMENT, trade_id INTEGER, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, old_stop_loss REAL, new_stop_loss REAL, old_take_profit REAL, new_take_profit REAL, reason TEXT, current_price REAL, highest_price REAL, lowest_price REAL)\"\r"
+expect "*#"
+
+# 确认
+send "echo '=== real_trades新字段 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"PRAGMA table_info(real_trades)\" | grep -E 'original|final|adjustment'\r"
+expect "*#"
+
+send "echo '=== sl_tp_history表 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema sl_tp_history'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

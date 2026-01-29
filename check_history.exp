@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查数据库中的已平仓记录
+send "echo '=== 数据库已平仓记录 ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"SELECT id, symbol, status FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+# 测试API
+send "echo '=== API /api/trades ===' && curl -s 'http://localhost:5001/api/trades?limit=10' 2>&1\r"
+expect "*#"
+
+# 检查web-monitor日志
+send "echo '=== Web Monitor日志 ===' && tail -20 /var/log/supervisor/web-monitor-stderr*.log 2>/dev/null || echo 'No log found'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

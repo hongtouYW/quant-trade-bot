@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 计算并修复保证金值
+# ATOM: 54.89 coins * 2.261 / 3 = 41.37 USDT
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET amount = 41.37 WHERE id = 15;\"\r"
+expect "*#"
+
+# DOGE: 1043.71 coins * 0.12498 / 3 = 43.48 USDT
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET amount = 43.48 WHERE id = 21;\"\r"
+expect "*#"
+
+# XRP: 463.72 coins * 1.9066 / 3 = 294.73 USDT
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET amount = 294.73 WHERE id = 23;\"\r"
+expect "*#"
+
+# 验证修复结果
+send "echo '=== 修复后的持仓数据 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, amount as margin_usdt, leverage, entry_price, ROUND(amount * leverage / entry_price, 2) as coins FROM real_trades WHERE status='OPEN';\"\r"
+expect "*#"
+
+# 计算总保证金占用
+send "echo '=== 保证金占用 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT ROUND(SUM(amount), 2) as total_margin FROM real_trades WHERE status='OPEN';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

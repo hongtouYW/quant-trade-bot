@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查完整的stats API返回
+send "echo '=== Stats API ===' && curl -s http://localhost:5001/api/stats | python3 -m json.tool\r"
+expect "*#"
+
+# 检查positions API
+send "echo '=== Positions API ===' && curl -s http://localhost:5001/api/positions | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'持仓数: {len(d)}'); [print(f'{p[\\\"symbol\\\"]}: qty={p[\\\"quantity\\\"]} dir={p[\\\"direction\\\"]}') for p in d]\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

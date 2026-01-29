@@ -1,0 +1,48 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+set local_file "/Users/hongtou/newproject/quant-trade-bot/xmr_monitor/paper_trader.py"
+set remote_path "/opt/trading-bot/quant-trade-bot/xmr_monitor/"
+
+# 上传文件
+spawn scp -o StrictHostKeyChecking=no $local_file root@$host:$remote_path
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {
+        # 文件传输完成
+    }
+    eof {
+        # 传输完成
+    }
+}
+
+# 重启服务
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+        # 成功登录
+    }
+}
+
+send "pkill -f paper_trader.py\r"
+expect "*#"
+
+send "cd /opt/trading-bot/quant-trade-bot/xmr_monitor && nohup python3 paper_trader.py > /tmp/paper_trader.log 2>&1 &\r"
+expect "*#"
+
+send "sleep 2 && ps aux | grep paper_trader.py | grep -v grep\r"
+expect "*#"
+
+send "exit\r"
+expect eof

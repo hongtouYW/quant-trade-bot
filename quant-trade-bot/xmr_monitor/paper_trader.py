@@ -623,8 +623,19 @@ class PaperTradingAssistant:
         # 检查是否有足够资金
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
 
-        # 最多同时持有8个仓位（激进策略：增加资金利用率）
-        if len(self.positions) < 8 and available > 200:
+        # 风控：已实现盈亏为负时，先让现有持仓出结果再开新单
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT COALESCE(SUM(pnl), 0) FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手' AND status = 'CLOSED'
+        ''')
+        realized_pnl = cursor.fetchone()[0]
+        conn.close()
+
+        if realized_pnl < 0 and len(self.positions) > 0:
+            print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
+        elif len(self.positions) < 8 and available > 200:
             # 开最强信号的仓
             if opportunities:
                 symbol, score, analysis = opportunities[0]

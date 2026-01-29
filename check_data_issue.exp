@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 查看所有交易记录
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, direction, status, amount, leverage, entry_price, exit_price, pnl, fee FROM real_trades ORDER BY id\"\r"
+expect "*#"
+
+# 2. 查看DOGE交易详情
+send "echo '=== DOGE交易 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT * FROM real_trades WHERE symbol LIKE '%DOGE%'\"\r"
+expect "*#"
+
+# 3. 统计总盈亏
+send "echo '=== 总盈亏 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT SUM(pnl) as total_pnl, SUM(fee) as total_fee FROM real_trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+# 4. 查看账户配置
+send "echo '=== 账户配置 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT * FROM account_config\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

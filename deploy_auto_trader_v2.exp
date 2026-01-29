@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn scp -o StrictHostKeyChecking=no /Users/hongtou/newproject/quant-trade-bot/auto_trader_v2.py root@$host:/opt/trading-bot/quant-trade-bot/auto_trader_v2.py
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {
+    }
+    eof {
+    }
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 验证文件已上传
+send "echo '=== 验证文件 ===' && ls -la /opt/trading-bot/quant-trade-bot/auto_trader_v2.py\r"
+expect "*#"
+
+# 测试运行（只检查导入是否正常）
+send "echo '=== 测试导入 ===' && cd /opt/trading-bot/quant-trade-bot && python3 -c 'from auto_trader_v2 import AutoTraderV2; print(\"✅ 导入成功\")' 2>&1\r"
+expect "*#"
+
+send "exit\r"
+expect eof

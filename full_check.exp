@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 检查数据库数据
+send "echo '=== 1. 数据库检查 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '已平仓:' || COUNT(*) FROM real_trades WHERE status='CLOSED'; SELECT '持仓中:' || COUNT(*) FROM real_trades WHERE status='OPEN'; SELECT '总PnL:' || ROUND(SUM(pnl),2) FROM real_trades WHERE status='CLOSED'; SELECT '保证金占用:' || ROUND(SUM(amount),2) FROM real_trades WHERE status='OPEN';\"\r"
+expect "*#"
+
+# 2. 检查账户配置
+send "echo '=== 2. 账户配置 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT key || '=' || value FROM account_config;\"\r"
+expect "*#"
+
+# 3. 检查API stats返回
+send "echo '=== 3. Stats API ===' && curl -s http://localhost:5001/api/stats 2>&1\r"
+expect "*#"
+
+# 4. 检查API positions返回
+send "echo '=== 4. Positions API ===' && curl -s http://localhost:5001/api/positions 2>&1\r"
+expect "*#"
+
+# 5. 检查前端文件是否最新
+send "echo '=== 5. 前端文件检查 ===' && grep -n 'available_capital' /opt/trading-bot/quant-trade-bot/index.html | head -5\r"
+expect "*#"
+
+send "exit\r"
+expect eof

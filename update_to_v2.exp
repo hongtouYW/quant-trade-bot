@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 查看当前auto-trader配置
+send "echo '=== 当前auto-trader配置 ===' && cat /etc/supervisord.d/auto-trader.ini\r"
+expect "*#"
+
+# 2. 查看auto_trader_v2.py是否存在
+send "echo '=== 检查v2文件 ===' && ls -la /opt/trading-bot/quant-trade-bot/auto_trader*.py\r"
+expect "*#"
+
+send "exit\r"
+expect eof

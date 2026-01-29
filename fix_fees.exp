@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 计算并更新手续费
+# Binance期货: taker fee = 0.05% = 0.0005
+# 开仓+平仓 = 2次 * 0.05% = 0.1% = 0.001
+# fee = amount * leverage * 0.001
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET fee = ROUND(amount * leverage * 0.001, 4) WHERE status = 'CLOSED' AND fee = 0;\"\r"
+expect "*#"
+
+# 验证更新结果
+send "echo '=== 更新后的费用 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, amount, leverage, fee, pnl FROM real_trades WHERE status='CLOSED' LIMIT 10;\"\r"
+expect "*#"
+
+# 汇总
+send "echo '=== 费用汇总 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT ROUND(SUM(fee), 2) as total_fee FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof
