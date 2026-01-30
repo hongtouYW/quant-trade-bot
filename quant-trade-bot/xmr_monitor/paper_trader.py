@@ -65,6 +65,8 @@ class PaperTradingAssistant:
         self.last_risk_check = None  # 上次风险检查时间
         self.peak_capital = self.initial_capital  # 历史最高资金
         self.risk_position_multiplier = 1.0  # 风险调整后的仓位倍数 (1.0=正常, 0.5=减半)
+        self.last_close_time = None  # 上次平仓时间（冷却期用）
+        self.max_same_direction = 3  # 同方向最多3个持仓
 
         # 初始化数据库
         self.init_database()
@@ -221,7 +223,55 @@ class PaperTradingAssistant:
         rs = avg_gain / avg_loss
         rsi = 100 - (100 / (1 + rs))
         return rsi
-    
+
+    def calculate_atr(self, symbol, period=14):
+        """计算ATR (Average True Range) - 衡量波动性"""
+        try:
+            klines = self.get_kline_data(symbol, '1h', period + 5)
+            if not klines or len(klines) < period:
+                return None, None, None
+
+            highs = [float(k[2]) for k in klines]
+            lows = [float(k[3]) for k in klines]
+            closes = [float(k[4]) for k in klines]
+
+            true_ranges = []
+            for i in range(1, len(klines)):
+                tr = max(
+                    highs[i] - lows[i],
+                    abs(highs[i] - closes[i-1]),
+                    abs(lows[i] - closes[i-1])
+                )
+                true_ranges.append(tr)
+
+            atr = sum(true_ranges[-period:]) / period
+            current_price = closes[-1]
+            atr_pct = (atr / current_price) * 100 if current_price > 0 else 0
+
+            return atr, atr_pct, current_price
+        except Exception as e:
+            print(f"计算{symbol} ATR失败: {e}")
+            return None, None, None
+
+    def get_dynamic_stop_pct(self, symbol):
+        """根据ATR获取动态止损百分比 (1.5%-4%)"""
+        atr, atr_pct, price = self.calculate_atr(symbol)
+
+        if atr_pct is None:
+            return 0.02, 'unknown'  # 默认2%
+
+        # ATR倍数作为止损距离，限制在1.5%-4%
+        stop_pct = max(0.015, min(0.04, atr_pct * 1.5 / 100))
+
+        if atr_pct > 3:
+            volatility = 'high'
+        elif atr_pct > 1.5:
+            volatility = 'medium'
+        else:
+            volatility = 'low'
+
+        return stop_pct, volatility
+
     def analyze_signal(self, symbol):
         """分析交易信号（0-100分）"""
         try:
@@ -236,42 +286,51 @@ class PaperTradingAssistant:
             
             current_price = closes[-1]
             
-            # 1. RSI分析 (40分)
+            # 方向投票系统：每个指标投票，多数决定方向
+            votes = {'LONG': 0, 'SHORT': 0}
+
+            # 1. RSI分析 (30分)
             rsi = self.calculate_rsi(closes)
             if rsi < 30:
-                rsi_score = 40  # 超卖，做多机会
-                direction = 'LONG'
+                rsi_score = 30
+                votes['LONG'] += 1
             elif rsi > 70:
-                rsi_score = 40  # 超买，做空机会
-                direction = 'SHORT'
-            elif 40 <= rsi <= 60:
-                rsi_score = 20
-                direction = 'LONG' if rsi < 50 else 'SHORT'
+                rsi_score = 30
+                votes['SHORT'] += 1
+            elif rsi < 45:
+                rsi_score = 15
+                votes['LONG'] += 1
+            elif rsi > 55:
+                rsi_score = 15
+                votes['SHORT'] += 1
             else:
-                rsi_score = 10
-                direction = 'LONG' if rsi < 50 else 'SHORT'
-            
-            # 2. 趋势分析 (25分)
+                rsi_score = 5  # 中性区间，低分
+
+            # 2. 趋势分析 (30分) - 权重提高
             ma7 = sum(closes[-7:]) / 7
             ma20 = sum(closes[-20:]) / 20
             ma50 = sum(closes[-50:]) / 50
-            
+
             if current_price > ma7 > ma20 > ma50:
-                trend_score = 25
-                direction = 'LONG'
+                trend_score = 30
+                votes['LONG'] += 2  # 趋势权重双倍
             elif current_price < ma7 < ma20 < ma50:
-                trend_score = 25
-                direction = 'SHORT'
+                trend_score = 30
+                votes['SHORT'] += 2
             elif current_price > ma7 > ma20:
                 trend_score = 15
+                votes['LONG'] += 1
+            elif current_price < ma7 < ma20:
+                trend_score = 15
+                votes['SHORT'] += 1
             else:
                 trend_score = 5
-            
+
             # 3. 成交量分析 (20分)
             avg_volume = sum(volumes[-20:]) / 20
             recent_volume = volumes[-1]
             volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
-            
+
             if volume_ratio > 1.5:
                 volume_score = 20
             elif volume_ratio > 1.2:
@@ -280,22 +339,42 @@ class PaperTradingAssistant:
                 volume_score = 10
             else:
                 volume_score = 5
-            
-            # 4. 价格位置 (15分)
+
+            # 4. 价格位置 (20分)
             high_50 = max(highs[-50:])
             low_50 = min(lows[-50:])
             price_position = (current_price - low_50) / (high_50 - low_50) if high_50 > low_50 else 0.5
-            
-            if price_position < 0.3:  # 接近底部
-                position_score = 15
-                direction = 'LONG'
-            elif price_position > 0.7:  # 接近顶部
-                position_score = 15
-                direction = 'SHORT'
+
+            if price_position < 0.2:
+                position_score = 20
+                votes['LONG'] += 1
+            elif price_position > 0.8:
+                position_score = 20
+                votes['SHORT'] += 1
+            elif price_position < 0.35:
+                position_score = 10
+                votes['LONG'] += 1
+            elif price_position > 0.65:
+                position_score = 10
+                votes['SHORT'] += 1
             else:
                 position_score = 5
-            
+
+            # 方向由投票决定
+            if votes['LONG'] > votes['SHORT']:
+                direction = 'LONG'
+            elif votes['SHORT'] > votes['LONG']:
+                direction = 'SHORT'
+            else:
+                direction = 'LONG' if rsi < 50 else 'SHORT'
+
             total_score = rsi_score + trend_score + volume_score + position_score
+
+            # 惩罚：RSI和趋势方向冲突时扣分（逆势抄底危险）
+            rsi_dir = 'LONG' if rsi < 50 else 'SHORT'
+            trend_dir = 'LONG' if current_price > ma20 else 'SHORT'
+            if rsi_dir != trend_dir:
+                total_score = int(total_score * 0.7)  # 扣30%
             
             analysis = {
                 'price': current_price,
@@ -354,14 +433,17 @@ class PaperTradingAssistant:
                 print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
-            # 移动止盈策略 (策略A)
-            # 初始止损 1.5%，无固定止盈，让利润继续跑
+            # ATR动态止损 + 止盈（盈亏比 1:3）
+            stop_pct, volatility = self.get_dynamic_stop_pct(symbol)
+            tp_pct = stop_pct * 3  # 止盈 = 止损距离 × 3
+            print(f"📊 {symbol} 波动性: {volatility}, 止损: {stop_pct*100:.1f}%, 止盈: {tp_pct*100:.1f}%")
+
             if direction == 'LONG':
-                stop_loss = entry_price * 0.985  # -1.5%
-                take_profit = entry_price * 2  # 设一个很高的值，实际由移动止盈决定
+                stop_loss = entry_price * (1 - stop_pct)
+                take_profit = entry_price * (1 + tp_pct)
             else:
-                stop_loss = entry_price * 1.015  # +1.5%
-                take_profit = entry_price * 0.5  # 设一个很低的值，实际由移动止盈决定
+                stop_loss = entry_price * (1 + stop_pct)
+                take_profit = entry_price * (1 - tp_pct)
 
             # 记录持仓（包含移动止盈跟踪字段）
             self.positions[symbol] = {
@@ -371,10 +453,13 @@ class PaperTradingAssistant:
                 'leverage': leverage,
                 'stop_loss': stop_loss,
                 'take_profit': take_profit,
+                'initial_stop_loss': stop_loss,  # 记录初始止损
+                'trailing_pct': stop_pct,  # ATR动态止损距离
                 'entry_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'score': score,
-                'highest_price': entry_price if direction == 'LONG' else 0,  # 做多时跟踪最高价
-                'lowest_price': entry_price if direction == 'SHORT' else float('inf')  # 做空时跟踪最低价
+                'highest_price': entry_price if direction == 'LONG' else 0,
+                'lowest_price': entry_price if direction == 'SHORT' else float('inf'),
+                'stop_move_count': 0  # 止损移动次数
             }
             
             # 写入数据库
@@ -385,14 +470,16 @@ class PaperTradingAssistant:
                 INSERT INTO real_trades (
                     symbol, direction, entry_price, amount, leverage,
                     stop_loss, take_profit, entry_time, status,
-                    assistant, mode, reason, score
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    assistant, mode, reason, score,
+                    initial_stop_loss, initial_take_profit, stop_move_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 symbol, direction, entry_price, amount, leverage,
                 stop_loss, take_profit, self.positions[symbol]['entry_time'],
                 'OPEN', '交易助手', 'paper',
                 f"信号评分{score}分，RSI {analysis['rsi']:.1f}",
-                score
+                score,
+                stop_loss, take_profit, 0
             ))
             
             conn.commit()
@@ -436,66 +523,98 @@ class PaperTradingAssistant:
             direction = position['direction']
             entry_price = position['entry_price']
             stop_loss = position['stop_loss']
+            take_profit = position.get('take_profit', 0)
+            leverage = position.get('leverage', 1)
 
-            # 移动止盈参数
-            trailing_pct = 0.015  # 移动止损距离 1.5%
+            # 移动止盈参数 - 使用ATR动态距离
+            trailing_pct = position.get('trailing_pct', 0.02)
+
+            # 盈利保护：浮盈>30%(含杠杆)时，止损收紧到入场价+1%（保本+利润）
+            if direction == 'LONG':
+                raw_pct = (current_price - entry_price) / entry_price
+            else:
+                raw_pct = (entry_price - current_price) / entry_price
+            roi_pct = raw_pct * leverage * 100
+
+            if roi_pct > 30 and not position.get('profit_protected', False):
+                # 止损设到入场价+1%方向（保证不亏）
+                if direction == 'LONG':
+                    protect_stop = entry_price * 1.01
+                else:
+                    protect_stop = entry_price * 0.99
+                if (direction == 'LONG' and protect_stop > stop_loss) or \
+                   (direction == 'SHORT' and protect_stop < stop_loss):
+                    position['stop_loss'] = protect_stop
+                    position['stop_move_count'] = position.get('stop_move_count', 0) + 1
+                    stop_loss = protect_stop
+                    position['profit_protected'] = True
+                    print(f"🛡️ {symbol} 盈利保护启动！ROI {roi_pct:.0f}%, 止损锁到保本+1%: ${protect_stop:.4f}")
 
             # 检查止损止盈
             should_close = False
             reason = ""
 
             if direction == 'LONG':
-                # 获取或初始化最高价
-                highest = position.get('highest_price', entry_price)
-
-                # 更新最高价
-                if current_price > highest:
-                    position['highest_price'] = current_price
-                    highest = current_price
-
-                    # 移动止损：当价格创新高时，止损跟着上移
-                    # 只有当新止损高于原止损时才更新
-                    new_stop = highest * (1 - trailing_pct)
-                    if new_stop > stop_loss:
-                        position['stop_loss'] = new_stop
-                        profit_locked = ((new_stop - entry_price) / entry_price) * 100
-                        print(f"📈 {symbol} 止损上移: ${stop_loss:.4f} → ${new_stop:.4f} (锁住{profit_locked:+.1f}%)")
-                        stop_loss = new_stop
-
-                # 检查是否触发止损
-                if current_price <= stop_loss:
+                # 1. 先检查是否触发固定止盈
+                if take_profit > 0 and current_price >= take_profit:
                     should_close = True
                     profit_pct = ((current_price - entry_price) / entry_price) * 100
-                    if profit_pct > 0:
-                        reason = f"移动止盈 (+{profit_pct:.1f}%)"
-                    else:
-                        reason = "触发止损"
+                    reason = f"触发止盈 (+{profit_pct:.1f}%)"
+                else:
+                    # 2. 移动止损逻辑
+                    highest = position.get('highest_price', entry_price)
+
+                    if current_price > highest:
+                        position['highest_price'] = current_price
+                        highest = current_price
+
+                        new_stop = highest * (1 - trailing_pct)
+                        if new_stop > stop_loss:
+                            position['stop_loss'] = new_stop
+                            position['stop_move_count'] = position.get('stop_move_count', 0) + 1
+                            profit_locked = ((new_stop - entry_price) / entry_price) * 100
+                            print(f"📈 {symbol} 止损上移: ${stop_loss:.4f} → ${new_stop:.4f} (锁住{profit_locked:+.1f}%) [第{position['stop_move_count']}次]")
+                            stop_loss = new_stop
+
+                    # 3. 检查是否触发移动止损
+                    if current_price <= stop_loss:
+                        should_close = True
+                        profit_pct = ((current_price - entry_price) / entry_price) * 100
+                        if profit_pct > 0:
+                            reason = f"移动止盈 (+{profit_pct:.1f}%)"
+                        else:
+                            reason = "触发止损"
 
             else:  # SHORT
-                # 获取或初始化最低价
-                lowest = position.get('lowest_price', entry_price)
-
-                # 更新最低价
-                if current_price < lowest:
-                    position['lowest_price'] = current_price
-                    lowest = current_price
-
-                    # 移动止损：当价格创新低时，止损跟着下移
-                    new_stop = lowest * (1 + trailing_pct)
-                    if new_stop < stop_loss:
-                        position['stop_loss'] = new_stop
-                        profit_locked = ((entry_price - new_stop) / entry_price) * 100
-                        print(f"📉 {symbol} 止损下移: ${stop_loss:.4f} → ${new_stop:.4f} (锁住{profit_locked:+.1f}%)")
-                        stop_loss = new_stop
-
-                # 检查是否触发止损
-                if current_price >= stop_loss:
+                # 1. 先检查是否触发固定止盈
+                if take_profit > 0 and current_price <= take_profit:
                     should_close = True
                     profit_pct = ((entry_price - current_price) / entry_price) * 100
-                    if profit_pct > 0:
-                        reason = f"移动止盈 (+{profit_pct:.1f}%)"
-                    else:
-                        reason = "触发止损"
+                    reason = f"触发止盈 (+{profit_pct:.1f}%)"
+                else:
+                    # 2. 移动止损逻辑
+                    lowest = position.get('lowest_price', entry_price)
+
+                    if current_price < lowest:
+                        position['lowest_price'] = current_price
+                        lowest = current_price
+
+                        new_stop = lowest * (1 + trailing_pct)
+                        if new_stop < stop_loss:
+                            position['stop_loss'] = new_stop
+                            position['stop_move_count'] = position.get('stop_move_count', 0) + 1
+                            profit_locked = ((entry_price - new_stop) / entry_price) * 100
+                            print(f"📉 {symbol} 止损下移: ${stop_loss:.4f} → ${new_stop:.4f} (锁住{profit_locked:+.1f}%) [第{position['stop_move_count']}次]")
+                            stop_loss = new_stop
+
+                    # 3. 检查是否触发移动止损
+                    if current_price >= stop_loss:
+                        should_close = True
+                        profit_pct = ((entry_price - current_price) / entry_price) * 100
+                        if profit_pct > 0:
+                            reason = f"移动止盈 (+{profit_pct:.1f}%)"
+                        else:
+                            reason = "触发止损"
 
             if should_close:
                 self.close_position(symbol, current_price, reason)
@@ -550,19 +669,28 @@ class PaperTradingAssistant:
 
             exit_time = exit_time_obj.strftime('%Y-%m-%d %H:%M:%S')
 
+            final_stop = position.get('stop_loss', 0)
+            move_count = position.get('stop_move_count', 0)
+
             cursor.execute('''
                 UPDATE real_trades
                 SET exit_price = ?, exit_time = ?, status = 'CLOSED',
-                    pnl = ?, roi = ?, fee = ?, funding_fee = ?, reason = reason || ' | ' || ?
+                    pnl = ?, roi = ?, fee = ?, funding_fee = ?,
+                    reason = reason || ' | ' || ?,
+                    final_stop_loss = ?, stop_move_count = ?
                 WHERE symbol = ? AND status = 'OPEN' AND mode = 'paper' AND assistant = '交易助手'
-            ''', (exit_price, exit_time, pnl, roi, total_fee, funding_fee, reason, symbol))
+            ''', (exit_price, exit_time, pnl, roi, total_fee, funding_fee, reason,
+                  final_stop, move_count, symbol))
             
             conn.commit()
             conn.close()
             
             # 删除持仓
             del self.positions[symbol]
-            
+
+            # 记录平仓时间（冷却期）
+            self.last_close_time = datetime.now()
+
             # 发送通知
             total_profit = self.current_capital - self.initial_capital
             progress = (total_profit / self.target_profit) * 100
@@ -623,7 +751,7 @@ class PaperTradingAssistant:
         # 检查是否有足够资金
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
 
-        # 风控：已实现盈亏为负时，先让现有持仓出结果再开新单
+        # 风控1：已实现盈亏为负时，先让现有持仓出结果再开新单
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         cursor.execute('''
@@ -635,14 +763,36 @@ class PaperTradingAssistant:
 
         if realized_pnl < 0 and len(self.positions) > 0:
             print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
-        elif len(self.positions) < 8 and available > 200:
-            # 开最强信号的仓
-            if opportunities:
-                symbol, score, analysis = opportunities[0]
-                print(f"🎯 准备开仓: {symbol} (评分{score})")
+            return
+
+        # 风控2：平仓冷却期 - 平仓后等1小时再开新单
+        if self.last_close_time:
+            cooldown_seconds = (datetime.now() - self.last_close_time).total_seconds()
+            if cooldown_seconds < 3600:  # 1小时
+                remaining = int((3600 - cooldown_seconds) / 60)
+                print(f"⏸️  冷却期中 (平仓后需等1小时，还剩{remaining}分钟)")
+                return
+
+        # 风控3：同方向限制 - 最多3个同方向持仓
+        long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
+        short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
+
+        if len(self.positions) < 6 and available > 200:
+            # 开最强信号的仓（检查方向限制）
+            for symbol, score, analysis in opportunities:
+                direction = analysis['direction']
+                if direction == 'LONG' and long_count >= self.max_same_direction:
+                    continue
+                if direction == 'SHORT' and short_count >= self.max_same_direction:
+                    continue
+                print(f"🎯 准备开仓: {symbol} (评分{score}, {direction})")
                 self.open_position(symbol, analysis)
+                break  # 每次扫描只开1个
+            else:
+                if opportunities:
+                    print(f"⏸️  方向限制 (LONG:{long_count}/{self.max_same_direction}, SHORT:{short_count}/{self.max_same_direction})")
         else:
-            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/8, 可用{available:.0f}U)")
+            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/6, 可用{available:.0f}U)")
     
     def send_telegram(self, message):
         """发送Telegram通知"""

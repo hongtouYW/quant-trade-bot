@@ -693,6 +693,34 @@ class AutoTraderV2:
         except Exception as e:
             print(f"❌ 更新每日统计失败: {e}")
 
+    def check_circuit_breaker(self):
+        """熔断机制：连续亏损时暂停开仓"""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT pnl FROM real_trades
+                WHERE status = 'CLOSED'
+                ORDER BY exit_time DESC
+                LIMIT 5
+            """)
+            recent = cursor.fetchall()
+            conn.close()
+
+            if len(recent) < 5:
+                return False
+
+            # 最近5笔全部亏损 → 触发熔断
+            all_losses = all(row[0] < 0 for row in recent)
+            if all_losses:
+                total_loss = sum(row[0] for row in recent)
+                print(f"🚨 熔断触发：最近5笔全部亏损（合计 ${total_loss:.2f}），暂停开仓")
+                return True
+
+            return False
+        except Exception:
+            return False
+
     def run_once(self):
         """执行一次交易循环"""
         print(f"\n{'='*60}")
@@ -705,7 +733,10 @@ class AutoTraderV2:
         if closed > 0:
             print(f"✅ 平仓 {closed} 个")
 
-        # 2. 获取推荐
+        # 2. 熔断检查
+        circuit_break = self.check_circuit_breaker()
+
+        # 3. 获取推荐
         print("\n🔍 扫描交易机会...")
         recommendations = self.get_recommendations()
 
@@ -720,13 +751,16 @@ class AutoTraderV2:
         print(f"💵 可用余额: ${available:.2f}")
         print(f"📈 持仓数: {len(positions)}/{self.max_positions}")
 
-        # 3. 尝试开仓
+        # 4. 尝试开仓（熔断时不开新仓，但仍监控已有持仓）
         trades_made = 0
-        for rec in recommendations:
-            if self.should_trade(rec):
-                if self.open_position(rec):
-                    trades_made += 1
-                    time.sleep(1)
+        if circuit_break:
+            print("⏸️  熔断中：仅监控持仓，不开新仓")
+        else:
+            for rec in recommendations:
+                if self.should_trade(rec):
+                    if self.open_position(rec):
+                        trades_made += 1
+                        time.sleep(1)
 
         if trades_made > 0:
             print(f"\n✅ 本轮开仓 {trades_made} 个")
