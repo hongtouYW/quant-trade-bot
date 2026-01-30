@@ -24,7 +24,7 @@ class PaperTradingAssistant:
         self.current_capital = 2000
         self.target_profit = 3400  # 目标利润3400U
         self.max_position_size = 500  # 单笔最大500U
-        self.min_score = 70  # 最低开仓分数70
+        self.min_score = 55  # 最低开仓分数55（新评分系统更严格）
         self.fee_rate = 0.0005  # 手续费率 0.05% (Binance合约)
         
         # 监控币种 (25个 - 激进策略：增加交易机会)
@@ -74,11 +74,30 @@ class PaperTradingAssistant:
         # 加载现有持仓
         self.load_positions()
 
+        # 从DB恢复真实资金（避免重启丢失）
+        self._restore_capital()
+
         print(f"【交易助手-模拟】🧪 系统启动")
-        print(f"初始本金: {self.initial_capital}U")
+        print(f"当前资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
         print(f"目标利润: {self.target_profit}U")
         print(f"监控币种: {', '.join(self.watch_symbols)}")
-        
+
+    def _restore_capital(self):
+        """从DB恢复真实资金"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cursor = conn.cursor()
+            cursor.execute('''
+                SELECT COALESCE(SUM(pnl), 0) FROM real_trades
+                WHERE mode = 'paper' AND assistant = '交易助手' AND status = 'CLOSED'
+            ''')
+            total_pnl = cursor.fetchone()[0]
+            conn.close()
+            self.current_capital = self.initial_capital + total_pnl
+            print(f"💰 资金恢复: 初始{self.initial_capital}U + 盈亏{total_pnl:+.2f}U = {self.current_capital:.2f}U")
+        except Exception as e:
+            print(f"资金恢复失败: {e}")
+
     def load_config(self):
         """加载配置"""
         config_path = '/opt/trading-bot/quant-trade-bot/config/config.json'
@@ -374,7 +393,7 @@ class PaperTradingAssistant:
             rsi_dir = 'LONG' if rsi < 50 else 'SHORT'
             trend_dir = 'LONG' if current_price > ma20 else 'SHORT'
             if rsi_dir != trend_dir:
-                total_score = int(total_score * 0.7)  # 扣30%
+                total_score = int(total_score * 0.85)  # 扣15%
             
             analysis = {
                 'price': current_price,
@@ -408,6 +427,12 @@ class PaperTradingAssistant:
         elif score >= 70:
             size = min(300, available * 0.2)
             leverage = 5
+        elif score >= 60:
+            size = min(200, available * 0.15)
+            leverage = 3
+        elif score >= 55:
+            size = min(150, available * 0.1)
+            leverage = 3
         else:
             return 0, 5
         
@@ -429,7 +454,7 @@ class PaperTradingAssistant:
                 amount = int(amount * self.risk_position_multiplier)
                 print(f"⚠️ 风险调整: 仓位 {original_amount}U → {amount}U ({self.risk_position_multiplier*100:.0f}%)")
 
-            if amount < 100:
+            if amount < 50:
                 print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
@@ -1253,6 +1278,11 @@ class PaperTradingAssistant:
                     self.send_telegram(msg)
                     print(f"\n{msg}\n")
                     self.last_risk_check = now
+
+                # 中风险：恢复交易（但仓位减半）
+                if self.risk_pause:
+                    self.risk_pause = False
+                    print("✅ 中风险，恢复交易（仓位减半）")
 
             # 低风险状态：如果之前处于暂停状态，可以恢复
             else:

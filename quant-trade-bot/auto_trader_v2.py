@@ -694,12 +694,12 @@ class AutoTraderV2:
             print(f"❌ 更新每日统计失败: {e}")
 
     def check_circuit_breaker(self):
-        """熔断机制：连续亏损时暂停开仓"""
+        """熔断机制：连续亏损时暂停开仓，30分钟后自动解锁"""
         try:
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
             cursor.execute("""
-                SELECT pnl FROM real_trades
+                SELECT pnl, exit_time FROM real_trades
                 WHERE status = 'CLOSED'
                 ORDER BY exit_time DESC
                 LIMIT 5
@@ -710,9 +710,23 @@ class AutoTraderV2:
             if len(recent) < 5:
                 return False
 
-            # 最近5笔全部亏损 → 触发熔断
+            # 最近5笔全部亏损 → 检查熔断
             all_losses = all(row[0] < 0 for row in recent)
             if all_losses:
+                # 检查最后一笔亏损的时间，超过30分钟自动解锁
+                last_exit = recent[0][1]
+                try:
+                    last_time = datetime.strptime(
+                        str(last_exit).replace('T', ' ').split('.')[0],
+                        '%Y-%m-%d %H:%M:%S'
+                    )
+                    minutes_since = (datetime.now() - last_time).total_seconds() / 60
+                    if minutes_since > 30:
+                        print(f"🔓 熔断解除：已冷却 {minutes_since:.0f} 分钟，恢复交易")
+                        return False
+                except Exception:
+                    pass
+
                 total_loss = sum(row[0] for row in recent)
                 print(f"🚨 熔断触发：最近5笔全部亏损（合计 ${total_loss:.2f}），暂停开仓")
                 return True
