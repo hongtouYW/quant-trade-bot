@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-量化交易机器人 v2.1
+量化交易机器人 v3.0 - 稳健策略
 - 追踪止损功能
 - 保存原始/最终止盈止损
 - 记录止损止盈变化历史
@@ -47,7 +47,7 @@ class AutoTraderV2:
         # 记录每个持仓的最高/最低价
         self.price_extremes = {}
 
-        print("🤖 量化交易机器人 v2.1 已启动")
+        print("🤖 量化交易机器人 v3.0 - 稳健策略 已启动")
         print(f"💰 初始资金: ${self.initial_capital}")
         print(f"🎯 目标利润: ${self.target_profit}")
         print(f"📊 最大持仓: {self.max_positions}")
@@ -224,12 +224,22 @@ class AutoTraderV2:
         return True
 
     def update_trailing_stop(self, trade, current_price):
-        """追踪止损逻辑"""
+        """追踪止损逻辑 v3 - 盈利1%后才开始追踪"""
         trade_id = trade['id']
         direction = trade['direction']
         entry_price = trade['entry_price']
         current_sl = trade['stop_loss']
         current_tp = trade['take_profit']
+
+        # 计算当前盈利百分比
+        if direction == 'long':
+            profit_pct = (current_price - entry_price) / entry_price * 100
+        else:
+            profit_pct = (entry_price - current_price) / entry_price * 100
+
+        # 未达到1%盈利，不启动追踪
+        if profit_pct < 1.0:
+            return current_sl
 
         # 获取或初始化价格极值
         if trade_id not in self.price_extremes:
@@ -251,10 +261,10 @@ class AutoTraderV2:
             # 止损只能上移，不能下移
             if new_sl > current_sl:
                 self._record_sl_change(trade_id, current_sl, new_sl, current_tp, current_tp,
-                                       f"追踪止损上移 (最高价${extremes['highest']:.4f})",
+                                       f"追踪止损上移 (盈利{profit_pct:.1f}% 最高价${extremes['highest']:.4f})",
                                        current_price, extremes['highest'], None)
                 self._update_stop_loss(trade_id, new_sl)
-                print(f"   📈 {trade['symbol']} 止损上移: ${current_sl:.4f} → ${new_sl:.4f}")
+                print(f"   📈 {trade['symbol']} 盈利{profit_pct:.1f}% 止损上移: ${current_sl:.4f} -> ${new_sl:.4f}")
                 return new_sl
         else:
             # 更新最低价
@@ -267,10 +277,10 @@ class AutoTraderV2:
             # 止损只能下移，不能上移
             if new_sl < current_sl:
                 self._record_sl_change(trade_id, current_sl, new_sl, current_tp, current_tp,
-                                       f"追踪止损下移 (最低价${extremes['lowest']:.4f})",
+                                       f"追踪止损下移 (盈利{profit_pct:.1f}% 最低价${extremes['lowest']:.4f})",
                                        current_price, None, extremes['lowest'])
                 self._update_stop_loss(trade_id, new_sl)
-                print(f"   📉 {trade['symbol']} 止损下移: ${current_sl:.4f} → ${new_sl:.4f}")
+                print(f"   📉 {trade['symbol']} 盈利{profit_pct:.1f}% 止损下移: ${current_sl:.4f} -> ${new_sl:.4f}")
                 return new_sl
 
         return current_sl
@@ -787,7 +797,7 @@ class AutoTraderV2:
         # 5. 更新每日统计
         self.update_daily_stats()
 
-    def run(self, interval=60):
+    def run(self, interval=300):
         """持续运行"""
         print("\n🚀 量化交易开始运行...")
         print(f"⏰ 扫描间隔: {interval}秒")
@@ -813,4 +823,4 @@ class AutoTraderV2:
 
 if __name__ == '__main__':
     trader = AutoTraderV2()
-    trader.run(interval=60)  # 1分钟扫描一次
+    trader.run(interval=60)  # 5分钟扫描一次

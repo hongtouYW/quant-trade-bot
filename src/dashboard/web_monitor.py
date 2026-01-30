@@ -201,7 +201,10 @@ def get_positions():
                 'cost': 0,
                 'unrealized_pnl': unrealized_pnl,
                 'unrealized_pnl_pct': unrealized_pnl_pct,
-                'score': row['score'] if 'score' in row.keys() else 0
+                'score': row['score'] if 'score' in row.keys() else 0,
+                'close_reason': row['close_reason'] if 'close_reason' in row.keys() else '',
+                'original_stop_loss': row['original_stop_loss'] if 'original_stop_loss' in row.keys() else None,
+                'original_take_profit': row['original_take_profit'] if 'original_take_profit' in row.keys() else None
             })
 
         conn.close()
@@ -246,7 +249,10 @@ def get_trades():
                 'pnl': row['pnl'] if row['pnl'] else 0,
                 'pnl_pct': row['roi'] if row['roi'] else 0,
                 'fee': row['fee'] if row['fee'] else 0,
-                'score': row['score'] if 'score' in row.keys() else 0
+                'score': row['score'] if 'score' in row.keys() else 0,
+                'close_reason': row['close_reason'] if 'close_reason' in row.keys() else '',
+                'original_stop_loss': row['original_stop_loss'] if 'original_stop_loss' in row.keys() else None,
+                'original_take_profit': row['original_take_profit'] if 'original_take_profit' in row.keys() else None
             })
 
         conn.close()
@@ -257,24 +263,26 @@ def get_trades():
 
 @app.route('/api/daily_stats')
 def get_daily_stats():
-    """获取每日统计"""
+    """获取每日统计（从 real_trades 表）"""
     try:
         conn = get_db()
         cursor = conn.cursor()
 
-        # 获取最近7天的数据
+        # 从 real_trades 获取每日统计
         cursor.execute('''
             SELECT
-                date(timestamp) as date,
+                DATE(exit_time) as date,
                 COUNT(*) as trades,
-                SUM(CASE WHEN side='buy' THEN 1 ELSE 0 END) as buys,
-                SUM(CASE WHEN side='sell' THEN 1 ELSE 0 END) as sells,
-                SUM(CASE WHEN pnl IS NOT NULL THEN pnl ELSE 0 END) as pnl,
-                SUM(fee) as fees
-            FROM trades
-            WHERE date(timestamp) >= date('now', '-7 days')
-            GROUP BY date(timestamp)
-            ORDER BY date(timestamp) DESC
+                SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+                SUM(CASE WHEN pnl <= 0 THEN 1 ELSE 0 END) as losses,
+                ROUND(SUM(pnl), 2) as pnl,
+                ROUND(SUM(fee), 2) as fees,
+                ROUND(SUM(pnl) - SUM(fee), 2) as net_pnl
+            FROM real_trades
+            WHERE status = 'CLOSED'
+              AND DATE(exit_time) >= DATE('now', '-30 days')
+            GROUP BY DATE(exit_time)
+            ORDER BY DATE(exit_time) DESC
         ''')
 
         daily_stats = []
@@ -282,10 +290,11 @@ def get_daily_stats():
             daily_stats.append({
                 'date': row['date'],
                 'trades': row['trades'],
-                'buys': row['buys'],
-                'sells': row['sells'],
+                'wins': row['wins'],
+                'losses': row['losses'],
                 'pnl': row['pnl'],
-                'fees': row['fees']
+                'fees': row['fees'],
+                'net_pnl': row['net_pnl']
             })
 
         conn.close()
@@ -379,9 +388,9 @@ def get_recommendations():
         return jsonify({'error': str(e)}), 500
 
 def analyze_symbol_simple(exchange, symbol):
-    """策略分析 - 与交易助手使用相同的100分评分系统"""
+    """策略分析 - 投票制评分，方向冲突时降分"""
     try:
-        # 获取1小时K线数据 (与交易助手一致)
+        # 获取1小时K线数据
         ohlcv = exchange.fetch_ohlcv(symbol, '1h', limit=100)
 
         if not ohlcv or len(ohlcv) < 50:
@@ -400,96 +409,158 @@ def analyze_symbol_simple(exchange, symbol):
         if np.isnan(rsi):
             rsi = 50
 
-        # 1. RSI分析 (40分)
-        if rsi < 30:
-            rsi_score = 40  # 超卖，做多机会
-            direction = 'buy'
-            reasons = ["RSI超卖"]
-        elif rsi > 70:
-            rsi_score = 40  # 超买，做空机会
-            direction = 'sell'
-            reasons = ["RSI超买"]
-        elif 40 <= rsi <= 60:
-            rsi_score = 20
-            direction = 'buy' if rsi < 50 else 'sell'
-            reasons = ["RSI中性"]
-        else:
-            rsi_score = 10
-            direction = 'buy' if rsi < 50 else 'sell'
-            reasons = ["RSI偏移"]
+        # 用投票制：每个指标投 buy/sell
+        buy_votes = 0
+        sell_votes = 0
+        reasons = []
 
-        # 2. 趋势分析 (25分)
+        # 1. RSI分析
+        if rsi < 20:
+            rsi_score = 30
+            buy_votes += 2
+            reasons.append("RSI极度超卖(%.0f)" % rsi)
+        elif rsi < 30:
+            rsi_score = 25
+            buy_votes += 1
+            reasons.append("RSI超卖")
+        elif rsi > 80:
+            rsi_score = 30
+            sell_votes += 2
+            reasons.append("RSI极度超买(%.0f)" % rsi)
+        elif rsi > 70:
+            rsi_score = 25
+            sell_votes += 1
+            reasons.append("RSI超买")
+        elif 40 <= rsi <= 60:
+            rsi_score = 10
+            reasons.append("RSI中性")
+        else:
+            rsi_score = 15
+            if rsi < 50:
+                buy_votes += 1
+            else:
+                sell_votes += 1
+            reasons.append("RSI偏移")
+
+        # 2. 趋势分析（最重要，权重最大）
         ma7 = sum(closes[-7:]) / 7
         ma20 = sum(closes[-20:]) / 20
         ma50 = sum(closes[-50:]) / 50
 
         if current_price > ma7 > ma20 > ma50:
-            trend_score = 25
-            direction = 'buy'
+            trend_score = 30
+            buy_votes += 3
+            trend_label = 'bullish'
             reasons.append("多头排列")
         elif current_price < ma7 < ma20 < ma50:
-            trend_score = 25
-            direction = 'sell'
+            trend_score = 30
+            sell_votes += 3
+            trend_label = 'bearish'
             reasons.append("空头排列")
         elif current_price > ma7 > ma20:
             trend_score = 15
+            buy_votes += 1
+            trend_label = 'bullish'
             reasons.append("短期多头")
         elif current_price < ma7 < ma20:
             trend_score = 15
+            sell_votes += 1
+            trend_label = 'bearish'
             reasons.append("短期空头")
         else:
             trend_score = 5
+            trend_label = 'neutral'
             reasons.append("趋势不明")
 
-        # 3. 成交量分析 (20分)
+        # 3. 成交量分析
         avg_volume = sum(volumes[-20:]) / 20
         recent_volume = volumes[-1]
         volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
 
         if volume_ratio > 1.5:
-            volume_score = 20
+            volume_score = 15
             reasons.append("成交量放大")
         elif volume_ratio > 1.2:
-            volume_score = 15
-        elif volume_ratio > 1:
             volume_score = 10
-        else:
+        elif volume_ratio > 1:
             volume_score = 5
+        else:
+            volume_score = 0
 
-        # 4. 价格位置 (15分)
+        # 4. 价格位置
         high_50 = max(highs[-50:])
         low_50 = min(lows[-50:])
         price_position = (current_price - low_50) / (high_50 - low_50) if high_50 > low_50 else 0.5
 
-        if price_position < 0.3:  # 接近底部
+        if price_position < 0.2:
             position_score = 15
-            direction = 'buy'
+            buy_votes += 1
             reasons.append("接近底部")
-        elif price_position > 0.7:  # 接近顶部
+        elif price_position < 0.3:
+            position_score = 10
+            buy_votes += 1
+            reasons.append("偏底部")
+        elif price_position > 0.8:
             position_score = 15
-            direction = 'sell'
+            sell_votes += 1
             reasons.append("接近顶部")
+        elif price_position > 0.7:
+            position_score = 10
+            sell_votes += 1
+            reasons.append("偏顶部")
         else:
             position_score = 5
 
-        # 计算总分 (满分100)
-        total_score = rsi_score + trend_score + volume_score + position_score
+        # 5. 动量检查：最近3根K线方向
+        recent_change = (closes[-1] - closes[-4]) / closes[-4] * 100
+        if recent_change < -3:
+            sell_votes += 2
+            reasons.append("急跌%.1f%%" % recent_change)
+        elif recent_change < -1:
+            sell_votes += 1
+        elif recent_change > 3:
+            buy_votes += 2
+            reasons.append("急涨+%.1f%%" % recent_change)
+        elif recent_change > 1:
+            buy_votes += 1
 
-        # 最低50分才显示推荐
-        if total_score < 50:
+        # 决定方向：投票制
+        if buy_votes > sell_votes:
+            signal = 'buy'
+        elif sell_votes > buy_votes:
+            signal = 'sell'
+        else:
+            signal = 'buy' if trend_label == 'bullish' else 'sell'
+
+        # 计算基础分
+        base_score = rsi_score + trend_score + volume_score + position_score
+
+        # 方向冲突时扣分
+        vote_diff = abs(buy_votes - sell_votes)
+        if vote_diff == 0:
+            total_score = int(base_score * 0.4)
+            reasons.append("信号矛盾")
+        elif vote_diff == 1:
+            total_score = int(base_score * 0.6)
+        elif vote_diff == 2:
+            total_score = int(base_score * 0.8)
+        else:
+            total_score = base_score
+
+        # 最低分门槛
+        if total_score < 70:
             return None
 
-        signal = direction
+        # 趋势标签用实际趋势
+        trend = trend_label
 
-        # 计算止损止盈 (与交易助手一致：1.5%止损, 2.5%止盈)
+        # 计算止损止盈
         if signal == 'buy':
-            stop_loss = current_price * 0.985   # -1.5%
-            take_profit = current_price * 1.025  # +2.5%
-            trend = 'bullish'
+            stop_loss = current_price * 0.97
+            take_profit = current_price * 1.05
         else:
-            stop_loss = current_price * 1.015   # +1.5%
-            take_profit = current_price * 0.975  # -2.5%
-            trend = 'bearish'
+            stop_loss = current_price * 1.03
+            take_profit = current_price * 0.95
 
         return {
             'symbol': symbol,
