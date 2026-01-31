@@ -24,7 +24,7 @@ class PaperTradingAssistant:
         self.current_capital = 2000
         self.target_profit = 3400  # 目标利润3400U
         self.max_position_size = 500  # 单笔最大500U
-        self.min_score = 55  # 最低开仓分数55（新评分系统更严格）
+        self.min_score = 70  # v2策略：最低开仓分数70
         self.fee_rate = 0.0005  # 手续费率 0.05% (Binance合约)
         
         # 监控币种 (25个 - 激进策略：增加交易机会)
@@ -279,8 +279,8 @@ class PaperTradingAssistant:
         if atr_pct is None:
             return 0.02, 'unknown'  # 默认2%
 
-        # ATR倍数作为止损距离，限制在1.5%-4%
-        stop_pct = max(0.015, min(0.04, atr_pct * 1.5 / 100))
+        # ATR倍数作为止损距离，限制在3%-8% (v2策略)
+        stop_pct = max(0.03, min(0.08, atr_pct * 2.0 / 100))
 
         if atr_pct > 3:
             volatility = 'high'
@@ -418,20 +418,15 @@ class PaperTradingAssistant:
         # 可用资金
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
         
+        # v2策略：最大杠杆5x
         if score >= 85:
-            size = min(500, available * 0.3)
-            leverage = 10
-        elif score >= 75:
             size = min(400, available * 0.25)
-            leverage = 8
-        elif score >= 70:
-            size = min(300, available * 0.2)
             leverage = 5
-        elif score >= 60:
-            size = min(200, available * 0.15)
+        elif score >= 75:
+            size = min(300, available * 0.2)
             leverage = 3
-        elif score >= 55:
-            size = min(150, available * 0.1)
+        elif score >= 70:
+            size = min(200, available * 0.15)
             leverage = 3
         else:
             return 0, 5
@@ -458,9 +453,9 @@ class PaperTradingAssistant:
                 print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
-            # ATR动态止损 + 止盈（盈亏比 1:3）
+            # ATR动态止损 + 止盈（盈亏比 1:1.5）
             stop_pct, volatility = self.get_dynamic_stop_pct(symbol)
-            tp_pct = stop_pct * 3  # 止盈 = 止损距离 × 3
+            tp_pct = stop_pct * 1.5  # 止盈 = 止损距离 × 1.5（更容易到达）
             print(f"📊 {symbol} 波动性: {volatility}, 止损: {stop_pct*100:.1f}%, 止盈: {tp_pct*100:.1f}%")
 
             if direction == 'LONG':
@@ -767,6 +762,18 @@ class PaperTradingAssistant:
             score, analysis = self.analyze_signal(symbol)
 
             if score >= self.min_score:
+                # v2趋势过滤：MA20斜率与方向冲突时跳过
+                direction = analysis['direction']
+                ma20 = analysis.get('ma20', 0)
+                ma50 = analysis.get('ma50', 0)
+                if ma20 > 0 and ma50 > 0:
+                    ma_slope = (ma20 - ma50) / ma50
+                    if direction == 'LONG' and ma_slope < -0.01:
+                        print(f"⛔ {symbol}: {score}分 {direction} - 趋势过滤(MA斜率{ma_slope:.3f})")
+                        continue
+                    if direction == 'SHORT' and ma_slope > 0.01:
+                        print(f"⛔ {symbol}: {score}分 {direction} - 趋势过滤(MA斜率{ma_slope:.3f})")
+                        continue
                 opportunities.append((symbol, score, analysis))
                 print(f"✨ {symbol}: {score}分 - {analysis['direction']}")
 
@@ -790,12 +797,14 @@ class PaperTradingAssistant:
             print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
             return
 
-        # 风控2：平仓冷却期 - 平仓后等1小时再开新单
+        # 风控2：平仓冷却期 - 平仓后等12小时再开新单 (v2策略)
         if self.last_close_time:
             cooldown_seconds = (datetime.now() - self.last_close_time).total_seconds()
-            if cooldown_seconds < 3600:  # 1小时
-                remaining = int((3600 - cooldown_seconds) / 60)
-                print(f"⏸️  冷却期中 (平仓后需等1小时，还剩{remaining}分钟)")
+            if cooldown_seconds < 43200:  # 12小时
+                remaining = int((43200 - cooldown_seconds) / 60)
+                hours = remaining // 60
+                mins = remaining % 60
+                print(f"⏸️  冷却期中 (平仓后需等12小时，还剩{hours}h{mins}m)")
                 return
 
         # 风控3：同方向限制 - 最多3个同方向持仓
