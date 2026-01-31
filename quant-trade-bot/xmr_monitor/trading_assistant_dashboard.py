@@ -21,16 +21,36 @@ import time as _time
 
 app = Flask(__name__)
 
-# 监控币种列表
+# 监控币种列表 (~100个)
 WATCH_SYMBOLS = [
-    'XMR', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK',
-    'VET', 'BNB', 'INJ', 'LINK', 'OP', 'FIL',
-    'ETH', 'AVAX', 'DOT', 'ATOM', 'MATIC', 'ARB',
-    'APT', 'SUI', 'SEI', 'TIA', 'WLD', 'NEAR',
-    'BTC'
+    # 顶级流动性 (10)
+    'BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'DOGE', 'ADA', 'AVAX', 'LINK', 'DOT',
+    # 主流公链 (15)
+    'NEAR', 'SUI', 'APT', 'ATOM', 'FTM', 'HBAR', 'XLM', 'ETC', 'LTC', 'BCH',
+    'ALGO', 'ICP', 'FIL', 'XMR', 'TRX',
+    # Layer2/DeFi (15)
+    'ARB', 'OP', 'MATIC', 'AAVE', 'UNI', 'CRV', 'DYDX', 'INJ', 'SEI',
+    'STX', 'RUNE', 'SNX', 'COMP', 'MKR', 'LDO',
+    # AI/新叙事 (10)
+    'TAO', 'RENDER', 'FET', 'WLD', 'AGIX', 'OCEAN', 'ARKM', 'PENGU', 'BERA', 'VIRTUAL',
+    # 中市值 (20)
+    'TIA', 'JUP', 'PYTH', 'JTO', 'ENA', 'STRK', 'ZRO', 'WIF',
+    'BONK', 'PEPE', 'SHIB', 'FLOKI', 'TRUMP',
+    'VET', 'AXS', 'ROSE', 'DUSK', 'CHZ', 'ENJ', 'SAND',
+    # GameFi/存储/其他 (15)
+    'MANA', 'GALA', 'IMX', 'ORDI', 'SXP', 'ZEC', 'DASH',
+    'WAVES', 'GRT', 'THETA', 'IOTA', 'NEO', 'KAVA', 'ONE', 'CELO',
+    # 高波动 (15)
+    'IP', 'INIT', 'HYPE', 'LINA', 'LEVER', 'ALPHA', 'LIT', 'UNFI',
+    'DGB', 'REN', 'BSW', 'AMB', 'TROY', 'OMNI', 'BNX',
 ]
 
 SYMBOL_MAP = {s: f'{s}USDT' for s in WATCH_SYMBOLS}
+# Binance futures uses 1000x prefix for low-price tokens
+SYMBOL_MAP.update({
+    'BONK': '1000BONKUSDT', 'PEPE': '1000PEPEUSDT',
+    'SHIB': '1000SHIBUSDT', 'FLOKI': '1000FLOKIUSDT',
+})
 
 DB_PATH = '/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db'  # Paper Trader 独立数据库
 
@@ -624,17 +644,7 @@ def get_price_value(symbol):
 def get_signal_suggestion(symbol):
     """获取币种信号建议（做多/做空）+ 信心度 + 止盈止损"""
     try:
-        symbol_map = {
-            'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
-            'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
-            'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
-            'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
-            'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
-            'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
-            'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
-            'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
-        }
-        binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+        binance_symbol = SYMBOL_MAP.get(symbol, f"{symbol}USDT")
 
         # 获取K线数据（使用期货API）
         url = f"https://fapi.binance.com/fapi/v1/klines"
@@ -707,20 +717,22 @@ def get_signal_suggestion(symbol):
         elif direction == 'SHORT' and current_price > ma7:
             confidence -= 10
 
-        # 计算止盈止损 (基于当前价格或方向)
+        # ROI模式：止损按ROI%反算价格（假设5x杠杆，-8%ROI）
+        roi_stop = -8   # 止损ROI
+        assumed_lev = 5  # 显示用杠杆（实际杠杆看持仓）
+        stop_price_pct = abs(roi_stop) / (assumed_lev * 100)  # 1.6%
         if direction == 'LONG':
-            stop_loss = current_price * 0.95  # -5%
-            take_profit = current_price * 1.10  # +10%
+            stop_loss = current_price * (1 - stop_price_pct)
+            take_profit = None  # ROI模式无固定止盈
         elif direction == 'SHORT':
-            stop_loss = current_price * 1.05  # +5%
-            take_profit = current_price * 0.90  # -10%
+            stop_loss = current_price * (1 + stop_price_pct)
+            take_profit = None
         else:
-            # 无明确方向，返回基本信息
             stop_loss = None
             take_profit = None
 
-        # 最低50分才标记为可交易（激进策略：增加交易频率）
-        tradeable = confidence >= 50 and direction is not None
+        # v2策略：最低70分才标记为可交易
+        tradeable = confidence >= 70 and direction is not None
 
         return {
             'direction': direction,
@@ -3212,6 +3224,7 @@ HTML_TEMPLATE = '''
 # ==============================
 
 _kline_cache = {}
+_KLINE_CACHE_MAX = 10  # 最多缓存10个币种-年份，避免内存爆掉
 
 def fetch_historical_klines(symbol, year):
     """从Binance拉取一整年的1h K线数据"""
@@ -3264,6 +3277,9 @@ def fetch_historical_klines(symbol, year):
             break
 
     if all_candles:
+        # 限制缓存大小，避免内存溢出
+        if len(_kline_cache) >= _KLINE_CACHE_MAX:
+            _kline_cache.pop(next(iter(_kline_cache)))
         _kline_cache[cache_key] = all_candles
 
     return all_candles
@@ -3304,34 +3320,45 @@ init_backtest_db()
 STRATEGY_PRESETS = {
     'v1': {
         'label': 'v1 原始 (Original)',
-        'description': '窄止损/高杠杆/1h冷却',
+        'description': '低门槛/高杠杆/1h冷却',
         'config': {
             'min_score': 55,
             'cooldown': 1,
-            'stop_multiplier': 1.5,
-            'stop_range_min': 0.015,
-            'stop_range_max': 0.04,
-            'take_profit_ratio': 1.5,
             'max_leverage': 10,
             'enable_trend_filter': False,
+            'roi_stop_loss': -10,
+            'roi_trailing_start': 5,
+            'roi_trailing_distance': 3,
         }
     },
     'v2': {
         'label': 'v2 稳健 (Conservative)',
-        'description': '宽止损/低杠杆/12h冷却/趋势过滤',
+        'description': '高门槛/低杠杆/12h冷却/趋势过滤/ROI模式',
         'config': {
             'min_score': 70,
             'cooldown': 12,
-            'stop_multiplier': 2.0,
-            'stop_range_min': 0.03,
-            'stop_range_max': 0.08,
-            'take_profit_ratio': 1.5,
             'max_leverage': 5,
             'enable_trend_filter': True,
+            'roi_stop_loss': -8,
+            'roi_trailing_start': 5,
+            'roi_trailing_distance': 3,
         }
     },
     'v3': {
-        'label': 'v3 自定义 (Custom)',
+        'label': 'v3 ROI模式 (ROI-Based)',
+        'description': '宽止损/移动止盈/让利润跑',
+        'config': {
+            'min_score': 60,
+            'cooldown': 4,
+            'max_leverage': 5,
+            'enable_trend_filter': True,
+            'roi_stop_loss': -10,
+            'roi_trailing_start': 8,
+            'roi_trailing_distance': 3,
+        }
+    },
+    'v4': {
+        'label': 'v4 自定义 (Custom)',
         'description': '自由调整所有参数',
         'config': {}
     }
@@ -3384,7 +3411,7 @@ def run_backtest_api():
         }
         preset = STRATEGY_PRESETS.get(strategy, STRATEGY_PRESETS['v2'])
         config.update(preset['config'])
-        if strategy == 'v3' and custom_params:
+        if strategy == 'v4' and custom_params:
             for k, v in custom_params.items():
                 config[k] = float(v) if isinstance(v, str) else v
 
@@ -3555,28 +3582,27 @@ def get_backtest_kline(symbol):
 
 @app.route('/api/backtest/report')
 def get_backtest_report():
-    """生成策略对比报告 — 支持按年份查询，year=all 返回所有年份汇总"""
+    """生成策略对比报告 — 支持 v1/v2/v3 按年份查询"""
     year_param = request.args.get('year', 'all')
+    VERSIONS = ['v1', 'v2', 'v3']
     conn = sqlite3.connect(BACKTEST_DB)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
     # 获取可用年份
-    c.execute('SELECT DISTINCT year FROM backtest_runs WHERE strategy_version IN (\'v1\',\'v2\') ORDER BY year')
+    c.execute("SELECT DISTINCT year FROM backtest_runs WHERE strategy_version IN ('v1','v2','v3') ORDER BY year")
     available_years = [r['year'] for r in c.fetchall()]
 
     # 查询数据
     if year_param == 'all':
-        c.execute('''SELECT * FROM backtest_runs
-            WHERE strategy_version IN ('v1','v2') ORDER BY id DESC''')
+        c.execute("SELECT * FROM backtest_runs WHERE strategy_version IN ('v1','v2','v3') ORDER BY id DESC")
     else:
-        c.execute('''SELECT * FROM backtest_runs
-            WHERE year = ? AND strategy_version IN ('v1','v2') ORDER BY id DESC''',
+        c.execute("SELECT * FROM backtest_runs WHERE year = ? AND strategy_version IN ('v1','v2','v3') ORDER BY id DESC",
             (int(year_param),))
     rows = [dict(r) for r in c.fetchall()]
     conn.close()
 
-    # 每个 symbol+strategy(+year for all) 只保留最新一条
+    # 每个 symbol+strategy(+year) 只保留最新一条
     seen = {}
     for r in rows:
         if year_param == 'all':
@@ -3586,85 +3612,51 @@ def get_backtest_report():
         if key not in seen:
             seen[key] = r
 
-    # 按 symbol 整理对比
     symbols = sorted(set(r['symbol'] for r in seen.values()))
     comparison = []
-    v1_total = {'pnl': 0, 'trades': 0, 'wins': 0, 'count': 0}
-    v2_total = {'pnl': 0, 'trades': 0, 'wins': 0, 'count': 0}
+    totals = {v: {'pnl': 0, 'trades': 0, 'wins': 0, 'count': 0} for v in VERSIONS}
 
-    if year_param == 'all':
-        # 汇总模式：每个 symbol 合并所有年份的盈亏
-        for sym in symbols:
-            row = {'symbol': sym}
-            for v in ['v1', 'v2']:
-                total_pnl = 0
-                total_trades = 0
-                total_wr_sum = 0
-                yr_count = 0
+    for sym in symbols:
+        row = {'symbol': sym}
+        for v in VERSIONS:
+            if year_param == 'all':
+                total_pnl = 0; total_trades = 0; total_wr_sum = 0; yr_count = 0
                 for yr in available_years:
-                    key = f"{sym}_{v}_{yr}"
-                    d = seen.get(key)
+                    d = seen.get(f"{sym}_{v}_{yr}")
                     if d:
-                        total_pnl += d['total_pnl']
-                        total_trades += d['total_trades']
-                        total_wr_sum += d['win_rate']
-                        yr_count += 1
+                        total_pnl += d['total_pnl']; total_trades += d['total_trades']
+                        total_wr_sum += d['win_rate']; yr_count += 1
                 if yr_count > 0:
-                    row[v] = {
-                        'pnl': round(total_pnl, 2),
-                        'trades': total_trades,
-                        'win_rate': round(total_wr_sum / yr_count, 1),
-                        'years': yr_count
-                    }
-                    totals = v1_total if v == 'v1' else v2_total
-                    totals['pnl'] += total_pnl
-                    totals['trades'] += total_trades
-                    totals['count'] += 1
-                    if total_pnl > 0:
-                        totals['wins'] += 1
+                    row[v] = {'pnl': round(total_pnl, 2), 'trades': total_trades,
+                              'win_rate': round(total_wr_sum / yr_count, 1), 'years': yr_count}
                 else:
                     row[v] = None
-            p1 = row.get('v1') or {}
-            p2 = row.get('v2') or {}
-            if p1 and p2:
-                row['winner'] = 'v1' if (p1.get('pnl', 0) or 0) > (p2.get('pnl', 0) or 0) else 'v2'
-            comparison.append(row)
-    else:
-        # 单年模式
-        for sym in symbols:
-            row = {'symbol': sym}
-            for v in ['v1', 'v2']:
-                key = f"{sym}_{v}"
-                d = seen.get(key)
+            else:
+                d = seen.get(f"{sym}_{v}")
                 if d:
-                    row[v] = {
-                        'pnl': d['total_pnl'], 'trades': d['total_trades'],
-                        'win_rate': d['win_rate'], 'best': d['best_trade'],
-                        'worst': d['worst_trade'], 'final_capital': d['final_capital'],
-                        'bankrupt': d['bankrupt']
-                    }
-                    totals = v1_total if v == 'v1' else v2_total
-                    totals['pnl'] += d['total_pnl']
-                    totals['trades'] += d['total_trades']
-                    totals['count'] += 1
-                    if d['total_pnl'] > 0:
-                        totals['wins'] += 1
+                    row[v] = {'pnl': d['total_pnl'], 'trades': d['total_trades'],
+                              'win_rate': d['win_rate'], 'best': d['best_trade'],
+                              'worst': d['worst_trade'], 'final_capital': d['final_capital'],
+                              'bankrupt': d['bankrupt']}
                 else:
                     row[v] = None
-            p1 = row.get('v1') or {}
-            p2 = row.get('v2') or {}
-            if p1 and p2:
-                row['winner'] = 'v1' if (p1.get('pnl', 0) or 0) > (p2.get('pnl', 0) or 0) else 'v2'
-            comparison.append(row)
+            if row[v]:
+                totals[v]['pnl'] += row[v]['pnl']; totals[v]['trades'] += row[v]['trades']
+                totals[v]['count'] += 1
+                if row[v]['pnl'] > 0: totals[v]['wins'] += 1
+
+        # 找最佳策略
+        best_v = max(VERSIONS, key=lambda vv: (row.get(vv) or {}).get('pnl', -99999))
+        if row.get(best_v):
+            row['winner'] = best_v
+        comparison.append(row)
 
     comparison.sort(key=lambda x: (x.get('v2') or {}).get('pnl', 0), reverse=True)
 
     return jsonify({
         'comparison': comparison,
-        'v1_total': v1_total,
-        'v2_total': v2_total,
-        'available_years': available_years,
-        'selected_year': year_param
+        'v1_total': totals['v1'], 'v2_total': totals['v2'], 'v3_total': totals['v3'],
+        'available_years': available_years, 'selected_year': year_param
     })
 
 
@@ -3704,7 +3696,7 @@ REPORT_TEMPLATE = '''
         .nav-links a:hover { text-decoration: underline; }
 
         /* 汇总卡片 */
-        .summary-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin-bottom: 20px; }
         .summary-card {
             background: rgba(255,255,255,0.08); border-radius: 16px;
             padding: 25px; backdrop-filter: blur(10px);
@@ -3712,6 +3704,7 @@ REPORT_TEMPLATE = '''
         .summary-card h3 { font-size: 1.1em; margin-bottom: 15px; }
         .summary-card.v1 { border-left: 4px solid #f0b90b; }
         .summary-card.v2 { border-left: 4px solid #2ecc71; }
+        .summary-card.v3 { border-left: 4px solid #3498db; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
         .stat-item { text-align: center; }
         .stat-value { font-size: 1.6em; font-weight: 700; }
@@ -3737,12 +3730,14 @@ REPORT_TEMPLATE = '''
         tbody tr:hover { background: rgba(255,255,255,0.04); }
         .winner-v1 { background: rgba(240,185,11,0.08); }
         .winner-v2 { background: rgba(46,204,113,0.08); }
+        .winner-v3 { background: rgba(52,152,219,0.08); }
         .badge {
             display: inline-block; padding: 2px 8px; border-radius: 4px;
             font-size: 0.75em; font-weight: 600;
         }
         .badge-v1 { background: rgba(240,185,11,0.2); color: #f0b90b; }
         .badge-v2 { background: rgba(46,204,113,0.2); color: #2ecc71; }
+        .badge-v3 { background: rgba(52,152,219,0.2); color: #3498db; }
         .verdict {
             margin-top: 20px; padding: 20px; border-radius: 12px;
             background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3);
@@ -3762,7 +3757,7 @@ REPORT_TEMPLATE = '''
 <div class="container">
     <div class="header">
         <h1>策略对比报告</h1>
-        <div class="subtitle" id="report-subtitle">全币种 v1 vs v2 回测对比 | 本金 2000 USDT | 止盈 x1.5</div>
+        <div class="subtitle" id="report-subtitle">全币种 v1 vs v2 vs v3 回测对比 | 本金 2000 USDT</div>
         <div class="nav-links">
             <a href="/">← 仪表盘</a>
             <a href="/backtest">回测模拟器</a>
@@ -3795,7 +3790,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v2">
                 <h3 style="color:#2ecc71;">v2 稳健 (Conservative)</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">宽止损 3-8% | 低杠杆 5x | 冷却 12h | 趋势过滤</div>
+                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">止损ROI -8% | 杠杆 5x | 冷却 12h | Trail +5%/3%</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v2-pnl">-</div>
@@ -3811,6 +3806,24 @@ REPORT_TEMPLATE = '''
                     </div>
                 </div>
             </div>
+            <div class="summary-card v3">
+                <h3 style="color:#3498db;">v3 ROI模式 (ROI-Based)</h3>
+                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">止损ROI -10% | 杠杆 5x | 冷却 4h | Trail +8%/3%</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="v3-pnl">-</div>
+                        <div class="stat-label">总盈亏 (U)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v3-wincount">-</div>
+                        <div class="stat-label">盈利币种</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v3-trades">-</div>
+                        <div class="stat-label">总交易笔数</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 逐币对比表 -->
@@ -3821,12 +3834,12 @@ REPORT_TEMPLATE = '''
                     <tr>
                         <th class="left">币种</th>
                         <th>v1 盈亏</th>
-                        <th>v1 笔数</th>
                         <th>v1 胜率</th>
                         <th>v2 盈亏</th>
-                        <th>v2 笔数</th>
                         <th>v2 胜率</th>
-                        <th>赢家</th>
+                        <th style="color:#3498db;">v3 盈亏</th>
+                        <th style="color:#3498db;">v3 胜率</th>
+                        <th>最佳</th>
                     </tr>
                 </thead>
                 <tbody id="report-body"></tbody>
@@ -3870,47 +3883,42 @@ REPORT_TEMPLATE = '''
 
                 // 标题
                 const subtitle = year === 'all'
-                    ? `${data.available_years.join('+')}年 全币种汇总 | 本金 2000 USDT | 止盈 x1.5`
-                    : `${year}年全币种 v1 vs v2 | 本金 2000 USDT | 止盈 x1.5`;
+                    ? `${data.available_years.join('+')}年 全币种汇总 | 本金 2000 USDT`
+                    : `${year}年 v1 vs v2 vs v3 | 本金 2000 USDT`;
                 document.getElementById('report-subtitle').textContent = subtitle;
 
-                const t1 = data.v1_total, t2 = data.v2_total;
+                const t1 = data.v1_total, t2 = data.v2_total, t3 = data.v3_total || {pnl:0,trades:0,wins:0,count:0};
                 const el = id => document.getElementById(id);
 
                 // 汇总卡片
-                el('v1-pnl').textContent = (t1.pnl >= 0 ? '+' : '') + t1.pnl.toFixed(0);
-                el('v1-pnl').className = 'stat-value ' + (t1.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
-                el('v1-wincount').textContent = t1.wins + '/' + t1.count;
-                el('v1-trades').textContent = t1.trades.toLocaleString();
-                el('v2-pnl').textContent = (t2.pnl >= 0 ? '+' : '') + t2.pnl.toFixed(0);
-                el('v2-pnl').className = 'stat-value ' + (t2.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
-                el('v2-wincount').textContent = t2.wins + '/' + t2.count;
-                el('v2-trades').textContent = t2.trades.toLocaleString();
+                [['v1',t1],['v2',t2],['v3',t3]].forEach(([v,t]) => {
+                    el(v+'-pnl').textContent = (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(0);
+                    el(v+'-pnl').className = 'stat-value ' + (t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
+                    el(v+'-wincount').textContent = t.wins + '/' + t.count;
+                    el(v+'-trades').textContent = t.trades.toLocaleString();
+                });
 
                 // 表格
                 const tbody = document.getElementById('report-body');
                 tbody.innerHTML = '';
+                const pnlHtml = (val) => {
+                    if (val == null) return '<td>-</td>';
+                    const cls = val >= 0 ? 'pnl-pos' : 'pnl-neg';
+                    return `<td class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(1)}</td>`;
+                };
                 data.comparison.forEach(row => {
-                    const v1 = row.v1 || {};
-                    const v2 = row.v2 || {};
-                    const w = row.winner;
+                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {};
+                    const w = row.winner || 'v2';
                     const tr = document.createElement('tr');
-                    tr.className = w === 'v1' ? 'winner-v1' : 'winner-v2';
-
-                    const pnlHtml = (val) => {
-                        if (val == null) return '<td>-</td>';
-                        const cls = val >= 0 ? 'pnl-pos' : 'pnl-neg';
-                        return `<td class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(1)}</td>`;
-                    };
-
+                    tr.className = 'winner-' + w;
                     tr.innerHTML = `
                         <td class="left">${row.symbol}</td>
                         ${pnlHtml(v1.pnl)}
-                        <td>${v1.trades || '-'}</td>
                         <td>${v1.win_rate != null ? v1.win_rate + '%' : '-'}</td>
                         ${pnlHtml(v2.pnl)}
-                        <td>${v2.trades || '-'}</td>
                         <td>${v2.win_rate != null ? v2.win_rate + '%' : '-'}</td>
+                        ${pnlHtml(v3.pnl)}
+                        <td>${v3.win_rate != null ? v3.win_rate + '%' : '-'}</td>
                         <td><span class="badge badge-${w}">${w}</span></td>
                     `;
                     tbody.appendChild(tr);
@@ -3922,42 +3930,32 @@ REPORT_TEMPLATE = '''
                 const tfr = document.createElement('tr');
                 tfr.style.fontWeight = '700';
                 tfr.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-                const p1cls = t1.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
-                const p2cls = t2.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
-                const totalWinner = t2.pnl > t1.pnl ? 'v2' : 'v1';
-                tfr.innerHTML = `
-                    <td class="left">合计 (${t1.count}币)</td>
-                    <td class="${p1cls}">${t1.pnl >= 0 ? '+' : ''}${t1.pnl.toFixed(0)}</td>
-                    <td>${t1.trades.toLocaleString()}</td>
-                    <td>${t1.count > 0 ? (t1.wins/t1.count*100).toFixed(0) : 0}% 盈利</td>
-                    <td class="${p2cls}">${t2.pnl >= 0 ? '+' : ''}${t2.pnl.toFixed(0)}</td>
-                    <td>${t2.trades.toLocaleString()}</td>
-                    <td>${t2.count > 0 ? (t2.wins/t2.count*100).toFixed(0) : 0}% 盈利</td>
-                    <td><span class="badge badge-${totalWinner}">${totalWinner}</span></td>
-                `;
+                const allTotals = [['v1',t1],['v2',t2],['v3',t3]];
+                const totalWinner = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a)[0];
+                let footHtml = `<td class="left">合计</td>`;
+                allTotals.forEach(([v,t]) => {
+                    const cls = t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+                    footHtml += `<td class="${cls}">${t.pnl >= 0?'+':''}${t.pnl.toFixed(0)}</td>`;
+                    footHtml += `<td>${t.count>0?(t.wins/t.count*100).toFixed(0):0}%</td>`;
+                });
+                footHtml += `<td><span class="badge badge-${totalWinner}">${totalWinner}</span></td>`;
+                tfr.innerHTML = footHtml;
                 tfoot.appendChild(tfr);
 
                 // 结论
-                const winner = t2.pnl > t1.pnl ? 'v2' : 'v1';
-                const winnerPnl = Math.max(t1.pnl, t2.pnl);
-                const loserPnl = Math.min(t1.pnl, t2.pnl);
-                const wPct = winner === 'v2'
-                    ? (t2.count > 0 ? (t2.wins/t2.count*100).toFixed(0) : 0)
-                    : (t1.count > 0 ? (t1.wins/t1.count*100).toFixed(0) : 0);
-                const lPct = winner === 'v2'
-                    ? (t1.count > 0 ? (t1.wins/t1.count*100).toFixed(0) : 0)
-                    : (t2.count > 0 ? (t2.wins/t2.count*100).toFixed(0) : 0);
-                const loser = winner === 'v2' ? 'v1' : 'v2';
+                const winnerEntry = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a);
+                const winner = winnerEntry[0], winnerPnl = winnerEntry[1].pnl;
+                const wPct = winnerEntry[1].count > 0 ? (winnerEntry[1].wins/winnerEntry[1].count*100).toFixed(0) : 0;
                 const yearLabel = year === 'all' ? '跨年汇总' : year + '年';
-                const pnlCls = winnerPnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219'};
                 el('verdict').innerHTML = `
                     <strong>${yearLabel}</strong>：
                     <strong>${winner} 策略</strong> 总盈亏
-                    <strong class="${pnlCls}">${winnerPnl >= 0 ? '+' : ''}${winnerPnl.toFixed(0)}U</strong>，
-                    ${wPct}% 币种盈利（${loser} 仅 ${lPct}%）。
+                    <strong class="${winnerPnl >= 0 ? 'pnl-pos' : 'pnl-neg'}">${winnerPnl >= 0?'+':''}${winnerPnl.toFixed(0)}U</strong>，
+                    ${wPct}% 币种盈利。
                 `;
-                el('verdict').style.borderColor = winner === 'v2' ? 'rgba(46,204,113,0.3)' : 'rgba(240,185,11,0.3)';
-                el('verdict').style.background = winner === 'v2' ? 'rgba(46,204,113,0.1)' : 'rgba(240,185,11,0.1)';
+                el('verdict').style.borderColor = colors[winner] + ',0.3)';
+                el('verdict').style.background = colors[winner] + ',0.1)';
             });
     }
 
@@ -4280,7 +4278,8 @@ BACKTEST_TEMPLATE = '''
                     <select id="strategy-select" onchange="onStrategyChange()">
                         <option value="v1">v1 原始</option>
                         <option value="v2" selected>v2 稳健</option>
-                        <option value="v3">v3 自定义</option>
+                        <option value="v3">v3 ROI</option>
+                        <option value="v4">v4 自定义</option>
                     </select>
                 </div>
                 <div class="config-field">
@@ -4288,7 +4287,7 @@ BACKTEST_TEMPLATE = '''
                     <button class="run-btn" id="run-btn" onclick="runBacktest()">开始回测</button>
                 </div>
             </div>
-            <!-- 策略参数对比 -->
+            <!-- 策略参数对比 (ROI模式) -->
             <div id="strategy-desc" style="margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px;">
                 <table style="width:100%;border-collapse:collapse;font-size:0.82em;">
                     <thead>
@@ -4296,8 +4295,9 @@ BACKTEST_TEMPLATE = '''
                             <th style="padding:4px 8px;font-weight:500;"></th>
                             <th style="padding:4px 8px;font-weight:500;">最低评分</th>
                             <th style="padding:4px 8px;font-weight:500;">冷却时间</th>
-                            <th style="padding:4px 8px;font-weight:500;">止损范围</th>
-                            <th style="padding:4px 8px;font-weight:500;">止盈倍数</th>
+                            <th style="padding:4px 8px;font-weight:500;">止损ROI</th>
+                            <th style="padding:4px 8px;font-weight:500;">Trailing启动</th>
+                            <th style="padding:4px 8px;font-weight:500;">回撤距离</th>
                             <th style="padding:4px 8px;font-weight:500;">最大杠杆</th>
                             <th style="padding:4px 8px;font-weight:500;">趋势过滤</th>
                         </tr>
@@ -4307,8 +4307,9 @@ BACKTEST_TEMPLATE = '''
                             <td style="padding:4px 8px;font-weight:600;color:#f0b90b;">v1 原始</td>
                             <td style="padding:4px 8px;">≥55</td>
                             <td style="padding:4px 8px;">1h</td>
-                            <td style="padding:4px 8px;">1.5-4%</td>
-                            <td style="padding:4px 8px;">×1.5</td>
+                            <td style="padding:4px 8px;">-10%</td>
+                            <td style="padding:4px 8px;">+5%</td>
+                            <td style="padding:4px 8px;">3%</td>
                             <td style="padding:4px 8px;">10x</td>
                             <td style="padding:4px 8px;color:#e74c3c;">关</td>
                         </tr>
@@ -4316,23 +4317,35 @@ BACKTEST_TEMPLATE = '''
                             <td style="padding:4px 8px;font-weight:600;color:#2ecc71;">v2 稳健</td>
                             <td style="padding:4px 8px;">≥70</td>
                             <td style="padding:4px 8px;">12h</td>
-                            <td style="padding:4px 8px;">3-8%</td>
-                            <td style="padding:4px 8px;">×1.5</td>
+                            <td style="padding:4px 8px;">-8%</td>
+                            <td style="padding:4px 8px;">+5%</td>
+                            <td style="padding:4px 8px;">3%</td>
+                            <td style="padding:4px 8px;">5x</td>
+                            <td style="padding:4px 8px;color:#2ecc71;">开</td>
+                        </tr>
+                        <tr id="desc-v3" style="color:#e0e0e0;">
+                            <td style="padding:4px 8px;font-weight:600;color:#3498db;">v3 ROI</td>
+                            <td style="padding:4px 8px;">≥60</td>
+                            <td style="padding:4px 8px;">4h</td>
+                            <td style="padding:4px 8px;">-10%</td>
+                            <td style="padding:4px 8px;">+8%</td>
+                            <td style="padding:4px 8px;">3%</td>
                             <td style="padding:4px 8px;">5x</td>
                             <td style="padding:4px 8px;color:#2ecc71;">开</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
-            <!-- v3 自定义参数 -->
+            <!-- v4 自定义参数 -->
             <div id="custom-params" style="display:none;margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:15px;">
-                <div style="font-size:0.85em;color:#aaa;margin-bottom:10px;">v3 自定义参数:</div>
-                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px;">
+                <div style="font-size:0.85em;color:#aaa;margin-bottom:10px;">v4 自定义参数:</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
                     <div class="config-field"><label>最低评分</label><input type="number" id="p-min-score" value="70" min="30" max="95" step="5"></div>
                     <div class="config-field"><label>冷却(bars)</label><input type="number" id="p-cooldown" value="12" min="1" max="48"></div>
-                    <div class="config-field"><label>止盈倍数</label><input type="number" id="p-tp-ratio" value="1.5" min="1" max="10" step="0.5"></div>
                     <div class="config-field"><label>最大杠杆</label><input type="number" id="p-max-leverage" value="5" min="1" max="20"></div>
-                    <div class="config-field"><label>止损ATR倍数</label><input type="number" id="p-stop-mult" value="2.0" min="0.5" max="5" step="0.5"></div>
+                    <div class="config-field"><label>止损ROI%</label><input type="number" id="p-roi-stop" value="-8" min="-30" max="-2" step="1"></div>
+                    <div class="config-field"><label>Trailing启动ROI%</label><input type="number" id="p-roi-trail-start" value="5" min="1" max="30" step="1"></div>
+                    <div class="config-field"><label>回撤距离%</label><input type="number" id="p-roi-trail-dist" value="3" min="1" max="15" step="1"></div>
                 </div>
             </div>
         </div>
@@ -4350,16 +4363,16 @@ BACKTEST_TEMPLATE = '''
                     <span style="color:#666;font-size:0.8em;">4种</span>
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85em;">
-                    <input type="checkbox" class="scan-cb" data-key="take_profit_ratio" data-vals="[1,1.5,2,3]" data-n="4"> 止盈倍数
+                    <input type="checkbox" class="scan-cb" data-key="roi_stop_loss" data-vals="[-5,-8,-10,-15]" data-n="4"> 止损ROI
+                    <span style="color:#666;font-size:0.8em;">4种</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85em;">
+                    <input type="checkbox" class="scan-cb" data-key="roi_trailing_start" data-vals="[3,5,8,12]" data-n="4"> Trailing启动
                     <span style="color:#666;font-size:0.8em;">4种</span>
                 </label>
                 <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85em;">
                     <input type="checkbox" class="scan-cb" data-key="max_leverage" data-vals="[3,5,10]" data-n="3"> 最大杠杆
                     <span style="color:#666;font-size:0.8em;">3种</span>
-                </label>
-                <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85em;">
-                    <input type="checkbox" class="scan-cb" data-key="stop_multiplier" data-vals="[1.5,2.0,2.5,3.0]" data-n="4"> 止损ATR倍
-                    <span style="color:#666;font-size:0.8em;">4种</span>
                 </label>
             </div>
             <div style="margin-top:12px;display:flex;gap:15px;align-items:center;">
@@ -4467,14 +4480,14 @@ BACKTEST_TEMPLATE = '''
 
         function onStrategyChange() {
             const v = document.getElementById('strategy-select').value;
-            document.getElementById('custom-params').style.display = v === 'v3' ? 'block' : 'none';
+            document.getElementById('custom-params').style.display = v === 'v4' ? 'block' : 'none';
             // 高亮当前策略行
             const v1row = document.getElementById('desc-v1');
             const v2row = document.getElementById('desc-v2');
-            const descBox = document.getElementById('strategy-desc');
+            const v3row = document.getElementById('desc-v3');
             v1row.style.background = v === 'v1' ? 'rgba(240,185,11,0.12)' : 'none';
             v2row.style.background = v === 'v2' ? 'rgba(46,204,113,0.12)' : 'none';
-            // v3 时对比表仍显示（方便对比参照）
+            v3row.style.background = v === 'v3' ? 'rgba(52,152,219,0.12)' : 'none';
         }
         onStrategyChange(); // 初始化高亮
 
@@ -4495,13 +4508,14 @@ BACKTEST_TEMPLATE = '''
 
             const strategy = document.getElementById('strategy-select').value;
             let customParams = {};
-            if (strategy === 'v3') {
+            if (strategy === 'v4') {
                 customParams = {
                     min_score: parseInt(document.getElementById('p-min-score').value),
                     cooldown: parseInt(document.getElementById('p-cooldown').value),
-                    take_profit_ratio: parseFloat(document.getElementById('p-tp-ratio').value),
                     max_leverage: parseInt(document.getElementById('p-max-leverage').value),
-                    stop_multiplier: parseFloat(document.getElementById('p-stop-mult').value)
+                    roi_stop_loss: parseInt(document.getElementById('p-roi-stop').value),
+                    roi_trailing_start: parseInt(document.getElementById('p-roi-trail-start').value),
+                    roi_trailing_distance: parseInt(document.getElementById('p-roi-trail-dist').value)
                 };
             }
 
@@ -4849,21 +4863,48 @@ BACKTEST_TEMPLATE = '''
             });
             const prices = candles.map(c => c.close);
 
-            // 止损止盈线
             const entryPrice = trade.entry_price;
             const exitPrice = trade.exit_price;
+            const entryTs = new Date(trade.entry_time + 'Z').getTime();
+            const exitTs = new Date(trade.exit_time + 'Z').getTime();
 
+            // 找到入场/出场在K线数组中的索引
+            let entryIdx = -1, exitIdx = -1;
+            for (let i = 0; i < candles.length; i++) {
+                if (entryIdx < 0 && candles[i].time >= entryTs) entryIdx = i;
+                if (exitIdx < 0 && candles[i].time >= exitTs) exitIdx = i;
+            }
+            if (entryIdx < 0) entryIdx = 0;
+            if (exitIdx < 0) exitIdx = candles.length - 1;
+
+            // 入场/出场散点数据 (null填充，只在对应索引处有值)
+            const entryPoints = prices.map((_, i) => i === entryIdx ? entryPrice : null);
+            const exitPoints = prices.map((_, i) => i === exitIdx ? exitPrice : null);
+
+            const exitColor = trade.pnl >= 0 ? '#10b981' : '#ef4444';
+
+            // 注解：入场/出场水平线 + 垂直标记线
             const annotations = {
                 entryLine: {
                     type: 'line', yMin: entryPrice, yMax: entryPrice,
-                    borderColor: '#667eea', borderWidth: 2, borderDash: [6,3],
+                    borderColor: 'rgba(102,126,234,0.4)', borderWidth: 1, borderDash: [4,4],
                     label: { content: '入场 $' + fmtPrice(entryPrice), display: true, position: 'start', backgroundColor: '#667eea', font: {size: 10} }
                 },
                 exitLine: {
                     type: 'line', yMin: exitPrice, yMax: exitPrice,
-                    borderColor: trade.pnl >= 0 ? '#10b981' : '#ef4444', borderWidth: 2, borderDash: [6,3],
+                    borderColor: trade.pnl >= 0 ? 'rgba(16,185,129,0.4)' : 'rgba(239,68,68,0.4)',
+                    borderWidth: 1, borderDash: [4,4],
                     label: { content: '出场 $' + fmtPrice(exitPrice), display: true, position: 'end',
-                             backgroundColor: trade.pnl >= 0 ? '#10b981' : '#ef4444', font: {size: 10} }
+                             backgroundColor: exitColor, font: {size: 10} }
+                },
+                entryVLine: {
+                    type: 'line', xMin: entryIdx, xMax: entryIdx,
+                    borderColor: 'rgba(102,126,234,0.3)', borderWidth: 1, borderDash: [3,3]
+                },
+                exitVLine: {
+                    type: 'line', xMin: exitIdx, xMax: exitIdx,
+                    borderColor: trade.pnl >= 0 ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)',
+                    borderWidth: 1, borderDash: [3,3]
                 }
             };
 
@@ -4871,22 +4912,59 @@ BACKTEST_TEMPLATE = '''
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: '价格',
-                        data: prices,
-                        borderColor: '#8b9cf7',
-                        borderWidth: 1.5,
-                        tension: 0.1,
-                        pointRadius: 0,
-                        fill: false
-                    }]
+                    datasets: [
+                        {
+                            label: '价格',
+                            data: prices,
+                            borderColor: '#8b9cf7',
+                            borderWidth: 1.5,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            fill: false
+                        },
+                        {
+                            label: '入场',
+                            data: entryPoints,
+                            borderColor: '#667eea',
+                            backgroundColor: '#667eea',
+                            pointRadius: 8,
+                            pointStyle: 'triangle',
+                            pointRotation: trade.direction === 'LONG' ? 0 : 180,
+                            showLine: false,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        },
+                        {
+                            label: '出场',
+                            data: exitPoints,
+                            borderColor: exitColor,
+                            backgroundColor: exitColor,
+                            pointRadius: 8,
+                            pointStyle: 'crossRot',
+                            showLine: false,
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { display: false },
-                        annotation: { annotations: annotations }
+                        legend: {
+                            display: true, position: 'top',
+                            labels: { color: '#aaa', usePointStyle: true, pointStyle: 'circle', boxWidth: 8, font: {size: 11} }
+                        },
+                        annotation: { annotations: annotations },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.datasetIndex === 0) return '价格: $' + ctx.raw.toFixed(2);
+                                    if (ctx.datasetIndex === 1) return '入场: $' + fmtPrice(entryPrice) + ' (' + trade.entry_time + ')';
+                                    if (ctx.datasetIndex === 2) return '出场: $' + fmtPrice(exitPrice) + ' (' + trade.exit_time + ')';
+                                }
+                            }
+                        }
                     },
                     scales: {
                         x: { ticks: { color: '#888', maxTicksLimit: 10 }, grid: { color: 'rgba(255,255,255,0.05)' } },

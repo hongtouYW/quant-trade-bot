@@ -219,13 +219,13 @@ def run_backtest(candles_1h, config):
     max_positions = config.get('max_positions', 3)
     max_same_dir = config.get('max_same_direction', 2)
     cooldown_bars = config.get('cooldown', 12)
-    take_profit_ratio = config.get('take_profit_ratio', 1.5)
     max_leverage = config.get('max_leverage', 5)
-    stop_multiplier = config.get('stop_multiplier', 2.0)
-    stop_range_min = config.get('stop_range_min', 0.03)
-    stop_range_max = config.get('stop_range_max', 0.08)
     enable_trend_filter = config.get('enable_trend_filter', True)
     ma_slope_threshold = config.get('ma_slope_threshold', 0.01)
+    # ROI模式参数（基于本金盈亏%）
+    roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
+    roi_trailing_start = config.get('roi_trailing_start', 5)  # 启动移动止盈: ROI达+5%
+    roi_trailing_distance = config.get('roi_trailing_distance', 3)  # 回撤距离: 从峰值回撤3%平仓
 
     capital = initial_capital
     positions = {}  # symbol -> position dict
@@ -334,19 +334,14 @@ def run_backtest(candles_1h, config):
         if amount < 50:
             continue
 
-        # ATR止损
-        atr_candles = candles_1h[max(0, i-18):i+1]
-        _, atr_pct = calculate_atr_from_candles(atr_candles)
-        stop_pct, _ = get_dynamic_stop_pct(atr_pct, stop_multiplier, stop_range_min, stop_range_max)
-        tp_pct = stop_pct * take_profit_ratio
-
         entry_price = analysis['price']
+
+        # ROI模式：按ROI反算止损价格（用于显示/记录）
+        stop_price_pct = roi_stop_loss / (leverage * 100)
         if direction == 'LONG':
-            stop_loss = entry_price * (1 - stop_pct)
-            take_profit = entry_price * (1 + tp_pct)
+            stop_loss = entry_price * (1 + stop_price_pct)  # 负值所以是减
         else:
-            stop_loss = entry_price * (1 + stop_pct)
-            take_profit = entry_price * (1 - tp_pct)
+            stop_loss = entry_price * (1 - stop_price_pct)  # 负值所以是加
 
         # 用 bar index 作为 key（单币种回测）
         pos_key = f"pos_{trade_id + 1}"
@@ -356,14 +351,14 @@ def run_backtest(candles_1h, config):
             'amount': amount,
             'leverage': leverage,
             'stop_loss': stop_loss,
-            'take_profit': take_profit,
-            'trailing_pct': stop_pct,
+            'take_profit': 0,  # ROI模式无固定止盈
+            'roi_stop_loss': roi_stop_loss,
+            'roi_trailing_start': roi_trailing_start,
+            'roi_trailing_distance': roi_trailing_distance,
+            'peak_roi': 0,
             'entry_time': _ts_to_str(candle['time']),
             'score': score,
-            'highest_price': entry_price if direction == 'LONG' else 0,
-            'lowest_price': entry_price if direction == 'SHORT' else float('inf'),
             'stop_move_count': 0,
-            'profit_protected': False,
             'bar_index': i
         }
 
@@ -411,92 +406,65 @@ def run_backtest(candles_1h, config):
 
 
 def _check_position_bar(pos, candle):
-    """用一根K线的高低价检查持仓是否触发止损/止盈
+    """用一根K线的高低价检查持仓 — 纯ROI模式
 
-    改进v2:
-    - ROI < 10% 时不trailing，只用固定止损/止盈
-    - ROI >= 10% 后启动trailing，用2倍ATR距离（给赢家空间）
-    - ROI >= 20% 时盈利保护，锁定保本+1%
+    基于本金盈亏百分比(ROI)管理，无论杠杆多少风险一致:
+    - 止损: ROI跌到 roi_stop_loss 平仓
+    - 移动止盈: ROI达到 roi_trailing_start 后开始跟踪
+    - 跟踪距离: 从最高ROI回撤 roi_trailing_distance 则平仓
+    - 无固定止盈上限，让利润跑
     """
     direction = pos['direction']
     entry_price = pos['entry_price']
-    stop_loss = pos['stop_loss']
-    take_profit = pos.get('take_profit', 0)
     leverage = pos.get('leverage', 1)
-    trailing_pct = pos.get('trailing_pct', 0.02)
+
+    roi_stop = pos.get('roi_stop_loss', -8)
+    roi_trail_start = pos.get('roi_trailing_start', 5)
+    roi_trail_dist = pos.get('roi_trailing_distance', 3)
 
     high = candle['high']
     low = candle['low']
 
-    # 计算当前最大浮盈（用K线极值）
+    # 计算本bar的最佳/最差ROI
     if direction == 'LONG':
-        best_pct = (high - entry_price) / entry_price
+        best_roi = ((high - entry_price) / entry_price) * leverage * 100
+        worst_roi = ((low - entry_price) / entry_price) * leverage * 100
     else:
-        best_pct = (entry_price - low) / entry_price
-    roi_pct = best_pct * leverage * 100
+        best_roi = ((entry_price - low) / entry_price) * leverage * 100
+        worst_roi = ((entry_price - high) / entry_price) * leverage * 100
 
-    # === 盈利保护：ROI > 20% 时锁定保本+1% ===
-    if roi_pct > 20 and not pos.get('profit_protected', False):
+    # 更新峰值ROI
+    peak_roi = pos.get('peak_roi', 0)
+    if best_roi > peak_roi:
+        pos['peak_roi'] = best_roi
+        peak_roi = best_roi
+
+    # === 1. 止损检查: ROI跌到止损线 ===
+    if worst_roi <= roi_stop:
+        # 按止损ROI反算退出价格
+        exit_pct = roi_stop / (leverage * 100)
         if direction == 'LONG':
-            protect_stop = entry_price * 1.01
-            if protect_stop > stop_loss:
-                pos['stop_loss'] = protect_stop
-                pos['stop_move_count'] = pos.get('stop_move_count', 0) + 1
-                stop_loss = protect_stop
+            exit_price = entry_price * (1 + exit_pct)
         else:
-            protect_stop = entry_price * 0.99
-            if protect_stop < stop_loss:
-                pos['stop_loss'] = protect_stop
-                pos['stop_move_count'] = pos.get('stop_move_count', 0) + 1
-                stop_loss = protect_stop
-        pos['profit_protected'] = True
+            exit_price = entry_price * (1 - exit_pct)
+        pos['stop_move_count'] = pos.get('stop_move_count', 0)
+        return exit_price, f"触发止损 (ROI {roi_stop}%)"
 
-    # === 只有ROI > 10%才启动trailing，且用2倍ATR距离 ===
-    trailing_active = roi_pct > 10
-    wide_trailing = trailing_pct * 2  # 2倍ATR给赢家空间
-
-    if direction == 'LONG':
-        # 止损
-        if low <= stop_loss:
-            pct = ((stop_loss - entry_price) / entry_price) * 100
-            if pct > 0:
-                return stop_loss, f"移动止盈 (+{pct:.1f}%)"
-            return stop_loss, "触发止损"
-
-        # 固定止盈
-        if take_profit > 0 and high >= take_profit:
-            pct = ((take_profit - entry_price) / entry_price) * 100
-            return take_profit, f"触发止盈 (+{pct:.1f}%)"
-
-        # trailing（仅盈利>10%后）
-        if trailing_active:
-            highest = pos.get('highest_price', entry_price)
-            if high > highest:
-                pos['highest_price'] = high
-                new_stop = high * (1 - wide_trailing)
-                if new_stop > stop_loss:
-                    pos['stop_loss'] = new_stop
-                    pos['stop_move_count'] = pos.get('stop_move_count', 0) + 1
-
-    else:  # SHORT
-        if high >= stop_loss:
-            pct = ((entry_price - stop_loss) / entry_price) * 100
-            if pct > 0:
-                return stop_loss, f"移动止盈 (+{pct:.1f}%)"
-            return stop_loss, "触发止损"
-
-        if take_profit > 0 and low <= take_profit:
-            pct = ((entry_price - take_profit) / entry_price) * 100
-            return take_profit, f"触发止盈 (+{pct:.1f}%)"
-
-        if trailing_active:
-            lowest = pos.get('lowest_price', entry_price)
-            if low < lowest:
-                pos['lowest_price'] = low
-                new_stop = low * (1 + wide_trailing)
-                if new_stop < stop_loss:
-                    pos['stop_loss'] = new_stop
-                    pos['stop_move_count'] = pos.get('stop_move_count', 0) + 1
+    # === 2. 移动止盈: 峰值ROI超过启动线后，回撤超过距离就平仓 ===
+    if peak_roi >= roi_trail_start:
+        trail_exit_roi = peak_roi - roi_trail_dist
+        if worst_roi <= trail_exit_roi:
+            # 按trailing ROI反算退出价格
+            exit_pct = trail_exit_roi / (leverage * 100)
+            if direction == 'LONG':
+                exit_price = entry_price * (1 + exit_pct)
+            else:
+                exit_price = entry_price * (1 - exit_pct)
+            pos['stop_move_count'] = pos.get('stop_move_count', 0) + 1
+            if trail_exit_roi > 0:
+                return exit_price, f"移动止盈 (ROI +{trail_exit_roi:.1f}%)"
+            else:
+                return exit_price, f"触发止损 (ROI {trail_exit_roi:.1f}%)"
 
     return None, None
 

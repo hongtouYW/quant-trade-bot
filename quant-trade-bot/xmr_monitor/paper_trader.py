@@ -27,31 +27,28 @@ class PaperTradingAssistant:
         self.min_score = 70  # v2策略：最低开仓分数70
         self.fee_rate = 0.0005  # 手续费率 0.05% (Binance合约)
         
-        # 监控币种 (25个 - 激进策略：增加交易机会)
+        # 监控币种 (~100个 - 覆盖主流+中市值+高波动)
         self.watch_symbols = [
-            # 原有监控 (6个)
-            'XMR', 'AXS', 'ROSE', 'XRP', 'SOL', 'DUSK',
-            # 高分币种 (6个)
-            'VET',   # 得分100 - VeChain
-            'BNB',   # 得分80 - Binance Coin
-            'INJ',   # 得分80 - Injective
-            'LINK',  # 得分70 - Chainlink
-            'OP',    # 得分70 - Optimism
-            'FIL',   # 得分70 - Filecoin
-            # 高流动性币种 (6个)
-            'ETH',   # 以太坊 - 市值第2
-            'AVAX',  # Avalanche - 高流动性
-            'DOT',   # Polkadot - 老牌公链
-            'ATOM',  # Cosmos - 跨链龙头
-            'MATIC', # Polygon - Layer2龙头
-            'ARB',   # Arbitrum - L2新秀
-            # 高波动性币种 (6个)
-            'APT',   # Aptos - 新公链
-            'SUI',   # Sui - 高波动
-            'SEI',   # Sei - DeFi链
-            'TIA',   # Celestia - 模块化区块链
-            'WLD',   # Worldcoin - AI概念
-            'NEAR'   # Near Protocol - 分片公链
+            # === 顶级流动性 (10) ===
+            'BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'DOGE', 'ADA', 'AVAX', 'LINK', 'DOT',
+            # === 主流公链 (15) ===
+            'NEAR', 'SUI', 'APT', 'ATOM', 'FTM', 'HBAR', 'XLM', 'ETC', 'LTC', 'BCH',
+            'ALGO', 'ICP', 'FIL', 'XMR', 'TRX',
+            # === Layer2/DeFi (15) ===
+            'ARB', 'OP', 'MATIC', 'AAVE', 'UNI', 'CRV', 'DYDX', 'INJ', 'SEI',
+            'STX', 'RUNE', 'SNX', 'COMP', 'MKR', 'LDO',
+            # === AI/新叙事 (10) ===
+            'TAO', 'RENDER', 'FET', 'WLD', 'AGIX', 'OCEAN', 'ARKM', 'PENGU', 'BERA', 'VIRTUAL',
+            # === 中市值 (20) ===
+            'TIA', 'JUP', 'PYTH', 'JTO', 'ENA', 'STRK', 'ZRO', 'WIF',
+            'BONK', 'PEPE', 'SHIB', 'FLOKI', 'TRUMP',
+            'VET', 'AXS', 'ROSE', 'DUSK', 'CHZ', 'ENJ', 'SAND',
+            # === GameFi/存储/其他 (15) ===
+            'MANA', 'GALA', 'IMX', 'ORDI', 'SXP', 'ZEC', 'DASH',
+            'WAVES', 'GRT', 'THETA', 'IOTA', 'NEO', 'KAVA', 'ONE', 'CELO',
+            # === 高波动 (15) ===
+            'IP', 'INIT', 'HYPE', 'LINA', 'LEVER', 'ALPHA', 'LIT', 'UNFI',
+            'DGB', 'REN', 'BSW', 'AMB', 'TROY', 'OMNI', 'BNX',
         ]
         
         # 数据库路径（独立数据库，与量化助手分开）
@@ -173,22 +170,20 @@ class PaperTradingAssistant:
         if self.positions:
             print(f"加载现有持仓: {list(self.positions.keys())}")
     
+    # 1000前缀代币（低价代币在Binance期货使用1000x名称）
+    SYMBOL_1000 = {
+        'BONK': '1000BONKUSDT', 'PEPE': '1000PEPEUSDT',
+        'SHIB': '1000SHIBUSDT', 'FLOKI': '1000FLOKIUSDT',
+    }
+
+    def _binance_symbol(self, symbol):
+        """转换为Binance期货合约名"""
+        return self.SYMBOL_1000.get(symbol, f"{symbol}USDT")
+
     def get_price(self, symbol):
         """获取币种价格（使用Binance期货API）"""
         try:
-            symbol_map = {
-                # 原有币种
-                'XMR': 'XMRUSDT', 'AXS': 'AXSUSDT',
-                'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT',
-                'DUSK': 'DUSKUSDT', 'VET': 'VETUSDT', 'BNB': 'BNBUSDT',
-                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
-                # 新增币种
-                'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
-                'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
-                'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
-                'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
-            }
-            binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+            binance_symbol = self._binance_symbol(symbol)
 
             # 使用Binance期货API
             url = f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={binance_symbol}"
@@ -202,19 +197,7 @@ class PaperTradingAssistant:
     def get_kline_data(self, symbol, interval='1h', limit=100):
         """获取K线数据（使用Binance期货API）"""
         try:
-            symbol_map = {
-                # 原有币种
-                'XMR': 'XMRUSDT', 'AXS': 'AXSUSDT',
-                'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT',
-                'DUSK': 'DUSKUSDT', 'VET': 'VETUSDT', 'BNB': 'BNBUSDT',
-                'INJ': 'INJUSDT', 'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
-                # 新增币种
-                'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
-                'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
-                'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
-                'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
-            }
-            binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+            binance_symbol = self._binance_symbol(symbol)
 
             # 使用Binance期货API
             url = f"https://fapi.binance.com/fapi/v1/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
@@ -453,19 +436,21 @@ class PaperTradingAssistant:
                 print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
-            # ATR动态止损 + 止盈（盈亏比 1:1.5）
-            stop_pct, volatility = self.get_dynamic_stop_pct(symbol)
-            tp_pct = stop_pct * 1.5  # 止盈 = 止损距离 × 1.5（更容易到达）
-            print(f"📊 {symbol} 波动性: {volatility}, 止损: {stop_pct*100:.1f}%, 止盈: {tp_pct*100:.1f}%")
+            # ROI模式止损（基于本金盈亏%，无论杠杆）
+            roi_stop = -8    # 止损: ROI跌到-8%平仓
+            roi_trail_start = 5   # 移动止盈启动: ROI达+5%
+            roi_trail_dist = 3    # 回撤距离: 从峰值回撤3%平仓
 
+            # 计算止损价格（用于显示/记录）
+            stop_price_pct = roi_stop / (leverage * 100)
             if direction == 'LONG':
-                stop_loss = entry_price * (1 - stop_pct)
-                take_profit = entry_price * (1 + tp_pct)
+                stop_loss = entry_price * (1 + stop_price_pct)
             else:
-                stop_loss = entry_price * (1 + stop_pct)
-                take_profit = entry_price * (1 - tp_pct)
+                stop_loss = entry_price * (1 - stop_price_pct)
+            take_profit = 0  # ROI模式无固定止盈
+            print(f"📊 {symbol} ROI模式: 止损{roi_stop}%ROI, trailing启动+{roi_trail_start}%ROI, 回撤{roi_trail_dist}%")
 
-            # 记录持仓（包含移动止盈跟踪字段）
+            # 记录持仓
             self.positions[symbol] = {
                 'direction': direction,
                 'entry_price': entry_price,
@@ -473,13 +458,14 @@ class PaperTradingAssistant:
                 'leverage': leverage,
                 'stop_loss': stop_loss,
                 'take_profit': take_profit,
-                'initial_stop_loss': stop_loss,  # 记录初始止损
-                'trailing_pct': stop_pct,  # ATR动态止损距离
+                'initial_stop_loss': stop_loss,
+                'roi_stop_loss': roi_stop,
+                'roi_trailing_start': roi_trail_start,
+                'roi_trailing_distance': roi_trail_dist,
+                'peak_roi': 0,
                 'entry_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                 'score': score,
-                'highest_price': entry_price if direction == 'LONG' else 0,
-                'lowest_price': entry_price if direction == 'SHORT' else float('inf'),
-                'stop_move_count': 0  # 止损移动次数
+                'stop_move_count': 0
             }
             
             # 写入数据库
@@ -519,8 +505,8 @@ class PaperTradingAssistant:
 📉 RSI：{analysis['rsi']:.1f}
 📈 趋势：{'多头' if analysis['price'] > analysis['ma20'] else '空头'}
 
-🎯 止盈：${take_profit:.6f} (+10%)
-🛑 止损：${stop_loss:.6f} (-5%)
+🛑 止损：ROI {roi_stop}% (≈${stop_loss:.4f})
+📈 移动止盈：ROI +{roi_trail_start}%启动，回撤{roi_trail_dist}%平仓
 
 💼 当前持仓数：{len(self.positions)}
 💰 剩余资金：{self.current_capital - sum([p['amount'] for p in self.positions.values()]):.0f}U
@@ -534,7 +520,7 @@ class PaperTradingAssistant:
             traceback.print_exc()
     
     def check_position(self, symbol, position):
-        """检查持仓是否需要平仓（移动止盈策略）"""
+        """检查持仓是否需要平仓 — 纯ROI模式"""
         try:
             current_price = self.get_price(symbol)
             if not current_price:
@@ -542,99 +528,65 @@ class PaperTradingAssistant:
 
             direction = position['direction']
             entry_price = position['entry_price']
-            stop_loss = position['stop_loss']
-            take_profit = position.get('take_profit', 0)
             leverage = position.get('leverage', 1)
 
-            # 移动止盈参数 - 使用ATR动态距离
-            trailing_pct = position.get('trailing_pct', 0.02)
+            roi_stop = position.get('roi_stop_loss', -8)
+            roi_trail_start = position.get('roi_trailing_start', 5)
+            roi_trail_dist = position.get('roi_trailing_distance', 3)
 
-            # 盈利保护：浮盈>30%(含杠杆)时，止损收紧到入场价+1%（保本+利润）
+            # 计算当前ROI
             if direction == 'LONG':
-                raw_pct = (current_price - entry_price) / entry_price
+                current_roi = ((current_price - entry_price) / entry_price) * leverage * 100
             else:
-                raw_pct = (entry_price - current_price) / entry_price
-            roi_pct = raw_pct * leverage * 100
+                current_roi = ((entry_price - current_price) / entry_price) * leverage * 100
 
-            if roi_pct > 30 and not position.get('profit_protected', False):
-                # 止损设到入场价+1%方向（保证不亏）
-                if direction == 'LONG':
-                    protect_stop = entry_price * 1.01
-                else:
-                    protect_stop = entry_price * 0.99
-                if (direction == 'LONG' and protect_stop > stop_loss) or \
-                   (direction == 'SHORT' and protect_stop < stop_loss):
-                    position['stop_loss'] = protect_stop
-                    position['stop_move_count'] = position.get('stop_move_count', 0) + 1
-                    stop_loss = protect_stop
-                    position['profit_protected'] = True
-                    print(f"🛡️ {symbol} 盈利保护启动！ROI {roi_pct:.0f}%, 止损锁到保本+1%: ${protect_stop:.4f}")
+            # 更新峰值ROI
+            peak_roi = position.get('peak_roi', 0)
+            if current_roi > peak_roi:
+                position['peak_roi'] = current_roi
+                peak_roi = current_roi
+                if peak_roi >= roi_trail_start:
+                    print(f"📈 {symbol} 峰值ROI更新: +{peak_roi:.1f}% (trailing保底: +{peak_roi - roi_trail_dist:.1f}%)")
 
-            # 检查止损止盈
             should_close = False
             reason = ""
 
-            if direction == 'LONG':
-                # 1. 先检查是否触发固定止盈
-                if take_profit > 0 and current_price >= take_profit:
+            # 0. 固定止盈/止损价格检查（优先级最高）
+            take_profit = position.get('take_profit', 0)
+            stop_loss = position.get('stop_loss', 0)
+
+            if take_profit > 0:
+                if direction == 'LONG' and current_price >= take_profit:
                     should_close = True
-                    profit_pct = ((current_price - entry_price) / entry_price) * 100
-                    reason = f"触发止盈 (+{profit_pct:.1f}%)"
-                else:
-                    # 2. 移动止损逻辑
-                    highest = position.get('highest_price', entry_price)
-
-                    if current_price > highest:
-                        position['highest_price'] = current_price
-                        highest = current_price
-
-                        new_stop = highest * (1 - trailing_pct)
-                        if new_stop > stop_loss:
-                            position['stop_loss'] = new_stop
-                            position['stop_move_count'] = position.get('stop_move_count', 0) + 1
-                            profit_locked = ((new_stop - entry_price) / entry_price) * 100
-                            print(f"📈 {symbol} 止损上移: ${stop_loss:.4f} → ${new_stop:.4f} (锁住{profit_locked:+.1f}%) [第{position['stop_move_count']}次]")
-                            stop_loss = new_stop
-
-                    # 3. 检查是否触发移动止损
-                    if current_price <= stop_loss:
-                        should_close = True
-                        profit_pct = ((current_price - entry_price) / entry_price) * 100
-                        if profit_pct > 0:
-                            reason = f"移动止盈 (+{profit_pct:.1f}%)"
-                        else:
-                            reason = "触发止损"
-
-            else:  # SHORT
-                # 1. 先检查是否触发固定止盈
-                if take_profit > 0 and current_price <= take_profit:
+                    reason = f"触发止盈 (价格{current_price:.4f} >= TP {take_profit:.4f}, ROI +{current_roi:.1f}%)"
+                elif direction == 'SHORT' and current_price <= take_profit:
                     should_close = True
-                    profit_pct = ((entry_price - current_price) / entry_price) * 100
-                    reason = f"触发止盈 (+{profit_pct:.1f}%)"
-                else:
-                    # 2. 移动止损逻辑
-                    lowest = position.get('lowest_price', entry_price)
+                    reason = f"触发止盈 (价格{current_price:.4f} <= TP {take_profit:.4f}, ROI +{current_roi:.1f}%)"
 
-                    if current_price < lowest:
-                        position['lowest_price'] = current_price
-                        lowest = current_price
+            if not should_close and stop_loss > 0:
+                if direction == 'LONG' and current_price <= stop_loss:
+                    should_close = True
+                    reason = f"触发止损 (价格{current_price:.4f} <= SL {stop_loss:.4f}, ROI {current_roi:.1f}%)"
+                elif direction == 'SHORT' and current_price >= stop_loss:
+                    should_close = True
+                    reason = f"触发止损 (价格{current_price:.4f} >= SL {stop_loss:.4f}, ROI {current_roi:.1f}%)"
 
-                        new_stop = lowest * (1 + trailing_pct)
-                        if new_stop < stop_loss:
-                            position['stop_loss'] = new_stop
-                            position['stop_move_count'] = position.get('stop_move_count', 0) + 1
-                            profit_locked = ((entry_price - new_stop) / entry_price) * 100
-                            print(f"📉 {symbol} 止损下移: ${stop_loss:.4f} → ${new_stop:.4f} (锁住{profit_locked:+.1f}%) [第{position['stop_move_count']}次]")
-                            stop_loss = new_stop
+            # 1. ROI止损: ROI跌到止损线
+            if not should_close and current_roi <= roi_stop:
+                should_close = True
+                reason = f"触发ROI止损 (ROI {current_roi:.1f}%)"
 
-                    # 3. 检查是否触发移动止损
-                    if current_price >= stop_loss:
-                        should_close = True
-                        profit_pct = ((entry_price - current_price) / entry_price) * 100
-                        if profit_pct > 0:
-                            reason = f"移动止盈 (+{profit_pct:.1f}%)"
-                        else:
-                            reason = "触发止损"
+            # 2. ROI移动止盈: 峰值超过启动线后，回撤超过距离
+            elif not should_close and peak_roi >= roi_trail_start:
+                drawdown = peak_roi - current_roi
+                if drawdown >= roi_trail_dist:
+                    should_close = True
+                    trail_exit_roi = peak_roi - roi_trail_dist
+                    position['stop_move_count'] = position.get('stop_move_count', 0) + 1
+                    if trail_exit_roi > 0:
+                        reason = f"移动止盈 (ROI +{trail_exit_roi:.1f}%, 峰值+{peak_roi:.1f}%)"
+                    else:
+                        reason = f"触发止损 (ROI {trail_exit_roi:.1f}%)"
 
             if should_close:
                 self.close_position(symbol, current_price, reason)
