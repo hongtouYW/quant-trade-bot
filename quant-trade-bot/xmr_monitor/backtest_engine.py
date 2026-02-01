@@ -222,6 +222,8 @@ def run_backtest(candles_1h, config):
     max_leverage = config.get('max_leverage', 5)
     enable_trend_filter = config.get('enable_trend_filter', True)
     ma_slope_threshold = config.get('ma_slope_threshold', 0.01)
+    long_min_score = config.get('long_min_score', min_score)  # LONG方向最低评分(v4.1)
+    long_ma_slope_threshold = config.get('long_ma_slope_threshold', ma_slope_threshold)  # LONG方向MA斜率阈值(v4.1)
     # ROI模式参数（基于本金盈亏%）
     roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
     roi_trailing_start = config.get('roi_trailing_start', 5)  # 启动移动止盈: ROI达+5%
@@ -306,12 +308,18 @@ def run_backtest(candles_1h, config):
 
         direction = analysis['direction']
 
+        # v4.1: LONG方向使用更高的最低评分
+        if direction == 'LONG' and score < long_min_score:
+            continue
+
         # 趋势过滤：MA20斜率与方向冲突时跳过
         if enable_trend_filter and len(lookback) >= 25:
             ma20_now = sum(c['close'] for c in lookback[-20:]) / 20
             ma20_prev = sum(c['close'] for c in lookback[-25:-5]) / 20
             ma20_slope = (ma20_now - ma20_prev) / ma20_prev
-            if direction == 'LONG' and ma20_slope < -ma_slope_threshold:
+            # v4.1: LONG方向使用更严格的斜率阈值
+            long_threshold = long_ma_slope_threshold
+            if direction == 'LONG' and ma20_slope < -long_threshold:
                 continue
             if direction == 'SHORT' and ma20_slope > ma_slope_threshold:
                 continue

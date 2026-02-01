@@ -130,7 +130,7 @@ class PaperTradingAssistant:
         t2_count = sum(1 for v in self.coin_tiers.values() if v == 'T2')
         t3_count = sum(1 for v in self.coin_tiers.values() if v == 'T3')
         print(f"【交易助手-模拟v4】🧪 系统启动")
-        print(f"v4策略: 3x杠杆 | 85+LONG跳过 | SHORT+5% | Tier分层")
+        print(f"v4.1策略: 3x杠杆 | LONG≥70分 | BTC趋势重罚 | 4h冷却 | 最多6仓")
         print(f"当前资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
         print(f"目标利润: {self.target_profit}U")
         print(f"币种分层: T1={t1_count} T2={t2_count} T3={t3_count} 跳过={len(self.skip_coins)}")
@@ -481,21 +481,21 @@ class PaperTradingAssistant:
             elif direction == 'SHORT' and current_price < ma7 < ma20:
                 coin_has_own_trend = True  # 个币自己在跌
 
-            # 逆BTC趋势惩罚
+            # 逆BTC趋势惩罚 (v4.1加重: LONG 20笔-88.5U vs SHORT 9笔+65.8U)
             if btc_dir == 'down' and direction == 'LONG':
                 if coin_has_own_trend:
-                    total_score = int(total_score * 0.80)  # 个币有独立涨势，轻罚20%
+                    total_score = int(total_score * 0.60)  # 个币有独立涨势也重罚40%(v4.1)
                 elif btc_str >= 2:
-                    total_score = int(total_score * 0.50)  # BTC强跌+个币无独立趋势，重罚50%
+                    total_score = int(total_score * 0.25)  # BTC强跌做多=送钱，砍75%
                 else:
-                    total_score = int(total_score * 0.65)  # BTC弱跌，罚35%
+                    total_score = int(total_score * 0.40)  # BTC弱跌做多，砍60%
             elif btc_dir == 'up' and direction == 'SHORT':
                 if coin_has_own_trend:
-                    total_score = int(total_score * 0.80)  # 个币有独立跌势，轻罚20%
+                    total_score = int(total_score * 0.75)  # SHORT在上涨中仍可以
                 elif btc_str >= 2:
-                    total_score = int(total_score * 0.50)  # BTC强涨+个币无独立趋势，重罚50%
+                    total_score = int(total_score * 0.45)  # BTC强涨做空，罚55%
                 else:
-                    total_score = int(total_score * 0.65)  # BTC弱涨，罚35%
+                    total_score = int(total_score * 0.60)
             elif btc_dir == direction.lower() or btc_dir == 'neutral':
                 pass  # 顺势或震荡，不罚
 
@@ -736,12 +736,18 @@ class PaperTradingAssistant:
                     reason = f"触发止盈 (价格{current_price:.4f} <= TP {take_profit:.4f}, ROI +{current_roi:.1f}%)"
 
             if not should_close and stop_loss > 0:
+                hit_sl = False
                 if direction == 'LONG' and current_price <= stop_loss:
-                    should_close = True
-                    reason = f"触发止损 (价格{current_price:.4f} <= SL {stop_loss:.4f}, ROI {current_roi:.1f}%)"
+                    hit_sl = True
                 elif direction == 'SHORT' and current_price >= stop_loss:
-                    should_close = True
-                    reason = f"触发止损 (价格{current_price:.4f} >= SL {stop_loss:.4f}, ROI {current_roi:.1f}%)"
+                    hit_sl = True
+                if hit_sl:
+                    if min_hold_protect:
+                        # v4.1修复: 固定SL也受3h保护 (之前这里没保护，导致1-2h大量止损)
+                        print(f"🛡️ {symbol} 固定SL保护中 (持仓{hold_minutes:.0f}m, ROI{current_roi:+.1f}%, 等3h)")
+                    else:
+                        should_close = True
+                        reason = f"触发止损 (价格{current_price:.4f}, SL {stop_loss:.4f}, ROI {current_roi:.1f}%)"
 
             # 1. ROI止损: ROI跌到止损线
             if not should_close and current_roi <= roi_stop:
@@ -896,6 +902,10 @@ class PaperTradingAssistant:
             if score >= self.min_score:
                 direction = analysis['direction']
 
+                # v4.1: LONG需要70+分 (实盘LONG 20笔-88.5U,30%WR → 提高门槛)
+                if direction == 'LONG' and score < 70:
+                    continue
+
                 # v4核心: 85+分LONG完全跳过 (回测亏钱, 极端做多=抄底接刀)
                 if score >= 85 and direction == 'LONG':
                     print(f"⛔ {symbol}: {score}分 LONG - v4跳过(85+LONG回测亏钱)")
@@ -937,25 +947,25 @@ class PaperTradingAssistant:
             print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
             return
 
-        # 风控2：平仓冷却期 - 平仓后等2小时再开新单 (v3+加速)
+        # v4.1: 冷却期4小时 (原2h太短，3天29笔手续费-23U吞噬利润)
         if self.last_close_time:
             cooldown_seconds = (datetime.now() - self.last_close_time).total_seconds()
-            if cooldown_seconds < 7200:  # 2小时
-                remaining = int((7200 - cooldown_seconds) / 60)
+            if cooldown_seconds < 14400:  # 4小时
+                remaining = int((14400 - cooldown_seconds) / 60)
                 hours = remaining // 60
                 mins = remaining % 60
-                print(f"⏸️  冷却期中 (平仓后需等2小时，还剩{hours}h{mins}m)")
+                print(f"⏸️  冷却期中 (平仓后需等4小时，还剩{hours}h{mins}m)")
                 return
 
         # 风控3：同方向限制 - 最多3个同方向持仓
         long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
         short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
 
-        if len(self.positions) < 10 and available > 100:
-            # 有机会就开仓，每次扫描最多开2个（检查方向限制）
+        if len(self.positions) < 6 and available > 100:  # v4.1: 最多6个持仓(原10个太分散)
+            # v4.1: 每次扫描最多开1个 (减少频率，提高质量)
             opened = 0
             for symbol, score, analysis in opportunities:
-                if opened >= 2:
+                if opened >= 1:
                     break
                 direction = analysis['direction']
                 if direction == 'LONG' and long_count >= self.max_same_direction:
