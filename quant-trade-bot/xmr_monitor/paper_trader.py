@@ -24,10 +24,10 @@ class PaperTradingAssistant:
         self.current_capital = 2000
         self.target_profit = 3400  # 目标利润3400U
         self.max_position_size = 500  # 单笔最大500U
-        self.min_score = 70  # v2策略：最低开仓分数70
+        self.min_score = 60  # v3策略：最低开仓分数60
         self.fee_rate = 0.0005  # 手续费率 0.05% (Binance合约)
         
-        # 监控币种 (~100个 - 覆盖主流+中市值+高波动)
+        # 监控币种 (~150个 - 覆盖Binance期货主要标的)
         self.watch_symbols = [
             # === 顶级流动性 (10) ===
             'BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'DOGE', 'ADA', 'AVAX', 'LINK', 'DOT',
@@ -37,20 +37,72 @@ class PaperTradingAssistant:
             # === Layer2/DeFi (15) ===
             'ARB', 'OP', 'MATIC', 'AAVE', 'UNI', 'CRV', 'DYDX', 'INJ', 'SEI',
             'STX', 'RUNE', 'SNX', 'COMP', 'MKR', 'LDO',
-            # === AI/新叙事 (10) ===
+            # === AI/新叙事 (15) ===
             'TAO', 'RENDER', 'FET', 'WLD', 'AGIX', 'OCEAN', 'ARKM', 'PENGU', 'BERA', 'VIRTUAL',
-            # === 中市值 (20) ===
+            'AIXBT', 'GRASS', 'GRIFFAIN', 'GOAT', 'CGPT',
+            # === 中市值热门 (25) ===
             'TIA', 'JUP', 'PYTH', 'JTO', 'ENA', 'STRK', 'ZRO', 'WIF',
             'BONK', 'PEPE', 'SHIB', 'FLOKI', 'TRUMP',
             'VET', 'AXS', 'ROSE', 'DUSK', 'CHZ', 'ENJ', 'SAND',
+            'ONDO', 'PENDLE', 'EIGEN', 'ETHFI', 'TON',
             # === GameFi/存储/其他 (15) ===
             'MANA', 'GALA', 'IMX', 'ORDI', 'SXP', 'ZEC', 'DASH',
             'WAVES', 'GRT', 'THETA', 'IOTA', 'NEO', 'KAVA', 'ONE', 'CELO',
-            # === 高波动 (15) ===
+            # === DeFi/基础设施 (15) ===
+            'CAKE', 'SUSHI', 'GMX', 'ENS', 'BLUR', 'PEOPLE', 'MASK',
+            '1INCH', 'ANKR', 'AR', 'FLOW', 'EGLD', 'KAS', 'JASMY', 'NOT',
+            # === Meme/热点 (15) ===
+            'NEIRO', 'PNUT', 'POPCAT', 'TURBO', 'MEME', 'BOME', 'DOGS',
+            'FARTCOIN', 'USUAL', 'ME', 'MOODENG', 'BRETT', 'SPX', 'ANIME', 'SONIC',
+            # === 高波动 (25) ===
             'IP', 'INIT', 'HYPE', 'LINA', 'LEVER', 'ALPHA', 'LIT', 'UNFI',
             'DGB', 'REN', 'BSW', 'AMB', 'TROY', 'OMNI', 'BNX',
+            'YGG', 'PIXEL', 'PORTAL', 'XAI', 'DYM', 'MANTA', 'ZK', 'W', 'SAGA', 'RSR',
         ]
         
+        # ===== v4策略 (基于2023-2025回测学习 + 2026验证) =====
+        # v4改进: +88.1U, +3.1%WR vs v3 (2026年1月验证)
+        # 币种分层: T1=连续盈利>600U, T2=300-600U, T3=<300U仍盈利
+        self.coin_tiers = {
+            # T1: 平均PnL>600U的连续盈利币 (26个) - 加仓1.3x
+            'ICP': 'T1', 'XMR': 'T1', 'IOTA': 'T1', 'DASH': 'T1',
+            'COMP': 'T1', 'KAVA': 'T1', 'UNI': 'T1', 'SAND': 'T1',
+            'AXS': 'T1', 'NEAR': 'T1', 'DOT': 'T1', 'CHZ': 'T1',
+            'ENJ': 'T1', 'ADA': 'T1', 'VET': 'T1', 'BCH': 'T1',
+            'ATOM': 'T1', 'ROSE': 'T1', 'DYDX': 'T1', 'IMX': 'T1',
+            'AAVE': 'T1', 'XLM': 'T1', 'LINK': 'T1', 'SXP': 'T1',
+            'ALGO': 'T1', 'CRV': 'T1',
+            # T2: 平均PnL 300-600U (24个) - 标准仓位1.0x
+            'ALPHA': 'T2', 'MKR': 'T2', 'ETC': 'T2', 'NEO': 'T2',
+            'THETA': 'T2', 'ZEC': 'T2', 'RENDER': 'T2', 'GRT': 'T2',
+            'SNX': 'T2', 'HBAR': 'T2', 'CELO': 'T2', 'ETH': 'T2',
+            'FIL': 'T2', 'HYPE': 'T2', 'SHIB': 'T2', 'BNB': 'T2',
+            'PYTH': 'T2', 'BTC': 'T2', 'LINA': 'T2', 'FLOKI': 'T2',
+            'INIT': 'T2', 'SEI': 'T2', 'XRP': 'T2', 'ORDI': 'T2',
+            # T3: 平均PnL <300U但仍盈利 (17个) - 降仓0.7x
+            'WIF': 'T3', 'FET': 'T3', 'LTC': 'T3', 'LEVER': 'T3',
+            'MATIC': 'T3', 'ENA': 'T3', 'MANA': 'T3', 'PENGU': 'T3',
+            'STRK': 'T3', 'INJ': 'T3', 'DOGE': 'T3', 'OP': 'T3',
+            'BNX': 'T3', 'TRUMP': 'T3', 'TRX': 'T3', 'ONE': 'T3',
+            'JUP': 'T3',
+        }
+        # 持续亏损币 - 完全跳过
+        self.skip_coins = ['BERA', 'IP', 'LIT', 'TROY', 'VIRTUAL', 'BONK', 'PEPE']
+        # Tier对应的仓位乘数
+        self.tier_multiplier = {'T1': 1.3, 'T2': 1.0, 'T3': 0.7}
+
+        # v4核心规则 (2023-2025回测 + 2026验证)
+        # 1. 85+分LONG完全跳过 (回测亏钱, 极端做多=抄底接刀)
+        # 2. 85+分SHORT允许但降仓 (回测85+ SHORT平均+4.60U)
+        # 3. 最大杠杆3x (回测5x vs 3x在80+分: 59.4% vs 73.0%WR)
+        # 4. SHORT比LONG好(+3.27 vs +1.26) → 做空加成5%
+        # 5. <3h持仓亏钱(-0.87/笔) → 最短持仓保护
+        # 6. 3-24h最优(+4.0~4.2/笔) → 最优持仓窗口
+        # 7. >48h必亏(-26.44/笔) → 强制平仓
+        self.min_hold_minutes = 180     # 最短持仓3小时(避免过早止损)
+        self.max_hold_minutes = 2880    # 最长持仓48小时(超时强制平)
+        self.short_bias = 1.05          # 做空评分加成5%
+
         # 数据库路径（独立数据库，与量化助手分开）
         self.db_path = '/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db'
         
@@ -63,7 +115,7 @@ class PaperTradingAssistant:
         self.peak_capital = self.initial_capital  # 历史最高资金
         self.risk_position_multiplier = 1.0  # 风险调整后的仓位倍数 (1.0=正常, 0.5=减半)
         self.last_close_time = None  # 上次平仓时间（冷却期用）
-        self.max_same_direction = 3  # 同方向最多3个持仓
+        self.max_same_direction = 5  # 同方向最多5个持仓
 
         # 初始化数据库
         self.init_database()
@@ -74,10 +126,15 @@ class PaperTradingAssistant:
         # 从DB恢复真实资金（避免重启丢失）
         self._restore_capital()
 
-        print(f"【交易助手-模拟】🧪 系统启动")
+        t1_count = sum(1 for v in self.coin_tiers.values() if v == 'T1')
+        t2_count = sum(1 for v in self.coin_tiers.values() if v == 'T2')
+        t3_count = sum(1 for v in self.coin_tiers.values() if v == 'T3')
+        print(f"【交易助手-模拟v4】🧪 系统启动")
+        print(f"v4策略: 3x杠杆 | 85+LONG跳过 | SHORT+5% | Tier分层")
         print(f"当前资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
         print(f"目标利润: {self.target_profit}U")
-        print(f"监控币种: {', '.join(self.watch_symbols)}")
+        print(f"币种分层: T1={t1_count} T2={t2_count} T3={t3_count} 跳过={len(self.skip_coins)}")
+        print(f"监控币种: {len(self.watch_symbols)}个")
 
     def _restore_capital(self):
         """从DB恢复真实资金"""
@@ -174,6 +231,7 @@ class PaperTradingAssistant:
     SYMBOL_1000 = {
         'BONK': '1000BONKUSDT', 'PEPE': '1000PEPEUSDT',
         'SHIB': '1000SHIBUSDT', 'FLOKI': '1000FLOKIUSDT',
+        'NEIRO': '1000NEIROUSDT',
     }
 
     def _binance_symbol(self, symbol):
@@ -274,6 +332,45 @@ class PaperTradingAssistant:
 
         return stop_pct, volatility
 
+    def get_btc_trend(self):
+        """获取BTC大盘趋势（缓存5分钟）"""
+        now = datetime.now()
+        if hasattr(self, '_btc_trend_cache') and self._btc_trend_cache:
+            cached_time, cached_result = self._btc_trend_cache
+            if (now - cached_time).total_seconds() < 300:
+                return cached_result
+
+        try:
+            klines = self.get_kline_data('BTC', '1h', 100)
+            if not klines:
+                return {'direction': 'neutral', 'strength': 0}
+
+            closes = [float(k[4]) for k in klines]
+            ma7 = sum(closes[-7:]) / 7
+            ma25 = sum(closes[-25:]) / 25
+            ma50 = sum(closes[-50:]) / 50
+            price = closes[-1]
+
+            # 判断趋势方向和强度
+            if price > ma7 > ma25 > ma50:
+                direction, strength = 'up', 2       # 强上升
+            elif price > ma7 > ma25:
+                direction, strength = 'up', 1       # 上升
+            elif price < ma7 < ma25 < ma50:
+                direction, strength = 'down', 2     # 强下降
+            elif price < ma7 < ma25:
+                direction, strength = 'down', 1     # 下降
+            else:
+                direction, strength = 'neutral', 0  # 震荡
+
+            result = {'direction': direction, 'strength': strength,
+                      'price': price, 'ma7': ma7, 'ma25': ma25, 'ma50': ma50}
+            self._btc_trend_cache = (now, result)
+            return result
+        except Exception as e:
+            print(f"BTC趋势获取失败: {e}")
+            return {'direction': 'neutral', 'strength': 0}
+
     def analyze_signal(self, symbol):
         """分析交易信号（0-100分）"""
         try:
@@ -372,12 +469,47 @@ class PaperTradingAssistant:
 
             total_score = rsi_score + trend_score + volume_score + position_score
 
-            # 惩罚：RSI和趋势方向冲突时扣分（逆势抄底危险）
+            # === BTC大盘趋势过滤 ===
+            btc_trend = self.get_btc_trend()
+            btc_dir = btc_trend['direction']
+            btc_str = btc_trend['strength']
+
+            # 个币自身趋势强度
+            coin_has_own_trend = False
+            if direction == 'LONG' and current_price > ma7 > ma20:
+                coin_has_own_trend = True  # 个币自己在涨
+            elif direction == 'SHORT' and current_price < ma7 < ma20:
+                coin_has_own_trend = True  # 个币自己在跌
+
+            # 逆BTC趋势惩罚
+            if btc_dir == 'down' and direction == 'LONG':
+                if coin_has_own_trend:
+                    total_score = int(total_score * 0.80)  # 个币有独立涨势，轻罚20%
+                elif btc_str >= 2:
+                    total_score = int(total_score * 0.50)  # BTC强跌+个币无独立趋势，重罚50%
+                else:
+                    total_score = int(total_score * 0.65)  # BTC弱跌，罚35%
+            elif btc_dir == 'up' and direction == 'SHORT':
+                if coin_has_own_trend:
+                    total_score = int(total_score * 0.80)  # 个币有独立跌势，轻罚20%
+                elif btc_str >= 2:
+                    total_score = int(total_score * 0.50)  # BTC强涨+个币无独立趋势，重罚50%
+                else:
+                    total_score = int(total_score * 0.65)  # BTC弱涨，罚35%
+            elif btc_dir == direction.lower() or btc_dir == 'neutral':
+                pass  # 顺势或震荡，不罚
+
+            # RSI和趋势方向冲突（逆势抄底危险）
             rsi_dir = 'LONG' if rsi < 50 else 'SHORT'
             trend_dir = 'LONG' if current_price > ma20 else 'SHORT'
-            if rsi_dir != trend_dir:
-                total_score = int(total_score * 0.85)  # 扣15%
-            
+            if rsi_dir != trend_dir and not coin_has_own_trend:
+                total_score = int(total_score * 0.85)  # 额外扣15%
+
+            # === 回测学习：做空加成 ===
+            # 回测数据: SHORT +3.27U/笔 66.9%WR vs LONG +1.26U/笔 62.6%WR
+            if direction == 'SHORT':
+                total_score = int(total_score * self.short_bias)
+
             analysis = {
                 'price': current_price,
                 'rsi': rsi,
@@ -387,7 +519,9 @@ class PaperTradingAssistant:
                 'volume_ratio': volume_ratio,
                 'price_position': price_position,
                 'direction': direction,
-                'score': total_score
+                'score': total_score,
+                'btc_trend': btc_dir,
+                'coin_own_trend': coin_has_own_trend
             }
             
             return total_score, analysis
@@ -396,24 +530,35 @@ class PaperTradingAssistant:
             print(f"{symbol}信号分析失败: {e}")
             return 0, None
     
-    def calculate_position_size(self, score):
-        """根据信号强度计算仓位大小"""
-        # 可用资金
+    def calculate_position_size(self, score, symbol=None):
+        """v4仓位计算 - 基于2023-2025回测+2026验证"""
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
-        
-        # v2策略：最大杠杆5x
+
+        # v4评分校准 (最大杠杆3x, 回测5x在80+分胜率低13%)
         if score >= 85:
-            size = min(400, available * 0.25)
-            leverage = 5
+            # v4: 85+ SHORT降仓 (85+ LONG在scan_market已跳过)
+            size = min(150, available * 0.08)
+            leverage = 3
         elif score >= 75:
-            size = min(300, available * 0.2)
+            # 最佳区间: 75-84分 +4.66U/笔 65.5%WR
+            size = min(350, available * 0.22)
             leverage = 3
         elif score >= 70:
-            size = min(200, available * 0.15)
+            size = min(250, available * 0.15)
             leverage = 3
+        elif score >= 60:
+            size = min(150, available * 0.1)
+            leverage = 2
         else:
-            return 0, 5
-        
+            return 0, 3
+
+        # v4: Tier仓位乘数
+        if symbol:
+            tier = self.coin_tiers.get(symbol, 'T3')
+            multiplier = self.tier_multiplier.get(tier, 0.7)
+            size = size * multiplier
+
+        size = max(50, int(size))
         return size, leverage
     
     def open_position(self, symbol, analysis):
@@ -423,8 +568,8 @@ class PaperTradingAssistant:
             direction = analysis['direction']
             entry_price = analysis['price']
 
-            # 计算仓位大小和杠杆
-            amount, leverage = self.calculate_position_size(score)
+            # 计算仓位大小和杠杆（基于评分+币种评级）
+            amount, leverage = self.calculate_position_size(score, symbol)
 
             # 根据风险等级调整仓位大小
             if self.risk_position_multiplier < 1.0:
@@ -437,8 +582,8 @@ class PaperTradingAssistant:
                 return
             
             # ROI模式止损（基于本金盈亏%，无论杠杆）
-            roi_stop = -8    # 止损: ROI跌到-8%平仓
-            roi_trail_start = 5   # 移动止盈启动: ROI达+5%
+            roi_stop = -10   # v3止损: ROI跌到-10%平仓（宽止损）
+            roi_trail_start = 6   # v3+移动止盈启动: ROI达+6%（更早锁利）
             roi_trail_dist = 3    # 回撤距离: 从峰值回撤3%平仓
 
             # 计算止损价格（用于显示/记录）
@@ -447,7 +592,12 @@ class PaperTradingAssistant:
                 stop_loss = entry_price * (1 + stop_price_pct)
             else:
                 stop_loss = entry_price * (1 - stop_price_pct)
-            take_profit = 0  # ROI模式无固定止盈
+            # 移动止盈启动价（ROI +8%对应的价格，供显示参考）
+            tp_price_pct = roi_trail_start / (leverage * 100)
+            if direction == 'LONG':
+                take_profit = entry_price * (1 + tp_price_pct)
+            else:
+                take_profit = entry_price * (1 - tp_price_pct)
             print(f"📊 {symbol} ROI模式: 止损{roi_stop}%ROI, trailing启动+{roi_trail_start}%ROI, 回撤{roi_trail_dist}%")
 
             # 记录持仓
@@ -492,16 +642,19 @@ class PaperTradingAssistant:
             conn.close()
             
             # 发送通知
+            tier = self.coin_tiers.get(symbol, '?')
+            tier_emoji = {'T1': '🏆', 'T2': '🥈', 'T3': '🥉'}.get(tier, '❓')
             stars = '⭐' * (score // 20)
-            msg = f"""【交易助手-模拟】🧪 开仓通知
+            score_warn = ' ⚠️85+SHORT' if score >= 85 else ''
+            msg = f"""【交易助手-模拟v4】🧪 开仓通知
 
-💰 币种：{symbol}/USDT
+💰 币种：{symbol}/USDT {tier_emoji}{tier}
 📈 方向：{'做多' if direction == 'LONG' else '做空'}
 💵 金额：{amount}U
 🔢 杠杆：{leverage}x
 📍 入场：${entry_price:.6f}
 
-📊 信号评分：{score}分 {stars}
+📊 信号评分：{score}分 {stars}{score_warn}
 📉 RSI：{analysis['rsi']:.1f}
 📈 趋势：{'多头' if analysis['price'] > analysis['ma20'] else '空头'}
 
@@ -551,6 +704,25 @@ class PaperTradingAssistant:
             should_close = False
             reason = ""
 
+            # === 回测学习：持仓时间管理 ===
+            entry_time_str = position.get('entry_time', '')
+            hold_minutes = 0
+            if entry_time_str:
+                try:
+                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
+                    hold_minutes = (datetime.now() - entry_dt).total_seconds() / 60
+                except:
+                    pass
+
+            # 最短持仓保护: <3h内不轻易止损(回测<3h平均-0.87U)
+            # 除非亏损超过-15%ROI(严重亏损仍需止损)
+            min_hold_protect = hold_minutes < self.min_hold_minutes and current_roi > -15
+
+            # 最长持仓强制平仓: >48h(回测>3d平均-26.44U)
+            if hold_minutes > self.max_hold_minutes:
+                should_close = True
+                reason = f"超时强制平仓 (持仓{hold_minutes/60:.0f}h, ROI {current_roi:+.1f}%)"
+
             # 0. 固定止盈/止损价格检查（优先级最高）
             take_profit = position.get('take_profit', 0)
             stop_loss = position.get('stop_loss', 0)
@@ -573,8 +745,12 @@ class PaperTradingAssistant:
 
             # 1. ROI止损: ROI跌到止损线
             if not should_close and current_roi <= roi_stop:
-                should_close = True
-                reason = f"触发ROI止损 (ROI {current_roi:.1f}%)"
+                if min_hold_protect:
+                    # 最短持仓保护: 不到3h的轻微亏损不急止损
+                    print(f"🛡️ {symbol} 最短持仓保护中 (持仓{hold_minutes:.0f}m, ROI{current_roi:+.1f}%, 3h后再评估)")
+                else:
+                    should_close = True
+                    reason = f"触发ROI止损 (ROI {current_roi:.1f}%)"
 
             # 2. ROI移动止盈: 峰值超过启动线后，回撤超过距离
             elif not should_close and peak_roi >= roi_trail_start:
@@ -668,7 +844,7 @@ class PaperTradingAssistant:
             progress = (total_profit / self.target_profit) * 100
             
             emoji = "🎉" if pnl > 0 else "😢"
-            msg = f"""【交易助手-模拟】🧪 平仓通知 {emoji}
+            msg = f"""【交易助手-模拟v4】🧪 平仓通知 {emoji}
 
 💰 币种：{symbol}/USDT
 📈 方向：{'做多' if direction == 'LONG' else '做空'}
@@ -707,6 +883,10 @@ class PaperTradingAssistant:
         opportunities = []
 
         for symbol in self.watch_symbols:
+            # v4: 跳过持续亏损币
+            if symbol in self.skip_coins:
+                continue
+
             # 如果已经持仓，跳过
             if symbol in self.positions:
                 continue
@@ -714,8 +894,14 @@ class PaperTradingAssistant:
             score, analysis = self.analyze_signal(symbol)
 
             if score >= self.min_score:
-                # v2趋势过滤：MA20斜率与方向冲突时跳过
                 direction = analysis['direction']
+
+                # v4核心: 85+分LONG完全跳过 (回测亏钱, 极端做多=抄底接刀)
+                if score >= 85 and direction == 'LONG':
+                    print(f"⛔ {symbol}: {score}分 LONG - v4跳过(85+LONG回测亏钱)")
+                    continue
+
+                # 趋势过滤：MA20斜率与方向冲突时跳过
                 ma20 = analysis.get('ma20', 0)
                 ma50 = analysis.get('ma50', 0)
                 if ma20 > 0 and ma50 > 0:
@@ -726,8 +912,10 @@ class PaperTradingAssistant:
                     if direction == 'SHORT' and ma_slope > 0.01:
                         print(f"⛔ {symbol}: {score}分 {direction} - 趋势过滤(MA斜率{ma_slope:.3f})")
                         continue
+
+                tier = self.coin_tiers.get(symbol, '?')
                 opportunities.append((symbol, score, analysis))
-                print(f"✨ {symbol}: {score}分 - {analysis['direction']}")
+                print(f"✨ {symbol}[{tier}]: {score}分 - {direction}")
 
         # 按分数排序
         opportunities.sort(key=lambda x: x[1], reverse=True)
@@ -749,23 +937,26 @@ class PaperTradingAssistant:
             print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
             return
 
-        # 风控2：平仓冷却期 - 平仓后等12小时再开新单 (v2策略)
+        # 风控2：平仓冷却期 - 平仓后等2小时再开新单 (v3+加速)
         if self.last_close_time:
             cooldown_seconds = (datetime.now() - self.last_close_time).total_seconds()
-            if cooldown_seconds < 43200:  # 12小时
-                remaining = int((43200 - cooldown_seconds) / 60)
+            if cooldown_seconds < 7200:  # 2小时
+                remaining = int((7200 - cooldown_seconds) / 60)
                 hours = remaining // 60
                 mins = remaining % 60
-                print(f"⏸️  冷却期中 (平仓后需等12小时，还剩{hours}h{mins}m)")
+                print(f"⏸️  冷却期中 (平仓后需等2小时，还剩{hours}h{mins}m)")
                 return
 
         # 风控3：同方向限制 - 最多3个同方向持仓
         long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
         short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
 
-        if len(self.positions) < 6 and available > 200:
-            # 开最强信号的仓（检查方向限制）
+        if len(self.positions) < 10 and available > 100:
+            # 有机会就开仓，每次扫描最多开2个（检查方向限制）
+            opened = 0
             for symbol, score, analysis in opportunities:
+                if opened >= 2:
+                    break
                 direction = analysis['direction']
                 if direction == 'LONG' and long_count >= self.max_same_direction:
                     continue
@@ -773,12 +964,15 @@ class PaperTradingAssistant:
                     continue
                 print(f"🎯 准备开仓: {symbol} (评分{score}, {direction})")
                 self.open_position(symbol, analysis)
-                break  # 每次扫描只开1个
-            else:
-                if opportunities:
-                    print(f"⏸️  方向限制 (LONG:{long_count}/{self.max_same_direction}, SHORT:{short_count}/{self.max_same_direction})")
+                opened += 1
+                if direction == 'LONG':
+                    long_count += 1
+                else:
+                    short_count += 1
+            if opened == 0 and opportunities:
+                print(f"⏸️  方向限制 (LONG:{long_count}/{self.max_same_direction}, SHORT:{short_count}/{self.max_same_direction})")
         else:
-            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/6, 可用{available:.0f}U)")
+            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/10, 可用{available:.0f}U)")
     
     def send_telegram(self, message):
         """发送Telegram通知"""

@@ -31,18 +31,27 @@ WATCH_SYMBOLS = [
     # Layer2/DeFi (15)
     'ARB', 'OP', 'MATIC', 'AAVE', 'UNI', 'CRV', 'DYDX', 'INJ', 'SEI',
     'STX', 'RUNE', 'SNX', 'COMP', 'MKR', 'LDO',
-    # AI/新叙事 (10)
+    # AI/新叙事 (15)
     'TAO', 'RENDER', 'FET', 'WLD', 'AGIX', 'OCEAN', 'ARKM', 'PENGU', 'BERA', 'VIRTUAL',
-    # 中市值 (20)
+    'AIXBT', 'GRASS', 'GRIFFAIN', 'GOAT', 'CGPT',
+    # 中市值热门 (25)
     'TIA', 'JUP', 'PYTH', 'JTO', 'ENA', 'STRK', 'ZRO', 'WIF',
     'BONK', 'PEPE', 'SHIB', 'FLOKI', 'TRUMP',
     'VET', 'AXS', 'ROSE', 'DUSK', 'CHZ', 'ENJ', 'SAND',
+    'ONDO', 'PENDLE', 'EIGEN', 'ETHFI', 'TON',
     # GameFi/存储/其他 (15)
     'MANA', 'GALA', 'IMX', 'ORDI', 'SXP', 'ZEC', 'DASH',
     'WAVES', 'GRT', 'THETA', 'IOTA', 'NEO', 'KAVA', 'ONE', 'CELO',
-    # 高波动 (15)
+    # DeFi/基础设施 (15)
+    'CAKE', 'SUSHI', 'GMX', 'ENS', 'BLUR', 'PEOPLE', 'MASK',
+    '1INCH', 'ANKR', 'AR', 'FLOW', 'EGLD', 'KAS', 'JASMY', 'NOT',
+    # Meme/热点 (15)
+    'NEIRO', 'PNUT', 'POPCAT', 'TURBO', 'MEME', 'BOME', 'DOGS',
+    'FARTCOIN', 'USUAL', 'ME', 'MOODENG', 'BRETT', 'SPX', 'ANIME', 'SONIC',
+    # 高波动 (25)
     'IP', 'INIT', 'HYPE', 'LINA', 'LEVER', 'ALPHA', 'LIT', 'UNFI',
     'DGB', 'REN', 'BSW', 'AMB', 'TROY', 'OMNI', 'BNX',
+    'YGG', 'PIXEL', 'PORTAL', 'XAI', 'DYM', 'MANTA', 'ZK', 'W', 'SAGA', 'RSR',
 ]
 
 SYMBOL_MAP = {s: f'{s}USDT' for s in WATCH_SYMBOLS}
@@ -50,7 +59,34 @@ SYMBOL_MAP = {s: f'{s}USDT' for s in WATCH_SYMBOLS}
 SYMBOL_MAP.update({
     'BONK': '1000BONKUSDT', 'PEPE': '1000PEPEUSDT',
     'SHIB': '1000SHIBUSDT', 'FLOKI': '1000FLOKIUSDT',
+    'NEIRO': '1000NEIROUSDT',
 })
+
+# ===== v4策略 - 币种Tier分层 (2023-2025回测+2026验证) =====
+COIN_TIERS = {
+    # T1: 平均PnL>600U连续盈利 (26个) - 加仓1.3x
+    'ICP': 'T1', 'XMR': 'T1', 'IOTA': 'T1', 'DASH': 'T1',
+    'COMP': 'T1', 'KAVA': 'T1', 'UNI': 'T1', 'SAND': 'T1',
+    'AXS': 'T1', 'NEAR': 'T1', 'DOT': 'T1', 'CHZ': 'T1',
+    'ENJ': 'T1', 'ADA': 'T1', 'VET': 'T1', 'BCH': 'T1',
+    'ATOM': 'T1', 'ROSE': 'T1', 'DYDX': 'T1', 'IMX': 'T1',
+    'AAVE': 'T1', 'XLM': 'T1', 'LINK': 'T1', 'SXP': 'T1',
+    'ALGO': 'T1', 'CRV': 'T1',
+    # T2: 平均PnL 300-600U (24个) - 标准1.0x
+    'ALPHA': 'T2', 'MKR': 'T2', 'ETC': 'T2', 'NEO': 'T2',
+    'THETA': 'T2', 'ZEC': 'T2', 'RENDER': 'T2', 'GRT': 'T2',
+    'SNX': 'T2', 'HBAR': 'T2', 'CELO': 'T2', 'ETH': 'T2',
+    'FIL': 'T2', 'HYPE': 'T2', 'SHIB': 'T2', 'BNB': 'T2',
+    'PYTH': 'T2', 'BTC': 'T2', 'LINA': 'T2', 'FLOKI': 'T2',
+    'INIT': 'T2', 'SEI': 'T2', 'XRP': 'T2', 'ORDI': 'T2',
+    # T3: 平均PnL<300U仍盈利 (17个) - 降仓0.7x
+    'WIF': 'T3', 'FET': 'T3', 'LTC': 'T3', 'LEVER': 'T3',
+    'MATIC': 'T3', 'ENA': 'T3', 'MANA': 'T3', 'PENGU': 'T3',
+    'STRK': 'T3', 'INJ': 'T3', 'DOGE': 'T3', 'OP': 'T3',
+    'BNX': 'T3', 'TRUMP': 'T3', 'TRX': 'T3', 'ONE': 'T3',
+    'JUP': 'T3',
+}
+SKIP_COINS = ['BERA', 'IP', 'LIT', 'TROY', 'VIRTUAL', 'BONK', 'PEPE']
 
 DB_PATH = '/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db'  # Paper Trader 独立数据库
 
@@ -586,14 +622,17 @@ def get_watchlist():
                     'symbol': symbol,
                     'price': price_data,
                     'has_position': has_position,
-                    'direction': positions_dict[symbol]['direction'] if has_position else None,  # 当前持仓方向
-                    'suggested_direction': suggested_direction,  # 建议方向（仅非持仓）
-                    'confidence': confidence,  # 信心度分数
-                    'stop_loss': stop_loss,  # 止损价位
-                    'take_profit': take_profit,  # 止盈价位
-                    'leverage': leverage,  # 杠杆倍数
-                    'profit_pct': profit_pct,  # 预估盈利%（仅非持仓）
-                    'loss_pct': loss_pct  # 预估亏损%（仅非持仓）
+                    'direction': positions_dict[symbol]['direction'] if has_position else None,
+                    'suggested_direction': suggested_direction,
+                    'confidence': confidence,
+                    'stop_loss': stop_loss,
+                    'take_profit': take_profit,
+                    'leverage': leverage,
+                    'profit_pct': profit_pct,
+                    'loss_pct': loss_pct,
+                    'tier': COIN_TIERS.get(symbol, '-'),
+                    'skipped': symbol in SKIP_COINS,
+                    'score_warning': confidence >= 85 if confidence else False,
                 })
             except Exception as e:
                 has_position = symbol in positions_dict
@@ -619,6 +658,73 @@ def get_watchlist():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/strategy_insights')
+def get_strategy_insights():
+    """返回回测学习成果供前端展示"""
+    try:
+        # 从DB获取实时交易统计
+        conn = get_db()
+        c = conn.cursor()
+        c.execute('''SELECT COUNT(*) as cnt,
+                     SUM(CASE WHEN pnl>0 THEN 1 ELSE 0 END) as wins,
+                     SUM(pnl) as total_pnl,
+                     AVG(CASE WHEN pnl>0 THEN pnl END) as avg_win,
+                     AVG(CASE WHEN pnl<0 THEN pnl END) as avg_loss
+                     FROM real_trades
+                     WHERE status='CLOSED' AND mode='paper' AND assistant='交易助手' ''')
+        row = c.fetchone()
+        total = row['cnt'] or 0
+        wins = row['wins'] or 0
+        pnl = row['total_pnl'] or 0
+        avg_w = row['avg_win'] or 0
+        avg_l = row['avg_loss'] or 0
+
+        # 持仓时间分析
+        c.execute('''SELECT
+                     AVG((julianday(exit_time)-julianday(entry_time))*24) as avg_hours
+                     FROM real_trades
+                     WHERE status='CLOSED' AND mode='paper' AND assistant='交易助手' AND exit_time IS NOT NULL''')
+        avg_h = (c.fetchone()['avg_hours'] or 0)
+
+        # 方向分析
+        c.execute('''SELECT direction,
+                     COUNT(*) as cnt,
+                     SUM(CASE WHEN pnl>0 THEN 1 ELSE 0 END) as wins,
+                     SUM(pnl) as total
+                     FROM real_trades
+                     WHERE status='CLOSED' AND mode='paper' AND assistant='交易助手'
+                     GROUP BY direction''')
+        dir_stats = {}
+        for r in c.fetchall():
+            dir_stats[r['direction']] = {
+                'count': r['cnt'], 'wins': r['wins'], 'pnl': round(r['total'] or 0, 1)
+            }
+        conn.close()
+
+        return jsonify({
+            'backtest_learnings': [
+                {'key': '最佳评分', 'value': '65-84分', 'detail': '67.5%胜率, +3.2~4.7U/笔'},
+                {'key': '85+LONG', 'value': '完全跳过', 'detail': 'v4核心: 85+做多=抄底接刀'},
+                {'key': '最大杠杆', 'value': '3x', 'detail': 'v4: 5x在80+分胜率低13%'},
+                {'key': 'SHORT更优', 'value': '+5%加成', 'detail': '做空66.9%WR > 做多62.6%WR'},
+                {'key': '最优持仓', 'value': '3-24小时', 'detail': '<3h亏钱, >48h强制平仓'},
+                {'key': '跳过币种', 'value': ', '.join(SKIP_COINS), 'detail': '回测持续亏损，完全不交易'},
+            ],
+            'live_stats': {
+                'total_trades': total,
+                'win_rate': round(wins/total*100, 1) if total > 0 else 0,
+                'total_pnl': round(pnl, 1),
+                'avg_win': round(avg_w, 1),
+                'avg_loss': round(avg_l, 1),
+                'avg_hold_hours': round(avg_h, 1),
+            },
+            'direction_stats': dir_stats,
+            'coin_tiers': COIN_TIERS,
+            'skip_coins': SKIP_COINS,
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 def get_price_value(symbol):
     """获取币种当前价格（期货价格）"""
     symbol_map = {
@@ -640,6 +746,39 @@ def get_price_value(symbol):
     response = requests.get(url, timeout=5)
     data = response.json()
     return float(data['price'])
+
+_btc_trend_cache = {'time': None, 'data': None}
+
+def _get_btc_trend():
+    """获取BTC大盘趋势（缓存5分钟）"""
+    now = datetime.now()
+    if _btc_trend_cache['time'] and (now - _btc_trend_cache['time']).total_seconds() < 300:
+        return _btc_trend_cache['data']
+    try:
+        url = "https://fapi.binance.com/fapi/v1/klines"
+        resp = requests.get(url, params={'symbol': 'BTCUSDT', 'interval': '1h', 'limit': 60}, timeout=5)
+        klines = resp.json()
+        closes = [float(k[4]) for k in klines]
+        ma7 = sum(closes[-7:]) / 7
+        ma25 = sum(closes[-25:]) / 25
+        ma50 = sum(closes[-50:]) / 50
+        price = closes[-1]
+        if price > ma7 > ma25 > ma50:
+            d, s = 'up', 2
+        elif price > ma7 > ma25:
+            d, s = 'up', 1
+        elif price < ma7 < ma25 < ma50:
+            d, s = 'down', 2
+        elif price < ma7 < ma25:
+            d, s = 'down', 1
+        else:
+            d, s = 'neutral', 0
+        result = {'direction': d, 'strength': s}
+        _btc_trend_cache['time'] = now
+        _btc_trend_cache['data'] = result
+        return result
+    except:
+        return {'direction': 'neutral', 'strength': 0}
 
 def get_signal_suggestion(symbol):
     """获取币种信号建议（做多/做空）+ 信心度 + 止盈止损"""
@@ -717,28 +856,59 @@ def get_signal_suggestion(symbol):
         elif direction == 'SHORT' and current_price > ma7:
             confidence -= 10
 
-        # ROI模式：止损按ROI%反算价格（假设5x杠杆，-8%ROI）
-        roi_stop = -8   # 止损ROI
-        assumed_lev = 5  # 显示用杠杆（实际杠杆看持仓）
-        stop_price_pct = abs(roi_stop) / (assumed_lev * 100)  # 1.6%
+        # === BTC大盘趋势过滤 ===
+        btc_trend = _get_btc_trend()
+        btc_dir = btc_trend.get('direction', 'neutral')
+        btc_str = btc_trend.get('strength', 0)
+
+        # 个币自身趋势
+        coin_has_own_trend = False
+        if direction == 'LONG' and current_price > ma7 > ma25:
+            coin_has_own_trend = True
+        elif direction == 'SHORT' and current_price < ma7 < ma25:
+            coin_has_own_trend = True
+
+        # 逆BTC趋势惩罚
+        if btc_dir == 'down' and direction == 'LONG':
+            if coin_has_own_trend:
+                confidence = int(confidence * 0.80)
+            elif btc_str >= 2:
+                confidence = int(confidence * 0.50)
+            else:
+                confidence = int(confidence * 0.65)
+        elif btc_dir == 'up' and direction == 'SHORT':
+            if coin_has_own_trend:
+                confidence = int(confidence * 0.80)
+            elif btc_str >= 2:
+                confidence = int(confidence * 0.50)
+            else:
+                confidence = int(confidence * 0.65)
+
+        # v3 ROI模式：止损-10%ROI，移动止盈+8%ROI启动
+        roi_stop = -10   # v3止损ROI
+        roi_trail_start = 6  # v3+移动止盈启动（更早锁利）
+        assumed_lev = 5  # 显示用杠杆
+        stop_price_pct = abs(roi_stop) / (assumed_lev * 100)  # 2%
+        tp_price_pct = roi_trail_start / (assumed_lev * 100)  # 1.6%
         if direction == 'LONG':
             stop_loss = current_price * (1 - stop_price_pct)
-            take_profit = None  # ROI模式无固定止盈
+            take_profit = current_price * (1 + tp_price_pct)
         elif direction == 'SHORT':
             stop_loss = current_price * (1 + stop_price_pct)
-            take_profit = None
+            take_profit = current_price * (1 - tp_price_pct)
         else:
             stop_loss = None
             take_profit = None
 
-        # v2策略：最低70分才标记为可交易
-        tradeable = confidence >= 70 and direction is not None
+        # v3策略：最低60分才标记为可交易
+        tradeable = confidence >= 60 and direction is not None
 
         return {
             'direction': direction,
             'confidence': max(0, min(confidence, 100)),  # 0-100分
             'stop_loss': stop_loss,
             'take_profit': take_profit,
+            'btc_trend': btc_dir,
             'current_price': current_price,
             'rsi': rsi,
             'tradeable': tradeable  # 是否可交易
@@ -1759,8 +1929,8 @@ HTML_TEMPLATE = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧪 交易助手仪表盘 v1.3</h1>
-            <div class="subtitle">Paper Trading System - 按需加载 - Port 5111</div>
+            <h1>🧪 交易助手仪表盘 v4.0</h1>
+            <div class="subtitle">Paper Trading System - 回测智能优化 - Port 5111</div>
             <div style="margin-top: 10px;">
                 <a href="/backtest" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📊 回测模拟器</a>
                 <a href="/report" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📋 策略报告</a>
@@ -1835,6 +2005,65 @@ HTML_TEMPLATE = '''
                 <div class="risk-item">
                     <div style="font-size: 0.8em; color: #999;">💪 杠杆倍率</div>
                     <div id="leverage-ratio" style="font-size: 1.2em; font-weight: bold; color: #10b981;">-</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- v4策略智能面板 -->
+        <div id="strategy-panel" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 12px; border-left: 4px solid #667eea;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: pointer;" onclick="toggleStrategyPanel()">
+                <h3 style="margin: 0; color: white; font-size: 1.1em;">🧠 v4策略 <span style="font-size:0.75em; color:#999;">(2023-2025回测+2026验证 | +88U, +3.1%WR vs v3)</span></h3>
+                <span id="strategy-toggle" style="color: #999; font-size: 0.9em;">▼ 展开</span>
+            </div>
+            <div id="strategy-content" style="display: none;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                    <div style="background: rgba(16,185,129,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.2);">
+                        <div style="font-size: 0.75em; color: #999;">🎯 最佳评分区间</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #10b981;">65-84分</div>
+                        <div style="font-size: 0.7em; color: #666;">67.5%胜率, +3.2~4.7U/笔</div>
+                    </div>
+                    <div style="background: rgba(239,68,68,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(239,68,68,0.2);">
+                        <div style="font-size: 0.75em; color: #999;">🚫 85+LONG</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #ef4444;">完全跳过</div>
+                        <div style="font-size: 0.7em; color: #666;">极端做多=抄底接刀</div>
+                    </div>
+                    <div style="background: rgba(102,126,234,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(102,126,234,0.2);">
+                        <div style="font-size: 0.75em; color: #999;">📊 最大杠杆</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #667eea;">3x</div>
+                        <div style="font-size: 0.7em; color: #666;">5x在80+分胜率低13%</div>
+                    </div>
+                    <div style="background: rgba(102,126,234,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(102,126,234,0.2);">
+                        <div style="font-size: 0.75em; color: #999;">📉 SHORT偏好</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #667eea;">+5%加成</div>
+                        <div style="font-size: 0.7em; color: #666;">做空66.9%WR > 做多62.6%WR</div>
+                    </div>
+                    <div style="background: rgba(245,158,11,0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(245,158,11,0.2);">
+                        <div style="font-size: 0.75em; color: #999;">⏰ 最优持仓时间</div>
+                        <div style="font-size: 1.3em; font-weight: bold; color: #f59e0b;">3-24小时</div>
+                        <div style="font-size: 0.7em; color: #666;">&lt;3h保护, &gt;48h强制平</div>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px;">
+                    <div style="text-align: center; padding: 6px; background: rgba(255,215,0,0.15); border-radius: 6px;">
+                        <div style="font-size: 0.7em; color: #ffd700; font-weight: bold;">🏆 T1 (26个)</div>
+                        <div style="font-size: 0.6em; color: #999; margin-top: 2px;">ICP XMR UNI IOTA AXS KAVA SAND DASH...</div>
+                        <div style="font-size: 0.6em; color: #ffd700; margin-top: 2px;">×1.3仓位</div>
+                    </div>
+                    <div style="text-align: center; padding: 6px; background: rgba(102,126,234,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.7em; color: #667eea; font-weight: bold;">🥈 T2 (24个)</div>
+                        <div style="font-size: 0.6em; color: #999; margin-top: 2px;">ETC ETH BTC BNB HBAR RENDER...</div>
+                        <div style="font-size: 0.6em; color: #667eea; margin-top: 2px;">×1.0标准</div>
+                    </div>
+                    <div style="text-align: center; padding: 6px; background: rgba(245,158,11,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.7em; color: #f59e0b; font-weight: bold;">🥉 T3 (17个)</div>
+                        <div style="font-size: 0.6em; color: #999; margin-top: 2px;">WIF LTC DOGE OP TRUMP TRX...</div>
+                        <div style="font-size: 0.6em; color: #f59e0b; margin-top: 2px;">×0.7降仓</div>
+                    </div>
+                    <div style="text-align: center; padding: 6px; background: rgba(239,68,68,0.1); border-radius: 6px;">
+                        <div style="font-size: 0.7em; color: #ef4444; font-weight: bold;">🚫 跳过 (7个)</div>
+                        <div style="font-size: 0.6em; color: #999; margin-top: 2px;">BERA IP LIT TROY VIRTUAL BONK PEPE</div>
+                        <div style="font-size: 0.6em; color: #ef4444; margin-top: 2px;">完全不交易</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2343,6 +2572,19 @@ HTML_TEMPLATE = '''
             }
         }
         
+        // 策略智能面板展开/收起
+        function toggleStrategyPanel() {
+            const content = document.getElementById('strategy-content');
+            const toggle = document.getElementById('strategy-toggle');
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                toggle.textContent = '▲ 收起';
+            } else {
+                content.style.display = 'none';
+                toggle.textContent = '▼ 展开';
+            }
+        }
+
         function formatNumber(num, decimals = 2) {
             if (num === null || num === undefined) return '-';
             return Number(num).toFixed(decimals);
@@ -2541,6 +2783,23 @@ HTML_TEMPLATE = '''
                 // 找到在allPositions中的原始索引（用于viewChart）
                 const originalIndex = allPositions.indexOf(pos);
 
+                // 持仓时间计算
+                let holdTimeText = '';
+                let holdTimeColor = '#999';
+                if (pos.entry_time) {
+                    const entryMs = new Date(pos.entry_time).getTime();
+                    const holdMinutes = (Date.now() - entryMs) / 60000;
+                    const holdHours = holdMinutes / 60;
+                    if (holdHours < 1) holdTimeText = `${Math.floor(holdMinutes)}m`;
+                    else if (holdHours < 24) holdTimeText = `${holdHours.toFixed(1)}h`;
+                    else holdTimeText = `${(holdHours/24).toFixed(1)}d`;
+                    // 回测学习：<3h保护中, 3-24h最优, >48h危险
+                    if (holdMinutes < 180) { holdTimeColor = '#667eea'; holdTimeText += ' 🛡️'; }
+                    else if (holdHours <= 24) { holdTimeColor = '#10b981'; holdTimeText += ' ✅'; }
+                    else if (holdHours <= 48) { holdTimeColor = '#f59e0b'; holdTimeText += ' ⏰'; }
+                    else { holdTimeColor = '#ef4444'; holdTimeText += ' ❌超时'; }
+                }
+
                 html += `
                     <div class="position-card ${directionClass}" onclick="viewChart('${pos.symbol}', ${originalIndex})">
                         <div class="position-card-header">
@@ -2548,6 +2807,7 @@ HTML_TEMPLATE = '''
                                 <span class="position-card-symbol">${directionEmoji} ${pos.symbol}</span>
                                 <span class="badge-sm ${directionClass}">${directionText}</span>
                                 <span class="badge-sm" style="background: #667eea; color: white;">${pos.leverage}x</span>
+                                ${holdTimeText ? `<span style="font-size:0.7em;color:${holdTimeColor};margin-left:4px;">⏱${holdTimeText}</span>` : ''}
                             </div>
                             <button class="mini-btn" onclick="event.stopPropagation(); viewChart('${pos.symbol}', ${originalIndex})">📊 图表</button>
                         </div>
@@ -2774,10 +3034,21 @@ HTML_TEMPLATE = '''
                         `;
                     }
 
+                    // v4 Tier徽章
+                    const tierColors = {'T1':'#ffd700','T2':'#667eea','T3':'#f59e0b'};
+                    const tierEmojis = {'T1':'🏆','T2':'🥈','T3':'🥉'};
+                    const tier = coin.tier || '-';
+                    const tierColor = tierColors[tier] || '#666';
+                    const tierEmoji = tierEmojis[tier] || '';
+                    const tierBadge = tier !== '-' ? `<span style="font-size:0.65em;color:${tierColor};font-weight:bold;margin-left:4px;" title="v4分层${tier}">${tierEmoji}${tier}</span>` : '';
+                    const skippedBadge = coin.skipped ? '<span style="font-size:0.6em;color:#ef4444;margin-left:3px;">🚫跳过</span>' : '';
+                    // 85+分警告
+                    const scoreWarn = coin.score_warning ? '<span style="font-size:0.6em;color:#ef4444;margin-left:3px;" title="85+LONG跳过">⚡85+</span>' : '';
+
                     html += `
                         <div class="watch-card-vertical ${hasPosition}">
                             <div class="watch-info">
-                                <div class="watch-symbol">${coin.symbol} ${directionBadge}</div>
+                                <div class="watch-symbol">${coin.symbol}${tierBadge}${skippedBadge} ${directionBadge}${scoreWarn}</div>
                                 <div class="watch-price">$${formatNumber(coin.price, 4)}</div>
                                 ${detailsInfo}
                             </div>
