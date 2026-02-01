@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-量化交易机器人 v3.0 - 稳健策略
+量化交易机器人 v3.1 - 数据驱动
 - 追踪止损功能
 - 保存原始/最终止盈止损
 - 记录止损止盈变化历史
@@ -47,7 +47,7 @@ class AutoTraderV2:
         # 记录每个持仓的最高/最低价
         self.price_extremes = {}
 
-        print("🤖 量化交易机器人 v3.0 - 稳健策略 已启动")
+        print("🤖 量化交易机器人 v3.1 - 数据驱动 已启动")
         print(f"💰 初始资金: ${self.initial_capital}")
         print(f"🎯 目标利润: ${self.target_profit}")
         print(f"📊 最大持仓: {self.max_positions}")
@@ -113,7 +113,7 @@ class AutoTraderV2:
     def get_recommendations(self):
         """从API获取策略推荐"""
         try:
-            response = requests.get(self.api_url, timeout=30)
+            response = requests.get(self.api_url, timeout=180)
             if response.status_code == 200:
                 recommendations = response.json()
                 print(f"📡 获取到 {len(recommendations)} 个推荐")
@@ -323,6 +323,28 @@ class AutoTraderV2:
             direction = pos['direction']
             entry_price = pos['entry_price']
 
+            # 30分钟最低持仓保护 (数据显示<30min胜率0%)
+            min_hold_ok = True
+            try:
+                entry_t = datetime.strptime(
+                    str(pos['entry_time']).replace('T', ' ').split('.')[0],
+                    '%Y-%m-%d %H:%M:%S'
+                )
+                hold_minutes = (datetime.now() - entry_t).total_seconds() / 60
+                if hold_minutes < 30:
+                    min_hold_ok = False
+                    if direction == 'long':
+                        emergency_pct = (current_price - entry_price) / entry_price * 100
+                    else:
+                        emergency_pct = (entry_price - current_price) / entry_price * 100
+                    if emergency_pct < -5:
+                        min_hold_ok = True
+                        print(f"   \u26a0\ufe0f {symbol} 紧急平仓: 持仓{hold_minutes:.0f}分钟 亏损{emergency_pct:.1f}%")
+                    else:
+                        print(f"   \U0001f6e1 {symbol} 持仓保护中: {hold_minutes:.0f}/30分钟")
+            except:
+                pass
+
             # 先更新追踪止损
             stop_loss = self.update_trailing_stop(pos, current_price)
             take_profit = pos['take_profit']
@@ -335,17 +357,17 @@ class AutoTraderV2:
 
             # 1. 检查止盈止损
             if direction == 'long':
-                if current_price >= take_profit:
+                if current_price >= take_profit and min_hold_ok:
                     should_close = True
                     close_reason = "止盈"
-                elif current_price <= stop_loss:
+                elif current_price <= stop_loss and min_hold_ok:
                     should_close = True
                     close_reason = "追踪止损" if stop_loss != pos.get('original_stop_loss') else "止损"
             else:  # short
-                if current_price <= take_profit:
+                if current_price <= take_profit and min_hold_ok:
                     should_close = True
                     close_reason = "止盈"
-                elif current_price >= stop_loss:
+                elif current_price >= stop_loss and min_hold_ok:
                     should_close = True
                     close_reason = "追踪止损" if stop_loss != pos.get('original_stop_loss') else "止损"
 
