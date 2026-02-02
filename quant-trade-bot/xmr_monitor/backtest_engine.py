@@ -181,11 +181,14 @@ def analyze_signal(candles):
     return total_score, analysis
 
 
-def calculate_position_size(score, available, max_leverage=5):
-    """根据信号强度计算仓位大小"""
+def calculate_position_size(score, available, max_leverage=5, high_score_leverage=None):
+    """根据信号强度计算仓位大小
+    high_score_leverage: 85+评分专用杠杆上限(None则用max_leverage)
+    """
+    hs_lev = high_score_leverage if high_score_leverage else max_leverage
     if score >= 85:
         size = min(400, available * 0.25)
-        leverage = min(5, max_leverage)
+        leverage = min(5, hs_lev)
     elif score >= 75:
         size = min(300, available * 0.2)
         leverage = min(3, max_leverage)
@@ -224,6 +227,7 @@ def run_backtest(candles_1h, config):
     ma_slope_threshold = config.get('ma_slope_threshold', 0.01)
     long_min_score = config.get('long_min_score', min_score)  # LONG方向最低评分(v4.1)
     long_ma_slope_threshold = config.get('long_ma_slope_threshold', ma_slope_threshold)  # LONG方向MA斜率阈值(v4.1)
+    high_score_leverage = config.get('high_score_leverage', None)  # 85+评分专用杠杆(v4.2)
     # ROI模式参数（基于本金盈亏%）
     roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
     roi_trailing_start = config.get('roi_trailing_start', 5)  # 启动移动止盈: ROI达+5%
@@ -259,10 +263,19 @@ def run_backtest(candles_1h, config):
             pnl, fee, funding = _calc_pnl(pos, close_price, fee_rate, i - pos['bar_index'])
             capital += pnl
             trade_id += 1
+            # 计算止盈触发价(移动止盈启动价)
+            ep = pos['entry_price']
+            lev = pos['leverage']
+            ts = pos.get('roi_trailing_start', roi_trailing_start)
+            tp_pct = ts / (lev * 100)
+            if pos['direction'] == 'LONG':
+                tp_trigger = ep * (1 + tp_pct)
+            else:
+                tp_trigger = ep * (1 - tp_pct)
             trades.append({
                 'trade_id': trade_id,
                 'direction': pos['direction'],
-                'entry_price': pos['entry_price'],
+                'entry_price': ep,
                 'exit_price': close_price,
                 'amount': pos['amount'],
                 'leverage': pos['leverage'],
@@ -274,7 +287,9 @@ def run_backtest(candles_1h, config):
                 'entry_time': pos['entry_time'],
                 'exit_time': _ts_to_str(candle['time']),
                 'score': pos['score'],
-                'stop_moves': pos.get('stop_move_count', 0)
+                'stop_moves': pos.get('stop_move_count', 0),
+                'stop_loss': round(pos['stop_loss'], 6),
+                'tp_trigger': round(tp_trigger, 6)
             })
             del positions[sym]
             cooldown_until = i + cooldown_bars
@@ -338,7 +353,7 @@ def run_backtest(candles_1h, config):
         if available < 50:
             continue
 
-        amount, leverage = calculate_position_size(score, available, max_leverage)
+        amount, leverage = calculate_position_size(score, available, max_leverage, high_score_leverage)
         if amount < 50:
             continue
 
@@ -378,10 +393,18 @@ def run_backtest(candles_1h, config):
                                            len(candles_1h) - 1 - pos['bar_index'])
             capital += pnl
             trade_id += 1
+            ep = pos['entry_price']
+            lev = pos['leverage']
+            ts = pos.get('roi_trailing_start', roi_trailing_start)
+            tp_pct = ts / (lev * 100)
+            if pos['direction'] == 'LONG':
+                tp_trigger = ep * (1 + tp_pct)
+            else:
+                tp_trigger = ep * (1 - tp_pct)
             trades.append({
                 'trade_id': trade_id,
                 'direction': pos['direction'],
-                'entry_price': pos['entry_price'],
+                'entry_price': ep,
                 'exit_price': last_candle['close'],
                 'amount': pos['amount'],
                 'leverage': pos['leverage'],
@@ -393,7 +416,9 @@ def run_backtest(candles_1h, config):
                 'entry_time': pos['entry_time'],
                 'exit_time': _ts_to_str(last_candle['time']),
                 'score': pos['score'],
-                'stop_moves': pos.get('stop_move_count', 0)
+                'stop_moves': pos.get('stop_move_count', 0),
+                'stop_loss': round(pos['stop_loss'], 6),
+                'tp_trigger': round(tp_trigger, 6)
             })
 
     # 最终资金曲线点

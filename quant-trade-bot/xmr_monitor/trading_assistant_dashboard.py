@@ -3643,6 +3643,22 @@ STRATEGY_PRESETS = {
             'roi_trailing_distance': 3,
         }
     },
+    'v4.2': {
+        'label': 'v4.2 动态杠杆',
+        'description': 'v4.1基础 + 85+评分5x杠杆',
+        'config': {
+            'min_score': 60,
+            'long_min_score': 70,
+            'cooldown': 4,
+            'max_leverage': 3,
+            'high_score_leverage': 5,
+            'enable_trend_filter': True,
+            'long_ma_slope_threshold': 0.02,
+            'roi_stop_loss': -10,
+            'roi_trailing_start': 6,
+            'roi_trailing_distance': 3,
+        }
+    },
     'v4': {
         'label': 'v4 自定义 (Custom)',
         'description': '自由调整所有参数',
@@ -4018,7 +4034,7 @@ REPORT_TEMPLATE = '''
         thead th.left { text-align: left; }
         tbody td { padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
         tbody td.left { text-align: left; font-weight: 600; }
-        tbody tr:hover { background: rgba(255,255,255,0.04); }
+        tbody tr:hover { background: rgba(255,255,255,0.08); transition: background 0.15s; }
         .winner-v1 { background: rgba(240,185,11,0.08); }
         .winner-v2 { background: rgba(46,204,113,0.08); }
         .winner-v3 { background: rgba(52,152,219,0.08); }
@@ -4226,6 +4242,12 @@ REPORT_TEMPLATE = '''
                     const wLabel = w === 'v4_1' ? 'v4.1' : w;
                     const tr = document.createElement('tr');
                     tr.className = 'winner-' + w;
+                    tr.style.cursor = 'pointer';
+                    tr.title = '点击跳转到回测模拟器: ' + row.symbol;
+                    tr.onclick = () => {
+                        const yr = currentYear === 'all' ? '2024' : currentYear;
+                        window.open('/backtest?symbol=' + row.symbol + '&year=' + yr, '_blank');
+                    };
                     tr.innerHTML = `
                         <td class="left">${row.symbol}</td>
                         ${pnlHtml(v1.pnl)}
@@ -4791,6 +4813,22 @@ BACKTEST_TEMPLATE = '''
         let selectedSymbol = '';
         let equityChart = null;
 
+        // 解析URL参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramSymbol = urlParams.get('symbol');
+        const paramYear = urlParams.get('year');
+
+        // 如果URL带了year参数，设置年份下拉框
+        if (paramYear) {
+            const yearSel = document.getElementById('year-select');
+            for (let i = 0; i < yearSel.options.length; i++) {
+                if (yearSel.options[i].value === paramYear) {
+                    yearSel.value = paramYear;
+                    break;
+                }
+            }
+        }
+
         // 初始化币种列表
         fetch('/api/backtest/symbols')
             .then(r => r.json())
@@ -4802,6 +4840,11 @@ BACKTEST_TEMPLATE = '''
                     opt.textContent = s + '/USDT';
                     sel.appendChild(opt);
                 });
+                // 如果URL带了symbol参数，自动选中并触发
+                if (paramSymbol && symbols.includes(paramSymbol)) {
+                    sel.value = paramSymbol;
+                    selectedSymbol = paramSymbol;
+                }
             });
 
         document.getElementById('symbol-select').addEventListener('change', function() {
@@ -5000,7 +5043,7 @@ BACKTEST_TEMPLATE = '''
             }
 
             let html = '<table><thead><tr>';
-            html += '<th>#</th><th>方向</th><th>入场</th><th>出场</th>';
+            html += '<th>#</th><th>方向</th><th>入场</th><th>止损</th><th>止盈触发</th><th>出场</th>';
             html += '<th>金额</th><th>杠杆</th><th>盈亏</th><th>ROI</th><th>原因</th><th>图表</th>';
             html += '</tr></thead><tbody>';
 
@@ -5011,6 +5054,8 @@ BACKTEST_TEMPLATE = '''
                     '<td>' + (i+1) + '</td>' +
                     '<td><span class="badge ' + badge + '">' + t.direction + '</span></td>' +
                     '<td>$' + fmtPrice(t.entry_price) + '</td>' +
+                    '<td style="color:#ef4444;">' + (t.stop_loss ? '$' + fmtPrice(t.stop_loss) : '-') + '</td>' +
+                    '<td style="color:#10b981;">' + (t.tp_trigger ? '$' + fmtPrice(t.tp_trigger) : '-') + '</td>' +
                     '<td>$' + fmtPrice(t.exit_price) + '</td>' +
                     '<td>' + fmtN(t.amount, 0) + 'U</td>' +
                     '<td>' + t.leverage + 'x</td>' +
@@ -5165,6 +5210,8 @@ BACKTEST_TEMPLATE = '''
             document.getElementById('modal-info').innerHTML =
                 '<div class="trade-info-item"><div class="label">入场价</div><div class="val">$' + fmtPrice(trade.entry_price) + '</div></div>' +
                 '<div class="trade-info-item"><div class="label">出场价</div><div class="val">$' + fmtPrice(trade.exit_price) + '</div></div>' +
+                '<div class="trade-info-item"><div class="label">止损价</div><div class="val" style="color:#ef4444;">' + (trade.stop_loss ? '$' + fmtPrice(trade.stop_loss) : '-') + '</div></div>' +
+                '<div class="trade-info-item"><div class="label">止盈触发</div><div class="val" style="color:#10b981;">' + (trade.tp_trigger ? '$' + fmtPrice(trade.tp_trigger) : '-') + '</div></div>' +
                 '<div class="trade-info-item"><div class="label">盈亏</div><div class="val ' + cls + '">' + fmtC(trade.pnl) + 'U</div></div>' +
                 '<div class="trade-info-item"><div class="label">ROI</div><div class="val ' + cls + '">' + fmtC(trade.roi) + '%</div></div>' +
                 '<div class="trade-info-item"><div class="label">金额/杠杆</div><div class="val">' + fmtN(trade.amount,0) + 'U / ' + trade.leverage + 'x</div></div>' +
@@ -5215,7 +5262,7 @@ BACKTEST_TEMPLATE = '''
 
             const exitColor = trade.pnl >= 0 ? '#10b981' : '#ef4444';
 
-            // 注解：入场/出场水平线 + 垂直标记线
+            // 注解：入场/出场/止损/止盈水平线 + 垂直标记线
             const annotations = {
                 entryLine: {
                     type: 'line', yMin: entryPrice, yMax: entryPrice,
@@ -5239,6 +5286,24 @@ BACKTEST_TEMPLATE = '''
                     borderWidth: 1, borderDash: [3,3]
                 }
             };
+            // 止损线
+            if (trade.stop_loss) {
+                annotations.stopLossLine = {
+                    type: 'line', yMin: trade.stop_loss, yMax: trade.stop_loss,
+                    borderColor: 'rgba(239,68,68,0.5)', borderWidth: 1.5, borderDash: [6,3],
+                    label: { content: '止损 $' + fmtPrice(trade.stop_loss), display: true, position: 'start',
+                             backgroundColor: 'rgba(239,68,68,0.8)', font: {size: 9} }
+                };
+            }
+            // 止盈触发线
+            if (trade.tp_trigger) {
+                annotations.tpTriggerLine = {
+                    type: 'line', yMin: trade.tp_trigger, yMax: trade.tp_trigger,
+                    borderColor: 'rgba(16,185,129,0.5)', borderWidth: 1.5, borderDash: [6,3],
+                    label: { content: '止盈触发 $' + fmtPrice(trade.tp_trigger), display: true, position: 'start',
+                             backgroundColor: 'rgba(16,185,129,0.8)', font: {size: 9}, yAdjust: -15 }
+                };
+            }
 
             tradeDetailChart = new Chart(ctx, {
                 type: 'line',
