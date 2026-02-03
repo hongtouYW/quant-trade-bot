@@ -947,21 +947,21 @@ class PaperTradingAssistant:
             print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
             return
 
-        # v4.1: 冷却期4小时 (原2h太短，3天29笔手续费-23U吞噬利润)
+        # v4.1b: 冷却期2小时 (4h→2h, 持仓扩容后需更快填仓)
         if self.last_close_time:
             cooldown_seconds = (datetime.now() - self.last_close_time).total_seconds()
-            if cooldown_seconds < 14400:  # 4小时
-                remaining = int((14400 - cooldown_seconds) / 60)
+            if cooldown_seconds < 7200:  # 2小时
+                remaining = int((7200 - cooldown_seconds) / 60)
                 hours = remaining // 60
                 mins = remaining % 60
-                print(f"⏸️  冷却期中 (平仓后需等4小时，还剩{hours}h{mins}m)")
+                print(f"⏸️  冷却期中 (平仓后需等2小时，还剩{hours}h{mins}m)")
                 return
 
         # 风控3：同方向限制 - 最多3个同方向持仓
         long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
         short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
 
-        if len(self.positions) < 6 and available > 100:  # v4.1: 最多6个持仓(原10个太分散)
+        if len(self.positions) < 10 and available > 100:  # v4.1b: 最多10个持仓(6→10扩容)
             # v4.1: 每次扫描最多开1个 (减少频率，提高质量)
             opened = 0
             for symbol, score, analysis in opportunities:

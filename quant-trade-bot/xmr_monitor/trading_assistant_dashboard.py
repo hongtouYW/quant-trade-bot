@@ -1934,6 +1934,8 @@ HTML_TEMPLATE = '''
             <div style="margin-top: 10px;">
                 <a href="/backtest" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📊 回测模拟器</a>
                 <a href="/report" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📋 策略报告</a>
+                <a href="/validation" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">🔬 过拟合验证</a>
+                <a href="http://139.162.41.38:5112/" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📡 信号跟踪</a>
             </div>
         </div>
         
@@ -4070,6 +4072,7 @@ REPORT_TEMPLATE = '''
         <div class="nav-links">
             <a href="/">← 仪表盘</a>
             <a href="/backtest">回测模拟器</a>
+            <a href="/validation">🔬 过拟合验证</a>
         </div>
         <div id="year-tabs" style="margin-top:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;"></div>
     </div>
@@ -4590,6 +4593,7 @@ BACKTEST_TEMPLATE = '''
             <div style="margin-top:10px;display:flex;gap:15px;justify-content:center;">
                 <a href="/" class="back-link">← 返回仪表盘</a>
                 <a href="/report" class="back-link">📋 策略报告</a>
+                <a href="/validation" class="back-link">🔬 过拟合验证</a>
             </div>
         </div>
 
@@ -4606,8 +4610,11 @@ BACKTEST_TEMPLATE = '''
                     <label>年份</label>
                     <select id="year-select">
                         <option value="2024" selected>2024</option>
-                        <option value="2023">2023</option>
                         <option value="2025">2025</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
                     </select>
                 </div>
                 <div class="config-field">
@@ -5471,6 +5478,758 @@ BACKTEST_TEMPLATE = '''
 </body>
 </html>
 '''
+
+# ==================== 过拟合验证页 ====================
+
+@app.route('/api/validation/walk-forward', methods=['POST'])
+def walk_forward_validation():
+    """Walk-Forward 验证：训练期 → 验证期 → 测试期"""
+    try:
+        from backtest_engine import run_backtest
+
+        params = request.get_json()
+        symbol = params.get('symbol', 'BTC')
+        strategy = params.get('strategy', 'v4.1')
+        initial_capital = float(params.get('initial_capital', 2000))
+        # 可选多币种
+        symbols = params.get('symbols', [symbol])
+        if not symbols:
+            symbols = [symbol]
+
+        preset = STRATEGY_PRESETS.get(strategy, STRATEGY_PRESETS['v4.1'])
+
+        base_config = {
+            'initial_capital': initial_capital,
+            'fee_rate': 0.0005,
+            'max_positions': 3,
+            'max_same_direction': 2
+        }
+        base_config.update(preset['config'])
+
+        # Walk-Forward: 按时间顺序，越早越偏训练，越晚越偏测试
+        periods = [
+            {'year': 2020, 'role': 'train', 'label': '2020 远期训练'},
+            {'year': 2021, 'role': 'train', 'label': '2021 训练期'},
+            {'year': 2022, 'role': 'train', 'label': '2022 训练期'},
+            {'year': 2023, 'role': 'validate', 'label': '2023 验证期'},
+            {'year': 2024, 'role': 'validate', 'label': '2024 验证期'},
+            {'year': 2025, 'role': 'test', 'label': '2025 测试期'}
+        ]
+
+        results = []
+        for sym in symbols:
+            sym_data = {'symbol': sym, 'periods': []}
+            for p in periods:
+                candles = fetch_historical_klines(sym, p['year'])
+                if not candles or len(candles) < 100:
+                    sym_data['periods'].append({
+                        'year': p['year'], 'role': p['role'], 'label': p['label'],
+                        'pnl': 0, 'win_rate': 0, 'trades': 0, 'no_data': True
+                    })
+                    continue
+
+                cfg = dict(base_config)
+                cfg['initial_capital'] = initial_capital
+                result = run_backtest(candles, cfg)
+                s = result['summary']
+                sym_data['periods'].append({
+                    'year': p['year'], 'role': p['role'], 'label': p['label'],
+                    'pnl': round(s['total_pnl'], 2),
+                    'win_rate': round(s['win_rate'], 1),
+                    'trades': s['total_trades'],
+                    'max_drawdown': round(s['max_drawdown'], 2),
+                    'profit_factor': round(s['profit_factor'], 2),
+                    'final_capital': round(s['final_capital'], 2),
+                    'no_data': False
+                })
+            results.append(sym_data)
+
+        # 汇总
+        totals = {}
+        for p in periods:
+            yr = p['year']
+            t_pnl = sum(r_p['pnl'] for r in results for r_p in r['periods'] if r_p['year'] == yr and not r_p.get('no_data'))
+            t_trades = sum(r_p['trades'] for r in results for r_p in r['periods'] if r_p['year'] == yr and not r_p.get('no_data'))
+            t_wins = sum(r_p['trades'] * r_p['win_rate'] / 100 for r in results for r_p in r['periods'] if r_p['year'] == yr and not r_p.get('no_data'))
+            totals[yr] = {
+                'pnl': round(t_pnl, 2),
+                'trades': t_trades,
+                'win_rate': round(t_wins / t_trades * 100, 1) if t_trades > 0 else 0,
+                'role': p['role'], 'label': p['label']
+            }
+
+        # 过拟合评分：训练期(2020-2022) vs 验证期(2023-2024) vs 测试期(2025)
+        train_pnl = sum(totals.get(y, {}).get('pnl', 0) for y in [2020, 2021, 2022])
+        validate_pnl = sum(totals.get(y, {}).get('pnl', 0) for y in [2023, 2024])
+        test_pnl = totals.get(2025, {}).get('pnl', 0)
+        train_years = sum(1 for y in [2020,2021,2022] if totals.get(y, {}).get('trades', 0) > 0)
+        val_years = sum(1 for y in [2023,2024] if totals.get(y, {}).get('trades', 0) > 0)
+
+        # 年均化后比较
+        train_avg = train_pnl / max(train_years, 1)
+        validate_avg = validate_pnl / max(val_years, 1)
+
+        if train_avg > 0:
+            validate_ratio = validate_avg / train_avg
+            test_ratio = test_pnl / train_avg
+        else:
+            validate_ratio = 1
+            test_ratio = 1
+
+        if validate_ratio >= 0.7 and test_ratio >= 0.5:
+            overfit_level = 'LOW'
+            overfit_msg = '策略表现跨期稳定，过拟合风险低'
+        elif validate_ratio >= 0.4 or test_ratio >= 0.3:
+            overfit_level = 'MEDIUM'
+            overfit_msg = '策略表现有一定衰减，存在过拟合可能'
+        else:
+            overfit_level = 'HIGH'
+            overfit_msg = '策略表现严重衰减，过拟合风险高'
+
+        return jsonify({
+            'strategy': strategy,
+            'symbols': symbols,
+            'results': results,
+            'totals': totals,
+            'overfit': {
+                'level': overfit_level,
+                'message': overfit_msg,
+                'train_pnl': train_pnl,
+                'validate_pnl': validate_pnl,
+                'test_pnl': test_pnl,
+                'validate_ratio': round(validate_ratio, 2),
+                'test_ratio': round(test_ratio, 2)
+            }
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/param-sensitivity', methods=['POST'])
+def param_sensitivity():
+    """参数敏感度分析：扫描单个参数观察PnL变化"""
+    try:
+        from backtest_engine import run_backtest
+
+        params = request.get_json()
+        symbol = params.get('symbol', 'BTC')
+        year = int(params.get('year', 2024))
+        strategy = params.get('strategy', 'v4.1')
+        initial_capital = float(params.get('initial_capital', 2000))
+        param_name = params.get('param_name', 'min_score')
+
+        # 参数范围定义
+        PARAM_RANGES = {
+            'min_score':       {'values': list(range(50, 81, 5)),   'label': '最低评分', 'unit': '分'},
+            'long_min_score':  {'values': list(range(55, 86, 5)),   'label': 'LONG最低评分', 'unit': '分'},
+            'cooldown':        {'values': [1, 2, 3, 4, 5, 6, 8],   'label': '冷却时间', 'unit': 'h'},
+            'max_leverage':    {'values': [1, 2, 3, 4, 5, 7, 10],  'label': '最大杠杆', 'unit': 'x'},
+            'roi_stop_loss':   {'values': [-5, -8, -10, -12, -15, -20], 'label': '止损ROI', 'unit': '%'},
+            'roi_trailing_start': {'values': [3, 4, 5, 6, 8, 10],  'label': '移动止盈触发', 'unit': '%'},
+            'roi_trailing_distance': {'values': [1, 2, 3, 4, 5],   'label': '移动止盈距离', 'unit': '%'},
+        }
+
+        if param_name not in PARAM_RANGES:
+            return jsonify({'error': f'不支持的参数: {param_name}'}), 400
+
+        prange = PARAM_RANGES[param_name]
+        preset = STRATEGY_PRESETS.get(strategy, STRATEGY_PRESETS['v4.1'])
+
+        base_config = {
+            'initial_capital': initial_capital,
+            'fee_rate': 0.0005,
+            'max_positions': 3,
+            'max_same_direction': 2
+        }
+        base_config.update(preset['config'])
+
+        candles = fetch_historical_klines(symbol, year)
+        if not candles:
+            return jsonify({'error': f'{symbol} 在 {year} 年没有数据'}), 400
+
+        # 记录当前值
+        current_value = base_config.get(param_name)
+
+        results = []
+        for val in prange['values']:
+            cfg = dict(base_config)
+            cfg[param_name] = val
+            result = run_backtest(candles, cfg)
+            s = result['summary']
+            results.append({
+                'value': val,
+                'pnl': round(s['total_pnl'], 2),
+                'win_rate': round(s['win_rate'], 1),
+                'trades': s['total_trades'],
+                'max_drawdown': round(s['max_drawdown'], 2),
+                'profit_factor': round(s['profit_factor'], 2),
+                'final_capital': round(s['final_capital'], 2),
+                'is_current': val == current_value
+            })
+
+        # 分析平滑度（相邻值PnL差异的标准差）
+        pnls = [r['pnl'] for r in results]
+        if len(pnls) > 1:
+            diffs = [abs(pnls[i+1] - pnls[i]) for i in range(len(pnls)-1)]
+            avg_diff = sum(diffs) / len(diffs)
+            max_diff = max(diffs)
+            pnl_range = max(pnls) - min(pnls)
+            mean_pnl = sum(pnls) / len(pnls)
+            std_pnl = (sum((p - mean_pnl)**2 for p in pnls) / len(pnls)) ** 0.5
+            cv = std_pnl / abs(mean_pnl) if mean_pnl != 0 else 999
+
+            if cv < 0.3:
+                stability = 'STABLE'
+                stability_msg = '参数变化对结果影响小，策略稳健'
+            elif cv < 0.7:
+                stability = 'MODERATE'
+                stability_msg = '参数有一定敏感度，需谨慎选择'
+            else:
+                stability = 'SENSITIVE'
+                stability_msg = '参数极度敏感，存在过拟合风险'
+        else:
+            cv = 0
+            stability = 'N/A'
+            stability_msg = '数据不足'
+
+        return jsonify({
+            'symbol': symbol,
+            'year': year,
+            'strategy': strategy,
+            'param_name': param_name,
+            'param_label': prange['label'],
+            'param_unit': prange['unit'],
+            'current_value': current_value,
+            'results': results,
+            'analysis': {
+                'stability': stability,
+                'message': stability_msg,
+                'cv': round(cv, 3),
+                'pnl_range': round(pnl_range, 2) if len(pnls) > 1 else 0
+            }
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/validation/multi-coin-wf', methods=['POST'])
+def multi_coin_walk_forward():
+    """多币种Walk-Forward：用top10币种做快速验证"""
+    try:
+        from backtest_engine import run_backtest
+
+        params = request.get_json()
+        strategy = params.get('strategy', 'v4.1')
+        initial_capital = float(params.get('initial_capital', 2000))
+        top_n = min(int(params.get('top_n', 10)), 30)
+
+        preset = STRATEGY_PRESETS.get(strategy, STRATEGY_PRESETS['v4.1'])
+        base_config = {
+            'initial_capital': initial_capital, 'fee_rate': 0.0005,
+            'max_positions': 3, 'max_same_direction': 2
+        }
+        base_config.update(preset['config'])
+
+        # 选出交易量大的币种
+        test_symbols = WATCH_SYMBOLS[:top_n]
+
+        all_years = [2020, 2021, 2022, 2023, 2024, 2025]
+        results = []
+        for sym in test_symbols:
+            row = {'symbol': sym}
+            for year in all_years:
+                candles = fetch_historical_klines(sym, year)
+                if not candles or len(candles) < 100:
+                    row[str(year)] = {'pnl': 0, 'trades': 0, 'win_rate': 0, 'no_data': True}
+                    continue
+                cfg = dict(base_config)
+                cfg['initial_capital'] = initial_capital
+                result = run_backtest(candles, cfg)
+                s = result['summary']
+                row[str(year)] = {
+                    'pnl': round(s['total_pnl'], 2),
+                    'trades': s['total_trades'],
+                    'win_rate': round(s['win_rate'], 1),
+                    'max_dd': round(s['max_drawdown'], 2)
+                }
+            results.append(row)
+
+        # 汇总每年
+        year_totals = {}
+        for yr in [str(y) for y in all_years]:
+            pnl_sum = sum(r.get(yr, {}).get('pnl', 0) for r in results if not r.get(yr, {}).get('no_data'))
+            trades_sum = sum(r.get(yr, {}).get('trades', 0) for r in results if not r.get(yr, {}).get('no_data'))
+            count = sum(1 for r in results if not r.get(yr, {}).get('no_data'))
+            year_totals[yr] = {'pnl': round(pnl_sum, 2), 'trades': trades_sum, 'coins': count}
+
+        return jsonify({
+            'strategy': strategy,
+            'symbols': test_symbols,
+            'results': results,
+            'year_totals': year_totals
+        })
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/validation')
+def validation_page():
+    """过拟合验证页面"""
+    return render_template_string(VALIDATION_TEMPLATE)
+
+
+VALIDATION_TEMPLATE = '''
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>过拟合验证</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0e17; color: #e0e0e0; font-family: -apple-system, sans-serif; padding: 20px; }
+    .header { text-align: center; margin-bottom: 30px; }
+    .header h1 { font-size: 1.6em; color: #fff; }
+    .header .subtitle { color: #888; font-size: 0.9em; margin-top: 5px; }
+    .nav-links { margin-top: 12px; display: flex; gap: 15px; justify-content: center; }
+    .nav-links a { color: #667eea; text-decoration: none; font-size: 0.9em; }
+    .nav-links a:hover { text-decoration: underline; }
+
+    .section { background: #111827; border-radius: 12px; padding: 24px; margin-bottom: 24px; }
+    .section-title { font-size: 1.15em; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+    .section-desc { color: #888; font-size: 0.85em; margin-bottom: 16px; line-height: 1.5; }
+
+    .config-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+    .config-field label { display: block; color: #888; font-size: 0.8em; margin-bottom: 4px; }
+    .config-field select, .config-field input { background: #1a2332; color: #fff; border: 1px solid #2a3a4a; border-radius: 6px; padding: 8px 12px; font-size: 0.9em; }
+    .btn { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 0.9em; cursor: pointer; font-weight: 600; }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-sm { padding: 6px 16px; font-size: 0.8em; }
+
+    /* 过拟合评级 */
+    .overfit-badge { display: inline-block; padding: 6px 16px; border-radius: 20px; font-weight: 700; font-size: 0.95em; }
+    .overfit-LOW { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .overfit-MEDIUM { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .overfit-HIGH { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+    .stability-STABLE { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }
+    .stability-MODERATE { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .stability-SENSITIVE { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+
+    /* 结果卡片 */
+    .result-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .result-card { background: #1a2332; border-radius: 10px; padding: 20px; text-align: center; }
+    .result-card .role { font-size: 0.75em; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .result-card .year { font-size: 1.3em; font-weight: 700; margin: 4px 0; }
+    .result-card .pnl { font-size: 1.8em; font-weight: 700; margin: 8px 0; }
+    .result-card .meta { font-size: 0.8em; color: #888; }
+    .result-card.train { border-top: 3px solid #3b82f6; }
+    .result-card.validate { border-top: 3px solid #f59e0b; }
+    .result-card.test { border-top: 3px solid #10b981; }
+
+    .ratio-bar { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+    .ratio-bar .bar-bg { flex: 1; height: 8px; background: #1a2332; border-radius: 4px; overflow: hidden; }
+    .ratio-bar .bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+    .ratio-bar .label { font-size: 0.8em; color: #888; width: 80px; }
+    .ratio-bar .val { font-size: 0.8em; font-weight: 600; width: 50px; text-align: right; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+    th { color: #888; font-weight: 600; padding: 10px 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    td { padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    td.left { text-align: left; font-weight: 600; }
+    .positive { color: #10b981; }
+    .negative { color: #ef4444; }
+
+    .chart-container { height: 300px; position: relative; margin-top: 16px; }
+    .loading { text-align: center; color: #888; padding: 40px; font-size: 0.9em; }
+
+    @media (max-width: 768px) {
+        .result-cards { grid-template-columns: 1fr; }
+        .config-row { flex-direction: column; }
+    }
+</style>
+</head>
+<body>
+    <div class="header">
+        <h1>过拟合验证工具</h1>
+        <div class="subtitle">Walk-Forward 验证 | 参数敏感度分析 | 跨期稳定性检验</div>
+        <div class="nav-links">
+            <a href="/">← 仪表盘</a>
+            <a href="/backtest">回测模拟器</a>
+            <a href="/report">策略报告</a>
+        </div>
+    </div>
+
+    <!-- === Walk-Forward 验证 === -->
+    <div class="section">
+        <div class="section-title">1. Walk-Forward 验证</div>
+        <div class="section-desc">
+            将6年数据分为训练期(2020-2022)、验证期(2023-2024)、测试期(2025)。如果策略在验证/测试期的表现远不如训练期，说明存在过拟合。
+        </div>
+        <div class="config-row">
+            <div class="config-field">
+                <label>策略</label>
+                <select id="wf-strategy">
+                    <option value="v4.1" selected>v4.1 防守反击</option>
+                    <option value="v3">v3 BTC趋势过滤</option>
+                    <option value="v2">v2 均衡</option>
+                    <option value="v1">v1 原始</option>
+                </select>
+            </div>
+            <div class="config-field">
+                <label>币种数量 (Top N)</label>
+                <input type="number" id="wf-topn" value="10" min="1" max="30">
+            </div>
+            <button class="btn" id="wf-run" onclick="runWalkForward()">开始验证</button>
+        </div>
+        <div id="wf-result"></div>
+    </div>
+
+    <!-- === 参数敏感度 === -->
+    <div class="section">
+        <div class="section-title">2. 参数敏感度分析</div>
+        <div class="section-desc">
+            固定其他参数，扫描单个参数的不同取值，观察PnL变化曲线。如果曲线平滑说明策略稳健，如果尖峰突出说明参数敏感(过拟合)。
+        </div>
+        <div class="config-row">
+            <div class="config-field">
+                <label>币种</label>
+                <select id="ps-symbol"></select>
+            </div>
+            <div class="config-field">
+                <label>年份</label>
+                <select id="ps-year">
+                    <option value="2024" selected>2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2023">2023</option>
+                    <option value="2022">2022</option>
+                    <option value="2021">2021</option>
+                    <option value="2020">2020</option>
+                </select>
+            </div>
+            <div class="config-field">
+                <label>策略</label>
+                <select id="ps-strategy">
+                    <option value="v4.1" selected>v4.1 防守反击</option>
+                    <option value="v3">v3 BTC趋势过滤</option>
+                    <option value="v2">v2 均衡</option>
+                </select>
+            </div>
+            <div class="config-field">
+                <label>扫描参数</label>
+                <select id="ps-param">
+                    <option value="min_score">最低评分</option>
+                    <option value="long_min_score">LONG最低评分</option>
+                    <option value="cooldown">冷却时间</option>
+                    <option value="max_leverage">最大杠杆</option>
+                    <option value="roi_stop_loss">止损ROI</option>
+                    <option value="roi_trailing_start">移动止盈触发</option>
+                    <option value="roi_trailing_distance">移动止盈距离</option>
+                </select>
+            </div>
+            <button class="btn" id="ps-run" onclick="runParamSensitivity()">开始扫描</button>
+        </div>
+        <div id="ps-result"></div>
+    </div>
+
+    <!-- === 多币种跨期对比 === -->
+    <div class="section">
+        <div class="section-title">3. 多币种跨期一致性</div>
+        <div class="section-desc">
+            对比同一策略在多个币种上的 2020-2025 六年表现。如果大多数币种在所有年份都盈利，说明策略泛化能力强。
+        </div>
+        <div id="mc-result"></div>
+    </div>
+
+    <script>
+    // 加载币种列表
+    fetch('/api/backtest/symbols').then(r => r.json()).then(symbols => {
+        const sel = document.getElementById('ps-symbol');
+        symbols.forEach(s => {
+            const opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            sel.appendChild(opt);
+        });
+    });
+
+    function fmtC(n) { return (n >= 0 ? '+' : '') + n.toFixed(1); }
+    function pnlCls(n) { return n >= 0 ? 'positive' : 'negative'; }
+
+    let psChart = null;
+
+    // ===== Walk-Forward =====
+    function runWalkForward() {
+        const btn = document.getElementById('wf-run');
+        btn.disabled = true; btn.textContent = '验证中...';
+        const container = document.getElementById('wf-result');
+        container.innerHTML = '<div class="loading">正在对多币种进行 Walk-Forward 验证，请稍候...</div>';
+
+        const strategy = document.getElementById('wf-strategy').value;
+        const topN = parseInt(document.getElementById('wf-topn').value);
+
+        fetch('/api/validation/multi-coin-wf', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({strategy: strategy, top_n: topN})
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false; btn.textContent = '开始验证';
+            if (data.error) { container.innerHTML = '<div class="loading" style="color:#ef4444;">' + data.error + '</div>'; return; }
+            renderWalkForward(data, container);
+        })
+        .catch(e => {
+            btn.disabled = false; btn.textContent = '开始验证';
+            container.innerHTML = '<div class="loading" style="color:#ef4444;">请求失败: ' + e + '</div>';
+        });
+    }
+
+    function renderWalkForward(data, container) {
+        const yt = data.year_totals;
+        const years = ['2020','2021','2022','2023','2024','2025'];
+        const yearConfig = {
+            '2020': {role:'train',  label:'远期训练', css:'train',    color:'#6366f1'},
+            '2021': {role:'train',  label:'训练期',   css:'train',    color:'#8b5cf6'},
+            '2022': {role:'train',  label:'训练期',   css:'train',    color:'#a78bfa'},
+            '2023': {role:'validate',label:'验证期',  css:'validate', color:'#f59e0b'},
+            '2024': {role:'validate',label:'验证期',  css:'validate', color:'#fbbf24'},
+            '2025': {role:'test',   label:'测试期',   css:'test',     color:'#10b981'}
+        };
+
+        // 使用后端返回的overfit评估
+        const of = data.overfit || {};
+        const level = of.level || 'MEDIUM';
+        const msg = of.message || '';
+        const valRatio = of.validate_ratio || 0;
+        const testRatio = of.test_ratio || 0;
+
+        let html = '';
+
+        // 6年汇总卡片（2行3列）
+        html += '<div class="result-cards" style="grid-template-columns:1fr 1fr 1fr;">';
+        years.forEach(yr => {
+            const t = yt[yr] || {pnl:0, trades:0, coins:0};
+            const yc = yearConfig[yr];
+            html += `<div class="result-card ${yc.css}" style="border-top-color:${yc.color};">
+                <div class="role">${yc.label}</div><div class="year">${yr}</div>
+                <div class="pnl ${pnlCls(t.pnl)}">${fmtC(t.pnl)}U</div>
+                <div class="meta">${t.trades}笔交易 | ${t.coins || 0}币种</div>
+            </div>`;
+        });
+        html += '</div>';
+
+        // 过拟合评估
+        html += '<div style="background:#1a2332;border-radius:10px;padding:20px;margin-bottom:16px;">';
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+            <span style="font-weight:700;">过拟合评估 (训练:2020-2022 | 验证:2023-2024 | 测试:2025)</span>
+            <span class="overfit-badge overfit-${level}">${level === 'LOW' ? '低风险' : level === 'MEDIUM' ? '中风险' : '高风险'}</span>
+        </div>`;
+        html += `<div style="color:#888;font-size:0.85em;margin-bottom:12px;">${msg}</div>`;
+
+        const vPct = Math.min(Math.max(valRatio * 100, 0), 200);
+        const vColor = valRatio >= 0.7 ? '#10b981' : valRatio >= 0.4 ? '#f59e0b' : '#ef4444';
+        html += `<div class="ratio-bar">
+            <span class="label">验证/训练</span>
+            <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(vPct, 100)}%;background:${vColor};"></div></div>
+            <span class="val" style="color:${vColor};">${(valRatio * 100).toFixed(0)}%</span>
+        </div>`;
+
+        const tPct = Math.min(Math.max(testRatio * 100, 0), 200);
+        const tColor = testRatio >= 0.5 ? '#10b981' : testRatio >= 0.3 ? '#f59e0b' : '#ef4444';
+        html += `<div class="ratio-bar">
+            <span class="label">测试/训练</span>
+            <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(tPct, 100)}%;background:${tColor};"></div></div>
+            <span class="val" style="color:${tColor};">${(testRatio * 100).toFixed(0)}%</span>
+        </div>`;
+        html += '</div>';
+
+        // 明细表 - 6年
+        html += '<table><thead><tr><th class="left">币种</th>';
+        years.forEach(yr => {
+            const yc = yearConfig[yr];
+            html += `<th style="color:${yc.color};">${yr}</th>`;
+        });
+        html += '<th>一致性</th></tr></thead><tbody>';
+
+        data.results.forEach(r => {
+            let posCount = 0, totalCount = 0;
+            html += `<tr><td class="left">${r.symbol}</td>`;
+            years.forEach(yr => {
+                const p = r[yr] || {pnl:0, no_data:true};
+                if (!p.no_data) { totalCount++; if (p.pnl > 0) posCount++; }
+                html += `<td class="${pnlCls(p.pnl)}">${p.no_data ? '-' : fmtC(p.pnl) + 'U'}</td>`;
+            });
+            const ratio = totalCount > 0 ? posCount + '/' + totalCount : '-';
+            const icon = posCount === totalCount && totalCount > 0
+                ? '<span style="color:#10b981;">&#10003;</span>'
+                : '<span style="color:#888;">' + ratio + '</span>';
+            html += `<td>${icon}</td></tr>`;
+        });
+
+        // 汇总行
+        html += '<tr style="font-weight:700;border-top:2px solid rgba(255,255,255,0.2);"><td class="left">合计</td>';
+        years.forEach(yr => {
+            const t = yt[yr] || {pnl:0};
+            html += `<td class="${pnlCls(t.pnl)}">${fmtC(t.pnl)}U</td>`;
+        });
+        html += '<td>-</td></tr>';
+        html += '</tbody></table>';
+
+        document.getElementById('mc-result').innerHTML = '<div style="color:#888;font-size:0.85em;">数据已在上方 Walk-Forward 结果中展示</div>';
+        container.innerHTML = html;
+    }
+
+    // ===== 参数敏感度 =====
+    function runParamSensitivity() {
+        const btn = document.getElementById('ps-run');
+        btn.disabled = true; btn.textContent = '扫描中...';
+        const container = document.getElementById('ps-result');
+        container.innerHTML = '<div class="loading">正在扫描参数范围...</div>';
+
+        fetch('/api/validation/param-sensitivity', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                symbol: document.getElementById('ps-symbol').value,
+                year: document.getElementById('ps-year').value,
+                strategy: document.getElementById('ps-strategy').value,
+                param_name: document.getElementById('ps-param').value
+            })
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false; btn.textContent = '开始扫描';
+            if (data.error) { container.innerHTML = '<div class="loading" style="color:#ef4444;">' + data.error + '</div>'; return; }
+            renderParamSensitivity(data, container);
+        })
+        .catch(e => {
+            btn.disabled = false; btn.textContent = '开始扫描';
+            container.innerHTML = '<div class="loading" style="color:#ef4444;">请求失败: ' + e + '</div>';
+        });
+    }
+
+    function renderParamSensitivity(data, container) {
+        let html = '';
+
+        // 稳定性评级
+        const a = data.analysis;
+        html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <span style="font-weight:700;">${data.param_label} 敏感度:</span>
+            <span class="overfit-badge stability-${a.stability}">
+                ${a.stability === 'STABLE' ? '稳定' : a.stability === 'MODERATE' ? '中等' : '敏感'}
+            </span>
+            <span style="color:#888;font-size:0.85em;">${a.message} (CV=${a.cv})</span>
+        </div>`;
+
+        // 图表
+        html += '<div class="chart-container"><canvas id="ps-chart"></canvas></div>';
+
+        // 数据表
+        html += '<table style="margin-top:16px;"><thead><tr>';
+        html += `<th>${data.param_label}(${data.param_unit})</th><th>PnL</th><th>胜率</th><th>交易数</th><th>最大回撤</th><th>利润因子</th>`;
+        html += '</tr></thead><tbody>';
+        data.results.forEach(r => {
+            const highlight = r.is_current ? 'background:rgba(102,126,234,0.12);' : '';
+            const marker = r.is_current ? ' <span style="color:#667eea;">← 当前</span>' : '';
+            html += `<tr style="${highlight}">
+                <td>${r.value}${data.param_unit}${marker}</td>
+                <td class="${pnlCls(r.pnl)}">${fmtC(r.pnl)}U</td>
+                <td>${r.win_rate}%</td>
+                <td>${r.trades}</td>
+                <td class="negative">${r.max_drawdown.toFixed(1)}%</td>
+                <td>${r.profit_factor}</td>
+            </tr>`;
+        });
+        html += '</tbody></table>';
+
+        container.innerHTML = html;
+
+        // 画图表
+        const ctx = document.getElementById('ps-chart').getContext('2d');
+        if (psChart) psChart.destroy();
+
+        const labels = data.results.map(r => r.value + data.param_unit);
+        const pnls = data.results.map(r => r.pnl);
+        const winRates = data.results.map(r => r.win_rate);
+        const currentIdx = data.results.findIndex(r => r.is_current);
+
+        const bgColors = data.results.map(r => r.is_current ? 'rgba(102,126,234,0.8)' : (r.pnl >= 0 ? 'rgba(16,185,129,0.6)' : 'rgba(239,68,68,0.6)'));
+
+        psChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'PnL (U)',
+                        data: pnls,
+                        backgroundColor: bgColors,
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: '胜率 (%)',
+                        data: winRates,
+                        type: 'line',
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f59e0b',
+                        fill: false,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { labels: { color: '#aaa', usePointStyle: true } },
+                    annotation: currentIdx >= 0 ? {
+                        annotations: {
+                            currentLine: {
+                                type: 'line',
+                                xMin: currentIdx, xMax: currentIdx,
+                                borderColor: 'rgba(102,126,234,0.6)',
+                                borderWidth: 2,
+                                borderDash: [4,4],
+                                label: { content: '当前值', display: true, backgroundColor: '#667eea', font: {size: 10} }
+                            }
+                        }
+                    } : {}
+                },
+                scales: {
+                    x: { ticks: { color: '#888' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: {
+                        position: 'left',
+                        ticks: { color: '#10b981', callback: v => v + 'U' },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y1: {
+                        position: 'right',
+                        ticks: { color: '#f59e0b', callback: v => v + '%' },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+    }
+    </script>
+</body>
+</html>
+'''
+
 
 if __name__ == '__main__':
     print("=" * 60)

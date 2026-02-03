@@ -431,7 +431,7 @@ def get_recommendations():
                         result['btc_filter'] = 'BTC上涨,做空惩罚'
 
                     # 过滤后再检查分数门槛
-                    if score >= 70:
+                    if score >= 60:
                         recommendations.append(result)
             except:
                 pass
