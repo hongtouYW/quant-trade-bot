@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-量化交易机器人 v3.1 - 数据驱动
+量化交易机器人 v3.3 - 策略修复
 - 追踪止损功能
 - 保存原始/最终止盈止损
 - 记录止损止盈变化历史
@@ -47,7 +47,16 @@ class AutoTraderV2:
         # 记录每个持仓的最高/最低价
         self.price_extremes = {}
 
-        print("🤖 量化交易机器人 v3.1 - 数据驱动 已启动")
+        # v3.3: 每个币种的平仓冷却时间 {symbol: datetime}
+        self.symbol_cooldown = {}
+
+        # v3.3: 黑名单币种（数据显示胜率<20%，>5笔交易）
+        self.blacklist = {
+            'DOGE/USDT', 'AVAX/USDT', 'LINK/USDT', 'ATOM/USDT', 'AAVE/USDT',
+            'FIL/USDT'
+        }
+
+        print("🤖 量化交易机器人 v3.3 - 策略修复 已启动")
         print(f"💰 初始资金: ${self.initial_capital}")
         print(f"🎯 目标利润: ${self.target_profit}")
         print(f"📊 最大持仓: {self.max_positions}")
@@ -142,12 +151,15 @@ class AutoTraderV2:
         margin_used = self.get_margin_used()
         available = current_capital - margin_used
 
-        # 评分越高，仓位越大（但不超过最大仓位）
+        # v3.3: 评分80+是陷阱（数据:46笔7%胜率-$587），直接跳过
         if score >= 80:
-            position_pct = 0.25
-        elif score >= 70:
+            print(f"⚠️  {symbol}: 评分{score}过高=极端信号，跳过（数据验证）")
+            return False
+
+        # v3.3: 70-79是最佳区间（48%胜率），给最大仓位
+        if score >= 70:
             position_pct = 0.20
-        elif score >= 60:
+        elif score >= 65:
             position_pct = 0.15
         else:
             position_pct = 0.10
@@ -224,7 +236,7 @@ class AutoTraderV2:
         return True
 
     def update_trailing_stop(self, trade, current_price):
-        """追踪止损逻辑 v3 - 盈利1%后才开始追踪"""
+        """追踪止损逻辑 v4 - 盈利3%后才开始追踪，1.5%追踪距离"""
         trade_id = trade['id']
         direction = trade['direction']
         entry_price = trade['entry_price']
@@ -237,8 +249,8 @@ class AutoTraderV2:
         else:
             profit_pct = (entry_price - current_price) / entry_price * 100
 
-        # 未达到1%盈利，不启动追踪
-        if profit_pct < 1.0:
+        # 未达到3%盈利，不启动追踪（v4: 防止把赢变输）
+        if profit_pct < 3.0:
             return current_sl
 
         # 获取或初始化价格极值
@@ -256,7 +268,8 @@ class AutoTraderV2:
                 extremes['highest'] = current_price
 
             # 计算新止损 = 最高价 * (1 - 止损百分比)
-            new_sl = extremes['highest'] * (1 - self.stop_loss_pct / 100)
+            trail_pct = 1.5  # v4: 追踪距离1.5%（比止损3%更紧，锁住利润）
+            new_sl = extremes['highest'] * (1 - trail_pct / 100)
 
             # 止损只能上移，不能下移
             if new_sl > current_sl:
@@ -272,7 +285,8 @@ class AutoTraderV2:
                 extremes['lowest'] = current_price
 
             # 计算新止损 = 最低价 * (1 + 止损百分比)
-            new_sl = extremes['lowest'] * (1 + self.stop_loss_pct / 100)
+            trail_pct = 1.5  # v4: 追踪距离1.5%
+            new_sl = extremes['lowest'] * (1 + trail_pct / 100)
 
             # 止损只能下移，不能上移
             if new_sl < current_sl:
@@ -417,9 +431,9 @@ class AutoTraderV2:
         except:
             return False, None
 
-        # 规则1: 持仓超2小时且亏损
-        if holding_minutes > 120 and pnl_pct < 0:
-            return True, f"持仓{int(holding_minutes)}分钟无盈利"
+        # 规则1: 持仓超4小时且亏损超1%（v3.3: 从2h/0%放宽）
+        if holding_minutes > 240 and pnl_pct < -1.0:
+            return True, f"持仓{int(holding_minutes)}分钟亏损{pnl_pct:.1f}%"
 
         # 规则2: 趋势反转
         entry_trend = pos.get('entry_trend', 'neutral')
@@ -436,8 +450,8 @@ class AutoTraderV2:
         elif direction == 'short' and current_rsi < 25 and pnl_pct > 0.5:
             return True, f"RSI超卖({current_rsi:.0f})获利了结"
 
-        # 规则4: 浮亏超1%且持仓超30分钟
-        if pnl_pct < -1.0 and holding_minutes > 30:
+        # 规则4: 浮亏超2.5%且持仓超60分钟（v3.3: 从-1%/30min放宽）
+        if pnl_pct < -2.5 and holding_minutes > 60:
             return True, f"浮亏{pnl_pct:.1f}%超时"
 
         return False, None
@@ -576,6 +590,10 @@ class AutoTraderV2:
         conn.commit()
         conn.close()
 
+        # v3.3: 设置30分钟冷却期
+        from datetime import timedelta
+        self.symbol_cooldown[symbol] = datetime.now() + timedelta(minutes=30)
+
         print(f"✅ 平仓成功！")
         return True
 
@@ -600,6 +618,17 @@ class AutoTraderV2:
         # 检查评分
         if score < self.min_score:
             return False
+
+        # v3.3: 黑名单币种
+        if symbol in self.blacklist:
+            return False
+
+        # v3.3: 30分钟冷却期（防止快速重入亏损）
+        if symbol in self.symbol_cooldown:
+            cooldown_end = self.symbol_cooldown[symbol]
+            if datetime.now() < cooldown_end:
+                minutes_left = (cooldown_end - datetime.now()).total_seconds() / 60
+                return False
 
         # 检查持仓数量
         positions = self.get_open_positions()
