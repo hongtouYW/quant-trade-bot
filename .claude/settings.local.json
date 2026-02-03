@@ -131,7 +131,9 @@
       "Bash(printf:*)",
       "Bash(for yr in 2020 2021 2022)",
       "Bash(find:*)",
-      "Bash(/bin/bash:*)"
+      "Bash(/bin/bash:*)",
+      "Bash(gh auth:*)",
+      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/github_key -o StrictHostKeyChecking=no\" git push:*)"
     ]
   }
 }

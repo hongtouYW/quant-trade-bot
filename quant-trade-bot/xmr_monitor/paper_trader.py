@@ -115,7 +115,7 @@ class PaperTradingAssistant:
         self.peak_capital = self.initial_capital  # 历史最高资金
         self.risk_position_multiplier = 1.0  # 风险调整后的仓位倍数 (1.0=正常, 0.5=减半)
         self.last_close_time = None  # 上次平仓时间（冷却期用）
-        self.max_same_direction = 5  # 同方向最多5个持仓
+        self.max_same_direction = 6  # 同方向最多6个持仓 (v4.2: 5→6配合12仓扩容)
 
         # 初始化数据库
         self.init_database()
@@ -961,7 +961,7 @@ class PaperTradingAssistant:
         long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
         short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
 
-        if len(self.positions) < 10 and available > 100:  # v4.1b: 最多10个持仓(6→10扩容)
+        if len(self.positions) < 12 and available > 100:  # v4.2: 最多12个持仓(10→12扩容)
             # v4.1: 每次扫描最多开1个 (减少频率，提高质量)
             opened = 0
             for symbol, score, analysis in opportunities:
@@ -982,7 +982,7 @@ class PaperTradingAssistant:
             if opened == 0 and opportunities:
                 print(f"⏸️  方向限制 (LONG:{long_count}/{self.max_same_direction}, SHORT:{short_count}/{self.max_same_direction})")
         else:
-            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/10, 可用{available:.0f}U)")
+            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/12, 可用{available:.0f}U)")
     
     def send_telegram(self, message):
         """发送Telegram通知"""
