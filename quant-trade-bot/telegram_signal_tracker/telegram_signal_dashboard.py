@@ -610,11 +610,15 @@ def parse_signal_message(text):
         else:
             result['symbol'] = sym + 'USDT' if not sym.endswith('USDT') else sym
 
-    # Extract direction
+    # Extract direction (简体+繁体)
     text_upper = text.upper()
-    if any(w in text_upper for w in ['LONG', '做多', '多', 'BUY', '买入']):
+    if any(w in text for w in ['做多', '輕倉多', '轻仓多', '加多', '開多', '开多']) or \
+       any(w in text_upper for w in ['LONG', 'BUY']) or \
+       (re.search(r'(?<![做開开加輕轻])多(?!空)', text) and '做空' not in text):
         result['direction'] = 'LONG'
-    elif any(w in text_upper for w in ['SHORT', '做空', '空', 'SELL', '卖出']):
+    elif any(w in text for w in ['做空', '輕倉空', '轻仓空', '加空', '開空', '开空']) or \
+         any(w in text_upper for w in ['SHORT', 'SELL']) or \
+         (re.search(r'(?<![做開开加輕轻])空(?!多)', text) and '做多' not in text):
         result['direction'] = 'SHORT'
 
     # Extract numbers - find all decimal numbers in text
@@ -622,25 +626,29 @@ def parse_signal_message(text):
     numbers = [float(n) for n in numbers if float(n) > 0]
 
     # Try structured format: look for labeled values
-    # Stop loss patterns
-    sl_match = re.search(r'(?:止损|SL|stop.?loss|防守)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
+    # Stop loss patterns (简体+繁体)
+    sl_match = re.search(r'(?:止損|止损|SL|stop.?loss|防守|停損|停损)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
     if sl_match:
         result['stop_loss'] = float(sl_match.group(1))
 
-    # Take profit patterns
-    tp_match = re.search(r'(?:止盈|TP|take.?profit|目标)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
+    # Take profit patterns (简体+繁体)
+    tp_match = re.search(r'(?:止盈|TP|take.?profit|目標|目标|到價|到价)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
     if tp_match:
         result['take_profit'] = float(tp_match.group(1))
 
-    # Entry price patterns
-    entry_match = re.search(r'(?:入场|entry|开仓|价格|price|进场)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
+    # Entry price patterns (简体+繁体)
+    entry_match = re.search(r'(?:入場|入场|entry|開倉|开仓|價格|价格|price|進場|进场|市價|市价)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
     if entry_match:
         result['entry_price'] = float(entry_match.group(1))
 
-    # Leverage patterns
-    lev_match = re.search(r'(\d+)[xX倍]', text)
+    # Leverage patterns (支持 8-12x 格式，取较大值)
+    lev_match = re.search(r'(\d+)\s*[-~]\s*(\d+)\s*[xX倍]', text)
     if lev_match:
-        result['leverage'] = int(lev_match.group(1))
+        result['leverage'] = int(lev_match.group(2))
+    else:
+        lev_match = re.search(r'(\d+)\s*[xX倍]', text)
+        if lev_match:
+            result['leverage'] = int(lev_match.group(1))
 
     # Need at minimum: symbol + direction + (sl or tp)
     if result['symbol'] and result['direction'] and (result['stop_loss'] or result['take_profit']):

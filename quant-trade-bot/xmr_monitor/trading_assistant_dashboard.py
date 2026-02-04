@@ -1969,7 +1969,7 @@ HTML_TEMPLATE = '''
             <div class="stat-card">
                 <div class="label">持仓数</div>
                 <div class="value" id="open-positions">-</div>
-                <div class="subtext">最多同时8个</div>
+                <div class="subtext">最多同时12个</div>
             </div>
         </div>
 

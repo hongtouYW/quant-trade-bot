@@ -115,7 +115,7 @@ class PaperTradingAssistant:
         self.peak_capital = self.initial_capital  # 历史最高资金
         self.risk_position_multiplier = 1.0  # 风险调整后的仓位倍数 (1.0=正常, 0.5=减半)
         self.last_close_time = None  # 上次平仓时间（冷却期用）
-        self.max_same_direction = 6  # 同方向最多6个持仓 (v4.2: 5→6配合12仓扩容)
+        self.max_positions = 12  # 总仓位上限12个，不限方向比例
 
         # 初始化数据库
         self.init_database()
@@ -130,7 +130,7 @@ class PaperTradingAssistant:
         t2_count = sum(1 for v in self.coin_tiers.values() if v == 'T2')
         t3_count = sum(1 for v in self.coin_tiers.values() if v == 'T3')
         print(f"【交易助手-模拟v4】🧪 系统启动")
-        print(f"v4.1策略: 3x杠杆 | LONG≥70分 | BTC趋势重罚 | 4h冷却 | 最多6仓")
+        print(f"v4.2策略: 3x杠杆 | LONG加强过滤 | BTC趋势重罚 | 30m冷却 | 最多12仓")
         print(f"当前资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
         print(f"目标利润: {self.target_profit}U")
         print(f"币种分层: T1={t1_count} T2={t2_count} T3={t3_count} 跳过={len(self.skip_coins)}")
@@ -483,14 +483,24 @@ class PaperTradingAssistant:
             elif direction == 'SHORT' and current_price < ma7 < ma20:
                 coin_has_own_trend = True  # 个币自己在跌
 
-            # 逆BTC趋势惩罚 (v4.1加重: LONG 20笔-88.5U vs SHORT 9笔+65.8U)
+            # 逆BTC趋势惩罚 (v4.3加强: 实盘LONG 32笔亏-266U，下跌市必须更狠限制)
+            btc_ma50 = btc_trend.get('ma50', 0)
+            btc_price = btc_trend.get('price', 0)
+            btc_below_ma50 = btc_price > 0 and btc_ma50 > 0 and btc_price < btc_ma50
+
             if btc_dir == 'down' and direction == 'LONG':
                 if coin_has_own_trend:
-                    total_score = int(total_score * 0.60)  # 个币有独立涨势也重罚40%(v4.1)
+                    total_score = int(total_score * 0.35)  # 个币涨也重罚65%(v4.3加强)
                 elif btc_str >= 2:
-                    total_score = int(total_score * 0.25)  # BTC强跌做多=送钱，砍75%
+                    total_score = int(total_score * 0.15)  # BTC强跌做多，砍85%
                 else:
-                    total_score = int(total_score * 0.40)  # BTC弱跌做多，砍60%
+                    total_score = int(total_score * 0.25)  # BTC弱跌做多，砍75%
+            elif btc_below_ma50 and direction == 'LONG':
+                # 中期下跌趋势：BTC在MA50下方，即使短期反弹也不做多
+                if coin_has_own_trend:
+                    total_score = int(total_score * 0.50)  # 有独立涨势也罚50%
+                else:
+                    total_score = int(total_score * 0.35)  # 无独立涨势罚65%
             elif btc_dir == 'up' and direction == 'SHORT':
                 if coin_has_own_trend:
                     total_score = int(total_score * 0.75)  # SHORT在上涨中仍可以
@@ -949,31 +959,27 @@ class PaperTradingAssistant:
             print(f"⏸️  风控暂停开仓 (已实现盈亏: {realized_pnl:+.2f}U，等现有持仓盈利后再开)")
             return
 
-        # v4.1b: 冷却期2小时 (4h→2h, 持仓扩容后需更快填仓)
+        # 冷却期30分钟 (2h→30m, 评分+趋势过滤已足够保护)
         if self.last_close_time:
             cooldown_seconds = (datetime.now() - self.last_close_time).total_seconds()
-            if cooldown_seconds < 7200:  # 2小时
-                remaining = int((7200 - cooldown_seconds) / 60)
-                hours = remaining // 60
-                mins = remaining % 60
-                print(f"⏸️  冷却期中 (平仓后需等2小时，还剩{hours}h{mins}m)")
+            if cooldown_seconds < 1800:  # 30分钟
+                remaining = int((1800 - cooldown_seconds) / 60)
+                print(f"⏸️  冷却期中 (平仓后等30分钟，还剩{remaining}m)")
                 return
 
         # 风控3：同方向限制 - 最多3个同方向持仓
         long_count = sum(1 for p in self.positions.values() if p['direction'] == 'LONG')
         short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
 
-        if len(self.positions) < 12 and available > 100:  # v4.2: 最多12个持仓(10→12扩容)
+        if len(self.positions) < self.max_positions and available > 100:
             # v4.1: 每次扫描最多开1个 (减少频率，提高质量)
             opened = 0
             for symbol, score, analysis in opportunities:
                 if opened >= 1:
                     break
+                if len(self.positions) + opened >= self.max_positions:
+                    break
                 direction = analysis['direction']
-                if direction == 'LONG' and long_count >= self.max_same_direction:
-                    continue
-                if direction == 'SHORT' and short_count >= self.max_same_direction:
-                    continue
                 print(f"🎯 准备开仓: {symbol} (评分{score}, {direction})")
                 self.open_position(symbol, analysis)
                 opened += 1
@@ -982,9 +988,9 @@ class PaperTradingAssistant:
                 else:
                     short_count += 1
             if opened == 0 and opportunities:
-                print(f"⏸️  方向限制 (LONG:{long_count}/{self.max_same_direction}, SHORT:{short_count}/{self.max_same_direction})")
+                print(f"⏸️  无合适机会 (LONG:{long_count}, SHORT:{short_count}, 总:{len(self.positions)}/{self.max_positions})")
         else:
-            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/12, 可用{available:.0f}U)")
+            print(f"⏸️  暂不开仓 (持仓{len(self.positions)}/{self.max_positions}, 可用{available:.0f}U)")
     
     def send_telegram(self, message):
         """发送Telegram通知"""
