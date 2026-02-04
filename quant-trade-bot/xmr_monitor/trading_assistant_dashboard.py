@@ -1929,7 +1929,7 @@ HTML_TEMPLATE = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧪 交易助手仪表盘 v4.0</h1>
+            <h1>🧪 交易助手仪表盘 v4.2</h1>
             <div class="subtitle">Paper Trading System - 回测智能优化 - Port 5111</div>
             <div style="margin-top: 10px;">
                 <a href="/backtest" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📊 回测模拟器</a>
@@ -3646,15 +3646,18 @@ STRATEGY_PRESETS = {
         }
     },
     'v4.2': {
-        'label': 'v4.2 动态杠杆',
-        'description': 'v4.1基础 + 85+评分5x杠杆',
+        'label': 'v4.2 扩容版',
+        'description': 'v4.1基础 + 2h冷却 + 12仓位 + 同方向6 + SHORT偏置1.05 + BTC趋势过滤',
         'config': {
             'min_score': 60,
             'long_min_score': 70,
-            'cooldown': 4,
+            'cooldown': 2,
             'max_leverage': 3,
-            'high_score_leverage': 5,
+            'max_positions': 12,
+            'max_same_direction': 6,
+            'short_bias': 1.05,
             'enable_trend_filter': True,
+            'enable_btc_filter': True,
             'long_ma_slope_threshold': 0.02,
             'roi_stop_loss': -10,
             'roi_trailing_start': 6,
@@ -3886,9 +3889,9 @@ def get_backtest_kline(symbol):
 
 @app.route('/api/backtest/report')
 def get_backtest_report():
-    """生成策略对比报告 — 支持 v1/v2/v3/v4.1 按年份查询"""
+    """生成策略对比报告 — 支持 v1/v2/v3/v4.1/v4.2 按年份查询"""
     year_param = request.args.get('year', 'all')
-    VERSIONS = ['v1', 'v2', 'v3', 'v4.1']
+    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2']
     ver_sql = ','.join(f"'{v}'" for v in VERSIONS)
     conn = sqlite3.connect(BACKTEST_DB)
     conn.row_factory = sqlite3.Row
@@ -3958,12 +3961,12 @@ def get_backtest_report():
             row['winner'] = best_vk[1]
         comparison.append(row)
 
-    comparison.sort(key=lambda x: (x.get('v4_1') or x.get('v2') or {}).get('pnl', 0), reverse=True)
+    comparison.sort(key=lambda x: (x.get('v4_2') or x.get('v4_1') or x.get('v2') or {}).get('pnl', 0), reverse=True)
 
     return jsonify({
         'comparison': comparison,
         'v1_total': totals['v1'], 'v2_total': totals['v2'], 'v3_total': totals['v3'],
-        'v4_1_total': totals['v4.1'],
+        'v4_1_total': totals['v4.1'], 'v4_2_total': totals['v4.2'],
         'available_years': available_years, 'selected_year': year_param
     })
 
@@ -4003,8 +4006,11 @@ REPORT_TEMPLATE = '''
         .nav-links a { color: #667eea; text-decoration: none; font-size: 0.9em; }
         .nav-links a:hover { text-decoration: underline; }
 
-        /* 汇总卡片 */
-        .summary-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        /* 汇总卡片 - 上3下2布局 */
+        .summary-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; justify-content: center; }
+        .summary-card { flex: 0 1 calc(33.333% - 10px); min-width: 280px; }
+        .summary-row .summary-card:nth-child(4),
+        .summary-row .summary-card:nth-child(5) { flex: 0 1 calc(33.333% - 10px); }
         .summary-card {
             background: rgba(255,255,255,0.08); border-radius: 16px;
             padding: 25px; backdrop-filter: blur(10px);
@@ -4014,6 +4020,7 @@ REPORT_TEMPLATE = '''
         .summary-card.v2 { border-left: 4px solid #2ecc71; }
         .summary-card.v3 { border-left: 4px solid #3498db; }
         .summary-card.v4_1 { border-left: 4px solid #e67e22; }
+        .summary-card.v4_2 { border-left: 4px solid #9b59b6; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
         .stat-item { text-align: center; }
         .stat-value { font-size: 1.6em; font-weight: 700; }
@@ -4041,6 +4048,7 @@ REPORT_TEMPLATE = '''
         .winner-v2 { background: rgba(46,204,113,0.08); }
         .winner-v3 { background: rgba(52,152,219,0.08); }
         .winner-v4_1 { background: rgba(230,126,34,0.08); }
+        .winner-v4_2 { background: rgba(155,89,182,0.08); }
         .badge {
             display: inline-block; padding: 2px 8px; border-radius: 4px;
             font-size: 0.75em; font-weight: 600;
@@ -4049,6 +4057,7 @@ REPORT_TEMPLATE = '''
         .badge-v2 { background: rgba(46,204,113,0.2); color: #2ecc71; }
         .badge-v3 { background: rgba(52,152,219,0.2); color: #3498db; }
         .badge-v4_1 { background: rgba(230,126,34,0.2); color: #e67e22; }
+        .badge-v4_2 { background: rgba(155,89,182,0.2); color: #9b59b6; }
         .verdict {
             margin-top: 20px; padding: 20px; border-radius: 12px;
             background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3);
@@ -4068,7 +4077,7 @@ REPORT_TEMPLATE = '''
 <div class="container">
     <div class="header">
         <h1>策略对比报告</h1>
-        <div class="subtitle" id="report-subtitle">全币种 v1 vs v2 vs v3 vs v4.1 回测对比 | 本金 2000 USDT</div>
+        <div class="subtitle" id="report-subtitle">全币种 v1 vs v2 vs v3 vs v4.1 vs v4.2 回测对比 | 本金 2000 USDT</div>
         <div class="nav-links">
             <a href="/">← 仪表盘</a>
             <a href="/backtest">回测模拟器</a>
@@ -4154,6 +4163,24 @@ REPORT_TEMPLATE = '''
                     </div>
                 </div>
             </div>
+            <div class="summary-card v4_2">
+                <h3 style="color:#9b59b6;">v4.2 扩容版</h3>
+                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">2h冷却 | 12仓/6同向 | SHORT偏置 | BTC过滤</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="v4_2-pnl">-</div>
+                        <div class="stat-label">总盈亏 (U)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v4_2-wincount">-</div>
+                        <div class="stat-label">盈利币种</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v4_2-trades">-</div>
+                        <div class="stat-label">总交易笔数</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 逐币对比表 -->
@@ -4171,6 +4198,8 @@ REPORT_TEMPLATE = '''
                         <th>v3 胜率</th>
                         <th style="color:#e67e22;">v4.1 盈亏</th>
                         <th style="color:#e67e22;">v4.1 胜率</th>
+                        <th style="color:#9b59b6;">v4.2 盈亏</th>
+                        <th style="color:#9b59b6;">v4.2 胜率</th>
                         <th>最佳</th>
                     </tr>
                 </thead>
@@ -4216,15 +4245,16 @@ REPORT_TEMPLATE = '''
                 // 标题
                 const subtitle = year === 'all'
                     ? `${data.available_years.join('+')}年 全币种汇总 | 本金 2000 USDT`
-                    : `${year}年 v1 vs v2 vs v3 vs v4.1 | 本金 2000 USDT`;
+                    : `${year}年 v1 vs v2 vs v3 vs v4.1 vs v4.2 | 本金 2000 USDT`;
                 document.getElementById('report-subtitle').textContent = subtitle;
 
                 const t1 = data.v1_total, t2 = data.v2_total, t3 = data.v3_total || {pnl:0,trades:0,wins:0,count:0};
                 const t41 = data.v4_1_total || {pnl:0,trades:0,wins:0,count:0};
+                const t42 = data.v4_2_total || {pnl:0,trades:0,wins:0,count:0};
                 const el = id => document.getElementById(id);
 
                 // 汇总卡片
-                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41]].forEach(([v,t]) => {
+                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42]].forEach(([v,t]) => {
                     el(v+'-pnl').textContent = (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(0);
                     el(v+'-pnl').className = 'stat-value ' + (t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
                     el(v+'-wincount').textContent = t.wins + '/' + t.count;
@@ -4240,9 +4270,9 @@ REPORT_TEMPLATE = '''
                     return `<td class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(1)}</td>`;
                 };
                 data.comparison.forEach(row => {
-                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {};
+                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {};
                     const w = row.winner || 'v2';
-                    const wLabel = w === 'v4_1' ? 'v4.1' : w;
+                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : w);
                     const tr = document.createElement('tr');
                     tr.className = 'winner-' + w;
                     tr.style.cursor = 'pointer';
@@ -4261,6 +4291,8 @@ REPORT_TEMPLATE = '''
                         <td>${v3.win_rate != null ? v3.win_rate + '%' : '-'}</td>
                         ${pnlHtml(v4_1.pnl)}
                         <td>${v4_1.win_rate != null ? v4_1.win_rate + '%' : '-'}</td>
+                        ${pnlHtml(v4_2.pnl)}
+                        <td>${v4_2.win_rate != null ? v4_2.win_rate + '%' : '-'}</td>
                         <td><span class="badge badge-${w}">${wLabel}</span></td>
                     `;
                     tbody.appendChild(tr);
@@ -4272,9 +4304,9 @@ REPORT_TEMPLATE = '''
                 const tfr = document.createElement('tr');
                 tfr.style.fontWeight = '700';
                 tfr.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41]];
+                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42]];
                 const totalWinner = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a)[0];
-                const totalWinnerLabel = totalWinner === 'v4_1' ? 'v4.1' : totalWinner;
+                const totalWinnerLabel = totalWinner === 'v4_1' ? 'v4.1' : (totalWinner === 'v4_2' ? 'v4.2' : totalWinner);
                 let footHtml = `<td class="left">合计</td>`;
                 allTotals.forEach(([v,t]) => {
                     const cls = t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
@@ -4288,10 +4320,10 @@ REPORT_TEMPLATE = '''
                 // 结论
                 const winnerEntry = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a);
                 const winner = winnerEntry[0], winnerPnl = winnerEntry[1].pnl;
-                const winnerLabel = winner === 'v4_1' ? 'v4.1' : winner;
+                const winnerLabel = winner === 'v4_1' ? 'v4.1' : (winner === 'v4_2' ? 'v4.2' : winner);
                 const wPct = winnerEntry[1].count > 0 ? (winnerEntry[1].wins/winnerEntry[1].count*100).toFixed(0) : 0;
                 const yearLabel = year === 'all' ? '跨年汇总' : year + '年';
-                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219', v4_1:'rgba(230,126,34'};
+                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219', v4_1:'rgba(230,126,34', v4_2:'rgba(155,89,182'};
                 el('verdict').innerHTML = `
                     <strong>${yearLabel}</strong>：
                     <strong>${winnerLabel} 策略</strong> 总盈亏
@@ -5881,7 +5913,8 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="wf-strategy">
-                    <option value="v4.1" selected>v4.1 防守反击</option>
+                    <option value="v4.2" selected>v4.2 扩容版</option>
+                    <option value="v4.1">v4.1 防守反击</option>
                     <option value="v3">v3 BTC趋势过滤</option>
                     <option value="v2">v2 均衡</option>
                     <option value="v1">v1 原始</option>
@@ -5921,9 +5954,11 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="ps-strategy">
-                    <option value="v4.1" selected>v4.1 防守反击</option>
+                    <option value="v4.2" selected>v4.2 扩容版</option>
+                    <option value="v4.1">v4.1 防守反击</option>
                     <option value="v3">v3 BTC趋势过滤</option>
                     <option value="v2">v2 均衡</option>
+                    <option value="v1">v1 原始</option>
                 </select>
             </div>
             <div class="config-field">

@@ -859,98 +859,195 @@ PAGE_HTML = r'''<!DOCTYPE html>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1/dist/chartjs-plugin-annotation.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0e17; color: #e2e8f0; min-height: 100vh; }
-.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0c1222 0%, #162036 40%, #0f1a2e 70%, #0a1628 100%);
+    color: #e2e8f0; min-height: 100vh;
+    background-attachment: fixed;
+}
+body::before {
+    content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(ellipse at 20% 50%, rgba(56,189,248,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 20%, rgba(139,92,246,0.03) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 80%, rgba(16,185,129,0.02) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+}
+.container { max-width: 1440px; margin: 0 auto; padding: 20px 24px; position: relative; z-index: 1; }
 
 /* Header */
-.header { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid #1e293b; margin-bottom: 24px; }
-.header h1 { font-size: 22px; color: #f1f5f9; }
-.header-links { display: flex; gap: 12px; }
-.header-links a { color: #94a3b8; text-decoration: none; padding: 6px 14px; border-radius: 6px; background: #1e293b; font-size: 13px; transition: all .2s; }
-.header-links a:hover { background: #334155; color: #f1f5f9; }
+.header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 20px 28px; margin-bottom: 24px;
+    background: rgba(15,23,42,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+}
+.header h1 {
+    font-size: 24px; font-weight: 700; color: #f8fafc;
+    background: linear-gradient(135deg, #38bdf8, #818cf8);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.header-links { display: flex; gap: 8px; }
+.header-links a {
+    color: #94a3b8; text-decoration: none; padding: 7px 16px; border-radius: 8px;
+    background: rgba(255,255,255,0.04); font-size: 13px; font-weight: 500;
+    border: 1px solid rgba(255,255,255,0.06); transition: all .25s ease;
+}
+.header-links a:hover { background: rgba(56,189,248,0.1); color: #e2e8f0; border-color: rgba(56,189,248,0.2); }
 
 /* Stats Cards */
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.stat-card { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; }
-.stat-card .label { font-size: 12px; color: #64748b; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
-.stat-card .value { font-size: 24px; font-weight: 700; }
-.stat-card .sub { font-size: 12px; color: #64748b; margin-top: 4px; }
+.stat-card {
+    background: rgba(15,23,42,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 14px;
+    padding: 20px 22px; position: relative; overflow: hidden;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+.stat-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0;
+}
+.stat-card:nth-child(1)::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.stat-card:nth-child(2)::before { background: linear-gradient(90deg, #10b981, #34d399); }
+.stat-card:nth-child(3)::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.stat-card:nth-child(4)::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+.stat-card .label { font-size: 11px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 600; }
+.stat-card .value { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+.stat-card .sub { font-size: 12px; color: #64748b; margin-top: 6px; line-height: 1.4; }
 .green { color: #10b981; }
 .red { color: #ef4444; }
-.blue { color: #3b82f6; }
-.yellow { color: #f59e0b; }
+.blue { color: #38bdf8; }
+.yellow { color: #fbbf24; }
 
 /* Section */
-.section { background: #111827; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; margin-bottom: 24px; }
-.section-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+.section {
+    background: rgba(15,23,42,0.5); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.06); border-radius: 16px;
+    padding: 24px; margin-bottom: 20px;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.1);
+}
+.section-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 18px; color: #e2e8f0;
+    display: flex; align-items: center; gap: 8px;
+    padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
+}
 
 /* Signal Form */
-.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group label { font-size: 12px; color: #94a3b8; }
-.form-group input, .form-group select, .form-group textarea { background: #0a0e17; border: 1px solid #1e293b; color: #e2e8f0; padding: 8px 12px; border-radius: 8px; font-size: 14px; outline: none; }
-.form-group input:focus, .form-group select:focus { border-color: #3b82f6; }
+.form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+.form-group input, .form-group select, .form-group textarea {
+    background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08);
+    color: #e2e8f0; padding: 10px 14px; border-radius: 10px; font-size: 14px; outline: none;
+    transition: all .2s ease;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color: rgba(56,189,248,0.5); box-shadow: 0 0 0 3px rgba(56,189,248,0.1);
+}
+.form-group input::placeholder, .form-group textarea::placeholder { color: #475569; }
 .form-group.full { grid-column: 1 / -1; }
 .form-group textarea { resize: vertical; min-height: 60px; }
-.btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; }
-.btn-primary { background: #3b82f6; color: white; }
-.btn-primary:hover { background: #2563eb; }
-.btn-success { background: #10b981; color: white; }
-.btn-success:hover { background: #059669; }
-.btn-danger { background: #ef4444; color: white; }
-.btn-danger:hover { background: #dc2626; }
-.btn-warning { background: #f59e0b; color: white; }
-.btn-warning:hover { background: #d97706; }
-.btn-sm { padding: 4px 10px; font-size: 12px; }
-.form-actions { grid-column: 1 / -1; display: flex; gap: 8px; margin-top: 8px; }
+.btn {
+    padding: 10px 22px; border: none; border-radius: 10px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all .2s ease; letter-spacing: .3px;
+}
+.btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 2px 8px rgba(59,130,246,0.25); }
+.btn-primary:hover { box-shadow: 0 4px 16px rgba(59,130,246,0.35); transform: translateY(-1px); }
+.btn-success { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 2px 8px rgba(16,185,129,0.25); }
+.btn-success:hover { box-shadow: 0 4px 16px rgba(16,185,129,0.35); transform: translateY(-1px); }
+.btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; box-shadow: 0 2px 8px rgba(239,68,68,0.25); }
+.btn-danger:hover { box-shadow: 0 4px 16px rgba(239,68,68,0.35); transform: translateY(-1px); }
+.btn-warning { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; box-shadow: 0 2px 8px rgba(245,158,11,0.25); }
+.btn-warning:hover { box-shadow: 0 4px 16px rgba(245,158,11,0.35); transform: translateY(-1px); }
+.btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 7px; }
+.form-actions { grid-column: 1 / -1; display: flex; gap: 10px; margin-top: 10px; }
 
 /* Tables */
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th { text-align: left; padding: 10px 12px; background: #0a0e17; color: #64748b; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid #1e293b; }
-td { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
-tr:hover { background: #0f1729; }
-.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
-.badge-long { background: #10b98122; color: #10b981; }
-.badge-short { background: #ef444422; color: #ef4444; }
-.badge-pending { background: #f59e0b22; color: #f59e0b; }
-.badge-active { background: #3b82f622; color: #3b82f6; }
-.badge-closed { background: #64748b22; color: #94a3b8; }
-.badge-cancelled { background: #1e293b; color: #475569; }
-.badge-tp { background: #10b98122; color: #10b981; }
-.badge-sl { background: #ef444422; color: #ef4444; }
-.badge-manual { background: #3b82f622; color: #3b82f6; }
+th {
+    text-align: left; padding: 12px 14px;
+    background: rgba(0,0,0,0.2); color: #64748b;
+    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .8px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+td { padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+tr { transition: background .15s ease; }
+tr:hover { background: rgba(56,189,248,0.04); }
+.badge {
+    display: inline-block; padding: 3px 10px; border-radius: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: .3px;
+}
+.badge-long { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.15); }
+.badge-short { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.15); }
+.badge-pending { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.15); }
+.badge-active { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.15); }
+.badge-closed { background: rgba(100,116,139,0.12); color: #94a3b8; border: 1px solid rgba(100,116,139,0.15); }
+.badge-cancelled { background: rgba(30,41,59,0.5); color: #475569; border: 1px solid rgba(71,85,105,0.2); }
+.badge-tp { background: rgba(16,185,129,0.12); color: #34d399; border: 1px solid rgba(16,185,129,0.15); }
+.badge-sl { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.15); }
+.badge-manual { background: rgba(59,130,246,0.12); color: #60a5fa; border: 1px solid rgba(59,130,246,0.15); }
 
 /* Chart */
-.chart-container { height: 300px; margin-top: 16px; }
+.chart-container { height: 320px; margin-top: 12px; }
 
 /* Modal */
-.modal-overlay { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center; }
+.modal-overlay {
+    display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index:1000; justify-content:center; align-items:center;
+}
 .modal-overlay.active { display:flex; }
-.modal { background:#111827; border:1px solid #1e293b; border-radius:16px; padding:24px; max-width:900px; width:95%; max-height:90vh; overflow-y:auto; }
-.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-.modal-close { background:none; border:none; color:#94a3b8; font-size:24px; cursor:pointer; }
+.modal {
+    background: rgba(15,23,42,0.95); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border:1px solid rgba(255,255,255,0.08); border-radius:20px; padding:28px;
+    max-width:900px; width:95%; max-height:90vh; overflow-y:auto;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.4);
+}
+.modal-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:14px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.modal-header h3 { font-size: 18px; font-weight: 700; }
+.modal-close { background:none; border:none; color:#94a3b8; font-size:28px; cursor:pointer; transition: color .2s; }
+.modal-close:hover { color: #f8fafc; }
 .trade-info-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
-.trade-info-item { background:#0a0e17; border-radius:8px; padding:10px; }
-.trade-info-item .label { font-size:11px; color:#64748b; margin-bottom:2px; }
-.trade-info-item .val { font-size:16px; font-weight:600; }
+.trade-info-item { background:rgba(0,0,0,0.25); border-radius:12px; padding:14px; border: 1px solid rgba(255,255,255,0.04); }
+.trade-info-item .label { font-size:11px; color:#64748b; margin-bottom:4px; text-transform: uppercase; letter-spacing: .5px; }
+.trade-info-item .val { font-size:18px; font-weight:700; }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+    .header { flex-direction: column; gap: 14px; text-align: center; }
+    .header-links { justify-content: center; flex-wrap: wrap; }
     .stats-grid { grid-template-columns: repeat(2, 1fr); }
     .form-grid { grid-template-columns: repeat(2, 1fr); }
     .trade-info-grid { grid-template-columns: repeat(2, 1fr); }
+    .config-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+    .stats-grid { grid-template-columns: 1fr; }
+    .form-grid { grid-template-columns: 1fr; }
 }
 
 /* Tabs */
 .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; }
-.tab { padding: 6px 16px; border-radius: 6px; font-size: 13px; cursor: pointer; background: transparent; color: #64748b; border: none; transition: all .2s; }
-.tab.active { background: #1e293b; color: #f1f5f9; }
-.tab:hover { color: #f1f5f9; }
+.tab {
+    padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    cursor: pointer; background: transparent; color: #64748b; border: none;
+    transition: all .2s ease;
+}
+.tab.active { background: rgba(56,189,248,0.12); color: #38bdf8; font-weight: 600; }
+.tab:hover { color: #e2e8f0; background: rgba(255,255,255,0.04); }
 
 /* Config panel */
-.config-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.config-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
 
-.loading { text-align:center; padding:40px; color:#64748b; }
+.loading { text-align:center; padding:50px; color:#475569; font-size: 14px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 </style>
 </head>
 <body>
@@ -966,29 +1063,29 @@ tr:hover { background: #0f1729; }
     </div>
 
     <!-- Telegram Status -->
-    <div class="section" id="tgSection" style="padding:14px 20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-            <div style="display:flex;align-items:center;gap:10px;">
-                <span id="tgDot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;"></span>
-                <span id="tgStatusText" style="font-size:14px;">Telegram: 未连接</span>
+    <div class="section" id="tgSection" style="padding:16px 24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div style="display:flex;align-items:center;gap:12px;">
+                <span id="tgDot" style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block;box-shadow:0 0 8px rgba(239,68,68,0.4);"></span>
+                <span id="tgStatusText" style="font-size:14px;font-weight:600;">Telegram: 未连接</span>
                 <span id="tgGroup" style="font-size:12px;color:#64748b;"></span>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-                <span id="tgLastMsg" style="font-size:11px;color:#64748b;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+                <span id="tgLastMsg" style="font-size:11px;color:#475569;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
                 <button class="btn btn-primary btn-sm" id="tgAuthBtn" onclick="showTgAuth()">连接 Telegram</button>
-                <button class="btn btn-sm" style="background:#1e293b;color:#94a3b8;" onclick="fetchHistory()">拉取历史</button>
+                <button class="btn btn-sm" style="background:rgba(255,255,255,0.04);color:#94a3b8;border:1px solid rgba(255,255,255,0.08);" onclick="fetchHistory()">拉取历史</button>
             </div>
         </div>
-        <div id="tgAuthPanel" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #1e293b;">
-            <div style="display:flex;gap:8px;align-items:end;">
+        <div id="tgAuthPanel" style="display:none;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.06);">
+            <div style="display:flex;gap:10px;align-items:end;">
                 <div class="form-group" style="flex:1;">
                     <label>手机号 (含国际区号)</label>
                     <input type="text" id="tgPhone" placeholder="+8613800138000" />
                 </div>
                 <button class="btn btn-primary btn-sm" onclick="tgSendCode()" id="tgSendBtn">发送验证码</button>
             </div>
-            <div id="tgCodePanel" style="display:none;margin-top:8px;">
-                <div style="display:flex;gap:8px;align-items:end;">
+            <div id="tgCodePanel" style="display:none;margin-top:10px;">
+                <div style="display:flex;gap:10px;align-items:end;">
                     <div class="form-group" style="flex:1;">
                         <label>验证码 (TG收到的)</label>
                         <input type="text" id="tgCode" placeholder="12345" />
@@ -1068,7 +1165,7 @@ tr:hover { background: #0f1729; }
 
     <!-- Open Positions -->
     <div class="section">
-        <div class="section-title">当前持仓 <span id="posCount" style="color:#64748b;font-size:13px;font-weight:400;"></span></div>
+        <div class="section-title">当前持仓 <span id="posCount" style="color:#475569;font-size:12px;font-weight:400;"></span></div>
         <div id="positionsTable"><div class="loading">Loading...</div></div>
     </div>
 
@@ -1084,7 +1181,7 @@ tr:hover { background: #0f1729; }
             </div>
             <div style="display:flex;align-items:center;gap:6px;margin-left:auto;">
                 <span style="font-size:12px;color:#64748b;">分类:</span>
-                <select id="categoryFilter" onchange="filterByCategory(this.value)" style="background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:6px;padding:4px 8px;font-size:12px;">
+                <select id="categoryFilter" onchange="filterByCategory(this.value)" style="background:rgba(0,0,0,0.25);color:#e2e8f0;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px 10px;font-size:12px;outline:none;">
                     <option value="">全部分类</option>
                 </select>
             </div>
@@ -1509,7 +1606,7 @@ async function showTradeDetail(tid) {
         '</div>';
 
     if (t.raw_message) {
-        html += '<div style="background:#0a0e17;border-radius:8px;padding:12px;margin-bottom:16px;"><div style="font-size:11px;color:#64748b;margin-bottom:4px;">原始消息</div><div style="font-size:13px;white-space:pre-wrap;">' + escapeHtml(t.raw_message) + '</div></div>';
+        html += '<div style="background:rgba(0,0,0,0.25);border-radius:12px;padding:14px;margin-bottom:16px;border:1px solid rgba(255,255,255,0.04);"><div style="font-size:11px;color:#64748b;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">原始消息</div><div style="font-size:13px;white-space:pre-wrap;line-height:1.5;">' + escapeHtml(t.raw_message) + '</div></div>';
     }
 
     if (t.klines && t.klines.length > 0) {
@@ -1634,15 +1731,18 @@ async function loadTgStatus() {
 
         if (s.listening) {
             dot.style.background = '#10b981';
+            dot.style.boxShadow = '0 0 8px rgba(16,185,129,0.5)';
             txt.textContent = 'Telegram: 监听中';
             btn.style.display = 'none';
             grp.textContent = s.group_name || '';
         } else if (s.connected) {
             dot.style.background = '#f59e0b';
+            dot.style.boxShadow = '0 0 8px rgba(245,158,11,0.5)';
             txt.textContent = 'Telegram: 已连接(未监听)';
             btn.textContent = '重新连接';
         } else {
             dot.style.background = '#ef4444';
+            dot.style.boxShadow = '0 0 8px rgba(239,68,68,0.4)';
             txt.textContent = 'Telegram: 未连接';
             btn.style.display = '';
             btn.textContent = '连接 Telegram';

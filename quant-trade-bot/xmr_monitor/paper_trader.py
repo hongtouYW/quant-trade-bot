@@ -231,7 +231,6 @@ class PaperTradingAssistant:
     SYMBOL_1000 = {
         'BONK': '1000BONKUSDT', 'PEPE': '1000PEPEUSDT',
         'SHIB': '1000SHIBUSDT', 'FLOKI': '1000FLOKIUSDT',
-        'NEIRO': '1000NEIROUSDT',
     }
 
     def _binance_symbol(self, symbol):
@@ -260,7 +259,10 @@ class PaperTradingAssistant:
             # 使用Binance期货API
             url = f"https://fapi.binance.com/fapi/v1/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
             response = requests.get(url, timeout=10)
-            return response.json()
+            data = response.json()
+            if not isinstance(data, list):
+                return None
+            return data
         except Exception as e:
             print(f"获取{symbol} K线失败: {e}")
             return None
