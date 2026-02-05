@@ -168,6 +168,49 @@ def get_binance_price(symbol):
         print(f"[Price Error] {symbol}: {e}")
         return None
 
+def auto_activate_signal(signal_id):
+    """Auto-activate a signal: fetch price, calculate size, open trade"""
+    try:
+        conn = get_db()
+        signal = conn.execute('SELECT * FROM signals WHERE id=?', (signal_id,)).fetchone()
+        if not signal or signal['status'] != 'pending':
+            conn.close()
+            return False
+
+        price = get_binance_price(signal['symbol'])
+        if price is None:
+            print(f"[Auto-Activate] Cannot get price for {signal['symbol']}, skipping")
+            conn.close()
+            return False
+
+        entry_price = signal['entry_price'] if signal['entry_price'] else price
+
+        cap = get_capital()
+        config = get_config()
+        pct = float(config.get('position_pct', 10))
+        position_size = min(cap['available'] * (pct / 100), cap['available'] * 0.5)
+        if position_size < 10:
+            print(f"[Auto-Activate] Insufficient capital ({cap['available']:.0f}U), skipping")
+            conn.close()
+            return False
+
+        now = datetime.now(timezone.utc).isoformat()
+        leverage = signal['leverage']
+
+        conn.execute('''
+            INSERT INTO trades (signal_id, opened_at, symbol, direction, entry_price, leverage, position_size, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
+        ''', (signal_id, now, signal['symbol'], signal['direction'], entry_price, leverage, round(position_size, 2)))
+        conn.execute('UPDATE signals SET status=?, entry_price=? WHERE id=?', ('active', entry_price, signal_id))
+        conn.commit()
+        conn.close()
+
+        print(f"[Auto-Activate] {signal['symbol']} {signal['direction']} @ {entry_price:.6g}, size={position_size:.0f}U, lev={leverage}x")
+        return True
+    except Exception as e:
+        print(f"[Auto-Activate Error] {e}")
+        return False
+
 def calculate_fees(position_size, entry_price, exit_price, leverage, opened_at, closed_at, fee_rate=0.05, funding_rate=0.01):
     """Calculate trading fees"""
     notional = position_size * leverage
@@ -391,7 +434,7 @@ def api_signals():
         conditions.append('category=?')
         params.append(category)
     where = ' WHERE ' + ' AND '.join(conditions) if conditions else ''
-    rows = conn.execute(f'SELECT * FROM signals{where} ORDER BY created_at DESC LIMIT 200', params).fetchall()
+    rows = conn.execute(f'SELECT * FROM signals{where} ORDER BY COALESCE(signal_time, created_at) DESC LIMIT 200', params).fetchall()
     conn.close()
     return jsonify([dict(r) for r in rows])
 
@@ -724,8 +767,15 @@ async def _run_telegram_listener():
                         msg_time
                     ))
                     conn.commit()
+                    signal_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
                     conn.close()
                     print(f"[TG Signal] Auto-created: {signal['symbol']} {signal['direction']}")
+
+                    # Auto-activate: immediately open trade
+                    if auto_activate_signal(signal_id):
+                        print(f"[TG Signal] Auto-activated: {signal['symbol']} {signal['direction']}")
+                    else:
+                        print(f"[TG Signal] Auto-activate failed for {signal['symbol']}, stays pending")
 
         await tg_client.run_until_disconnected()
 
@@ -1270,6 +1320,10 @@ function fmtPnl(v) {
 
 function fmtTime(ts) {
     if (!ts) return '-';
+    // DB存的是UTC时间，补上Z让浏览器自动转本地时区
+    if (!ts.includes('Z') && !ts.includes('+')) {
+        ts = ts.replace(' ', 'T') + 'Z';
+    }
     const d = new Date(ts);
     return d.toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit'}) + ' ' +
            d.toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'});

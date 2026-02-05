@@ -3647,14 +3647,14 @@ STRATEGY_PRESETS = {
     },
     'v4.2': {
         'label': 'v4.2 扩容版',
-        'description': 'v4.1基础 + 2h冷却 + 12仓位 + 同方向6 + SHORT偏置1.05 + BTC趋势过滤',
+        'description': 'v4.1基础 + 30m冷却 + 12仓位 + 不限方向 + SHORT偏置1.05 + LONG加强过滤',
         'config': {
             'min_score': 60,
             'long_min_score': 70,
-            'cooldown': 2,
+            'cooldown': 1,
             'max_leverage': 3,
             'max_positions': 12,
-            'max_same_direction': 6,
+            'max_same_direction': 12,
             'short_bias': 1.05,
             'enable_trend_filter': True,
             'enable_btc_filter': True,
