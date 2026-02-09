@@ -3664,6 +3664,49 @@ STRATEGY_PRESETS = {
             'roi_trailing_distance': 3,
         }
     },
+    'v4.3': {
+        'label': 'v4.3 动态版',
+        'description': '动态杠杆(3-10x) + 移动止盈(按趋势强度调整启动点和回撤距离)',
+        'config': {
+            'min_score': 60,
+            'long_min_score': 70,
+            'cooldown': 1,
+            'max_leverage': 10,
+            'max_positions': 12,
+            'max_same_direction': 12,
+            'short_bias': 1.05,
+            'enable_trend_filter': True,
+            'enable_btc_filter': True,
+            'long_ma_slope_threshold': 0.02,
+            'dynamic_leverage': True,
+            'dynamic_tpsl': True,
+            'fixed_tp_mode': False,
+            'roi_stop_loss': -8,
+            'roi_trailing_start': 6,
+            'roi_trailing_distance': 3,
+        }
+    },
+    'v4.3.1': {
+        'label': 'v4.3.1 激进版',
+        'description': '高杠杆(5-15x) + 固定止盈目标(强势+12%/普通+10%/震荡+8%/逆势+6%)',
+        'config': {
+            'min_score': 60,
+            'long_min_score': 70,
+            'cooldown': 1,
+            'max_leverage': 15,
+            'max_positions': 12,
+            'max_same_direction': 12,
+            'short_bias': 1.05,
+            'enable_trend_filter': True,
+            'enable_btc_filter': True,
+            'long_ma_slope_threshold': 0.02,
+            'dynamic_leverage_v431': True,
+            'fixed_tp_mode': True,
+            'roi_stop_loss': -8,
+            'roi_trailing_start': 6,
+            'roi_trailing_distance': 3,
+        }
+    },
     'v4': {
         'label': 'v4 自定义 (Custom)',
         'description': '自由调整所有参数',
@@ -3889,9 +3932,9 @@ def get_backtest_kline(symbol):
 
 @app.route('/api/backtest/report')
 def get_backtest_report():
-    """生成策略对比报告 — 支持 v1/v2/v3/v4.1/v4.2 按年份查询"""
+    """生成策略对比报告 — 支持 v1/v2/v3/v4.1/v4.2/v4.3 按年份查询"""
     year_param = request.args.get('year', 'all')
-    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2']
+    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3']
     ver_sql = ','.join(f"'{v}'" for v in VERSIONS)
     conn = sqlite3.connect(BACKTEST_DB)
     conn.row_factory = sqlite3.Row
@@ -3966,7 +4009,7 @@ def get_backtest_report():
     return jsonify({
         'comparison': comparison,
         'v1_total': totals['v1'], 'v2_total': totals['v2'], 'v3_total': totals['v3'],
-        'v4_1_total': totals['v4.1'], 'v4_2_total': totals['v4.2'],
+        'v4_1_total': totals['v4.1'], 'v4_2_total': totals['v4.2'], 'v4_3_total': totals['v4.3'],
         'available_years': available_years, 'selected_year': year_param
     })
 
@@ -4656,10 +4699,13 @@ BACKTEST_TEMPLATE = '''
                 <div class="config-field">
                     <label>策略</label>
                     <select id="strategy-select" onchange="onStrategyChange()">
-                        <option value="v1">v1 原始</option>
-                        <option value="v2" selected>v2 稳健</option>
-                        <option value="v3">v3 ROI</option>
+                        <option value="v4.3.1" selected>v4.3.1 激进版</option>
+                        <option value="v4.3">v4.3 动态版</option>
+                        <option value="v4.2">v4.2 扩容版</option>
                         <option value="v4.1">v4.1 防守反击</option>
+                        <option value="v3">v3 ROI</option>
+                        <option value="v2">v2 稳健</option>
+                        <option value="v1">v1 原始</option>
                         <option value="v4">v4 自定义</option>
                     </select>
                 </div>
@@ -5913,7 +5959,9 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="wf-strategy">
-                    <option value="v4.2" selected>v4.2 扩容版</option>
+                    <option value="v4.3.1" selected>v4.3.1 激进版</option>
+                    <option value="v4.3">v4.3 动态版</option>
+                    <option value="v4.2">v4.2 扩容版</option>
                     <option value="v4.1">v4.1 防守反击</option>
                     <option value="v3">v3 BTC趋势过滤</option>
                     <option value="v2">v2 均衡</option>
@@ -5954,7 +6002,9 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="ps-strategy">
-                    <option value="v4.2" selected>v4.2 扩容版</option>
+                    <option value="v4.3.1" selected>v4.3.1 激进版</option>
+                    <option value="v4.3">v4.3 动态版</option>
+                    <option value="v4.2">v4.2 扩容版</option>
                     <option value="v4.1">v4.1 防守反击</option>
                     <option value="v3">v3 BTC趋势过滤</option>
                     <option value="v2">v2 均衡</option>

@@ -181,30 +181,95 @@ def analyze_signal(candles):
     return total_score, analysis
 
 
-def calculate_position_size(score, available, max_leverage=5, high_score_leverage=None):
-    """根据信号强度计算仓位大小
+def calculate_position_size(score, available, max_leverage=5, high_score_leverage=None, dynamic_leverage=False):
+    """根据信号强度计算仓位大小和杠杆
     high_score_leverage: 85+评分专用杠杆上限(None则用max_leverage)
+    dynamic_leverage: v4.3动态杠杆模式
     """
-    hs_lev = high_score_leverage if high_score_leverage else max_leverage
-    if score >= 85:
-        size = min(400, available * 0.25)
-        leverage = min(5, hs_lev)
-    elif score >= 75:
-        size = min(300, available * 0.2)
-        leverage = min(3, max_leverage)
-    elif score >= 70:
-        size = min(200, available * 0.15)
-        leverage = min(3, max_leverage)
-    elif score >= 60:
-        size = min(150, available * 0.1)
-        leverage = min(3, max_leverage)
-    elif score >= 55:
-        size = min(100, available * 0.08)
-        leverage = min(3, max_leverage)
+    if dynamic_leverage:
+        # v4.3 动态杠杆：根据评分调整
+        if score >= 85:
+            size = min(400, available * 0.25)
+            leverage = min(10, max_leverage)  # 高分10x
+        elif score >= 75:
+            size = min(300, available * 0.2)
+            leverage = min(8, max_leverage)   # 中高8x
+        elif score >= 65:
+            size = min(200, available * 0.15)
+            leverage = min(5, max_leverage)   # 标准5x
+        elif score >= 60:
+            size = min(150, available * 0.1)
+            leverage = min(3, max_leverage)   # 刚过门槛3x
+        else:
+            return 0, 3
     else:
-        return 0, max_leverage
+        # 旧版逻辑
+        hs_lev = high_score_leverage if high_score_leverage else max_leverage
+        if score >= 85:
+            size = min(400, available * 0.25)
+            leverage = min(5, hs_lev)
+        elif score >= 75:
+            size = min(300, available * 0.2)
+            leverage = min(3, max_leverage)
+        elif score >= 70:
+            size = min(200, available * 0.15)
+            leverage = min(3, max_leverage)
+        elif score >= 60:
+            size = min(150, available * 0.1)
+            leverage = min(3, max_leverage)
+        elif score >= 55:
+            size = min(100, available * 0.08)
+            leverage = min(3, max_leverage)
+        else:
+            return 0, max_leverage
 
     return size, leverage
+
+
+def calculate_dynamic_tpsl(score, trend_strength, direction_matches_trend, fixed_tp_mode=False):
+    """动态止盈止损
+
+    Args:
+        score: 信号评分 (60-100)
+        trend_strength: 趋势强度 (0-3, 0=无趋势, 3=强趋势)
+        direction_matches_trend: 方向是否顺势 (True/False)
+        fixed_tp_mode: True=固定止盈(v4.3.1), False=移动止盈(v4.3)
+
+    Returns:
+        (roi_stop_loss, roi_take_profit, roi_trailing_start, roi_trailing_distance)
+    """
+    if fixed_tp_mode:
+        # v4.3.1 固定止盈目标
+        if direction_matches_trend and trend_strength >= 2:
+            return -8, 12, 0, 0  # 强趋势顺势 1.5:1
+        elif direction_matches_trend and trend_strength >= 1:
+            return -8, 10, 0, 0  # 普通顺势 1.25:1
+        elif not direction_matches_trend:
+            return -5, 6, 0, 0   # 逆势 1.2:1
+        else:
+            return -6, 8, 0, 0   # 震荡/弱势 1.33:1
+    else:
+        # v4.3 移动止盈
+        if direction_matches_trend and trend_strength >= 2:
+            return -8, 0, 8, 4   # 强趋势顺势：让利润跑
+        elif direction_matches_trend and trend_strength >= 1:
+            return -8, 0, 6, 3   # 普通顺势
+        elif not direction_matches_trend:
+            return -5, 0, 4, 2   # 逆势：保守快出
+        else:
+            return -6, 0, 5, 3   # 震荡/弱势
+
+
+def calculate_dynamic_leverage_v431(score, max_lev=15):
+    """动态杠杆 — v4.3.1 激进版"""
+    if score >= 85:
+        return min(15, max_lev)  # 高分15x
+    elif score >= 75:
+        return min(12, max_lev)  # 中高12x
+    elif score >= 65:
+        return min(8, max_lev)   # 标准8x
+    else:
+        return min(5, max_lev)   # 低分5x
 
 
 def run_backtest(candles_1h, config):
@@ -228,7 +293,11 @@ def run_backtest(candles_1h, config):
     long_min_score = config.get('long_min_score', min_score)  # LONG方向最低评分(v4.1)
     long_ma_slope_threshold = config.get('long_ma_slope_threshold', ma_slope_threshold)  # LONG方向MA斜率阈值(v4.1)
     high_score_leverage = config.get('high_score_leverage', None)  # 85+评分专用杠杆(v4.2)
-    # ROI模式参数（基于本金盈亏%）
+    dynamic_leverage = config.get('dynamic_leverage', False)  # v4.3 动态杠杆
+    dynamic_leverage_v431 = config.get('dynamic_leverage_v431', False)  # v4.3.1 激进杠杆
+    dynamic_tpsl = config.get('dynamic_tpsl', False)  # v4.3 动态止盈止损(移动止盈)
+    fixed_tp_mode = config.get('fixed_tp_mode', False)  # v4.3.1 固定止盈模式
+    # ROI模式参数（基于本金盈亏%）— 作为默认值，dynamic_tpsl开启时会被覆盖
     roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
     roi_trailing_start = config.get('roi_trailing_start', 5)  # 启动移动止盈: ROI达+5%
     roi_trailing_distance = config.get('roi_trailing_distance', 3)  # 回撤距离: 从峰值回撤3%平仓
@@ -353,14 +422,36 @@ def run_backtest(candles_1h, config):
         if available < 50:
             continue
 
-        amount, leverage = calculate_position_size(score, available, max_leverage, high_score_leverage)
+        amount, leverage = calculate_position_size(score, available, max_leverage, high_score_leverage, dynamic_leverage)
+
+        # v4.3.1 激进杠杆覆盖
+        if dynamic_leverage_v431:
+            leverage = calculate_dynamic_leverage_v431(score, max_leverage)
+
         if amount < 50:
             continue
 
         entry_price = analysis['price']
 
+        # v4.3/v4.3.1 动态止盈止损
+        if dynamic_tpsl or fixed_tp_mode:
+            trend_strength = analysis.get('trend_strength', 1)
+            ma_trend = analysis.get('ma_trend', 'neutral')
+            direction_matches_trend = (
+                (direction == 'LONG' and ma_trend == 'up') or
+                (direction == 'SHORT' and ma_trend == 'down')
+            )
+            pos_roi_stop, pos_roi_tp, pos_roi_trail_start, pos_roi_trail_dist = calculate_dynamic_tpsl(
+                score, trend_strength, direction_matches_trend, fixed_tp_mode
+            )
+        else:
+            pos_roi_stop = roi_stop_loss
+            pos_roi_tp = 0  # 0 表示使用移动止盈模式
+            pos_roi_trail_start = roi_trailing_start
+            pos_roi_trail_dist = roi_trailing_distance
+
         # ROI模式：按ROI反算止损价格（用于显示/记录）
-        stop_price_pct = roi_stop_loss / (leverage * 100)
+        stop_price_pct = pos_roi_stop / (leverage * 100)
         if direction == 'LONG':
             stop_loss = entry_price * (1 + stop_price_pct)  # 负值所以是减
         else:
@@ -374,10 +465,10 @@ def run_backtest(candles_1h, config):
             'amount': amount,
             'leverage': leverage,
             'stop_loss': stop_loss,
-            'take_profit': 0,  # ROI模式无固定止盈
-            'roi_stop_loss': roi_stop_loss,
-            'roi_trailing_start': roi_trailing_start,
-            'roi_trailing_distance': roi_trailing_distance,
+            'roi_stop_loss': pos_roi_stop,
+            'roi_take_profit': pos_roi_tp,  # 固定止盈目标，0表示用移动止盈
+            'roi_trailing_start': pos_roi_trail_start,
+            'roi_trailing_distance': pos_roi_trail_dist,
             'peak_roi': 0,
             'entry_time': _ts_to_str(candle['time']),
             'score': score,
@@ -439,19 +530,23 @@ def run_backtest(candles_1h, config):
 
 
 def _check_position_bar(pos, candle):
-    """用一根K线的高低价检查持仓 — 纯ROI模式
+    """用一根K线的高低价检查持仓 — 支持固定止盈和移动止盈两种模式
 
-    基于本金盈亏百分比(ROI)管理，无论杠杆多少风险一致:
+    固定目标模式 (roi_take_profit > 0):
+    - 止损: ROI跌到 roi_stop_loss 平仓
+    - 止盈: ROI达到 roi_take_profit 平仓
+
+    移动止盈模式 (roi_take_profit = 0 或未设置):
     - 止损: ROI跌到 roi_stop_loss 平仓
     - 移动止盈: ROI达到 roi_trailing_start 后开始跟踪
     - 跟踪距离: 从最高ROI回撤 roi_trailing_distance 则平仓
-    - 无固定止盈上限，让利润跑
     """
     direction = pos['direction']
     entry_price = pos['entry_price']
     leverage = pos.get('leverage', 1)
 
     roi_stop = pos.get('roi_stop_loss', -8)
+    roi_tp = pos.get('roi_take_profit', 0)  # 固定止盈目标，0表示用移动止盈
     roi_trail_start = pos.get('roi_trailing_start', 5)
     roi_trail_dist = pos.get('roi_trailing_distance', 3)
 
@@ -474,7 +569,6 @@ def _check_position_bar(pos, candle):
 
     # === 1. 止损检查: ROI跌到止损线 ===
     if worst_roi <= roi_stop:
-        # 按止损ROI反算退出价格
         exit_pct = roi_stop / (leverage * 100)
         if direction == 'LONG':
             exit_price = entry_price * (1 + exit_pct)
@@ -483,11 +577,20 @@ def _check_position_bar(pos, candle):
         pos['stop_move_count'] = pos.get('stop_move_count', 0)
         return exit_price, f"触发止损 (ROI {roi_stop}%)"
 
-    # === 2. 移动止盈: 峰值ROI超过启动线后，回撤超过距离就平仓 ===
-    if peak_roi >= roi_trail_start:
+    # === 2. 固定止盈模式: ROI达到目标就平仓 ===
+    if roi_tp > 0 and best_roi >= roi_tp:
+        exit_pct = roi_tp / (leverage * 100)
+        if direction == 'LONG':
+            exit_price = entry_price * (1 + exit_pct)
+        else:
+            exit_price = entry_price * (1 - exit_pct)
+        pos['stop_move_count'] = pos.get('stop_move_count', 0) + 1
+        return exit_price, f"触发止盈 (ROI +{roi_tp}%)"
+
+    # === 3. 移动止盈模式: 峰值ROI超过启动线后，回撤超过距离就平仓 ===
+    if roi_tp == 0 and peak_roi >= roi_trail_start:
         trail_exit_roi = peak_roi - roi_trail_dist
         if worst_roi <= trail_exit_roi:
-            # 按trailing ROI反算退出价格
             exit_pct = trail_exit_roi / (leverage * 100)
             if direction == 'LONG':
                 exit_price = entry_price * (1 + exit_pct)
