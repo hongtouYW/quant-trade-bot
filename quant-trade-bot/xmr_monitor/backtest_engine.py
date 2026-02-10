@@ -299,6 +299,7 @@ def run_backtest(candles_1h, config):
     fixed_tp_mode = config.get('fixed_tp_mode', False)  # v4.3.1 固定止盈模式
     # ROI模式参数（基于本金盈亏%）— 作为默认值，dynamic_tpsl开启时会被覆盖
     roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
+    roi_take_profit = config.get('roi_take_profit', 0)     # 固定止盈目标，0表示用移动止盈
     roi_trailing_start = config.get('roi_trailing_start', 5)  # 启动移动止盈: ROI达+5%
     roi_trailing_distance = config.get('roi_trailing_distance', 3)  # 回撤距离: 从峰值回撤3%平仓
 
@@ -446,7 +447,7 @@ def run_backtest(candles_1h, config):
             )
         else:
             pos_roi_stop = roi_stop_loss
-            pos_roi_tp = 0  # 0 表示使用移动止盈模式
+            pos_roi_tp = roi_take_profit  # 从配置读取，0表示用移动止盈模式
             pos_roi_trail_start = roi_trailing_start
             pos_roi_trail_dist = roi_trailing_distance
 

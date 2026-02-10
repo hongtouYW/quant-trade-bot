@@ -3707,6 +3707,26 @@ STRATEGY_PRESETS = {
             'roi_trailing_distance': 3,
         }
     },
+    'v4.4': {
+        'label': 'v4.4 高盈亏比',
+        'description': 'v4.2基础 + 止盈15% + 止损8% (风险收益比 1:1.87)',
+        'config': {
+            'min_score': 60,
+            'long_min_score': 70,
+            'cooldown': 1,
+            'max_leverage': 3,
+            'max_positions': 12,
+            'max_same_direction': 12,
+            'short_bias': 1.05,
+            'enable_trend_filter': True,
+            'enable_btc_filter': True,
+            'long_ma_slope_threshold': 0.02,
+            'roi_stop_loss': -8,
+            'roi_take_profit': 15,
+            'roi_trailing_start': 15,
+            'roi_trailing_distance': 3,
+        }
+    },
     'v4': {
         'label': 'v4 自定义 (Custom)',
         'description': '自由调整所有参数',
@@ -3934,7 +3954,7 @@ def get_backtest_kline(symbol):
 def get_backtest_report():
     """生成策略对比报告 — 支持 v1/v2/v3/v4.1/v4.2/v4.3/v4.3.1 按年份查询"""
     year_param = request.args.get('year', 'all')
-    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3', 'v4.3.1']
+    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3', 'v4.3.1', 'v4.4']
     ver_sql = ','.join(f"'{v}'" for v in VERSIONS)
     conn = sqlite3.connect(BACKTEST_DB)
     conn.row_factory = sqlite3.Row
@@ -4010,7 +4030,7 @@ def get_backtest_report():
         'comparison': comparison,
         'v1_total': totals['v1'], 'v2_total': totals['v2'], 'v3_total': totals['v3'],
         'v4_1_total': totals['v4.1'], 'v4_2_total': totals['v4.2'], 'v4_3_total': totals['v4.3'],
-        'v4_3_1_total': totals['v4.3.1'],
+        'v4_3_1_total': totals['v4.3.1'], 'v4_4_total': totals['v4.4'],
         'available_years': available_years, 'selected_year': year_param
     })
 
@@ -4067,6 +4087,7 @@ REPORT_TEMPLATE = '''
         .summary-card.v4_2 { border-left: 4px solid #9b59b6; }
         .summary-card.v4_3 { border-left: 4px solid #e74c3c; }
         .summary-card.v4_3_1 { border-left: 4px solid #95a5a6; }
+        .summary-card.v4_4 { border-left: 4px solid #1abc9c; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
         .stat-item { text-align: center; }
         .stat-value { font-size: 1.6em; font-weight: 700; }
@@ -4097,6 +4118,7 @@ REPORT_TEMPLATE = '''
         .winner-v4_2 { background: rgba(155,89,182,0.08); }
         .winner-v4_3 { background: rgba(231,76,60,0.08); }
         .winner-v4_3_1 { background: rgba(149,165,166,0.08); }
+        .winner-v4_4 { background: rgba(26,188,156,0.08); }
         .badge {
             display: inline-block; padding: 2px 8px; border-radius: 4px;
             font-size: 0.75em; font-weight: 600;
@@ -4108,6 +4130,7 @@ REPORT_TEMPLATE = '''
         .badge-v4_2 { background: rgba(155,89,182,0.2); color: #9b59b6; }
         .badge-v4_3 { background: rgba(231,76,60,0.2); color: #e74c3c; }
         .badge-v4_3_1 { background: rgba(149,165,166,0.2); color: #95a5a6; }
+        .badge-v4_4 { background: rgba(26,188,156,0.2); color: #1abc9c; }
         .verdict {
             margin-top: 20px; padding: 20px; border-radius: 12px;
             background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3);
@@ -4267,6 +4290,24 @@ REPORT_TEMPLATE = '''
                     </div>
                 </div>
             </div>
+            <div class="summary-card v4_4">
+                <h3 style="color:#1abc9c;">v4.4 高盈亏比</h3>
+                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">TP +15% | SL -8% | 风险收益比 1:1.87</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="v4_4-pnl">-</div>
+                        <div class="stat-label">总盈亏 (U)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v4_4-wincount">-</div>
+                        <div class="stat-label">盈利币种</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v4_4-trades">-</div>
+                        <div class="stat-label">总交易笔数</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 逐币对比表 -->
@@ -4290,6 +4331,8 @@ REPORT_TEMPLATE = '''
                         <th style="color:#e74c3c;">v4.3 胜率</th>
                         <th style="color:#95a5a6;">v4.3.1 盈亏</th>
                         <th style="color:#95a5a6;">v4.3.1 胜率</th>
+                        <th style="color:#1abc9c;">v4.4 盈亏</th>
+                        <th style="color:#1abc9c;">v4.4 胜率</th>
                         <th>最佳</th>
                     </tr>
                 </thead>
@@ -4343,10 +4386,11 @@ REPORT_TEMPLATE = '''
                 const t42 = data.v4_2_total || {pnl:0,trades:0,wins:0,count:0};
                 const t43 = data.v4_3_total || {pnl:0,trades:0,wins:0,count:0};
                 const t431 = data.v4_3_1_total || {pnl:0,trades:0,wins:0,count:0};
+                const t44 = data.v4_4_total || {pnl:0,trades:0,wins:0,count:0};
                 const el = id => document.getElementById(id);
 
                 // 汇总卡片
-                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431]].forEach(([v,t]) => {
+                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44]].forEach(([v,t]) => {
                     el(v+'-pnl').textContent = (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(0);
                     el(v+'-pnl').className = 'stat-value ' + (t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
                     el(v+'-wincount').textContent = t.wins + '/' + t.count;
@@ -4362,9 +4406,9 @@ REPORT_TEMPLATE = '''
                     return `<td class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(1)}</td>`;
                 };
                 data.comparison.forEach(row => {
-                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {}, v4_3 = row.v4_3 || {}, v4_3_1 = row.v4_3_1 || {};
+                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {}, v4_3 = row.v4_3 || {}, v4_3_1 = row.v4_3_1 || {}, v4_4 = row.v4_4 || {};
                     const w = row.winner || 'v2';
-                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : (w === 'v4_3' ? 'v4.3' : (w === 'v4_3_1' ? 'v4.3.1' : w)));
+                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : (w === 'v4_3' ? 'v4.3' : (w === 'v4_3_1' ? 'v4.3.1' : (w === 'v4_4' ? 'v4.4' : w))));
                     const tr = document.createElement('tr');
                     tr.className = 'winner-' + w;
                     tr.style.cursor = 'pointer';
@@ -4389,6 +4433,8 @@ REPORT_TEMPLATE = '''
                         <td>${v4_3.win_rate != null ? v4_3.win_rate + '%' : '-'}</td>
                         ${pnlHtml(v4_3_1.pnl)}
                         <td>${v4_3_1.win_rate != null ? v4_3_1.win_rate + '%' : '-'}</td>
+                        ${pnlHtml(v4_4.pnl)}
+                        <td>${v4_4.win_rate != null ? v4_4.win_rate + '%' : '-'}</td>
                         <td><span class="badge badge-${w}">${wLabel}</span></td>
                     `;
                     tbody.appendChild(tr);
@@ -4400,9 +4446,10 @@ REPORT_TEMPLATE = '''
                 const tfr = document.createElement('tr');
                 tfr.style.fontWeight = '700';
                 tfr.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431]];
+                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44]];
                 const totalWinner = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a)[0];
-                const totalWinnerLabel = totalWinner === 'v4_1' ? 'v4.1' : (totalWinner === 'v4_2' ? 'v4.2' : (totalWinner === 'v4_3' ? 'v4.3' : (totalWinner === 'v4_3_1' ? 'v4.3.1' : totalWinner)));
+                const getLbl = v => ({v4_1:'v4.1',v4_2:'v4.2',v4_3:'v4.3',v4_3_1:'v4.3.1',v4_4:'v4.4'}[v] || v);
+                const totalWinnerLabel = getLbl(totalWinner);
                 let footHtml = `<td class="left">合计</td>`;
                 allTotals.forEach(([v,t]) => {
                     const cls = t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
@@ -4416,10 +4463,10 @@ REPORT_TEMPLATE = '''
                 // 结论
                 const winnerEntry = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a);
                 const winner = winnerEntry[0], winnerPnl = winnerEntry[1].pnl;
-                const winnerLabel = winner === 'v4_1' ? 'v4.1' : (winner === 'v4_2' ? 'v4.2' : (winner === 'v4_3' ? 'v4.3' : (winner === 'v4_3_1' ? 'v4.3.1' : winner)));
+                const winnerLabel = getLbl(winner);
                 const wPct = winnerEntry[1].count > 0 ? (winnerEntry[1].wins/winnerEntry[1].count*100).toFixed(0) : 0;
                 const yearLabel = year === 'all' ? '跨年汇总' : year + '年';
-                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219', v4_1:'rgba(230,126,34', v4_2:'rgba(155,89,182', v4_3:'rgba(231,76,60', v4_3_1:'rgba(149,165,166'};
+                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219', v4_1:'rgba(230,126,34', v4_2:'rgba(155,89,182', v4_3:'rgba(231,76,60', v4_3_1:'rgba(149,165,166', v4_4:'rgba(26,188,156'};
                 el('verdict').innerHTML = `
                     <strong>${yearLabel}</strong>：
                     <strong>${winnerLabel} 策略</strong> 总盈亏
