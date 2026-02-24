@@ -115,7 +115,7 @@ class PaperTradingAssistant:
         self.peak_capital = self.initial_capital  # 历史最高资金
         self.risk_position_multiplier = 1.0  # 风险调整后的仓位倍数 (1.0=正常, 0.5=减半)
         self.last_close_time = None  # 上次平仓时间（冷却期用）
-        self.max_positions = 12  # 总仓位上限12个，不限方向比例
+        self.max_positions = 15  # 总仓位上限15个，不限方向比例
 
         # 初始化数据库
         self.init_database()
@@ -129,8 +129,8 @@ class PaperTradingAssistant:
         t1_count = sum(1 for v in self.coin_tiers.values() if v == 'T1')
         t2_count = sum(1 for v in self.coin_tiers.values() if v == 'T2')
         t3_count = sum(1 for v in self.coin_tiers.values() if v == 'T3')
-        print(f"【交易助手-模拟v4】🧪 系统启动")
-        print(f"v4.2策略: 3x杠杆 | LONG加强过滤 | BTC趋势重罚 | 30m冷却 | 最多12仓")
+        print(f"【交易助手-模拟v4.3.1】🧪 系统启动")
+        print(f"v4.3.1策略: 动态杠杆3-10x | 固定止盈10% | 止损8% | 最多{self.max_positions}仓")
         print(f"当前资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
         print(f"目标利润: {self.target_profit}U")
         print(f"币种分层: T1={t1_count} T2={t2_count} T3={t3_count} 跳过={len(self.skip_coins)}")
@@ -543,24 +543,25 @@ class PaperTradingAssistant:
             return 0, None
     
     def calculate_position_size(self, score, symbol=None):
-        """v4仓位计算 - 基于2023-2025回测+2026验证"""
+        """v4.3.1仓位计算 - 动态杠杆3-10x"""
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
 
-        # v4评分校准 (最大杠杆3x, 回测5x在80+分胜率低13%)
+        # v4.3.1 动态杠杆: 评分越高杠杆越大 (3-10x)
         if score >= 85:
-            # v4: 85+ SHORT降仓 (85+ LONG在scan_market已跳过)
             size = min(150, available * 0.08)
-            leverage = 3
+            leverage = 10  # 高信心 = 高杠杆
+        elif score >= 80:
+            size = min(250, available * 0.15)
+            leverage = 7
         elif score >= 75:
-            # 最佳区间: 75-84分 +4.66U/笔 65.5%WR
             size = min(350, available * 0.22)
-            leverage = 3
+            leverage = 5
         elif score >= 70:
             size = min(250, available * 0.15)
-            leverage = 3
+            leverage = 4
         elif score >= 60:
             size = min(150, available * 0.1)
-            leverage = 2
+            leverage = 3  # 基础杠杆
         else:
             return 0, 3
 
@@ -593,10 +594,11 @@ class PaperTradingAssistant:
                 print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
-            # ROI模式止损（基于本金盈亏%，无论杠杆）
-            roi_stop = -10   # v3止损: ROI跌到-10%平仓（宽止损）
-            roi_trail_start = 6   # v3+移动止盈启动: ROI达+6%（更早锁利）
-            roi_trail_dist = 3    # 回撤距离: 从峰值回撤3%平仓
+            # v4.3.1 ROI模式: 固定止盈10%，止损8%
+            roi_stop = -8    # 止损: ROI跌到-8%平仓
+            roi_take_profit = 10  # 固定止盈: ROI达+10%立即平仓
+            roi_trail_start = 10  # 兼容字段
+            roi_trail_dist = 0    # 不使用移动止盈
 
             # 计算止损价格（用于显示/记录）
             stop_price_pct = roi_stop / (leverage * 100)
@@ -604,13 +606,13 @@ class PaperTradingAssistant:
                 stop_loss = entry_price * (1 + stop_price_pct)
             else:
                 stop_loss = entry_price * (1 - stop_price_pct)
-            # 移动止盈启动价（ROI +8%对应的价格，供显示参考）
-            tp_price_pct = roi_trail_start / (leverage * 100)
+            # 固定止盈价格（ROI +10%对应的价格）
+            tp_price_pct = roi_take_profit / (leverage * 100)
             if direction == 'LONG':
                 take_profit = entry_price * (1 + tp_price_pct)
             else:
                 take_profit = entry_price * (1 - tp_price_pct)
-            print(f"📊 {symbol} ROI模式: 止损{roi_stop}%ROI, trailing启动+{roi_trail_start}%ROI, 回撤{roi_trail_dist}%")
+            print(f"📊 {symbol} v4.3.1: 止损{roi_stop}%ROI, 固定止盈+{roi_take_profit}%ROI, 杠杆{leverage}x")
 
             # 记录持仓
             self.positions[symbol] = {
@@ -622,6 +624,7 @@ class PaperTradingAssistant:
                 'take_profit': take_profit,
                 'initial_stop_loss': stop_loss,
                 'roi_stop_loss': roi_stop,
+                'roi_take_profit': roi_take_profit,  # 固定止盈目标
                 'roi_trailing_start': roi_trail_start,
                 'roi_trailing_distance': roi_trail_dist,
                 'peak_roi': 0,
@@ -658,12 +661,12 @@ class PaperTradingAssistant:
             tier_emoji = {'T1': '🏆', 'T2': '🥈', 'T3': '🥉'}.get(tier, '❓')
             stars = '⭐' * (score // 20)
             score_warn = ' ⚠️85+SHORT' if score >= 85 else ''
-            msg = f"""【交易助手-模拟v4】🧪 开仓通知
+            msg = f"""【交易助手-模拟v4.3.1】🧪 开仓通知
 
 💰 币种：{symbol}/USDT {tier_emoji}{tier}
 📈 方向：{'做多' if direction == 'LONG' else '做空'}
 💵 金额：{amount}U
-🔢 杠杆：{leverage}x
+🔢 杠杆：{leverage}x (动态)
 📍 入场：${entry_price:.6f}
 
 📊 信号评分：{score}分 {stars}{score_warn}
@@ -671,7 +674,7 @@ class PaperTradingAssistant:
 📈 趋势：{'多头' if analysis['price'] > analysis['ma20'] else '空头'}
 
 🛑 止损：ROI {roi_stop}% (≈${stop_loss:.4f})
-📈 移动止盈：ROI +{roi_trail_start}%启动，回撤{roi_trail_dist}%平仓
+✅ 固定止盈：ROI +{roi_take_profit}% (≈${take_profit:.4f})
 
 💼 当前持仓数：{len(self.positions)}
 💰 剩余资金：{self.current_capital - sum([p['amount'] for p in self.positions.values()]):.0f}U
@@ -770,17 +773,11 @@ class PaperTradingAssistant:
                     should_close = True
                     reason = f"触发ROI止损 (ROI {current_roi:.1f}%)"
 
-            # 2. ROI移动止盈: 峰值超过启动线后，回撤超过距离
-            elif not should_close and peak_roi >= roi_trail_start:
-                drawdown = peak_roi - current_roi
-                if drawdown >= roi_trail_dist:
-                    should_close = True
-                    trail_exit_roi = peak_roi - roi_trail_dist
-                    position['stop_move_count'] = position.get('stop_move_count', 0) + 1
-                    if trail_exit_roi > 0:
-                        reason = f"移动止盈 (ROI +{trail_exit_roi:.1f}%, 峰值+{peak_roi:.1f}%)"
-                    else:
-                        reason = f"触发止损 (ROI {trail_exit_roi:.1f}%)"
+            # 2. v4.3.1 固定止盈: ROI达到目标立即平仓
+            roi_take_profit = position.get('roi_take_profit', 10)  # 默认10%
+            if not should_close and current_roi >= roi_take_profit:
+                should_close = True
+                reason = f"固定止盈 (ROI +{current_roi:.1f}% >= 目标+{roi_take_profit}%)"
 
             if should_close:
                 self.close_position(symbol, current_price, reason)
@@ -972,10 +969,10 @@ class PaperTradingAssistant:
         short_count = sum(1 for p in self.positions.values() if p['direction'] == 'SHORT')
 
         if len(self.positions) < self.max_positions and available > 100:
-            # v4.1: 每次扫描最多开1个 (减少频率，提高质量)
+            # 每次扫描最多开3个（加快建仓速度）
             opened = 0
             for symbol, score, analysis in opportunities:
-                if opened >= 1:
+                if opened >= 3:
                     break
                 if len(self.positions) + opened >= self.max_positions:
                     break
@@ -1165,6 +1162,7 @@ class PaperTradingAssistant:
 
             # 6. 计算风险评分 (0-10)
             risk_score = 0
+            position_count = len(self.positions)
 
             # 回撤风险 (0-3分)
             if current_drawdown > 15:
@@ -1180,17 +1178,19 @@ class PaperTradingAssistant:
             elif consecutive_losses >= 2:
                 risk_score += 1
 
-            # 持仓集中度 (0-2分)
-            if max_position_pct > 40:
-                risk_score += 2
-            elif max_position_pct > 30:
-                risk_score += 1
+            # 持仓集中度 (0-2分) - 持仓<3个时不计算，避免死循环
+            if position_count >= 3:
+                if max_position_pct > 40:
+                    risk_score += 2
+                elif max_position_pct > 30:
+                    risk_score += 1
 
-            # 方向失衡 (0-2分)
-            if max(long_ratio, short_ratio) > 85:
-                risk_score += 2
-            elif max(long_ratio, short_ratio) > 70:
-                risk_score += 1
+            # 方向失衡 (0-2分) - 持仓<3个时不计算，避免死循环
+            if position_count >= 3:
+                if max(long_ratio, short_ratio) > 85:
+                    risk_score += 2
+                elif max(long_ratio, short_ratio) > 70:
+                    risk_score += 1
 
             # 杠杆风险 (0-1分)
             if avg_leverage > 3:

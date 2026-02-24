@@ -272,17 +272,19 @@ def get_stats():
         elif consecutive_losses >= 2:
             risk_score += 1
 
-        # 持仓集中风险 (0-2分)
-        if max_position_pct > 40:
-            risk_score += 2
-        elif max_position_pct > 30:
-            risk_score += 1
+        # 持仓集中风险 (0-2分) - 持仓<3个时不计算，避免死循环
+        if total_positions >= 3:
+            if max_position_pct > 40:
+                risk_score += 2
+            elif max_position_pct > 30:
+                risk_score += 1
 
-        # 单边风险 (0-2分)
-        if max(long_ratio, short_ratio) > 85:
-            risk_score += 2
-        elif max(long_ratio, short_ratio) > 70:
-            risk_score += 1
+        # 单边风险 (0-2分) - 持仓<3个时不计算，避免死循环
+        if total_positions >= 3:
+            if max(long_ratio, short_ratio) > 85:
+                risk_score += 2
+            elif max(long_ratio, short_ratio) > 70:
+                risk_score += 1
 
         # 杠杆风险 (0-1分)
         if leverage_ratio > 3:
@@ -361,6 +363,32 @@ def get_trades():
         
         return jsonify(trades)
         
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/trades/daily/<date>')
+def get_daily_trades(date):
+    """获取指定日期的交易详情"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            SELECT
+                symbol, direction, entry_price, exit_price,
+                amount, leverage, pnl, roi, fee, funding_fee,
+                entry_time, exit_time, status, reason
+            FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手'
+            AND DATE(exit_time) = ?
+            ORDER BY exit_time DESC
+        ''', (date,))
+
+        trades = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        return jsonify(trades)
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -449,6 +477,48 @@ def get_daily_history():
         conn.close()
 
         return jsonify(history)
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/calendar_stats')
+def get_calendar_stats():
+    """获取日历统计数据（所有日期）"""
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 获取所有有交易记录的日期统计
+        cursor.execute('''
+            SELECT
+                DATE(exit_time) as date,
+                COUNT(*) as trades,
+                SUM(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+                SUM(COALESCE(pnl, 0)) as daily_pnl
+            FROM real_trades
+            WHERE mode = 'paper' AND assistant = '交易助手'
+            AND status = 'CLOSED'
+            AND exit_time IS NOT NULL
+            GROUP BY DATE(exit_time)
+            ORDER BY date ASC
+        ''')
+
+        all_stats = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+
+        # 转换为字典格式，方便前端查找
+        stats_by_date = {}
+        for day in all_stats:
+            stats_by_date[day['date']] = {
+                'trades': day['trades'],
+                'wins': day['wins'],
+                'pnl': day['daily_pnl']
+            }
+
+        return jsonify({
+            'stats': stats_by_date,
+            'dates': list(stats_by_date.keys())
+        })
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -781,108 +851,161 @@ def _get_btc_trend():
         return {'direction': 'neutral', 'strength': 0}
 
 def get_signal_suggestion(symbol):
-    """获取币种信号建议（做多/做空）+ 信心度 + 止盈止损"""
+    """获取币种信号建议 - 与paper_trader评分逻辑一致"""
     try:
         binance_symbol = SYMBOL_MAP.get(symbol, f"{symbol}USDT")
 
-        # 获取K线数据（使用期货API）
+        # 获取1小时K线数据（与paper_trader一致）
         url = f"https://fapi.binance.com/fapi/v1/klines"
         params = {
             'symbol': binance_symbol,
-            'interval': '5m',
-            'limit': 50
+            'interval': '1h',
+            'limit': 100
         }
         response = requests.get(url, params=params, timeout=5)
         klines = response.json()
 
-        if not klines or len(klines) < 30:
+        if not klines or len(klines) < 50:
             return None
 
-        # 计算简单RSI
         closes = [float(k[4]) for k in klines]
+        volumes = [float(k[5]) for k in klines]
+        highs = [float(k[2]) for k in klines]
+        lows = [float(k[3]) for k in klines]
+        current_price = closes[-1]
+
+        # 计算RSI
         changes = [closes[i] - closes[i-1] for i in range(1, len(closes))]
         gains = [c if c > 0 else 0 for c in changes]
         losses = [abs(c) if c < 0 else 0 for c in changes]
-
         avg_gain = sum(gains[-14:]) / 14 if len(gains) >= 14 else 0
         avg_loss = sum(losses[-14:]) / 14 if len(losses) >= 14 else 0
-
         if avg_loss == 0:
             rsi = 100
         else:
             rs = avg_gain / avg_loss
             rsi = 100 - (100 / (1 + rs))
 
-        # 计算MA趋势
-        ma7 = sum(closes[-7:]) / 7
-        ma25 = sum(closes[-25:]) / 25
-        current_price = closes[-1]
+        # 方向投票系统（与paper_trader一致）
+        votes = {'LONG': 0, 'SHORT': 0}
 
-        # 计算信心度分数 (0-100)
-        confidence = 0
-        direction = None
-
-        # RSI 分数 (40分)
+        # 1. RSI分析 (30分)
         if rsi < 30:
-            confidence += 40
-            direction = 'LONG'
+            rsi_score = 30
+            votes['LONG'] += 1
         elif rsi > 70:
-            confidence += 40
-            direction = 'SHORT'
-        elif rsi < 40:
-            confidence += 20
+            rsi_score = 30
+            votes['SHORT'] += 1
+        elif rsi < 45:
+            rsi_score = 15
+            votes['LONG'] += 1
+        elif rsi > 55:
+            rsi_score = 15
+            votes['SHORT'] += 1
+        else:
+            rsi_score = 5
+
+        # 2. 趋势分析 (30分)
+        ma7 = sum(closes[-7:]) / 7
+        ma20 = sum(closes[-20:]) / 20
+        ma50 = sum(closes[-50:]) / 50
+
+        if current_price > ma7 > ma20 > ma50:
+            trend_score = 30
+            votes['LONG'] += 2
+        elif current_price < ma7 < ma20 < ma50:
+            trend_score = 30
+            votes['SHORT'] += 2
+        elif current_price > ma7 > ma20:
+            trend_score = 15
+            votes['LONG'] += 1
+        elif current_price < ma7 < ma20:
+            trend_score = 15
+            votes['SHORT'] += 1
+        else:
+            trend_score = 5
+
+        # 3. 成交量分析 (20分)
+        avg_volume = sum(volumes[-20:]) / 20
+        recent_volume = volumes[-1]
+        volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
+        if volume_ratio > 1.5:
+            volume_score = 20
+        elif volume_ratio > 1.2:
+            volume_score = 15
+        elif volume_ratio > 1:
+            volume_score = 10
+        else:
+            volume_score = 5
+
+        # 4. 价格位置 (20分)
+        high_50 = max(highs[-50:])
+        low_50 = min(lows[-50:])
+        price_position = (current_price - low_50) / (high_50 - low_50) if high_50 > low_50 else 0.5
+        if price_position < 0.2:
+            position_score = 20
+            votes['LONG'] += 1
+        elif price_position > 0.8:
+            position_score = 20
+            votes['SHORT'] += 1
+        elif price_position < 0.35:
+            position_score = 10
+            votes['LONG'] += 1
+        elif price_position > 0.65:
+            position_score = 10
+            votes['SHORT'] += 1
+        else:
+            position_score = 5
+
+        # 方向由投票决定
+        if votes['LONG'] > votes['SHORT']:
             direction = 'LONG'
-        elif rsi > 60:
-            confidence += 20
+        elif votes['SHORT'] > votes['LONG']:
             direction = 'SHORT'
+        else:
+            direction = 'LONG' if rsi < 50 else 'SHORT'
 
-        # MA 趋势分数 (30分)
-        if ma7 > ma25:
-            confidence += 30
-            if direction != 'SHORT':
-                direction = 'LONG'
-        elif ma7 < ma25:
-            confidence += 30
-            if direction != 'LONG':
-                direction = 'SHORT'
+        confidence = rsi_score + trend_score + volume_score + position_score
 
-        # 价格位置分数 (30分)
-        if direction == 'LONG' and current_price > ma7:
-            confidence += 30
-        elif direction == 'SHORT' and current_price < ma7:
-            confidence += 30
-        elif direction == 'LONG' and current_price < ma7:
-            confidence -= 10
-        elif direction == 'SHORT' and current_price > ma7:
-            confidence -= 10
-
-        # === BTC大盘趋势过滤 ===
+        # === BTC大盘趋势过滤（与paper_trader一致的严格惩罚）===
         btc_trend = _get_btc_trend()
         btc_dir = btc_trend.get('direction', 'neutral')
         btc_str = btc_trend.get('strength', 0)
+        btc_ma50 = btc_trend.get('ma50', 0)
+        btc_price = btc_trend.get('price', 0)
+        btc_below_ma50 = btc_price > 0 and btc_ma50 > 0 and btc_price < btc_ma50
 
         # 个币自身趋势
         coin_has_own_trend = False
-        if direction == 'LONG' and current_price > ma7 > ma25:
+        if direction == 'LONG' and current_price > ma7 > ma20:
             coin_has_own_trend = True
-        elif direction == 'SHORT' and current_price < ma7 < ma25:
+        elif direction == 'SHORT' and current_price < ma7 < ma20:
             coin_has_own_trend = True
 
-        # 逆BTC趋势惩罚
+        # 逆BTC趋势惩罚（与paper_trader一致）
         if btc_dir == 'down' and direction == 'LONG':
             if coin_has_own_trend:
-                confidence = int(confidence * 0.80)
+                confidence = int(confidence * 0.35)
             elif btc_str >= 2:
+                confidence = int(confidence * 0.15)
+            else:
+                confidence = int(confidence * 0.25)
+        elif btc_below_ma50 and direction == 'LONG':
+            if coin_has_own_trend:
                 confidence = int(confidence * 0.50)
             else:
-                confidence = int(confidence * 0.65)
+                confidence = int(confidence * 0.35)
         elif btc_dir == 'up' and direction == 'SHORT':
             if coin_has_own_trend:
-                confidence = int(confidence * 0.80)
+                confidence = int(confidence * 0.75)
             elif btc_str >= 2:
-                confidence = int(confidence * 0.50)
+                confidence = int(confidence * 0.45)
             else:
-                confidence = int(confidence * 0.65)
+                confidence = int(confidence * 0.60)
+
+        # 做空加成5%
+        if direction == 'SHORT':
+            confidence = int(confidence * 1.05)
 
         # v3 ROI模式：止损-10%ROI，移动止盈+8%ROI启动
         roi_stop = -10   # v3止损ROI
@@ -1655,24 +1778,298 @@ HTML_TEMPLATE = '''
             margin-bottom: 10px;
         }
 
-        .daily-item {
+        /* 日历网格样式 */
+        .calendar-header {
             display: flex;
             justify-content: space-between;
-            padding: 8px;
-            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 5px 0;
         }
 
-        .daily-item:last-child {
-            border-bottom: none;
+        .calendar-nav-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
         }
 
-        .daily-date {
+        .calendar-nav-btn:hover {
+            background: #5a67d8;
+            transform: scale(1.1);
+        }
+
+        .calendar-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            margin-bottom: 4px;
+            text-align: center;
+            font-size: 0.75em;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .calendar-weekdays span {
+            padding: 4px 0;
+        }
+
+        .calendar-summary {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 0.85em;
+            color: #374151;
+            text-align: center;
+        }
+
+        .calendar-summary .positive { color: #059669; font-weight: 600; }
+        .calendar-summary .negative { color: #dc2626; font-weight: 600; }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 4px;
+            min-height: 60px;
+        }
+
+        .calendar-day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .calendar-day.profit {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            border: 2px solid #10b981;
+        }
+
+        .calendar-day.loss {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid #ef4444;
+        }
+
+        .calendar-day.no-trade {
+            background: #f3f4f6;
+            border: 2px solid #e5e7eb;
+            cursor: default;
+        }
+
+        .calendar-day.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+        }
+
+        .calendar-day.empty:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .calendar-day.today {
+            box-shadow: 0 0 0 3px #667eea;
+        }
+
+        .calendar-day.future {
+            background: #fafafa;
+            border: 2px dashed #d1d5db;
+            cursor: default;
+            opacity: 0.6;
+        }
+
+        .calendar-day .day-date {
+            font-size: 0.75em;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .calendar-day .day-pnl {
+            font-size: 0.9em;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .calendar-day .day-trades {
+            font-size: 0.65em;
+            color: #888;
+            margin-top: 1px;
+        }
+
+        .calendar-day.profit .day-pnl { color: #059669; }
+        .calendar-day.loss .day-pnl { color: #dc2626; }
+
+        /* 日交易详情弹窗 */
+        .daily-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .daily-modal.show {
+            display: flex;
+        }
+
+        .daily-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .daily-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .daily-modal-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .daily-modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
             color: #666;
         }
 
-        .daily-value {
-            font-weight: 600;
+        .daily-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            color: white;
+            text-align: center;
         }
+
+        .summary-main {
+            margin-bottom: 8px;
+        }
+
+        .summary-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .summary-value {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-left: 10px;
+        }
+
+        .summary-value.positive { color: #86efac; }
+        .summary-value.negative { color: #fca5a5; }
+
+        .summary-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 0.85em;
+            opacity: 0.9;
+        }
+
+        .daily-trade-item {
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background: #f9fafb;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        .daily-trade-item.win {
+            background: linear-gradient(to right, #d1fae5, #f0fdf4);
+            border-color: #86efac;
+        }
+        .daily-trade-item.loss {
+            background: linear-gradient(to right, #fee2e2, #fef2f2);
+            border-color: #fca5a5;
+        }
+
+        .trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.03);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .trade-symbol {
+            font-weight: 700;
+            font-size: 1.05em;
+        }
+
+        .trade-pnl {
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .trade-pnl.positive { color: #059669; }
+        .trade-pnl.negative { color: #dc2626; }
+
+        .trade-details {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px 12px;
+            padding: 10px 12px;
+            font-size: 0.85em;
+        }
+
+        .trade-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .trade-label {
+            color: #6b7280;
+        }
+
+        .trade-value {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .trade-value.positive { color: #059669; }
+        .trade-value.negative { color: #dc2626; }
 
         .daily-value.positive {
             color: #10b981;
@@ -2184,17 +2581,40 @@ HTML_TEMPLATE = '''
                         </div>
                     </div>
 
-                    <!-- 每日盈亏明细 -->
+                    <!-- 每日盈亏日历 -->
                     <div class="daily-breakdown">
-                        <div class="daily-breakdown-title">📅 最近7天盈亏</div>
-                        <div id="daily-pnl-list">
+                        <div class="calendar-header">
+                            <button class="calendar-nav-btn" onclick="changeMonth(-1)">◀</button>
+                            <span class="calendar-title" id="calendar-month-title">2026年2月</span>
+                            <button class="calendar-nav-btn" onclick="changeMonth(1)">▶</button>
+                        </div>
+                        <div class="calendar-weekdays">
+                            <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+                        </div>
+                        <div id="daily-pnl-list" class="calendar-grid">
                             <div class="loading">加载中</div>
+                        </div>
+                        <div class="calendar-summary" id="calendar-summary">
+                            本月: <span id="month-pnl">-</span> | 总计: <span id="total-pnl">-</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+
+        <!-- 日交易详情弹窗 -->
+        <div id="daily-modal" class="daily-modal" onclick="if(event.target===this)closeDailyModal()">
+            <div class="daily-modal-content">
+                <div class="daily-modal-header">
+                    <span class="daily-modal-title" id="daily-modal-title">交易详情</span>
+                    <button class="daily-modal-close" onclick="closeDailyModal()">&times;</button>
+                </div>
+                <div id="daily-modal-body">
+                    <div class="loading">加载中...</div>
+                </div>
+            </div>
+        </div>
+
         <div class="refresh-time">
             最后更新: <span id="last-update">-</span> | 每60秒自动刷新
         </div>
@@ -2208,6 +2628,113 @@ HTML_TEMPLATE = '''
         let positionFilter = 'all'; // 持仓筛选状态: all, long, short
         let selectedPositionIndex = -1;
         let currentTrades = [];
+
+        // 日历相关变量
+        let calendarData = {};  // 缓存所有日历数据
+        let currentCalendarDate = new Date();  // 当前查看的月份
+        let totalPnl = 0;  // 总盈亏
+
+        // 加载日历数据
+        async function loadCalendarData() {
+            try {
+                const resp = await fetch('/api/calendar_stats');
+                const data = await resp.json();
+                calendarData = data.stats || {};
+
+                // 计算总盈亏
+                totalPnl = 0;
+                Object.values(calendarData).forEach(day => {
+                    totalPnl += day.pnl || 0;
+                });
+
+                renderCalendar();
+            } catch (error) {
+                console.error('加载日历数据失败:', error);
+            }
+        }
+
+        // 切换月份
+        function changeMonth(delta) {
+            currentCalendarDate.setMonth(currentCalendarDate.getMonth() + delta);
+            renderCalendar();
+        }
+
+        // 渲染月历
+        function renderCalendar() {
+            const year = currentCalendarDate.getFullYear();
+            const month = currentCalendarDate.getMonth();
+
+            // 更新标题
+            document.getElementById('calendar-month-title').textContent =
+                `${year}年${month + 1}月`;
+
+            // 获取该月第一天和最后一天
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startDayOfWeek = firstDay.getDay();  // 0=周日
+
+            // 今天的日期
+            const today = new Date();
+            const todayStr = today.toISOString().split('T')[0];
+
+            // 计算本月盈亏
+            let monthPnl = 0;
+            let monthTrades = 0;
+
+            // 渲染日历格子
+            const container = document.getElementById('daily-pnl-list');
+            let html = '';
+
+            // 空白格子（月初之前）
+            for (let i = 0; i < startDayOfWeek; i++) {
+                html += '<div class="calendar-day empty"></div>';
+            }
+
+            // 每一天
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayData = calendarData[dateStr];
+                const isToday = dateStr === todayStr;
+                const isFuture = new Date(dateStr) > today;
+
+                let dayClass = 'no-trade';
+                let pnlText = '-';
+                let tradesText = '';
+                let clickHandler = '';
+
+                if (dayData && dayData.trades > 0) {
+                    dayClass = dayData.pnl >= 0 ? 'profit' : 'loss';
+                    pnlText = (dayData.pnl >= 0 ? '+' : '') + formatNumber(dayData.pnl, 1);
+                    tradesText = dayData.trades + '笔';
+                    clickHandler = `onclick="showDailyTrades('${dateStr}')"`;
+                    monthPnl += dayData.pnl;
+                    monthTrades += dayData.trades;
+                } else if (isFuture) {
+                    dayClass = 'future';
+                }
+
+                if (isToday) dayClass += ' today';
+
+                html += `
+                    <div class="calendar-day ${dayClass}" ${clickHandler}>
+                        <span class="day-date">${day}</span>
+                        <span class="day-pnl">${pnlText}</span>
+                        <span class="day-trades">${tradesText}</span>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            // 更新汇总
+            const monthPnlClass = monthPnl >= 0 ? 'positive' : 'negative';
+            const totalPnlClass = totalPnl >= 0 ? 'positive' : 'negative';
+            document.getElementById('month-pnl').innerHTML =
+                `<span class="${monthPnlClass}">${monthPnl >= 0 ? '+' : ''}${formatNumber(monthPnl, 2)}U</span> (${monthTrades}笔)`;
+            document.getElementById('total-pnl').innerHTML =
+                `<span class="${totalPnlClass}">${totalPnl >= 0 ? '+' : ''}${formatNumber(totalPnl, 2)}U</span>`;
+        }
 
         // 筛选持仓
         function filterPositions(filter) {
@@ -2597,7 +3124,130 @@ HTML_TEMPLATE = '''
             const formatted = formatNumber(num, 2);
             return num >= 0 ? '+' + formatted : formatted;
         }
-        
+
+        // 日交易详情弹窗功能
+        async function showDailyTrades(date) {
+            const modal = document.getElementById('daily-modal');
+            const title = document.getElementById('daily-modal-title');
+            const body = document.getElementById('daily-modal-body');
+
+            title.textContent = `📅 ${date} 交易详情`;
+            body.innerHTML = '<div class="loading">加载中...</div>';
+            modal.classList.add('show');
+
+            try {
+                const resp = await fetch(`/api/trades/daily/${date}`);
+                const trades = await resp.json();
+
+                if (trades.length === 0) {
+                    body.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">当天无交易记录</p>';
+                    return;
+                }
+
+                let totalPnl = 0;
+                let totalFees = 0;
+                let winCount = 0;
+                let html = '';
+
+                trades.forEach(trade => {
+                    const pnl = trade.pnl || 0;
+                    const fee = (trade.fee || 0) + (trade.funding_fee || 0);
+                    totalPnl += pnl;
+                    totalFees += fee;
+                    if (pnl > 0) winCount++;
+
+                    const tradeClass = pnl >= 0 ? 'win' : 'loss';
+                    const pnlClass = pnl >= 0 ? 'positive' : 'negative';
+                    const roiClass = (trade.roi || 0) >= 0 ? 'positive' : 'negative';
+                    const dirEmoji = trade.direction === 'LONG' ? '🟢' : '🔴';
+
+                    // 格式化时间
+                    const entryTime = trade.entry_time ? trade.entry_time.substring(11, 16) : '-';
+                    const exitTime = trade.exit_time ? trade.exit_time.substring(11, 16) : '-';
+
+                    // 格式化价格
+                    const entryPrice = formatNumber(trade.entry_price, 6);
+                    const exitPrice = formatNumber(trade.exit_price, 6);
+
+                    // 平仓原因简化
+                    let reasonShort = '-';
+                    if (trade.reason) {
+                        if (trade.reason.includes('止盈')) reasonShort = '✅ 止盈';
+                        else if (trade.reason.includes('止损')) reasonShort = '❌ 止损';
+                        else if (trade.reason.includes('手动')) reasonShort = '👆 手动';
+                        else reasonShort = trade.reason.substring(0, 10);
+                    }
+
+                    html += `
+                        <div class="daily-trade-item ${tradeClass}">
+                            <div class="trade-header">
+                                <span class="trade-symbol">${dirEmoji} ${trade.symbol}</span>
+                                <span class="trade-pnl ${pnlClass}">${pnl >= 0 ? '+' : ''}${formatNumber(pnl, 2)}U</span>
+                            </div>
+                            <div class="trade-details">
+                                <div class="trade-row">
+                                    <span class="trade-label">方向/杠杆</span>
+                                    <span class="trade-value">${trade.direction} ${trade.leverage}x</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">仓位</span>
+                                    <span class="trade-value">${formatNumber(trade.amount, 1)}U</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">入场价</span>
+                                    <span class="trade-value">${entryPrice}</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">出场价</span>
+                                    <span class="trade-value">${exitPrice}</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">ROI</span>
+                                    <span class="trade-value ${roiClass}">${(trade.roi || 0) >= 0 ? '+' : ''}${formatNumber(trade.roi || 0, 2)}%</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">费用</span>
+                                    <span class="trade-value">-${formatNumber(fee, 3)}U</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">时间</span>
+                                    <span class="trade-value">${entryTime} → ${exitTime}</span>
+                                </div>
+                                <div class="trade-row">
+                                    <span class="trade-label">平仓</span>
+                                    <span class="trade-value">${reasonShort}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                const summaryClass = totalPnl >= 0 ? 'positive' : 'negative';
+                const winRate = trades.length > 0 ? (winCount / trades.length * 100).toFixed(0) : 0;
+                html = `
+                    <div class="daily-summary">
+                        <div class="summary-main">
+                            <span class="summary-label">当日盈亏</span>
+                            <span class="summary-value ${summaryClass}">${totalPnl >= 0 ? '+' : ''}${formatNumber(totalPnl, 2)}U</span>
+                        </div>
+                        <div class="summary-stats">
+                            <span>📊 ${trades.length}笔</span>
+                            <span>🎯 胜率${winRate}%</span>
+                            <span>💰 费用-${formatNumber(totalFees, 2)}U</span>
+                        </div>
+                    </div>
+                ` + html;
+
+                body.innerHTML = html;
+            } catch (e) {
+                body.innerHTML = '<p style="text-align:center;color:#ef4444;padding:20px;">加载失败</p>';
+            }
+        }
+
+        function closeDailyModal() {
+            document.getElementById('daily-modal').classList.remove('show');
+        }
+
         function formatTime(timeStr) {
             if (!timeStr) return '-';
             const date = new Date(timeStr);
@@ -3420,24 +4070,7 @@ HTML_TEMPLATE = '''
                     daysElement.className = 'progress-stat-value';
                 }
 
-                // 渲染每日盈亏列表
-                const dailyListContainer = document.getElementById('daily-pnl-list');
-                if (dailyStats.length === 0) {
-                    dailyListContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 10px;">暂无数据</p>';
-                } else {
-                    let html = '';
-                    dailyStats.forEach(day => {
-                        const pnlColor = day.daily_pnl >= 0 ? 'positive' : 'negative';
-                        const winRate = day.trades > 0 ? (day.wins / day.trades * 100) : 0;
-                        html += `
-                            <div class="daily-item">
-                                <span class="daily-date">${day.date} (${day.trades}笔, 胜率${formatNumber(winRate, 0)}%)</span>
-                                <span class="daily-value ${pnlColor}">${formatCurrency(day.daily_pnl || 0)}U</span>
-                            </div>
-                        `;
-                    });
-                    dailyListContainer.innerHTML = html;
-                }
+                // 日历由 loadCalendarData() 独立加载和渲染
 
             } catch (error) {
                 console.error('加载目标进度失败:', error);
@@ -3450,6 +4083,7 @@ HTML_TEMPLATE = '''
             loadPositions();
             loadTrades();
             loadProgressTracking();
+            loadCalendarData();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
         }
 
@@ -3462,6 +4096,7 @@ HTML_TEMPLATE = '''
             loadPositions();
             loadTrades();
             loadProgressTracking();
+            loadCalendarData();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
         }, 60000);
 
