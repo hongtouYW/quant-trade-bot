@@ -104,6 +104,7 @@ def index():
 @app.route('/api/stats')
 def get_stats():
     """获取统计数据"""
+    conn = None
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -306,22 +307,24 @@ def get_stats():
         stats['risk_level'] = risk_level
         stats['risk_color'] = risk_color
 
-        conn.close()
-
         return jsonify(stats)
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/positions')
 def get_positions():
     """获取当前持仓"""
+    conn = None
     try:
         conn = get_db()
         cursor = conn.cursor()
-        
+
         cursor.execute('''
-            SELECT 
+            SELECT
                 symbol, direction, entry_price, amount, leverage,
                 stop_loss, take_profit, entry_time, reason
             FROM real_trades
@@ -329,23 +332,25 @@ def get_positions():
             AND status = 'OPEN'
             ORDER BY entry_time DESC
         ''')
-        
+
         positions = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        
         return jsonify(positions)
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/trades')
 def get_trades():
     """获取交易历史"""
+    conn = None
     try:
         limit = 20
         conn = get_db()
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             SELECT
                 symbol, direction, entry_price, exit_price,
@@ -357,18 +362,20 @@ def get_trades():
             ORDER BY entry_time DESC
             LIMIT ?
         ''', (limit,))
-        
+
         trades = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-        
         return jsonify(trades)
-        
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/trades/daily/<date>')
 def get_daily_trades(date):
     """获取指定日期的交易详情"""
+    conn = None
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -385,16 +392,18 @@ def get_daily_trades(date):
         ''', (date,))
 
         trades = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-
         return jsonify(trades)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/daily_stats')
 def get_daily_stats():
     """获取每日统计（最近7天）- 优先从daily_pnl表读取"""
+    conn = None
     try:
         conn = get_db()
         cursor = conn.cursor()
@@ -415,15 +424,12 @@ def get_daily_stats():
             ''')
             daily_stats = [dict(row) for row in cursor.fetchall()]
 
-            # 如果有数据，直接返回
             if daily_stats:
-                conn.close()
                 return jsonify(daily_stats)
-        except:
-            # 如果表不存在，继续使用旧方法
+        except Exception:
             pass
 
-        # 降级方案：实时计算（如果daily_pnl表不存在或无数据）
+        # 降级方案：实时计算
         cursor.execute('''
             SELECT
                 DATE(exit_time) as date,
@@ -439,12 +445,13 @@ def get_daily_stats():
         ''')
 
         daily_stats = [dict(row) for row in cursor.fetchall()]
-        conn.close()
-
         return jsonify(daily_stats)
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
 
 @app.route('/api/daily_history')
 def get_daily_history():
@@ -528,7 +535,7 @@ def get_current_price(symbol):
     """获取币种当前价格（使用Binance期货API）"""
     try:
         # 使用Binance期货API，与交易系统一致
-        binance_symbol = f"{symbol}USDT"
+        binance_symbol = SYMBOL_MAP.get(symbol, f"{symbol}USDT")
         url = f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={binance_symbol}"
         response = requests.get(url, timeout=10)
         data = response.json()
@@ -565,15 +572,7 @@ def get_kline(symbol):
         
         limit = interval_limits.get(interval, 288)
         
-        symbol_map = {
-            # 原有币种
-            'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
-            'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
-            # 新增币种
-            'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
-            'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT'
-        }
-        binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+        binance_symbol = SYMBOL_MAP.get(symbol, f"{symbol}USDT")
 
         # 使用期货API获取K线数据
         url = f"https://fapi.binance.com/fapi/v1/klines?symbol={binance_symbol}&interval={interval}&limit={limit}"
@@ -718,6 +717,9 @@ def get_watchlist():
                     'leverage': positions_dict[symbol]['leverage'] if has_position else 10,
                     'profit_pct': None,
                     'loss_pct': None,
+                    'tier': COIN_TIERS.get(symbol, '-'),
+                    'skipped': symbol in SKIP_COINS,
+                    'score_warning': False,
                     'error': str(e)
                 })
 
@@ -797,24 +799,14 @@ def get_strategy_insights():
 
 def get_price_value(symbol):
     """获取币种当前价格（期货价格）"""
-    symbol_map = {
-        # 原有币种
-        'XMR': 'XMRUSDT', 'MEMES': 'MEMESUSDT', 'AXS': 'AXSUSDT',
-        'ROSE': 'ROSEUSDT', 'XRP': 'XRPUSDT', 'SOL': 'SOLUSDT', 'DUSK': 'DUSKUSDT',
-        'VET': 'VETUSDT', 'BNB': 'BNBUSDT', 'INJ': 'INJUSDT',
-        'LINK': 'LINKUSDT', 'OP': 'OPUSDT', 'FIL': 'FILUSDT',
-        # 新增币种
-        'ETH': 'ETHUSDT', 'AVAX': 'AVAXUSDT', 'DOT': 'DOTUSDT',
-        'ATOM': 'ATOMUSDT', 'MATIC': 'MATICUSDT', 'ARB': 'ARBUSDT',
-        'APT': 'APTUSDT', 'SUI': 'SUIUSDT', 'SEI': 'SEIUSDT',
-        'TIA': 'TIAUSDT', 'WLD': 'WLDUSDT', 'NEAR': 'NEARUSDT'
-    }
-    binance_symbol = symbol_map.get(symbol, f"{symbol}USDT")
+    binance_symbol = SYMBOL_MAP.get(symbol, f"{symbol}USDT")
 
     # 使用Binance期货API，与交易系统保持一致
     url = f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={binance_symbol}"
     response = requests.get(url, timeout=5)
     data = response.json()
+    if 'price' not in data:
+        raise ValueError(f"No price data for {symbol} ({binance_symbol})")
     return float(data['price'])
 
 _btc_trend_cache = {'time': None, 'data': None}
@@ -843,12 +835,12 @@ def _get_btc_trend():
             d, s = 'down', 1
         else:
             d, s = 'neutral', 0
-        result = {'direction': d, 'strength': s}
+        result = {'direction': d, 'strength': s, 'ma50': ma50, 'price': price}
         _btc_trend_cache['time'] = now
         _btc_trend_cache['data'] = result
         return result
-    except:
-        return {'direction': 'neutral', 'strength': 0}
+    except Exception:
+        return {'direction': 'neutral', 'strength': 0, 'ma50': 0, 'price': 0}
 
 def get_signal_suggestion(symbol):
     """获取币种信号建议 - 与paper_trader评分逻辑一致"""
@@ -2525,9 +2517,9 @@ HTML_TEMPLATE = '''
                         <h2>📦 当前持仓</h2>
                     </div>
                     <div class="filter-buttons" style="margin-bottom: 12px;">
-                        <button class="filter-btn active" onclick="filterPositions('all')">全部</button>
-                        <button class="filter-btn" onclick="filterPositions('long')">📈 做多</button>
-                        <button class="filter-btn" onclick="filterPositions('short')">📉 做空</button>
+                        <button class="filter-btn active" onclick="filterPositions('all', event)">全部</button>
+                        <button class="filter-btn" onclick="filterPositions('long', event)">📈 做多</button>
+                        <button class="filter-btn" onclick="filterPositions('short', event)">📉 做空</button>
                     </div>
                     <div id="positions-table">
                         <div class="loading">加载中</div>
@@ -2595,7 +2587,7 @@ HTML_TEMPLATE = '''
                             <div class="loading">加载中</div>
                         </div>
                         <div class="calendar-summary" id="calendar-summary">
-                            本月: <span id="month-pnl">-</span> | 总计: <span id="total-pnl">-</span>
+                            本月: <span id="month-pnl">-</span> | 总计: <span id="calendar-total-pnl">-</span>
                         </div>
                     </div>
                 </div>
@@ -2628,6 +2620,7 @@ HTML_TEMPLATE = '''
         let positionFilter = 'all'; // 持仓筛选状态: all, long, short
         let selectedPositionIndex = -1;
         let currentTrades = [];
+        let _activeChart = null; // 当前活跃的Chart.js实例，用于防止内存泄漏
 
         // 日历相关变量
         let calendarData = {};  // 缓存所有日历数据
@@ -2674,9 +2667,9 @@ HTML_TEMPLATE = '''
             const daysInMonth = lastDay.getDate();
             const startDayOfWeek = firstDay.getDay();  // 0=周日
 
-            // 今天的日期
+            // 今天的日期（使用本地时间避免时区偏移）
             const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
             // 计算本月盈亏
             let monthPnl = 0;
@@ -2696,7 +2689,7 @@ HTML_TEMPLATE = '''
                 const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 const dayData = calendarData[dateStr];
                 const isToday = dateStr === todayStr;
-                const isFuture = new Date(dateStr) > today;
+                const isFuture = dateStr > todayStr;
 
                 let dayClass = 'no-trade';
                 let pnlText = '-';
@@ -2732,19 +2725,19 @@ HTML_TEMPLATE = '''
             const totalPnlClass = totalPnl >= 0 ? 'positive' : 'negative';
             document.getElementById('month-pnl').innerHTML =
                 `<span class="${monthPnlClass}">${monthPnl >= 0 ? '+' : ''}${formatNumber(monthPnl, 2)}U</span> (${monthTrades}笔)`;
-            document.getElementById('total-pnl').innerHTML =
+            document.getElementById('calendar-total-pnl').innerHTML =
                 `<span class="${totalPnlClass}">${totalPnl >= 0 ? '+' : ''}${formatNumber(totalPnl, 2)}U</span>`;
         }
 
         // 筛选持仓
-        function filterPositions(filter) {
+        function filterPositions(filter, evt) {
             positionFilter = filter;
 
             // 更新按钮样式
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
+            if (evt && evt.target) evt.target.classList.add('active');
 
             // 重新渲染持仓
             renderPositions();
@@ -2890,11 +2883,13 @@ HTML_TEMPLATE = '''
                 const exitTime = new Date(trade.exit_time).getTime();
 
                 let entryIndex = 0;
+                let entryFound = false;
                 let exitIndex = klineData.length - 1;
 
                 for (let i = 0; i < klineData.length; i++) {
-                    if (klineData[i].time >= entryTime && entryIndex === 0) {
+                    if (!entryFound && klineData[i].time >= entryTime) {
                         entryIndex = i;
+                        entryFound = true;
                     }
                     if (klineData[i].time >= exitTime) {
                         exitIndex = i;
@@ -2902,8 +2897,9 @@ HTML_TEMPLATE = '''
                     }
                 }
 
-                // 创建图表
-                new Chart(canvas, {
+                // 销毁旧图表防止内存泄漏
+                if (_activeChart) { _activeChart.destroy(); _activeChart = null; }
+                _activeChart = new Chart(canvas, {
                     type: 'line',
                     data: {
                         labels: labels,
@@ -3054,7 +3050,7 @@ HTML_TEMPLATE = '''
                                 ticks: {
                                     color: '#999',
                                     callback: function(value) {
-                                        return '$' + value.toFixed(6);
+                                        return '$' + (value >= 100 ? value.toFixed(2) : value >= 1 ? value.toFixed(4) : value.toFixed(6));
                                     }
                                 }
                             }
@@ -3368,15 +3364,18 @@ HTML_TEMPLATE = '''
                     return;
                 }
 
-                // 获取所有持仓的当前价格
+                // 获取所有持仓的当前价格（使用allSettled防止单个失败导致全部失败）
                 const pricePromises = positions.map(pos =>
-                    fetch(`/api/price/${pos.symbol}`).then(r => r.json())
+                    fetch(`/api/price/${pos.symbol}`)
+                        .then(r => r.ok ? r.json() : { price: 0 })
+                        .catch(() => ({ price: 0 }))
                 );
-                const prices = await Promise.all(pricePromises);
+                const prices = await Promise.allSettled(pricePromises);
 
                 // 为每个持仓添加当前价格
                 positions.forEach((pos, i) => {
-                    pos.currentPrice = prices[i].price || 0;
+                    const result = prices[i];
+                    pos.currentPrice = (result.status === 'fulfilled' ? result.value.price : 0) || 0;
                 });
 
                 // 保存到全局变量
@@ -3418,10 +3417,12 @@ HTML_TEMPLATE = '''
                 const currentPrice = pos.currentPrice || 0;
 
                 let pricePct = 0;
-                if (pos.direction === 'LONG') {
-                    pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
-                } else {
-                    pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
+                if (pos.entry_price > 0) {
+                    if (pos.direction === 'LONG') {
+                        pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
+                    } else {
+                        pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
+                    }
                 }
 
                 const roi = pricePct * pos.leverage * 100;
@@ -3736,10 +3737,12 @@ HTML_TEMPLATE = '''
                 
                 // 计算盈亏
                 let pricePct = 0;
-                if (pos.direction === 'LONG') {
-                    pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
-                } else {
-                    pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
+                if (pos.entry_price > 0) {
+                    if (pos.direction === 'LONG') {
+                        pricePct = (currentPrice - pos.entry_price) / pos.entry_price;
+                    } else {
+                        pricePct = (pos.entry_price - currentPrice) / pos.entry_price;
+                    }
                 }
                 const roi = pricePct * pos.leverage * 100;
                 const pnl = pos.amount * pricePct * pos.leverage;
@@ -3837,8 +3840,9 @@ HTML_TEMPLATE = '''
                     }
                 }
                 
-                // 创建图表
-                new Chart(canvas, {
+                // 销毁旧图表防止内存泄漏
+                if (_activeChart) { _activeChart.destroy(); _activeChart = null; }
+                _activeChart = new Chart(canvas, {
                     type: 'line',
                     data: {
                         labels: labels,
@@ -3982,7 +3986,7 @@ HTML_TEMPLATE = '''
                                 },
                                 ticks: {
                                     callback: function(value) {
-                                        return '$' + value.toFixed(6);
+                                        return '$' + (value >= 100 ? value.toFixed(2) : value >= 1 ? value.toFixed(4) : value.toFixed(6));
                                     },
                                     font: {
                                         size: 12,
