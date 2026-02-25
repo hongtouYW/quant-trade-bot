@@ -187,19 +187,22 @@ def calculate_position_size(score, available, max_leverage=5, high_score_leverag
     dynamic_leverage: v4.3动态杠杆模式
     """
     if dynamic_leverage:
-        # v4.3 动态杠杆：根据评分调整
+        # v4.3.1 动态杠杆：评分越高杠杆越大 (3-10x)
         if score >= 85:
-            size = min(400, available * 0.25)
-            leverage = min(10, max_leverage)  # 高分10x
+            size = min(150, available * 0.08)
+            leverage = min(10, max_leverage)
+        elif score >= 80:
+            size = min(250, available * 0.15)
+            leverage = min(7, max_leverage)
         elif score >= 75:
-            size = min(300, available * 0.2)
-            leverage = min(8, max_leverage)   # 中高8x
-        elif score >= 65:
-            size = min(200, available * 0.15)
-            leverage = min(5, max_leverage)   # 标准5x
+            size = min(350, available * 0.22)
+            leverage = min(5, max_leverage)
+        elif score >= 70:
+            size = min(250, available * 0.15)
+            leverage = min(4, max_leverage)
         elif score >= 60:
             size = min(150, available * 0.1)
-            leverage = min(3, max_leverage)   # 刚过门槛3x
+            leverage = min(3, max_leverage)
         else:
             return 0, 3
     else:
@@ -297,6 +300,7 @@ def run_backtest(candles_1h, config):
     dynamic_leverage_v431 = config.get('dynamic_leverage_v431', False)  # v4.3.1 激进杠杆
     dynamic_tpsl = config.get('dynamic_tpsl', False)  # v4.3 动态止盈止损(移动止盈)
     fixed_tp_mode = config.get('fixed_tp_mode', False)  # v4.3.1 固定止盈模式
+    leverage_based_tpsl = config.get('leverage_based_tpsl', False)  # v4.3.1 杠杆联动止盈止损
     # ROI模式参数（基于本金盈亏%）— 作为默认值，dynamic_tpsl开启时会被覆盖
     roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
     roi_take_profit = config.get('roi_take_profit', 0)     # 固定止盈目标，0表示用移动止盈
@@ -434,8 +438,20 @@ def run_backtest(candles_1h, config):
 
         entry_price = analysis['price']
 
-        # v4.3/v4.3.1 动态止盈止损
-        if dynamic_tpsl or fixed_tp_mode:
+        # v4.3.1 杠杆联动止盈止损: 杠杆越高越紧
+        if leverage_based_tpsl:
+            if leverage >= 10:
+                pos_roi_stop = -5;  pos_roi_trail_start = 6;  pos_roi_trail_dist = 2; pos_roi_tp = 0
+            elif leverage >= 7:
+                pos_roi_stop = -6;  pos_roi_trail_start = 7;  pos_roi_trail_dist = 2; pos_roi_tp = 0
+            elif leverage >= 5:
+                pos_roi_stop = -8;  pos_roi_trail_start = 8;  pos_roi_trail_dist = 3; pos_roi_tp = 0
+            elif leverage >= 4:
+                pos_roi_stop = -9;  pos_roi_trail_start = 9;  pos_roi_trail_dist = 3; pos_roi_tp = 0
+            else:
+                pos_roi_stop = -10; pos_roi_trail_start = 10; pos_roi_trail_dist = 3; pos_roi_tp = 0
+        elif dynamic_tpsl or fixed_tp_mode:
+            # v4.3 动态止盈止损
             trend_strength = analysis.get('trend_strength', 1)
             ma_trend = analysis.get('ma_trend', 'neutral')
             direction_matches_trend = (
@@ -447,7 +463,7 @@ def run_backtest(candles_1h, config):
             )
         else:
             pos_roi_stop = roi_stop_loss
-            pos_roi_tp = roi_take_profit  # 从配置读取，0表示用移动止盈模式
+            pos_roi_tp = roi_take_profit
             pos_roi_trail_start = roi_trailing_start
             pos_roi_trail_dist = roi_trailing_distance
 

@@ -4322,24 +4322,21 @@ STRATEGY_PRESETS = {
         }
     },
     'v4.3.1': {
-        'label': 'v4.3.1 激进版',
-        'description': '高杠杆(5-15x) + 固定止盈目标(强势+12%/普通+10%/震荡+8%/逆势+6%)',
+        'label': 'v4.3.1 动态杠杆版',
+        'description': '动态杠杆(3-10x) + 杠杆联动止盈止损(高杠杆紧/低杠杆松)',
         'config': {
             'min_score': 60,
             'long_min_score': 70,
             'cooldown': 1,
-            'max_leverage': 15,
-            'max_positions': 12,
-            'max_same_direction': 12,
+            'max_leverage': 10,
+            'max_positions': 15,
+            'max_same_direction': 15,
             'short_bias': 1.05,
             'enable_trend_filter': True,
             'enable_btc_filter': True,
             'long_ma_slope_threshold': 0.02,
-            'dynamic_leverage_v431': True,
-            'fixed_tp_mode': True,
-            'roi_stop_loss': -8,
-            'roi_trailing_start': 6,
-            'roi_trailing_distance': 3,
+            'dynamic_leverage': True,
+            'leverage_based_tpsl': True,
         }
     },
     'v4.4': {

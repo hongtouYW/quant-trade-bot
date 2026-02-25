@@ -129,8 +129,8 @@ class PaperTradingAssistant:
         t1_count = sum(1 for v in self.coin_tiers.values() if v == 'T1')
         t2_count = sum(1 for v in self.coin_tiers.values() if v == 'T2')
         t3_count = sum(1 for v in self.coin_tiers.values() if v == 'T3')
-        print(f"【交易助手-模拟v4.3.1】🧪 系统启动")
-        print(f"v4.3.1策略: 动态杠杆3-10x | 固定止盈10% | 止损8% | 最多{self.max_positions}仓")
+        print(f"【交易助手-模拟v4.2】🧪 系统启动")
+        print(f"v4.2策略: 固定3x杠杆 | 移动止盈6%/3% | 止损-10% | 最多{self.max_positions}仓")
         print(f"当前资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
         print(f"目标利润: {self.target_profit}U")
         print(f"币种分层: T1={t1_count} T2={t2_count} T3={t3_count} 跳过={len(self.skip_coins)}")
@@ -543,25 +543,21 @@ class PaperTradingAssistant:
             return 0, None
     
     def calculate_position_size(self, score, symbol=None):
-        """v4.3.1仓位计算 - 动态杠杆3-10x"""
+        """v4.2仓位计算 - 固定3x杠杆"""
         available = self.current_capital - sum([p['amount'] for p in self.positions.values()])
+        leverage = 3  # v4.2: 固定3x杠杆
 
-        # v4.3.1 动态杠杆: 评分越高杠杆越大 (3-10x)
+        # v4.2: 按评分分配仓位大小
         if score >= 85:
             size = min(150, available * 0.08)
-            leverage = 10  # 高信心 = 高杠杆
         elif score >= 80:
             size = min(250, available * 0.15)
-            leverage = 7
         elif score >= 75:
             size = min(350, available * 0.22)
-            leverage = 5
         elif score >= 70:
             size = min(250, available * 0.15)
-            leverage = 4
         elif score >= 60:
             size = min(150, available * 0.1)
-            leverage = 3  # 基础杠杆
         else:
             return 0, 3
 
@@ -594,11 +590,10 @@ class PaperTradingAssistant:
                 print(f"{symbol} 资金不足或风险过高，跳过开仓")
                 return
             
-            # v4.3.1 ROI模式: 固定止盈10%，止损8%
-            roi_stop = -8    # 止损: ROI跌到-8%平仓
-            roi_take_profit = 10  # 固定止盈: ROI达+10%立即平仓
-            roi_trail_start = 10  # 兼容字段
-            roi_trail_dist = 0    # 不使用移动止盈
+            # v4.2 固定止盈止损参数
+            roi_stop = -10       # 止损 -10% ROI
+            roi_trail_start = 6  # 移动止盈启动 +6% ROI
+            roi_trail_dist = 3   # 回撤 3% 平仓
 
             # 计算止损价格（用于显示/记录）
             stop_price_pct = roi_stop / (leverage * 100)
@@ -606,13 +601,13 @@ class PaperTradingAssistant:
                 stop_loss = entry_price * (1 + stop_price_pct)
             else:
                 stop_loss = entry_price * (1 - stop_price_pct)
-            # 固定止盈价格（ROI +10%对应的价格）
-            tp_price_pct = roi_take_profit / (leverage * 100)
+            # 移动止盈启动价格（ROI +6%对应的价格）
+            tp_price_pct = roi_trail_start / (leverage * 100)
             if direction == 'LONG':
                 take_profit = entry_price * (1 + tp_price_pct)
             else:
                 take_profit = entry_price * (1 - tp_price_pct)
-            print(f"📊 {symbol} v4.3.1: 止损{roi_stop}%ROI, 固定止盈+{roi_take_profit}%ROI, 杠杆{leverage}x")
+            print(f"📊 {symbol} v4.2: 止损{roi_stop}%ROI, 移动止盈+{roi_trail_start}%启动/{roi_trail_dist}%回撤, 杠杆{leverage}x")
 
             # 记录持仓
             self.positions[symbol] = {
@@ -624,7 +619,6 @@ class PaperTradingAssistant:
                 'take_profit': take_profit,
                 'initial_stop_loss': stop_loss,
                 'roi_stop_loss': roi_stop,
-                'roi_take_profit': roi_take_profit,  # 固定止盈目标
                 'roi_trailing_start': roi_trail_start,
                 'roi_trailing_distance': roi_trail_dist,
                 'peak_roi': 0,
@@ -661,12 +655,12 @@ class PaperTradingAssistant:
             tier_emoji = {'T1': '🏆', 'T2': '🥈', 'T3': '🥉'}.get(tier, '❓')
             stars = '⭐' * (score // 20)
             score_warn = ' ⚠️85+SHORT' if score >= 85 else ''
-            msg = f"""【交易助手-模拟v4.3.1】🧪 开仓通知
+            msg = f"""【交易助手-模拟v4.2】🧪 开仓通知
 
 💰 币种：{symbol}/USDT {tier_emoji}{tier}
 📈 方向：{'做多' if direction == 'LONG' else '做空'}
 💵 金额：{amount}U
-🔢 杠杆：{leverage}x (动态)
+🔢 杠杆：{leverage}x
 📍 入场：${entry_price:.6f}
 
 📊 信号评分：{score}分 {stars}{score_warn}
@@ -674,7 +668,7 @@ class PaperTradingAssistant:
 📈 趋势：{'多头' if analysis['price'] > analysis['ma20'] else '空头'}
 
 🛑 止损：ROI {roi_stop}% (≈${stop_loss:.4f})
-✅ 固定止盈：ROI +{roi_take_profit}% (≈${take_profit:.4f})
+📈 移动止盈：ROI +{roi_trail_start}%启动，回撤{roi_trail_dist}%平仓
 
 💼 当前持仓数：{len(self.positions)}
 💰 剩余资金：{self.current_capital - sum([p['amount'] for p in self.positions.values()]):.0f}U
@@ -698,8 +692,8 @@ class PaperTradingAssistant:
             entry_price = position['entry_price']
             leverage = position.get('leverage', 1)
 
-            roi_stop = position.get('roi_stop_loss', -8)
-            roi_trail_start = position.get('roi_trailing_start', 5)
+            roi_stop = position.get('roi_stop_loss', -10)
+            roi_trail_start = position.get('roi_trailing_start', 6)
             roi_trail_dist = position.get('roi_trailing_distance', 3)
 
             # 计算当前ROI
@@ -773,11 +767,17 @@ class PaperTradingAssistant:
                     should_close = True
                     reason = f"触发ROI止损 (ROI {current_roi:.1f}%)"
 
-            # 2. v4.3.1 固定止盈: ROI达到目标立即平仓
-            roi_take_profit = position.get('roi_take_profit', 10)  # 默认10%
-            if not should_close and current_roi >= roi_take_profit:
-                should_close = True
-                reason = f"固定止盈 (ROI +{current_roi:.1f}% >= 目标+{roi_take_profit}%)"
+            # 2. v4.2 移动止盈: 峰值超过启动线后，回撤超过距离
+            if not should_close and peak_roi >= roi_trail_start:
+                drawdown = peak_roi - current_roi
+                if drawdown >= roi_trail_dist:
+                    should_close = True
+                    trail_exit_roi = peak_roi - roi_trail_dist
+                    position['stop_move_count'] = position.get('stop_move_count', 0) + 1
+                    if trail_exit_roi > 0:
+                        reason = f"移动止盈 (ROI +{trail_exit_roi:.1f}%, 峰值+{peak_roi:.1f}%)"
+                    else:
+                        reason = f"触发止损 (ROI {trail_exit_roi:.1f}%)"
 
             if should_close:
                 self.close_position(symbol, current_price, reason)

@@ -133,7 +133,13 @@
       "Bash(find:*)",
       "Bash(/bin/bash:*)",
       "Bash(gh auth:*)",
-      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/github_key -o StrictHostKeyChecking=no\" git push:*)"
+      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/github_key -o StrictHostKeyChecking=no\" git push:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/check_progress.exp:*)",
+      "Bash(mkdir:*)",
+      "Bash(for year in 2020 2021 2022 2023 2024 2025)",
+      "Bash(do curl -s \"http://139.162.41.38:5111/api/backtest/report?year=$year\")",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/check_error.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/start_trader.exp:*)"
     ]
   }
 }
