@@ -11,6 +11,7 @@ import time
 import threading
 import traceback
 import requests
+from collections import deque
 from datetime import datetime, timezone
 from decimal import Decimal
 
@@ -57,6 +58,18 @@ class AgentBot:
         self.risk_manager = None
         self.config = {}
         self.scan_count = 0
+        # Activity log ring buffer (last 100 entries)
+        self.activity_log = deque(maxlen=100)
+
+    def _log(self, level: str, message: str):
+        """Log a message to both stdout and the in-memory activity log."""
+        ts = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+        print(f"[AgentBot-{self.agent_id}] {message}")
+        self.activity_log.append({
+            'time': ts,
+            'level': level,
+            'message': message,
+        })
 
     def _load_config(self):
         """Load agent config from database."""
@@ -69,15 +82,15 @@ class AgentBot:
         if not api_key_record or not api_key_record.permissions_verified:
             raise RuntimeError(f"Agent {self.agent_id} has no verified API keys")
 
-        # Decrypt API keys
-        api_key = EncryptionService.decrypt(
+        # Decrypt API keys (stored as single encrypted JSON blob)
+        import json as _json
+        combined_json = EncryptionService.decrypt(
             api_key_record.binance_api_key_enc,
             api_key_record.encryption_iv,
         )
-        api_secret = EncryptionService.decrypt(
-            api_key_record.binance_api_secret_enc,
-            api_key_record.encryption_iv,
-        )
+        keys = _json.loads(combined_json)
+        api_key = keys['k']
+        api_secret = keys['s']
 
         # Initialize executor
         self.executor = OrderExecutor(
@@ -137,9 +150,8 @@ class AgentBot:
                 'roi_trailing_distance': float(self.config.get('roi_trailing_distance', 3)),
             }
 
-        print(f"[AgentBot-{self.agent_id}] Config loaded. "
-              f"Strategy: {self.config.get('strategy_version')}, "
-              f"Open positions: {len(self.positions)}")
+        self._log('info', f"Config loaded. Strategy: {self.config.get('strategy_version')}, "
+                  f"Open positions: {len(self.positions)}")
 
     def _update_state(self, status: str, error: str = None):
         """Update bot state in database."""
@@ -224,7 +236,7 @@ class AgentBot:
             # Execute real order on Binance
             order = self.executor.open_position(symbol, direction, amount, leverage)
             if not order:
-                print(f"[AgentBot-{self.agent_id}] Order failed for {symbol}")
+                self._log('error', f"Order failed for {symbol}")
                 return
 
             # Use actual fill price from exchange
@@ -290,11 +302,11 @@ class AgentBot:
                 f"Positions: {len(self.positions)}"
             )
 
-            print(f"[AgentBot-{self.agent_id}] Opened {direction} {symbol} "
-                  f"{amount}U x{leverage} @ ${fill_price:.6f} (score: {score})")
+            self._log('trade', f"OPEN {direction} {symbol} {amount}U x{leverage} "
+                      f"@ ${fill_price:.6f} (score: {score})")
 
         except Exception as e:
-            print(f"[AgentBot-{self.agent_id}] Open position failed: {e}")
+            self._log('error', f"Open position failed: {e}")
             traceback.print_exc()
 
     # ─── Check Position ──────────────────────────────────────
@@ -497,11 +509,11 @@ class AgentBot:
                 f"Positions: {len(self.positions)}"
             )
 
-            print(f"[AgentBot-{self.agent_id}] Closed {symbol} {direction} "
-                  f"PnL: {pnl:+.2f}U ({roi:+.2f}%) - {reason}")
+            self._log('trade', f"CLOSE {direction} {symbol} PnL: {pnl:+.2f}U "
+                      f"({roi:+.2f}%) - {reason}")
 
         except Exception as e:
-            print(f"[AgentBot-{self.agent_id}] Close position failed: {e}")
+            self._log('error', f"Close position failed: {e}")
             traceback.print_exc()
 
     def _update_daily_stats(self, pnl: float, fees: float):
@@ -526,8 +538,7 @@ class AgentBot:
     def _scan_once(self):
         """Run one complete scan cycle."""
         self.scan_count += 1
-        print(f"\n[AgentBot-{self.agent_id}] === Scan #{self.scan_count} "
-              f"| Positions: {len(self.positions)} ===")
+        self._log('info', f"Scan #{self.scan_count} | Positions: {len(self.positions)}")
 
         # 1. Check existing positions
         for symbol in list(self.positions.keys()):
@@ -542,10 +553,12 @@ class AgentBot:
             risk_metrics['risk_score']
         )
 
+        # Circuit breaker: alert admin on HIGH/CRITICAL risk
+        self.risk_manager.check_circuit_breaker(risk_metrics)
+
         if risk_level in ('CRITICAL', 'HIGH'):
-            print(f"[AgentBot-{self.agent_id}] Risk: {risk_level} "
-                  f"(score: {risk_metrics['risk_score']}/10) - "
-                  f"{'Pausing' if should_pause else 'Reducing positions'}")
+            self._log('warn', f"Risk: {risk_level} (score: {risk_metrics['risk_score']}/10) - "
+                       f"{'Pausing' if should_pause else 'Reducing positions'}")
 
         # 3. Scan for new signals (only if not paused)
         if not should_pause and not self._paused:
@@ -572,7 +585,7 @@ class AgentBot:
                     positions_list
                 )
                 if not can_open:
-                    print(f"[AgentBot-{self.agent_id}] Risk blocked: {risk_reason}")
+                    self._log('warn', f"Risk blocked: {risk_reason}")
                     break
 
                 # Analyze signal
@@ -584,8 +597,7 @@ class AgentBot:
                 if analysis['direction'] == 'LONG' and score < long_min_score:
                     continue
 
-                print(f"[AgentBot-{self.agent_id}] Signal: {symbol} "
-                      f"{analysis['direction']} score={score}")
+                self._log('signal', f"Signal: {symbol} {analysis['direction']} score={score}")
 
                 # Open position
                 self._open_position(symbol, analysis)
@@ -612,15 +624,14 @@ class AgentBot:
                 self._load_config()
                 self._update_state('running')
 
-                print(f"[AgentBot-{self.agent_id}] Started. "
-                      f"Scan interval: {scan_interval}s")
+                self._log('info', f"Bot started. Scan interval: {scan_interval}s")
 
                 while not self._stop_event.is_set():
                     try:
                         if not self._paused:
                             self._scan_once()
                     except Exception as e:
-                        print(f"[AgentBot-{self.agent_id}] Scan error: {e}")
+                        self._log('error', f"Scan error: {e}")
                         traceback.print_exc()
                         self._update_state('error', str(e))
 
@@ -629,10 +640,10 @@ class AgentBot:
 
                 # Clean shutdown
                 self._update_state('stopped')
-                print(f"[AgentBot-{self.agent_id}] Stopped gracefully.")
+                self._log('info', "Bot stopped gracefully.")
 
             except Exception as e:
-                print(f"[AgentBot-{self.agent_id}] Fatal error: {e}")
+                self._log('error', f"Fatal error: {e}")
                 traceback.print_exc()
                 try:
                     self._update_state('error', str(e))

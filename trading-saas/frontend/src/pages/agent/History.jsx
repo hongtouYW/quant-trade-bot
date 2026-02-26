@@ -4,6 +4,7 @@ import { Card } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import PnlValue from '../../components/common/PnlValue';
 import Table from '../../components/common/Table';
+import { History as HistoryIcon, Download } from 'lucide-react';
 
 export default function History() {
   const [page, setPage] = useState(1);
@@ -38,9 +39,38 @@ export default function History() {
 
   const symbols = symbolsData?.symbols || [];
 
+  const handleExportCSV = () => {
+    const csvParams = new URLSearchParams();
+    if (filters.symbol) csvParams.set('symbol', filters.symbol);
+    if (filters.direction) csvParams.set('direction', filters.direction);
+    const token = localStorage.getItem('token');
+    const base = import.meta.env.VITE_API_BASE || '/api';
+    const url = `${base}/agent/trades/export/csv?${csvParams}`;
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => res.blob())
+      .then((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `trades_${new Date().toISOString().slice(0, 10).replace(/-/g, '')}.csv`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      });
+  };
+
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Trade History</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold">Trade History</h2>
+        {data?.trades?.length > 0 && (
+          <button
+            onClick={handleExportCSV}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-bg-input hover:bg-border rounded-lg border border-border text-text transition-colors"
+          >
+            <Download size={14} />
+            Export CSV
+          </button>
+        )}
+      </div>
 
       {/* Filters */}
       <Card className="flex flex-wrap items-center gap-3">
@@ -67,7 +97,15 @@ export default function History() {
       </Card>
 
       <Card>
-        <Table columns={columns} data={data?.trades || []} emptyText={loading ? 'Loading...' : 'No trades'} />
+        {!loading && (!data?.trades || data.trades.length === 0) ? (
+          <div className="flex flex-col items-center py-12 text-text-secondary">
+            <HistoryIcon size={40} className="mb-3 opacity-40" />
+            <p className="text-sm mb-1">No trade history yet</p>
+            <p className="text-xs">Closed trades will appear here once the bot starts trading.</p>
+          </div>
+        ) : (
+          <Table columns={columns} data={data?.trades || []} emptyText="Loading..." />
+        )}
 
         {/* Pagination */}
         {data && data.pages > 1 && (

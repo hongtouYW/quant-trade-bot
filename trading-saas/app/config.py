@@ -51,3 +51,7 @@ class Config:
 
     # Trading
     BOT_SCAN_INTERVAL = int(os.environ.get('BOT_SCAN_INTERVAL', '60'))
+
+    # Admin Telegram notifications (circuit breaker alerts)
+    ADMIN_TELEGRAM_BOT_TOKEN = os.environ.get('ADMIN_TELEGRAM_BOT_TOKEN', '')
+    ADMIN_TELEGRAM_CHAT_ID = os.environ.get('ADMIN_TELEGRAM_CHAT_ID', '')

@@ -2,12 +2,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 
 // Admin pages
 import AdminDashboard from './pages/admin/Dashboard';
 import Agents from './pages/admin/Agents';
 import Bots from './pages/admin/Bots';
 import Revenue from './pages/admin/Revenue';
+import AuditLog from './pages/admin/AuditLog';
 
 // Agent pages
 import AgentDashboard from './pages/agent/Dashboard';
@@ -26,6 +28,7 @@ export default function App() {
           {/* Separate login pages */}
           <Route path="/admin/login" element={<Login />} />
           <Route path="/agent/login" element={<Login />} />
+          <Route path="/agent/register" element={<Register />} />
 
           {/* Admin routes */}
           <Route element={<AppLayout requiredRole="admin" />}>
@@ -33,6 +36,7 @@ export default function App() {
             <Route path="/admin/agents" element={<Agents />} />
             <Route path="/admin/bots" element={<Bots />} />
             <Route path="/admin/billing" element={<Revenue />} />
+            <Route path="/admin/audit" element={<AuditLog />} />
           </Route>
 
           {/* Agent routes */}

@@ -39,16 +39,42 @@ def create_app(config_class=Config):
 
     # Health check endpoint
     @app.route('/health')
+    @app.route('/api/health')
     def health_check():
         from flask import jsonify as _jsonify
+        import time as _time
+
+        # DB check
         try:
             db.session.execute(db.text('SELECT 1'))
             db_ok = True
         except Exception:
             db_ok = False
+
+        # Bot count
+        running_bots = 0
+        try:
+            from .engine.bot_manager import BotManager
+            manager = BotManager.get_instance()
+            running_bots = sum(1 for b in manager._bots.values() if b.is_running)
+        except Exception:
+            pass
+
+        # Agent/trade counts
+        agent_count = 0
+        try:
+            from .models.agent import Agent
+            agent_count = Agent.query.filter_by(is_active=True).count()
+        except Exception:
+            pass
+
         return _jsonify({
             'status': 'ok' if db_ok else 'degraded',
             'database': db_ok,
+            'running_bots': running_bots,
+            'active_agents': agent_count,
+            'version': '1.0.0',
+            'timestamp': int(_time.time()),
         }), 200 if db_ok else 503
 
     # Create tables if needed

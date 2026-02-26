@@ -32,6 +32,19 @@ def bot_status():
     return jsonify(result)
 
 
+@bot_bp.route('/logs', methods=['GET'])
+@agent_required
+def bot_logs():
+    """Get recent bot activity log entries."""
+    agent_id = get_current_user_id()
+    manager = _get_manager()
+    bot = manager._bots.get(agent_id)
+    if not bot:
+        return jsonify({'logs': [], 'message': 'Bot is not running'})
+    logs = list(bot.activity_log)
+    return jsonify({'logs': logs})
+
+
 @bot_bp.route('/start', methods=['POST'])
 @agent_required
 def start_bot():

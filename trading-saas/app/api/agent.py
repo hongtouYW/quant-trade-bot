@@ -1,4 +1,5 @@
 """Agent API - Profile, API Keys, Telegram, Strategy Config"""
+import json as _json
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from ..middleware.auth_middleware import agent_required, get_current_user_id
@@ -82,6 +83,43 @@ def update_profile():
     return jsonify(agent.to_dict())
 
 
+# === Binance Balance ===
+
+@agent_bp.route('/balance', methods=['GET'])
+@agent_required
+def get_balance():
+    """Fetch real-time USDT balance from Binance."""
+    agent_id = get_current_user_id()
+    record = AgentApiKey.query.filter_by(agent_id=agent_id).first()
+    if not record or not record.permissions_verified:
+        return jsonify({'error': 'API keys not configured or not verified'}), 400
+
+    try:
+        import ccxt
+        combined_json = EncryptionService.decrypt(record.binance_api_key_enc, record.encryption_iv)
+        keys = _json.loads(combined_json)
+
+        exchange = ccxt.binance({
+            'apiKey': keys['k'],
+            'secret': keys['s'],
+            'enableRateLimit': True,
+            'options': {'defaultType': 'future'},
+        })
+        if record.is_testnet:
+            exchange.set_sandbox_mode(True)
+
+        balance = exchange.fetch_balance()
+        usdt = balance.get('USDT', {})
+
+        return jsonify({
+            'total': float(usdt.get('total', 0)),
+            'free': float(usdt.get('free', 0)),
+            'used': float(usdt.get('used', 0)),
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
 # === API Keys ===
 
 @agent_bp.route('/api-keys', methods=['PUT'])
@@ -93,25 +131,23 @@ def set_api_keys():
     if not data.get('api_key') or not data.get('api_secret'):
         return jsonify({'error': 'api_key and api_secret required'}), 400
 
-    # Encrypt
-    key_enc, key_nonce = EncryptionService.encrypt(data['api_key'])
-    secret_enc, secret_nonce = EncryptionService.encrypt(data['api_secret'])
+    # Encrypt both key+secret as a single JSON blob with one nonce
+    combined = _json.dumps({'k': data['api_key'], 's': data['api_secret']})
+    blob_enc, nonce = EncryptionService.encrypt(combined)
 
-    # Use same nonce for both (they're stored together)
-    # Actually, use the key_nonce for storage
     existing = AgentApiKey.query.filter_by(agent_id=agent_id).first()
     if existing:
-        existing.binance_api_key_enc = key_enc
-        existing.binance_api_secret_enc = secret_enc
-        existing.encryption_iv = key_nonce
+        existing.binance_api_key_enc = blob_enc
+        existing.binance_api_secret_enc = b''
+        existing.encryption_iv = nonce
         existing.is_testnet = data.get('is_testnet', False)
         existing.permissions_verified = False
     else:
         api_key_record = AgentApiKey(
             agent_id=agent_id,
-            binance_api_key_enc=key_enc,
-            binance_api_secret_enc=secret_enc,
-            encryption_iv=key_nonce,
+            binance_api_key_enc=blob_enc,
+            binance_api_secret_enc=b'',
+            encryption_iv=nonce,
             is_testnet=data.get('is_testnet', False),
         )
         db.session.add(api_key_record)
@@ -157,8 +193,10 @@ def verify_api_keys():
 
     try:
         import ccxt
-        api_key = EncryptionService.decrypt(record.binance_api_key_enc, record.encryption_iv)
-        api_secret = EncryptionService.decrypt(record.binance_api_secret_enc, record.encryption_iv)
+        combined_json = EncryptionService.decrypt(record.binance_api_key_enc, record.encryption_iv)
+        keys = _json.loads(combined_json)
+        api_key = keys['k']
+        api_secret = keys['s']
 
         exchange = ccxt.binance({
             'apiKey': api_key,
@@ -254,7 +292,7 @@ def get_trading_config():
     config = AgentTradingConfig.query.filter_by(agent_id=agent_id).first()
     if not config:
         return jsonify({'error': 'No trading config'}), 404
-    return jsonify(config.to_dict())
+    return jsonify({'config': config.to_dict()})
 
 
 @agent_bp.route('/trading/config', methods=['PUT'])

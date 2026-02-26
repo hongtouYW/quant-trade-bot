@@ -1,6 +1,8 @@
 """Trading Data API - Positions, History, Stats, Real-time PnL"""
+import csv
+import io
 from datetime import datetime, timezone
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, Response
 from sqlalchemy import func
 
 from ..middleware.auth_middleware import agent_required, admin_required, get_current_user_id
@@ -197,6 +199,65 @@ def get_daily():
         d['cumulative_pnl'] = round(cumulative, 2)
 
     return jsonify({'daily': result})
+
+
+@trading_bp.route('/export/csv', methods=['GET'])
+@agent_required
+def export_csv():
+    """Export closed trades as CSV file."""
+    agent_id = get_current_user_id()
+
+    symbol = request.args.get('symbol')
+    direction = request.args.get('direction')
+    date_from = request.args.get('from')
+    date_to = request.args.get('to')
+
+    query = Trade.query.filter_by(agent_id=agent_id, status='CLOSED')
+    if symbol:
+        query = query.filter(Trade.symbol == symbol.upper())
+    if direction:
+        query = query.filter(Trade.direction == direction.upper())
+    if date_from:
+        query = query.filter(Trade.exit_time >= date_from)
+    if date_to:
+        query = query.filter(Trade.exit_time <= date_to + ' 23:59:59')
+
+    trades = query.order_by(Trade.exit_time.desc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow([
+        'Symbol', 'Direction', 'Entry Price', 'Exit Price', 'Amount (U)',
+        'Leverage', 'PnL (U)', 'ROI (%)', 'Fee', 'Funding Fee',
+        'Score', 'Close Reason', 'Entry Time', 'Exit Time', 'Strategy',
+    ])
+    for t in trades:
+        writer.writerow([
+            t.symbol, t.direction,
+            f'{float(t.entry_price):.8f}' if t.entry_price else '',
+            f'{float(t.exit_price):.8f}' if t.exit_price else '',
+            float(t.amount) if t.amount else '',
+            t.leverage,
+            f'{float(t.pnl):.4f}' if t.pnl else '0',
+            f'{float(t.roi):.4f}' if t.roi else '0',
+            f'{float(t.fee):.6f}' if t.fee else '0',
+            f'{float(t.funding_fee):.6f}' if t.funding_fee else '0',
+            t.score or '',
+            t.close_reason or '',
+            t.entry_time.strftime('%Y-%m-%d %H:%M:%S') if t.entry_time else '',
+            t.exit_time.strftime('%Y-%m-%d %H:%M:%S') if t.exit_time else '',
+            t.strategy_version or '',
+        ])
+
+    csv_data = output.getvalue()
+    today = datetime.now().strftime('%Y%m%d')
+    filename = f'trades_{today}.csv'
+
+    return Response(
+        csv_data,
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={filename}'},
+    )
 
 
 @trading_bp.route('/symbols', methods=['GET'])

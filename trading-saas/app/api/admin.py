@@ -7,6 +7,7 @@ from ..models.agent import Agent
 from ..models.agent_config import AgentTradingConfig
 from ..models.bot_state import BotState
 from ..models.trade import Trade
+from ..models.audit import AuditLog
 from ..extensions import db
 
 admin_bp = Blueprint('admin', __name__)
@@ -218,3 +219,112 @@ def all_bots_status():
             item['status'] = 'stopped'
         result.append(item)
     return jsonify({'bots': result})
+
+
+@admin_bp.route('/audit-log', methods=['GET'])
+@admin_required
+def get_audit_log():
+    """Get audit log with pagination and filters."""
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 30, type=int)
+    per_page = min(per_page, 100)
+
+    action_filter = request.args.get('action')
+    user_type_filter = request.args.get('user_type')
+
+    query = AuditLog.query
+
+    if action_filter:
+        query = query.filter(AuditLog.action == action_filter)
+    if user_type_filter:
+        query = query.filter(AuditLog.user_type == user_type_filter)
+
+    query = query.order_by(AuditLog.created_at.desc())
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    # Resolve usernames
+    logs = []
+    for log in pagination.items:
+        d = log.to_dict()
+        if log.user_type == 'agent':
+            agent = Agent.query.get(log.user_id)
+            d['username'] = agent.username if agent else f'agent#{log.user_id}'
+        else:
+            from ..models.admin import Admin
+            admin = Admin.query.get(log.user_id)
+            d['username'] = admin.username if admin else f'admin#{log.user_id}'
+        logs.append(d)
+
+    # Get distinct actions for filter dropdown
+    actions = db.session.query(AuditLog.action).distinct().all()
+
+    return jsonify({
+        'logs': logs,
+        'total': pagination.total,
+        'page': pagination.page,
+        'pages': pagination.pages,
+        'actions': [a[0] for a in actions],
+    })
+
+
+@admin_bp.route('/leaderboard', methods=['GET'])
+@admin_required
+def leaderboard():
+    """Agent performance leaderboard sorted by total PnL."""
+    from sqlalchemy import func
+
+    admin_id = get_current_user_id()
+    days = request.args.get('days', 30, type=int)
+    sort_by = request.args.get('sort', 'pnl')  # pnl, win_rate, trades
+
+    agents = Agent.query.filter_by(admin_id=admin_id, is_active=True).all()
+    result = []
+
+    for agent in agents:
+        date_filter = []
+        if days < 9999:
+            from datetime import datetime, timedelta, timezone
+            cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+            date_filter = [Trade.exit_time >= cutoff]
+
+        stats = db.session.query(
+            func.count(Trade.id),
+            func.sum(Trade.pnl),
+            func.sum(db.case((Trade.pnl > 0, 1), else_=0)),
+            func.max(Trade.pnl),
+            func.min(Trade.pnl),
+        ).filter(
+            Trade.agent_id == agent.id,
+            Trade.status == 'CLOSED',
+            *date_filter,
+        ).first()
+
+        total = stats[0] or 0
+        total_pnl = float(stats[1]) if stats[1] else 0
+        wins = int(stats[2]) if stats[2] else 0
+        best = float(stats[3]) if stats[3] else 0
+        worst = float(stats[4]) if stats[4] else 0
+
+        result.append({
+            'agent_id': agent.id,
+            'username': agent.username,
+            'display_name': agent.display_name,
+            'total_trades': total,
+            'total_pnl': round(total_pnl, 2),
+            'win_rate': round(wins / total * 100, 1) if total > 0 else 0,
+            'win_trades': wins,
+            'loss_trades': total - wins,
+            'best_trade': round(best, 2),
+            'worst_trade': round(worst, 2),
+            'bot_status': agent.bot_state.status if agent.bot_state else 'stopped',
+        })
+
+    # Sort
+    if sort_by == 'win_rate':
+        result.sort(key=lambda x: x['win_rate'], reverse=True)
+    elif sort_by == 'trades':
+        result.sort(key=lambda x: x['total_trades'], reverse=True)
+    else:
+        result.sort(key=lambda x: x['total_pnl'], reverse=True)
+
+    return jsonify({'leaderboard': result, 'days': days})

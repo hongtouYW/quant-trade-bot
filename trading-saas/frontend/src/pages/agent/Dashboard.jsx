@@ -2,14 +2,16 @@ import { useApi } from '../../hooks/useApi';
 import { StatCard, Card } from '../../components/common/Card';
 import PnlValue from '../../components/common/PnlValue';
 import { StatusBadge } from '../../components/common/Badge';
+import SetupChecklist from '../../components/agent/SetupChecklist';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, TrendingUp, BarChart3, Activity } from 'lucide-react';
+import { DollarSign, TrendingUp, BarChart3, Activity, Wallet } from 'lucide-react';
 
 export default function AgentDashboard() {
   const { data, loading } = useApi('/agent/dashboard', { interval: 15000 });
   const { data: daily } = useApi('/agent/trades/daily?days=30');
   const { data: stats } = useApi('/agent/trades/stats');
   const { data: bot } = useApi('/agent/bot/status', { interval: 5000 });
+  const { data: balanceData } = useApi('/agent/balance');
 
   if (loading || !data) {
     return <div className="animate-pulse text-text-secondary">Loading dashboard...</div>;
@@ -24,11 +26,14 @@ export default function AgentDashboard() {
         {bot && <StatusBadge status={bot.status} />}
       </div>
 
+      <SetupChecklist />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Current Capital"
-          value={`${stats?.current_capital?.toFixed(2) || data.initial_capital || '-'}U`}
-          icon={DollarSign}
+          label="Binance Balance"
+          value={balanceData?.total != null ? `${balanceData.total.toFixed(2)}U` : `${stats?.current_capital?.toFixed(2) || '-'}U`}
+          sub={balanceData?.free != null ? `Available: ${balanceData.free.toFixed(2)}U` : undefined}
+          icon={Wallet}
         />
         <StatCard
           label="Total PnL"

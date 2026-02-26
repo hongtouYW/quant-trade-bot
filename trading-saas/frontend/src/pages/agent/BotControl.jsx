@@ -2,10 +2,19 @@ import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 import api from '../../api/client';
-import { Play, Square, Pause, PlayCircle } from 'lucide-react';
+import { Play, Square, Pause, PlayCircle, ScrollText } from 'lucide-react';
+
+const levelColors = {
+  trade: 'text-primary',
+  signal: 'text-blue-400',
+  warn: 'text-warning',
+  error: 'text-danger',
+  info: 'text-text-secondary',
+};
 
 export default function BotControl() {
   const { data: bot, loading, refetch } = useApi('/agent/bot/status', { interval: 3000 });
+  const { data: logsData } = useApi('/agent/bot/logs', { interval: 5000 });
 
   const action = async (act) => {
     try {
@@ -97,6 +106,33 @@ export default function BotControl() {
           <Row label="Open Positions" value={bot?.open_positions ?? '-'} />
           <Row label="Last Scan" value={bot?.last_scan ? new Date(bot.last_scan).toLocaleString() : 'Never'} />
         </div>
+      </Card>
+
+      <Card>
+        <div className="flex items-center gap-2 mb-3">
+          <ScrollText size={16} className="text-text-secondary" />
+          <h3 className="text-sm font-semibold">Activity Log</h3>
+          <span className="text-xs text-text-secondary ml-auto">
+            {logsData?.logs?.length || 0} entries (last 100)
+          </span>
+        </div>
+        {logsData?.logs?.length > 0 ? (
+          <div className="max-h-72 overflow-y-auto space-y-0.5 font-mono text-xs">
+            {[...logsData.logs].reverse().map((log, i) => (
+              <div key={i} className="flex gap-2 py-0.5">
+                <span className="text-text-secondary/60 shrink-0">{log.time?.slice(11)}</span>
+                <span className={`shrink-0 w-12 ${levelColors[log.level] || 'text-text-secondary'}`}>
+                  [{log.level}]
+                </span>
+                <span className="text-text">{log.message}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-text-secondary">
+            {status === 'running' ? 'Waiting for activity...' : 'Start the bot to see activity logs.'}
+          </p>
+        )}
       </Card>
     </div>
   );

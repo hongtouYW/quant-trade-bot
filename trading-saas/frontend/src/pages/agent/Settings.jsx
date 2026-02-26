@@ -51,9 +51,9 @@ function ApiKeySection() {
       <div className="flex items-center gap-2 mb-4">
         <Key size={18} className="text-primary" />
         <h3 className="text-sm font-semibold">Binance API Keys</h3>
-        {status?.has_keys && (
-          <span className={`ml-auto text-xs ${status.verified ? 'text-success' : 'text-warning'}`}>
-            {status.verified ? 'Verified' : 'Not verified'}
+        {status?.has_api_key && (
+          <span className={`ml-auto text-xs ${status.permissions_verified ? 'text-success' : 'text-warning'}`}>
+            {status.permissions_verified ? 'Verified' : 'Not verified'}
           </span>
         )}
       </div>
@@ -87,7 +87,7 @@ function ApiKeySection() {
           <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors">
             Save Keys
           </button>
-          {status?.has_keys && (
+          {status?.has_api_key && (
             <button
               type="button"
               onClick={handleVerify}
@@ -221,7 +221,7 @@ function TradingConfigSection() {
     { key: 'daily_loss_limit', label: 'Daily Loss Limit (U)', type: 'number', step: '0.01' },
   ];
 
-  const strategies = strategiesData?.strategies || {};
+  const strategies = strategiesData?.strategies || [];
 
   return (
     <Card>
@@ -231,21 +231,21 @@ function TradingConfigSection() {
       </div>
 
       {/* Strategy presets */}
-      {Object.keys(strategies).length > 0 && (
+      {strategies.length > 0 && (
         <div className="mb-4">
           <p className="text-xs text-text-secondary mb-2">Quick Apply Strategy:</p>
           <div className="flex flex-wrap gap-2">
-            {Object.entries(strategies).map(([ver, info]) => (
+            {strategies.map((s) => (
               <button
-                key={ver}
-                onClick={() => applyStrategy(ver)}
+                key={s.version}
+                onClick={() => applyStrategy(s.version)}
                 className={`px-3 py-1 text-xs rounded-lg border transition-colors ${
-                  form.strategy_version === ver
+                  form.strategy_version === s.version
                     ? 'border-primary bg-primary/15 text-primary'
                     : 'border-border text-text-secondary hover:border-primary/50'
                 }`}
               >
-                {ver} - {info.name || ver}
+                {s.version} - {s.label || s.version}
               </button>
             ))}
           </div>

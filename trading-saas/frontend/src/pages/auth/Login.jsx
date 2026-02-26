@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Briefcase, Shield } from 'lucide-react';
 
@@ -80,6 +80,13 @@ export default function Login() {
               {loading ? 'Signing in...' : `Sign In as ${isAdmin ? 'Admin' : 'Agent'}`}
             </button>
           </form>
+
+          {!isAdmin && (
+            <p className="text-center text-xs text-text-secondary mt-4">
+              Don't have an account?{' '}
+              <Link to="/agent/register" className="text-primary hover:underline">Register</Link>
+            </p>
+          )}
         </div>
       </div>
     </div>

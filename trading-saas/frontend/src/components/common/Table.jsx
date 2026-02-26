@@ -32,7 +32,7 @@ export default function Table({ columns, data, onRowClick, emptyText = 'No data'
               >
                 {columns.map((col) => (
                   <td key={col.key} className="py-3 px-3">
-                    {col.render ? col.render(row[col.key], row) : row[col.key]}
+                    {col.render ? col.render(row[col.key], row, i) : row[col.key]}
                   </td>
                 ))}
               </tr>

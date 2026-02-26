@@ -3,8 +3,11 @@
 Extracted from paper_trader.py's check_risk_level() and calculate_risk_metrics().
 Uses SQLAlchemy models to read trade data instead of raw SQLite.
 """
+import requests as _requests
 from datetime import datetime, timezone
 from typing import Optional
+
+from flask import current_app
 
 from ..extensions import db
 from ..models.trade import Trade
@@ -234,3 +237,64 @@ class RiskManager:
             state.risk_position_multiplier = multiplier
             state.peak_capital = risk_metrics['peak_capital']
             db.session.commit()
+
+    def check_circuit_breaker(self, risk_metrics: dict):
+        """Send admin alert when risk is HIGH or CRITICAL.
+
+        Tracks the last alert time to avoid spam (max 1 alert per 30 min).
+        """
+        risk_score = risk_metrics['risk_score']
+        if risk_score < 7:
+            self._last_alert_time = None
+            return
+
+        # Rate limit: 1 alert per 30 minutes
+        now = datetime.now(timezone.utc)
+        if hasattr(self, '_last_alert_time') and self._last_alert_time:
+            elapsed = (now - self._last_alert_time).total_seconds()
+            if elapsed < 1800:
+                return
+
+        level, _, _ = self.get_risk_level(risk_score)
+        from ..models.agent import Agent
+        agent = Agent.query.get(self.agent_id)
+        agent_name = agent.username if agent else f'Agent#{self.agent_id}'
+
+        reasons = []
+        if risk_metrics.get('daily_loss_breach'):
+            reasons.append(f"Daily loss: {risk_metrics['daily_pnl']:.2f}U")
+        if risk_metrics.get('drawdown_breach'):
+            reasons.append(f"Drawdown: {risk_metrics['current_drawdown']:.1f}%")
+        if risk_metrics.get('consecutive_losses', 0) >= 3:
+            reasons.append(f"Consecutive losses: {risk_metrics['consecutive_losses']}")
+
+        message = (
+            f"⚠️ <b>RISK ALERT - {level}</b>\n\n"
+            f"Agent: <b>{agent_name}</b>\n"
+            f"Risk Score: {risk_score}/10\n"
+            f"Capital: {risk_metrics.get('current_capital', 0):.2f}U\n"
+            f"Positions: {risk_metrics.get('position_count', 0)}\n"
+        )
+        if reasons:
+            message += f"Triggers: {', '.join(reasons)}\n"
+        message += f"\nTime: {now.strftime('%Y-%m-%d %H:%M UTC')}"
+
+        self._send_admin_telegram(message)
+        self._last_alert_time = now
+
+    @staticmethod
+    def _send_admin_telegram(message: str):
+        """Send Telegram message to admin."""
+        try:
+            bot_token = current_app.config.get('ADMIN_TELEGRAM_BOT_TOKEN', '')
+            chat_id = current_app.config.get('ADMIN_TELEGRAM_CHAT_ID', '')
+            if not bot_token or not chat_id:
+                return
+            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            _requests.post(url, json={
+                'chat_id': chat_id,
+                'text': message,
+                'parse_mode': 'HTML',
+            }, timeout=10)
+        except Exception as e:
+            print(f"[RiskManager] Admin Telegram alert failed: {e}")
