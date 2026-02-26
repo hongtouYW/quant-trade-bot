@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import Landing from './pages/Landing';
 
 // Admin pages
 import AdminDashboard from './pages/admin/Dashboard';
@@ -50,9 +51,12 @@ export default function App() {
             <Route path="/agent/settings" element={<Settings />} />
           </Route>
 
+          {/* Landing page */}
+          <Route path="/" element={<Landing />} />
+
           {/* Legacy /login redirect */}
           <Route path="/login" element={<Navigate to="/agent/login" replace />} />
-          <Route path="*" element={<Navigate to="/agent/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -2,14 +2,22 @@
 
 Provides start/stop/status for each agent's trading bot.
 Singleton pattern: one BotManager per Flask application.
+Includes watchdog thread for automatic crash recovery.
 """
 import threading
+import time
+from datetime import datetime, timezone
 from typing import Optional
 
 from ..models.bot_state import BotState
 from ..models.agent import Agent
 from ..extensions import db
 from .agent_bot import AgentBot
+
+# Watchdog constants
+WATCHDOG_INTERVAL = 30        # Check every 30 seconds
+MAX_RESTARTS_WINDOW = 300     # 5-minute window
+MAX_RESTARTS_COUNT = 3        # Max restarts within window
 
 
 class BotManager:
@@ -23,6 +31,9 @@ class BotManager:
         self._bots = {}       # agent_id -> AgentBot
         self._threads = {}    # agent_id -> Thread
         self._scan_interval = 60  # seconds
+        self._restart_history = {}  # agent_id -> [timestamp, ...]
+        self._watchdog_thread = None
+        self._watchdog_running = False
 
     @classmethod
     def get_instance(cls, app=None) -> 'BotManager':
@@ -179,35 +190,94 @@ class BotManager:
             self.stop_bot(agent_id)
         return self.start_bot(agent_id)
 
-    def auto_restart_crashed(self):
-        """Check for crashed bots and restart them.
+    def start_watchdog(self):
+        """Start the watchdog daemon thread that monitors bot health."""
+        if self._watchdog_running:
+            return
+        self._watchdog_running = True
+        self._watchdog_thread = threading.Thread(
+            target=self._watchdog_loop,
+            name="BotWatchdog",
+            daemon=True,
+        )
+        self._watchdog_thread.start()
+        print("[BotManager] Watchdog started")
 
-        Call this periodically from a scheduler.
-        """
+    def stop_watchdog(self):
+        """Stop the watchdog thread."""
+        self._watchdog_running = False
+
+    def _watchdog_loop(self):
+        """Periodically check for crashed bots and restart them."""
+        while self._watchdog_running:
+            try:
+                self.auto_restart_crashed()
+            except Exception as e:
+                print(f"[BotManager] Watchdog error: {e}")
+            time.sleep(WATCHDOG_INTERVAL)
+
+    def _check_restart_allowed(self, agent_id: int) -> bool:
+        """Check if we're within restart limits (max 3 in 5 minutes)."""
+        now = time.time()
+        history = self._restart_history.get(agent_id, [])
+        # Remove entries older than the window
+        history = [t for t in history if now - t < MAX_RESTARTS_WINDOW]
+        self._restart_history[agent_id] = history
+        return len(history) < MAX_RESTARTS_COUNT
+
+    def _record_restart(self, agent_id: int):
+        """Record a restart attempt for rate limiting."""
+        if agent_id not in self._restart_history:
+            self._restart_history[agent_id] = []
+        self._restart_history[agent_id].append(time.time())
+
+    def auto_restart_crashed(self):
+        """Check for crashed bots and restart them."""
         if not self.app:
             return
 
         with self.app.app_context():
-            # Find bots that should be running but crashed
+            # Find bots that DB says should be running
             running_states = BotState.query.filter(
-                BotState.status.in_(['running', 'error'])
+                BotState.status.in_(['running', 'paused'])
             ).all()
 
             for state in running_states:
-                bot = self._bots.get(state.agent_id)
                 thread = self._threads.get(state.agent_id)
 
-                # Bot should be running but thread is dead
-                if not thread or not thread.is_alive():
-                    if state.error_count and state.error_count > 10:
-                        print(f"[BotManager] Agent {state.agent_id} has too many errors, "
-                              "not auto-restarting")
-                        state.status = 'error'
-                        db.session.commit()
-                        continue
+                # Thread is alive — nothing to do
+                if thread and thread.is_alive():
+                    continue
 
-                    print(f"[BotManager] Auto-restarting crashed bot "
-                          f"for agent {state.agent_id}")
-                    self._bots.pop(state.agent_id, None)
-                    self._threads.pop(state.agent_id, None)
-                    self.start_bot(state.agent_id)
+                # Thread is dead — bot crashed
+                aid = state.agent_id
+
+                # Check restart rate limit
+                if not self._check_restart_allowed(aid):
+                    print(f"[BotManager] Agent {aid}: too many restarts "
+                          f"({MAX_RESTARTS_COUNT} in {MAX_RESTARTS_WINDOW}s), "
+                          f"marking error")
+                    state.status = 'error'
+                    state.last_error = (
+                        f"Crash loop: {MAX_RESTARTS_COUNT} restarts in "
+                        f"{MAX_RESTARTS_WINDOW // 60} minutes"
+                    )
+                    state.error_count = (state.error_count or 0) + 1
+                    db.session.commit()
+                    self._bots.pop(aid, None)
+                    self._threads.pop(aid, None)
+                    continue
+
+                print(f"[BotManager] Watchdog: auto-restarting crashed bot "
+                      f"for agent {aid}")
+                self._bots.pop(aid, None)
+                self._threads.pop(aid, None)
+                self._record_restart(aid)
+                success, msg = self.start_bot(aid)
+                if not success:
+                    print(f"[BotManager] Watchdog: restart failed for agent "
+                          f"{aid}: {msg}")
+                    state.status = 'error'
+                    state.last_error = f"Auto-restart failed: {msg}"
+                    state.error_count = (state.error_count or 0) + 1
+                    db.session.commit()

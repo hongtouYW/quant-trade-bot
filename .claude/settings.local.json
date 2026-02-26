@@ -168,7 +168,25 @@
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(__NEW_LINE_f71fc5e80a63201b__ expect -c ':*)",
-      "Bash(xxd:*)"
+      "Bash(xxd:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-all.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-v2.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-frontend.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/fix-frontend.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-fe-fixed.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-checklist.exp:*)",
+      "WebFetch(domain:developers.binance.com)",
+      "WebFetch(domain:www.binance.com)",
+      "Bash(git -C /Users/hongtou/newproject log --oneline --all -20)",
+      "Bash(pip install:*)",
+      "Bash(pip3 install:*)",
+      "Bash(/Applications/Xcode.app/Contents/Developer/usr/bin/python3 -m pytest:*)",
+      "Bash(tar czf:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-fe.exp:*)",
+      "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/deploy-fe2.exp:*)",
+      "Bash(git status:*)",
+      "Bash(python -m pytest:*)",
+      "Bash(openssl rand:*)"
     ]
   }
 }

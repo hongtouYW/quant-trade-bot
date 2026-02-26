@@ -1,18 +1,20 @@
-"""Notification Service - Telegram notifications per agent.
+"""Notification Service - Telegram + In-app notifications per agent.
 
 Each agent has their own Telegram bot token and chat ID.
 Provides structured message templates for trade events.
+Also stores notifications in-app for the notification center.
 """
 import requests
 from typing import Optional
 
 from ..extensions import db
 from ..models.agent_config import AgentTelegramConfig
+from ..models.notification import Notification
 from ..services.encryption_service import EncryptionService
 
 
 class NotificationService:
-    """Send Telegram notifications for a specific agent."""
+    """Send Telegram + in-app notifications for a specific agent."""
 
     def __init__(self, agent_id: int):
         self.agent_id = agent_id
@@ -63,6 +65,21 @@ class NotificationService:
             print(f"[Notification] Send failed for agent {self.agent_id}: {e}")
             return False
 
+    def _store(self, ntype: str, title: str, message: str = ''):
+        """Store an in-app notification."""
+        try:
+            notif = Notification(
+                agent_id=self.agent_id,
+                type=ntype,
+                title=title,
+                message=message,
+            )
+            db.session.add(notif)
+            db.session.commit()
+        except Exception as e:
+            print(f"[Notification] Store failed for agent {self.agent_id}: {e}")
+            db.session.rollback()
+
     # ─── Message Templates ────────────────────────────────────
 
     def notify_open_position(self, symbol: str, direction: str, amount: float,
@@ -80,6 +97,11 @@ class NotificationService:
             f"🛑 SL: ${stop_loss:.4f}\n"
             f"🎯 TP: ${take_profit:.4f}\n"
             f"📦 Positions: {positions_count}"
+        )
+        self._store(
+            'trade',
+            f"Open {direction} {symbol}",
+            f"{amount}U x{leverage} @ ${price:.6f} | Score: {score}",
         )
 
     def notify_close_position(self, symbol: str, direction: str,
@@ -99,6 +121,11 @@ class NotificationService:
             f"━━━━━━━━━━━━━━━\n"
             f"💼 Capital: {current_capital:.2f}U\n"
             f"📦 Positions: {positions_count}"
+        )
+        self._store(
+            'trade',
+            f"Close {direction} {symbol} {sign}{pnl:.2f}U",
+            f"{sign}{roi:.2f}% | {reason}",
         )
 
     def notify_risk_alert(self, level: str, risk_score: int,
@@ -129,6 +156,11 @@ class NotificationService:
                 msg += f"• {a}\n"
 
         self.send(msg)
+        self._store(
+            'risk',
+            f"Risk Alert: {level} ({risk_score}/10)",
+            f"Drawdown: {metrics.get('current_drawdown', 0):.1f}%",
+        )
 
     def notify_bot_status(self, status: str, details: str = ''):
         """Notify on bot start/stop/error."""
@@ -144,6 +176,7 @@ class NotificationService:
         if details:
             msg += f"\n{details}"
         self.send(msg)
+        self._store('bot', f"Bot {status}", details)
 
     def notify_daily_summary(self, date: str, trades_closed: int,
                              win_trades: int, total_pnl: float,
@@ -160,6 +193,11 @@ class NotificationService:
             f"{emoji} PnL: {sign}{total_pnl:.2f}U\n"
             f"💼 Capital: {current_capital:.2f}U"
         )
+        self._store(
+            'system',
+            f"Daily Summary ({date})",
+            f"{trades_closed} trades, {win_rate:.0f}% WR, {sign}{total_pnl:.2f}U",
+        )
 
     def notify_billing(self, period_start: str, period_end: str,
                        gross_pnl: float, commission: float,
@@ -172,4 +210,9 @@ class NotificationService:
             f"💰 Gross PnL: {gross_pnl:+.2f}U\n"
             f"📊 High Water Mark: {high_water_mark:.2f}U\n"
             f"💸 Commission: {commission:.2f}U\n"
+        )
+        self._store(
+            'billing',
+            f"Billing Period Closed",
+            f"{period_start} ~ {period_end} | PnL: {gross_pnl:+.2f}U | Commission: {commission:.2f}U",
         )

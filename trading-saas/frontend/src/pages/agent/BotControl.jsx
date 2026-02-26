@@ -2,7 +2,7 @@ import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 import api from '../../api/client';
-import { Play, Square, Pause, PlayCircle, ScrollText } from 'lucide-react';
+import { Play, Square, Pause, PlayCircle, ScrollText, Radio, Filter, TrendingUp, TrendingDown } from 'lucide-react';
 
 const levelColors = {
   trade: 'text-primary',
@@ -14,6 +14,7 @@ const levelColors = {
 
 export default function BotControl() {
   const { data: bot, loading, refetch } = useApi('/agent/bot/status', { interval: 3000 });
+  const { data: signals } = useApi('/agent/bot/signals', { interval: 5000 });
   const { data: logsData } = useApi('/agent/bot/logs', { interval: 5000 });
 
   const action = async (act) => {
@@ -108,6 +109,66 @@ export default function BotControl() {
         </div>
       </Card>
 
+      {/* Signal Panel */}
+      <Card>
+        <div className="flex items-center gap-2 mb-3">
+          <Radio size={16} className="text-blue-400" />
+          <h3 className="text-sm font-semibold">Signal Scanner</h3>
+          {signals?.last_scan_time && (
+            <span className="text-xs text-text-secondary ml-auto">
+              Last scan: {new Date(signals.last_scan_time).toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+
+        {signals?.last_scan_time ? (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <MiniStat label="Analyzed" value={signals.signals_analyzed} />
+              <MiniStat label="Passed" value={signals.signals_passed} color="text-success" />
+              <MiniStat label="Filtered" value={signals.signals_filtered?.length || 0} color="text-warning" />
+              <MiniStat label="Opened" value={signals.positions_opened} color="text-primary" />
+            </div>
+
+            {signals.signals_filtered?.length > 0 && (
+              <div className="border-t border-border/30 pt-3">
+                <div className="flex items-center gap-1 mb-2">
+                  <Filter size={12} className="text-text-secondary" />
+                  <span className="text-xs font-medium text-text-secondary">Filtered Signals</span>
+                </div>
+                <div className="space-y-1.5">
+                  {signals.signals_filtered.map((sig, i) => (
+                    <div key={i} className="flex items-center gap-2 text-xs bg-surface/50 rounded px-2 py-1.5">
+                      {sig.direction === 'LONG' ? (
+                        <TrendingUp size={12} className="text-success shrink-0" />
+                      ) : (
+                        <TrendingDown size={12} className="text-danger shrink-0" />
+                      )}
+                      <span className="font-mono font-medium">{sig.symbol}</span>
+                      <span className={`px-1.5 rounded text-[10px] font-bold ${
+                        sig.direction === 'LONG' ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
+                      }`}>
+                        {sig.direction}
+                      </span>
+                      <span className="text-text-secondary">Score: {sig.score}</span>
+                      <span className="text-warning ml-auto">{sig.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {signals.signals_filtered?.length === 0 && signals.signals_passed === 0 && (
+              <p className="text-xs text-text-secondary">No signals detected in last scan.</p>
+            )}
+          </>
+        ) : (
+          <p className="text-xs text-text-secondary">
+            {status === 'running' ? 'Waiting for first scan...' : 'Start the bot to see signal data.'}
+          </p>
+        )}
+      </Card>
+
       <Card>
         <div className="flex items-center gap-2 mb-3">
           <ScrollText size={16} className="text-text-secondary" />
@@ -143,6 +204,15 @@ function Row({ label, value }) {
     <div className="flex items-center justify-between py-1 border-b border-border/30">
       <span className="text-text-secondary">{label}</span>
       <span>{value}</span>
+    </div>
+  );
+}
+
+function MiniStat({ label, value, color = 'text-text' }) {
+  return (
+    <div className="text-center bg-surface/50 rounded-lg py-2 px-1">
+      <div className={`text-lg font-bold ${color}`}>{value}</div>
+      <div className="text-[10px] text-text-secondary uppercase tracking-wider">{label}</div>
     </div>
   );
 }

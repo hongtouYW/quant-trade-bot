@@ -22,6 +22,7 @@ def create_app(config_class=Config):
     from .api.bot_control import bot_bp, bot_admin_bp
     from .api.billing import billing_bp, billing_admin_bp
     from .api.market import market_bp
+    from .api.notifications import notification_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
     app.register_blueprint(admin_bp, url_prefix='/api/admin')
@@ -32,6 +33,7 @@ def create_app(config_class=Config):
     app.register_blueprint(billing_bp, url_prefix='/api/agent/billing')
     app.register_blueprint(billing_admin_bp, url_prefix='/api/admin/billing')
     app.register_blueprint(market_bp, url_prefix='/api/market')
+    app.register_blueprint(notification_bp, url_prefix='/api/agent/notifications')
 
     # Register error handlers
     from .middleware.error_handler import register_error_handlers
@@ -81,5 +83,10 @@ def create_app(config_class=Config):
     with app.app_context():
         from . import models  # noqa: F401
         db.create_all()
+
+    # Start bot watchdog (auto-restart crashed bots)
+    from .engine.bot_manager import BotManager
+    manager = BotManager.get_instance(app)
+    manager.start_watchdog()
 
     return app

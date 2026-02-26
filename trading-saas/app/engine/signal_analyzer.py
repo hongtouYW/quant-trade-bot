@@ -7,21 +7,49 @@ import requests
 from typing import Optional
 
 
-# ─── Coin Tiers ─────────────────────────────────────────────
+# ─── Coin Tiers (from paper_trader.py backtested profitability data) ──────
+# v4 策略: 基于2023-2025回测 + 2026验证
+# T1: 平均PnL>600U的连续盈利币 (加仓1.3x)
+# T2: 平均PnL 300-600U (标准仓位1.0x)
+# T3: 平均PnL <300U但仍盈利 (降仓0.7x)
 COIN_TIERS = {
-    'BTC/USDT': 'T1', 'ETH/USDT': 'T1', 'BNB/USDT': 'T1', 'SOL/USDT': 'T1',
-    'XRP/USDT': 'T2', 'ADA/USDT': 'T2', 'AVAX/USDT': 'T2', 'DOT/USDT': 'T2',
-    'LINK/USDT': 'T2', 'MATIC/USDT': 'T2', 'DOGE/USDT': 'T2', 'SHIB/USDT': 'T2',
-    'UNI/USDT': 'T2', 'ATOM/USDT': 'T2', 'NEAR/USDT': 'T2', 'LTC/USDT': 'T2',
-    'FIL/USDT': 'T2', 'AAVE/USDT': 'T2',
+    # T1: 连续盈利>600U (26个) - 加仓1.3x
+    'ICP/USDT': 'T1', 'XMR/USDT': 'T1', 'IOTA/USDT': 'T1', 'DASH/USDT': 'T1',
+    'COMP/USDT': 'T1', 'KAVA/USDT': 'T1', 'UNI/USDT': 'T1', 'SAND/USDT': 'T1',
+    'AXS/USDT': 'T1', 'NEAR/USDT': 'T1', 'DOT/USDT': 'T1', 'CHZ/USDT': 'T1',
+    'ENJ/USDT': 'T1', 'ADA/USDT': 'T1', 'VET/USDT': 'T1', 'BCH/USDT': 'T1',
+    'ATOM/USDT': 'T1', 'ROSE/USDT': 'T1', 'DYDX/USDT': 'T1', 'IMX/USDT': 'T1',
+    'AAVE/USDT': 'T1', 'XLM/USDT': 'T1', 'LINK/USDT': 'T1', 'SXP/USDT': 'T1',
+    'ALGO/USDT': 'T1', 'CRV/USDT': 'T1',
+    # T2: 平均PnL 300-600U (24个) - 标准仓位1.0x
+    'ALPHA/USDT': 'T2', 'MKR/USDT': 'T2', 'ETC/USDT': 'T2', 'NEO/USDT': 'T2',
+    'THETA/USDT': 'T2', 'ZEC/USDT': 'T2', 'RENDER/USDT': 'T2', 'GRT/USDT': 'T2',
+    'SNX/USDT': 'T2', 'HBAR/USDT': 'T2', 'CELO/USDT': 'T2', 'ETH/USDT': 'T2',
+    'FIL/USDT': 'T2', 'HYPE/USDT': 'T2', 'SHIB/USDT': 'T2', 'BNB/USDT': 'T2',
+    'PYTH/USDT': 'T2', 'BTC/USDT': 'T2', 'LINA/USDT': 'T2', 'FLOKI/USDT': 'T2',
+    'INIT/USDT': 'T2', 'SEI/USDT': 'T2', 'XRP/USDT': 'T2', 'ORDI/USDT': 'T2',
+    # T3: 平均PnL <300U但仍盈利 (17个) - 降仓0.7x
+    'WIF/USDT': 'T3', 'FET/USDT': 'T3', 'LTC/USDT': 'T3', 'LEVER/USDT': 'T3',
+    'MATIC/USDT': 'T3', 'ENA/USDT': 'T3', 'MANA/USDT': 'T3', 'PENGU/USDT': 'T3',
+    'STRK/USDT': 'T3', 'INJ/USDT': 'T3', 'DOGE/USDT': 'T3', 'OP/USDT': 'T3',
+    'BNX/USDT': 'T3', 'TRUMP/USDT': 'T3', 'TRX/USDT': 'T3', 'ONE/USDT': 'T3',
+    'JUP/USDT': 'T3',
 }
 
-TIER_MULTIPLIER = {'T1': 1.0, 'T2': 0.9, 'T3': 0.7}
+# Tier仓位乘数 (与 paper_trader.py 完全一致)
+TIER_MULTIPLIER = {'T1': 1.3, 'T2': 1.0, 'T3': 0.7}
 
-# 1000x token mapping
+# 持续亏损币 - 完全跳过 (回测验证)
+SKIP_COINS = {'BERA/USDT', 'IP/USDT', 'LIT/USDT', 'TROY/USDT',
+              'VIRTUAL/USDT', 'BONK/USDT', 'PEPE/USDT'}
+
+# 1000x token mapping (Binance uses 1000XXXUSDT for sub-cent tokens)
 SYMBOL_1000 = {'BONK', 'PEPE', 'SHIB', 'FLOKI'}
 
 BINANCE_FUTURES = 'https://fapi.binance.com'
+
+# BTC trend cache (avoid redundant API calls during a scan cycle)
+_btc_trend_cache = {'data': None, 'ts': 0}
 
 
 # ─── Technical Indicators ───────────────────────────────────
@@ -117,8 +145,14 @@ def fetch_price(symbol: str, timeout: int = 5) -> Optional[float]:
 def get_btc_trend(timeout: int = 10) -> dict:
     """Get BTC market trend direction and strength.
 
+    Cached for 120 seconds to avoid redundant API calls when scanning ~150 coins.
     Returns: {direction: 'up'|'down'|'neutral', strength: 0-3, price, ma50}
     """
+    import time as _time
+    now = _time.time()
+    if _btc_trend_cache['data'] and (now - _btc_trend_cache['ts']) < 120:
+        return _btc_trend_cache['data']
+
     try:
         candles = fetch_klines('BTC/USDT', '1h', 60, timeout=timeout)
         if not candles or len(candles) < 50:
@@ -148,8 +182,11 @@ def get_btc_trend(timeout: int = 10) -> dict:
         else:
             direction = 'neutral'
 
-        return {'direction': direction, 'strength': strength,
-                'price': price, 'ma50': ma50}
+        result = {'direction': direction, 'strength': strength,
+                  'price': price, 'ma50': ma50}
+        _btc_trend_cache['data'] = result
+        _btc_trend_cache['ts'] = now
+        return result
     except Exception:
         return {'direction': 'neutral', 'strength': 0, 'price': 0, 'ma50': 0}
 
@@ -418,10 +455,43 @@ def calculate_stop_take(entry_price: float, direction: str,
 # ─── Watchlist ────────────────────────────────────────────────
 
 DEFAULT_WATCHLIST = [
-    'BTC/USDT', 'ETH/USDT', 'BNB/USDT', 'SOL/USDT', 'XRP/USDT',
-    'ADA/USDT', 'AVAX/USDT', 'DOT/USDT', 'LINK/USDT', 'MATIC/USDT',
-    'DOGE/USDT', 'SHIB/USDT', 'UNI/USDT', 'ATOM/USDT', 'NEAR/USDT',
-    'LTC/USDT', 'FIL/USDT', 'AAVE/USDT', 'APT/USDT', 'ARB/USDT',
-    'OP/USDT', 'SUI/USDT', 'SEI/USDT', 'TIA/USDT', 'INJ/USDT',
-    'FET/USDT', 'RNDR/USDT', 'WIF/USDT', 'PEPE/USDT', 'BONK/USDT',
-]
+    # === 顶级流动性 (10) ===
+    'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'XRP/USDT', 'BNB/USDT',
+    'DOGE/USDT', 'ADA/USDT', 'AVAX/USDT', 'LINK/USDT', 'DOT/USDT',
+    # === 主流公链 (15) ===
+    'NEAR/USDT', 'SUI/USDT', 'APT/USDT', 'ATOM/USDT', 'FTM/USDT',
+    'HBAR/USDT', 'XLM/USDT', 'ETC/USDT', 'LTC/USDT', 'BCH/USDT',
+    'ALGO/USDT', 'ICP/USDT', 'FIL/USDT', 'XMR/USDT', 'TRX/USDT',
+    # === Layer2/DeFi (15) ===
+    'ARB/USDT', 'OP/USDT', 'MATIC/USDT', 'AAVE/USDT', 'UNI/USDT',
+    'CRV/USDT', 'DYDX/USDT', 'INJ/USDT', 'SEI/USDT', 'STX/USDT',
+    'RUNE/USDT', 'SNX/USDT', 'COMP/USDT', 'MKR/USDT', 'LDO/USDT',
+    # === AI/新叙事 (15) ===
+    'TAO/USDT', 'RENDER/USDT', 'FET/USDT', 'WLD/USDT', 'AGIX/USDT',
+    'OCEAN/USDT', 'ARKM/USDT', 'PENGU/USDT', 'BERA/USDT', 'VIRTUAL/USDT',
+    'AIXBT/USDT', 'GRASS/USDT', 'GRIFFAIN/USDT', 'GOAT/USDT', 'CGPT/USDT',
+    # === 中市值热门 (25) ===
+    'TIA/USDT', 'JUP/USDT', 'PYTH/USDT', 'JTO/USDT', 'ENA/USDT',
+    'STRK/USDT', 'ZRO/USDT', 'WIF/USDT', 'BONK/USDT', 'PEPE/USDT',
+    'SHIB/USDT', 'FLOKI/USDT', 'TRUMP/USDT', 'VET/USDT', 'AXS/USDT',
+    'ROSE/USDT', 'DUSK/USDT', 'CHZ/USDT', 'ENJ/USDT', 'SAND/USDT',
+    'ONDO/USDT', 'PENDLE/USDT', 'EIGEN/USDT', 'ETHFI/USDT', 'TON/USDT',
+    # === GameFi/存储/其他 (15) ===
+    'MANA/USDT', 'GALA/USDT', 'IMX/USDT', 'ORDI/USDT', 'SXP/USDT',
+    'ZEC/USDT', 'DASH/USDT', 'WAVES/USDT', 'GRT/USDT', 'THETA/USDT',
+    'IOTA/USDT', 'NEO/USDT', 'KAVA/USDT', 'ONE/USDT', 'CELO/USDT',
+    # === DeFi/基础设施 (15) ===
+    'CAKE/USDT', 'SUSHI/USDT', 'GMX/USDT', 'ENS/USDT', 'BLUR/USDT',
+    'PEOPLE/USDT', 'MASK/USDT', '1INCH/USDT', 'ANKR/USDT', 'AR/USDT',
+    'FLOW/USDT', 'EGLD/USDT', 'KAS/USDT', 'JASMY/USDT', 'NOT/USDT',
+    # === Meme/热点 (15) ===
+    'NEIRO/USDT', 'PNUT/USDT', 'POPCAT/USDT', 'TURBO/USDT', 'MEME/USDT',
+    'BOME/USDT', 'DOGS/USDT', 'FARTCOIN/USDT', 'USUAL/USDT', 'ME/USDT',
+    'MOODENG/USDT', 'BRETT/USDT', 'SPX/USDT', 'ANIME/USDT', 'SONIC/USDT',
+    # === 高波动 (25) ===
+    'IP/USDT', 'INIT/USDT', 'HYPE/USDT', 'LINA/USDT', 'LEVER/USDT',
+    'ALPHA/USDT', 'LIT/USDT', 'UNFI/USDT', 'DGB/USDT', 'REN/USDT',
+    'BSW/USDT', 'AMB/USDT', 'TROY/USDT', 'OMNI/USDT', 'BNX/USDT',
+    'YGG/USDT', 'PIXEL/USDT', 'PORTAL/USDT', 'XAI/USDT', 'DYM/USDT',
+    'MANTA/USDT', 'ZK/USDT', 'W/USDT', 'SAGA/USDT', 'RSR/USDT',
+]  # Total: ~150 coins (matches paper_trader.py watchlist)

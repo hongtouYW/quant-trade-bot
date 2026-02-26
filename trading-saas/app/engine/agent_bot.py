@@ -25,7 +25,7 @@ from ..services.encryption_service import EncryptionService
 
 from .signal_analyzer import (
     analyze_signal, calculate_position_size, calculate_stop_take,
-    fetch_price, DEFAULT_WATCHLIST, COIN_TIERS,
+    fetch_price, DEFAULT_WATCHLIST, COIN_TIERS, SKIP_COINS,
 )
 from .order_executor import OrderExecutor
 from .risk_manager import RiskManager
@@ -60,6 +60,15 @@ class AgentBot:
         self.scan_count = 0
         # Activity log ring buffer (last 100 entries)
         self.activity_log = deque(maxlen=100)
+        # Last scan result for signal panel
+        self.last_scan_result = {
+            'last_scan_time': None,
+            'scan_interval': 60,
+            'signals_analyzed': 0,
+            'signals_passed': 0,
+            'signals_filtered': [],
+            'positions_opened': 0,
+        }
 
     def _log(self, level: str, message: str):
         """Log a message to both stdout and the in-memory activity log."""
@@ -540,6 +549,12 @@ class AgentBot:
         self.scan_count += 1
         self._log('info', f"Scan #{self.scan_count} | Positions: {len(self.positions)}")
 
+        # Signal panel tracking
+        scan_filtered = []
+        scan_analyzed = 0
+        scan_passed = 0
+        scan_opened = 0
+
         # 1. Check existing positions
         for symbol in list(self.positions.keys()):
             self._check_position(symbol, self.positions[symbol])
@@ -565,11 +580,20 @@ class AgentBot:
             min_score = int(self.config.get('min_score', 60))
             long_min_score = int(self.config.get('long_min_score', 70))
             cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
+            opened_this_scan = 0
 
             for symbol in DEFAULT_WATCHLIST:
+                # v4: 跳过持续亏损币 (回测验证)
+                if symbol in SKIP_COINS:
+                    continue
+
                 # Skip if already in position
                 if symbol in self.positions:
                     continue
+
+                # Max 3 new positions per scan (from paper_trader)
+                if opened_this_scan >= 3:
+                    break
 
                 # Skip if in cooldown
                 if symbol in self.cooldowns:
@@ -590,23 +614,81 @@ class AgentBot:
 
                 # Analyze signal
                 score, analysis = analyze_signal(symbol, self.config)
+                scan_analyzed += 1
                 if not analysis or score < min_score:
                     continue
 
+                direction = analysis['direction']
+                scan_passed += 1
+
                 # Stricter min score for LONG (from backtest data)
-                if analysis['direction'] == 'LONG' and score < long_min_score:
+                if direction == 'LONG' and score < long_min_score:
+                    scan_filtered.append({
+                        'symbol': symbol, 'score': score,
+                        'direction': direction, 'reason': f'LONG score < {long_min_score}',
+                    })
+                    scan_passed -= 1
                     continue
 
-                self._log('signal', f"Signal: {symbol} {analysis['direction']} score={score}")
+                # v4核心: 85+分LONG完全跳过 (回测亏钱, 极端做多=抄底接刀)
+                if score >= 85 and direction == 'LONG':
+                    self._log('info', f"Skip {symbol}: {score}pt LONG (85+ LONG loses money)")
+                    scan_filtered.append({
+                        'symbol': symbol, 'score': score,
+                        'direction': direction, 'reason': '85+ LONG skip',
+                    })
+                    scan_passed -= 1
+                    continue
+
+                # v4: MA slope趋势过滤 — MA20与MA50斜率与方向冲突时跳过
+                ma20 = analysis.get('ma20', 0)
+                ma50 = analysis.get('ma50', 0)
+                if ma20 > 0 and ma50 > 0:
+                    ma_slope = (ma20 - ma50) / ma50
+                    if direction == 'LONG' and ma_slope < -0.01:
+                        self._log('info', f"Skip {symbol}: trend filter (MA slope {ma_slope:.3f})")
+                        scan_filtered.append({
+                            'symbol': symbol, 'score': score,
+                            'direction': direction,
+                            'reason': f'MA slope {ma_slope:.3f}',
+                        })
+                        scan_passed -= 1
+                        continue
+                    if direction == 'SHORT' and ma_slope > 0.01:
+                        self._log('info', f"Skip {symbol}: trend filter (MA slope {ma_slope:.3f})")
+                        scan_filtered.append({
+                            'symbol': symbol, 'score': score,
+                            'direction': direction,
+                            'reason': f'MA slope {ma_slope:.3f}',
+                        })
+                        scan_passed -= 1
+                        continue
+
+                self._log('signal', f"Signal: {symbol} {direction} score={score}")
 
                 # Open position
                 self._open_position(symbol, analysis)
+                opened_this_scan += 1
+                scan_opened += 1
 
                 # Update positions list for next risk check
                 positions_list = list(self.positions.values())
 
                 # Small delay between orders
                 time.sleep(1)
+
+        # Update scan result for signal panel
+        self.last_scan_result = {
+            'last_scan_time': datetime.now(timezone.utc).isoformat(),
+            'scan_interval': self.config.get('scan_interval', 60),
+            'signals_analyzed': scan_analyzed,
+            'signals_passed': scan_passed,
+            'signals_filtered': scan_filtered[-10:],  # Keep last 10
+            'positions_opened': scan_opened,
+            'total_positions': len(self.positions),
+            'risk_score': risk_metrics.get('risk_score', 0),
+            'risk_level': risk_level,
+        }
 
         # Update bot state
         self._update_state('running')

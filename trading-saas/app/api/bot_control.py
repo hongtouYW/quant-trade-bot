@@ -45,6 +45,25 @@ def bot_logs():
     return jsonify({'logs': logs})
 
 
+@bot_bp.route('/signals', methods=['GET'])
+@agent_required
+def bot_signals():
+    """Get last scan result for signal panel."""
+    agent_id = get_current_user_id()
+    manager = _get_manager()
+    bot = manager._bots.get(agent_id)
+    if not bot:
+        return jsonify({
+            'last_scan_time': None,
+            'signals_analyzed': 0,
+            'signals_passed': 0,
+            'signals_filtered': [],
+            'positions_opened': 0,
+            'message': 'Bot is not running',
+        })
+    return jsonify(bot.last_scan_result)
+
+
 @bot_bp.route('/start', methods=['POST'])
 @agent_required
 def start_bot():

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import NotificationBell from './NotificationBell';
 import {
   LayoutDashboard, Users, Bot, Receipt, Settings,
   BarChart3, History, Briefcase, LogOut, TrendingUp, ScrollText,
@@ -47,9 +48,12 @@ export default function Sidebar() {
         <h1 className="text-sm font-bold text-primary ml-3 flex items-center gap-1.5">
           <Briefcase size={16} /> Trading SaaS
         </h1>
-        <span className="text-xs text-text-secondary ml-auto">
-          {user?.role === 'admin' ? 'Admin' : user?.username}
-        </span>
+        <div className="flex items-center gap-2 ml-auto">
+          {user?.role === 'agent' && <NotificationBell />}
+          <span className="text-xs text-text-secondary">
+            {user?.role === 'admin' ? 'Admin' : user?.username}
+          </span>
+        </div>
       </div>
 
       {/* Overlay */}
@@ -77,9 +81,12 @@ export default function Sidebar() {
               {user?.role === 'admin' ? 'Admin Panel' : user?.username}
             </p>
           </div>
-          <button onClick={() => setOpen(false)} className="lg:hidden text-text-secondary hover:text-text">
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            {user?.role === 'agent' && <div className="hidden lg:block"><NotificationBell /></div>}
+            <button onClick={() => setOpen(false)} className="lg:hidden text-text-secondary hover:text-text">
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
