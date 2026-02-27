@@ -124,8 +124,6 @@ class ParquetStore:
             return {"rows": 0, "from": None, "to": None, "file_count": 0, "size_mb": 0}
 
         total_rows = 0
-        min_ts = None
-        max_ts = None
         total_size = 0
 
         for f in files:
@@ -133,21 +131,37 @@ class ParquetStore:
                 total_size += f.stat().st_size
                 meta = pq.read_metadata(f)
                 total_rows += meta.num_rows
-                df = pd.read_parquet(f, columns=["timestamp"])
-                if not df.empty:
-                    ts = pd.to_datetime(df["timestamp"])
-                    fmin, fmax = ts.min(), ts.max()
-                    if min_ts is None or fmin < min_ts:
-                        min_ts = fmin
-                    if max_ts is None or fmax > max_ts:
-                        max_ts = fmax
             except Exception:
                 continue
 
+        # 用文件名推断时间范围（文件名格式: YYYY-MM.parquet）
+        first_name = files[0].stem   # e.g. "2025-03"
+        last_name = files[-1].stem   # e.g. "2026-02"
+
+        # 尝试从首文件读第一行、尾文件读最后一行获取精确时间
+        min_ts = first_name
+        max_ts = last_name
+        try:
+            pf = pq.ParquetFile(files[0])
+            batch = next(pf.iter_batches(batch_size=1, columns=["timestamp"]))
+            min_ts = str(pd.to_datetime(batch.column("timestamp")[0].as_py()))
+        except Exception:
+            pass
+        try:
+            pf = pq.ParquetFile(files[-1])
+            # 读最后一批
+            last_batch = None
+            for batch in pf.iter_batches(batch_size=1000, columns=["timestamp"]):
+                last_batch = batch
+            if last_batch and len(last_batch) > 0:
+                max_ts = str(pd.to_datetime(last_batch.column("timestamp")[-1].as_py()))
+        except Exception:
+            pass
+
         return {
             "rows": total_rows,
-            "from": str(min_ts) if min_ts else None,
-            "to": str(max_ts) if max_ts else None,
+            "from": min_ts,
+            "to": max_ts,
             "file_count": len(files),
             "size_mb": round(total_size / 1024 / 1024, 2),
         }

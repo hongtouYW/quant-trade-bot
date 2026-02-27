@@ -35,32 +35,43 @@ class BaseCollector(ABC):
 
         max_retries = self.settings.collector.max_retries
         base_delay = self.settings.collector.retry_base_delay
+        max_429_retries = 10  # 429 单独计数，允许更多次
 
-        for attempt in range(max_retries + 1):
+        attempt = 0
+        rate_limit_hits = 0
+
+        while attempt <= max_retries:
             try:
                 resp = self.session.get(url, params=params, timeout=30)
 
                 if resp.status_code == 429:
+                    rate_limit_hits += 1
+                    if rate_limit_hits > max_429_retries:
+                        self.logger.warning(f"Rate limited {rate_limit_hits} times, skipping this request")
+                        return []
                     retry_after = int(resp.headers.get("Retry-After", 60))
-                    self.logger.warning(f"Rate limited. Waiting {retry_after}s")
-                    time.sleep(retry_after)
-                    continue
+                    wait_time = retry_after + rate_limit_hits * 5  # 递增等待
+                    self.logger.warning(f"Rate limited ({rate_limit_hits}/{max_429_retries}). Waiting {wait_time}s")
+                    time.sleep(wait_time)
+                    continue  # 不消耗 attempt 计数
 
                 if resp.status_code == 418:
-                    self.logger.error("IP banned by Binance. Stopping.")
-                    raise RuntimeError("IP banned by Binance (418)")
+                    self.logger.error("IP banned by Binance. Waiting 5 minutes.")
+                    time.sleep(300)
+                    return []
 
                 resp.raise_for_status()
                 time.sleep(self.settings.collector.request_delay)
                 return resp.json()
 
             except requests.exceptions.RequestException as e:
-                if attempt < max_retries:
-                    delay = base_delay * (2 ** attempt)
+                attempt += 1
+                if attempt <= max_retries:
+                    delay = base_delay * (2 ** (attempt - 1))
                     self.logger.warning(
-                        f"Request failed (attempt {attempt + 1}): {e}. Retry in {delay:.1f}s"
+                        f"Request failed (attempt {attempt}/{max_retries}): {e}. Retry in {delay:.1f}s"
                     )
                     time.sleep(delay)
                 else:
-                    self.logger.error(f"Request failed after {max_retries + 1} attempts: {e}")
-                    raise
+                    self.logger.error(f"Request failed after {max_retries} attempts: {e}")
+                    return []  # 返回空而不是崩溃

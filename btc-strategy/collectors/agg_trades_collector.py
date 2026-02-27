@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 from datetime import datetime, timedelta
 from typing import Optional
@@ -21,7 +22,7 @@ class AggTradesCollector(BaseCollector):
         self.batch_size = self.settings.collector.agg_trades_batch_size
         self.window_ms = self.settings.collector.agg_trades_window_hours * 3600 * 1000
         self.large_threshold = self.settings.collector.large_trade_threshold_usd
-        self.extra_delay = 0.4  # Extra delay between requests to avoid 429
+        self.extra_delay = 0.8  # Extra delay between requests to avoid 429
 
     def get_data_type(self) -> str:
         return "agg_trades"
@@ -66,7 +67,9 @@ class AggTradesCollector(BaseCollector):
 
     def collect_historical_streaming(self, start_time: datetime, end_time: datetime,
                                      store, flush_every: int = 50) -> int:
-        """Collect and write to parquet incrementally every flush_every windows."""
+        """Collect and write to parquet incrementally every flush_every windows.
+        Supports resume: detects existing data and skips already-collected windows."""
+        import time as _time
         from storage.schema import AGG_TRADES_SCHEMA
         now = utc8_now()
         max_start = now - timedelta(days=365)
@@ -76,19 +79,56 @@ class AggTradesCollector(BaseCollector):
             )
             start_time = max_start
 
+        # 断点续传: 只读时间戳列，避免加载全部数据到内存
+        try:
+            import pyarrow.parquet as pq
+            data_dir = os.path.join(store.base_dir, "agg_trades")
+            if os.path.isdir(data_dir):
+                parquet_files = sorted(
+                    [f for f in os.listdir(data_dir) if f.endswith(".parquet")]
+                )
+                if parquet_files:
+                    # 只读最后一个文件的 timestamp 列
+                    last_file = os.path.join(data_dir, parquet_files[-1])
+                    table = pq.read_table(last_file, columns=["timestamp"])
+                    ts_series = table.column("timestamp").to_pandas()
+                    last_ts = pd.to_datetime(ts_series).max()
+                    resume_ms = utc8_to_ms(last_ts)
+                    original_start = utc8_to_ms(start_time)
+                    if resume_ms > original_start:
+                        start_time = last_ts
+                        self.logger.info(
+                            f"Resuming from {last_ts} ({len(parquet_files)} existing files)"
+                        )
+        except Exception as e:
+            self.logger.warning(f"Resume check failed: {e}, starting from beginning")
+
         window_start = utc8_to_ms(start_time)
         end_ms = utc8_to_ms(min(end_time, now))
         total_windows = (end_ms - window_start) // self.window_ms + 1
         processed = 0
         total_written = 0
         buffer = []
+        consecutive_errors = 0
+        max_consecutive_errors = 20
+
+        self.logger.info(f"AggTrades: {total_windows} windows to process")
 
         while window_start < end_ms:
             window_end = min(window_start + self.window_ms - 1, end_ms)
 
-            df = self._fetch_window(window_start, window_end)
-            if not df.empty:
-                buffer.append(df)
+            try:
+                df = self._fetch_window(window_start, window_end)
+                if not df.empty:
+                    buffer.append(df)
+                consecutive_errors = 0
+            except Exception as e:
+                consecutive_errors += 1
+                self.logger.warning(f"Window fetch error ({consecutive_errors}): {e}")
+                if consecutive_errors >= max_consecutive_errors:
+                    self.logger.error(f"Too many consecutive errors ({consecutive_errors}), pausing 5 min")
+                    _time.sleep(300)
+                    consecutive_errors = 0
 
             window_start = window_end + 1
             processed += 1
@@ -101,9 +141,11 @@ class AggTradesCollector(BaseCollector):
                 total_written += len(chunk)
                 buffer.clear()
                 pct = min(100, processed / total_windows * 100)
+                speed = processed / max(1, (utc8_to_ms(utc8_now()) - utc8_to_ms(start_time)) / 60000)
+                eta_min = (total_windows - processed) / max(1, speed)
                 self.logger.info(
                     f"AggTrades: {processed}/{total_windows} ({pct:.1f}%), "
-                    f"written {total_written} total"
+                    f"written {total_written} total, ETA {eta_min:.0f}min"
                 )
 
         if buffer:

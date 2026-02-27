@@ -1,4 +1,6 @@
+import os
 import pandas as pd
+import pyarrow.parquet as pq
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from typing import List, Optional
@@ -111,47 +113,70 @@ class DataValidator:
 
         return results
 
-    def check_null_values(self, data_type: str) -> ValidationResult:
-        df = self.store.read(data_type)
+    def _get_parquet_files(self, data_type: str) -> list:
+        """获取数据类型对应的所有 parquet 文件路径"""
+        data_dir = os.path.join(str(self.store.base_dir), data_type)
+        if not os.path.isdir(data_dir):
+            return []
+        return sorted([
+            os.path.join(data_dir, f)
+            for f in os.listdir(data_dir) if f.endswith(".parquet")
+        ])
 
-        if df.empty:
+    def check_null_values(self, data_type: str) -> ValidationResult:
+        pq_files = self._get_parquet_files(data_type)
+        if not pq_files:
             return ValidationResult(
                 data_type=data_type, check_name="null_check",
                 passed=True, message=f"No data (skipped)",
                 severity="info"
             )
 
-        null_counts = df.isnull().sum()
-        total_nulls = null_counts.sum()
+        total_rows = 0
+        null_totals = {}
+        for f in pq_files:
+            df = pd.read_parquet(f)
+            total_rows += len(df)
+            nulls = df.isnull().sum()
+            for col, cnt in nulls.items():
+                if cnt > 0:
+                    null_totals[col] = null_totals.get(col, 0) + cnt
+            del df
 
+        total_nulls = sum(null_totals.values())
         return ValidationResult(
             data_type=data_type, check_name="null_check",
             passed=total_nulls == 0,
-            message=f"Null values: {total_nulls} across {len(df)} rows",
+            message=f"Null values: {total_nulls} across {total_rows} rows",
             severity="warning" if total_nulls > 0 else "info",
-            details=null_counts[null_counts > 0].to_dict() if total_nulls > 0 else {},
+            details=null_totals if total_nulls > 0 else {},
         )
 
     def check_duplicates(self, data_type: str) -> ValidationResult:
-        df = self.store.read(data_type)
-
-        if df.empty:
+        pq_files = self._get_parquet_files(data_type)
+        if not pq_files:
             return ValidationResult(
                 data_type=data_type, check_name="duplicate_check",
                 passed=True, message="No data (skipped)",
                 severity="info"
             )
 
-        if "timestamp" in df.columns:
-            dupes = df.duplicated(subset=["timestamp"]).sum()
-        else:
-            dupes = df.duplicated().sum()
+        total_rows = 0
+        total_dupes = 0
+        for f in pq_files:
+            df = pd.read_parquet(f)
+            total_rows += len(df)
+            if "timestamp" in df.columns:
+                total_dupes += df.duplicated(subset=["timestamp"]).sum()
+            else:
+                total_dupes += df.duplicated().sum()
+            del df
 
         return ValidationResult(
             data_type=data_type, check_name="duplicate_check",
-            passed=dupes == 0,
-            message=f"Duplicates: {dupes} in {len(df)} rows",
-            severity="warning" if dupes > 0 else "info",
+            passed=total_dupes == 0,
+            message=f"Duplicates: {total_dupes} in {total_rows} rows",
+            severity="warning" if total_dupes > 0 else "info",
         )
 
     def check_oi_freshness(self) -> ValidationResult:
