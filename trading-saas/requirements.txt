@@ -23,6 +23,11 @@ requests==2.32.3
 # Server
 gunicorn==23.0.0
 
+# WebSocket
+flask-socketio==5.4.1
+gevent==24.11.1
+gevent-websocket==0.10.1
+
 # Utils
 python-dotenv==1.0.1
 marshmallow==3.23.2

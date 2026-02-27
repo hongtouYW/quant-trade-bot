@@ -1,7 +1,7 @@
 """Trading SaaS - Flask App Factory"""
 from flask import Flask
 from .config import Config
-from .extensions import db, jwt, migrate, cors
+from .extensions import db, jwt, migrate, cors, socketio
 
 
 def create_app(config_class=Config):
@@ -13,6 +13,8 @@ def create_app(config_class=Config):
     jwt.init_app(app)
     migrate.init_app(app, db)
     cors.init_app(app)
+    socketio.init_app(app, cors_allowed_origins=app.config.get('CORS_ORIGINS', '*'),
+                      async_mode='gevent', logger=False, engineio_logger=False)
 
     # Register blueprints
     from .api.auth import auth_bp

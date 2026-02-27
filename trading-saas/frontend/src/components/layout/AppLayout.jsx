@@ -21,7 +21,7 @@ export default function AppLayout({ requiredRole }) {
   return (
     <div className="min-h-screen bg-bg">
       <Sidebar />
-      <main className="pt-14 lg:pt-0 lg:ml-56 p-4 lg:p-6">
+      <main className="pt-14 pb-20 lg:pt-0 lg:pb-0 lg:ml-56 p-4 lg:p-6">
         <Outlet />
       </main>
     </div>

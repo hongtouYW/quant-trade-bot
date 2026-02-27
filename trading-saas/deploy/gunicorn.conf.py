@@ -4,10 +4,10 @@ import os
 # Server socket
 bind = "127.0.0.1:5200"
 
-# Worker processes (keep low for 4GB RAM server)
-workers = 2
-worker_class = "gthread"
-threads = 2
+# Worker processes - single worker for WebSocket + SocketIO
+# gevent handles concurrency via greenlets (coroutines)
+workers = 1
+worker_class = "geventwebsocket.gunicorn.workers.GeventWebSocketWorker"
 timeout = 120
 keepalive = 5
 
@@ -22,8 +22,8 @@ loglevel = "info"
 proc_name = "trading-saas"
 
 # Restart workers after this many requests (prevent memory leaks)
-max_requests = 1000
-max_requests_jitter = 50
+max_requests = 5000
+max_requests_jitter = 100
 
 # Preload app for faster worker startup
 preload_app = True

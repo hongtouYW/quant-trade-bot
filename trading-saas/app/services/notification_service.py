@@ -66,7 +66,7 @@ class NotificationService:
             return False
 
     def _store(self, ntype: str, title: str, message: str = ''):
-        """Store an in-app notification."""
+        """Store an in-app notification and push via WebSocket."""
         try:
             notif = Notification(
                 agent_id=self.agent_id,
@@ -76,6 +76,13 @@ class NotificationService:
             )
             db.session.add(notif)
             db.session.commit()
+
+            # Push via WebSocket
+            try:
+                from ..api.ws_events import emit_notification
+                emit_notification(self.agent_id, notif.to_dict())
+            except Exception:
+                pass
         except Exception as e:
             print(f"[Notification] Store failed for agent {self.agent_id}: {e}")
             db.session.rollback()

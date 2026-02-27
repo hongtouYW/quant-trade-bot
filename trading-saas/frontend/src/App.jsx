@@ -20,6 +20,7 @@ import Stats from './pages/agent/Stats';
 import BotControl from './pages/agent/BotControl';
 import Billing from './pages/agent/Billing';
 import Settings from './pages/agent/Settings';
+import FAQ from './pages/agent/FAQ';
 
 export default function App() {
   return (
@@ -49,6 +50,7 @@ export default function App() {
             <Route path="/agent/bot" element={<BotControl />} />
             <Route path="/agent/billing" element={<Billing />} />
             <Route path="/agent/settings" element={<Settings />} />
+            <Route path="/agent/faq" element={<FAQ />} />
           </Route>
 
           {/* Landing page */}

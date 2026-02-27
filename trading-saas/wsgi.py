@@ -4,8 +4,12 @@ import threading
 from datetime import datetime, date
 from calendar import monthrange
 from app import create_app
+from app.extensions import socketio
 
 app = create_app()
+
+# Import WebSocket event handlers so they register with socketio
+import app.api.ws_events  # noqa: F401, E402
 
 
 def _auto_restart_bots():
@@ -118,4 +122,4 @@ _auto_restart_bots()
 _schedule_daily_billing_check()
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5200, debug=True)
+    socketio.run(app, host='0.0.0.0', port=5200, debug=True)

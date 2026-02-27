@@ -314,6 +314,18 @@ class AgentBot:
             self._log('trade', f"OPEN {direction} {symbol} {amount}U x{leverage} "
                       f"@ ${fill_price:.6f} (score: {score})")
 
+            # WebSocket push
+            try:
+                from ..api.ws_events import emit_trade_event
+                emit_trade_event(self.agent_id, 'open', {
+                    'symbol': symbol, 'direction': direction,
+                    'amount': amount, 'leverage': leverage,
+                    'price': fill_price, 'score': score,
+                    'positions': len(self.positions),
+                })
+            except Exception:
+                pass
+
         except Exception as e:
             self._log('error', f"Open position failed: {e}")
             traceback.print_exc()
@@ -521,6 +533,17 @@ class AgentBot:
             self._log('trade', f"CLOSE {direction} {symbol} PnL: {pnl:+.2f}U "
                       f"({roi:+.2f}%) - {reason}")
 
+            # WebSocket push
+            try:
+                from ..api.ws_events import emit_trade_event
+                emit_trade_event(self.agent_id, 'close', {
+                    'symbol': symbol, 'direction': direction,
+                    'pnl': round(pnl, 2), 'roi': round(roi, 2),
+                    'reason': reason, 'positions': len(self.positions),
+                })
+            except Exception:
+                pass
+
         except Exception as e:
             self._log('error', f"Close position failed: {e}")
             traceback.print_exc()
@@ -689,6 +712,13 @@ class AgentBot:
             'risk_score': risk_metrics.get('risk_score', 0),
             'risk_level': risk_level,
         }
+
+        # WebSocket push scan result
+        try:
+            from ..api.ws_events import emit_signal_update
+            emit_signal_update(self.agent_id, self.last_scan_result)
+        except Exception:
+            pass
 
         # Update bot state
         self._update_state('running')

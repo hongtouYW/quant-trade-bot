@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useApi } from '../../hooks/useApi';
+import { useSocket } from '../../hooks/useSocket';
 import { Card } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 import api from '../../api/client';
-import { Play, Square, Pause, PlayCircle, ScrollText, Radio, Filter, TrendingUp, TrendingDown } from 'lucide-react';
+import { Play, Square, Pause, PlayCircle, ScrollText, Radio, Filter, TrendingUp, TrendingDown, Wifi, WifiOff } from 'lucide-react';
 
 const levelColors = {
   trade: 'text-primary',
@@ -13,9 +15,16 @@ const levelColors = {
 };
 
 export default function BotControl() {
-  const { data: bot, loading, refetch } = useApi('/agent/bot/status', { interval: 3000 });
-  const { data: signals } = useApi('/agent/bot/signals', { interval: 5000 });
-  const { data: logsData } = useApi('/agent/bot/logs', { interval: 5000 });
+  const { data: bot, loading, refetch } = useApi('/agent/bot/status', { interval: 5000 });
+  const { data: signals, refetch: refetchSignals } = useApi('/agent/bot/signals', { interval: 10000 });
+  const { data: logsData, refetch: refetchLogs } = useApi('/agent/bot/logs', { interval: 10000 });
+  const [wsConnected, setWsConnected] = useState(false);
+
+  // WebSocket real-time updates (replaces fast polling)
+  useSocket('connected', () => setWsConnected(true));
+  useSocket('bot_status', () => refetch());
+  useSocket('signal_update', () => refetchSignals());
+  useSocket('trade_event', () => { refetch(); refetchLogs(); });
 
   const action = async (act) => {
     try {
@@ -34,7 +43,14 @@ export default function BotControl() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Bot Control</h2>
+      <div className="flex items-center gap-2">
+        <h2 className="text-xl font-bold">Bot Control</h2>
+        {wsConnected ? (
+          <Wifi size={14} className="text-success" title="WebSocket connected" />
+        ) : (
+          <WifiOff size={14} className="text-text-secondary" title="Polling mode" />
+        )}
+      </div>
 
       <Card className="flex flex-col items-center py-10">
         <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-4 ${

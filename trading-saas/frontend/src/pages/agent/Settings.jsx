@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import api from '../../api/client';
-import { Key, MessageSquare, Sliders, Check, AlertTriangle } from 'lucide-react';
+import { Key, MessageSquare, Sliders, Check, AlertTriangle, ChevronRight, ChevronLeft, ExternalLink, Shield, Copy } from 'lucide-react';
 
 export default function Settings() {
   return (
@@ -15,8 +15,76 @@ export default function Settings() {
   );
 }
 
+const SERVER_IP = '139.162.41.38';
+
+const WIZARD_STEPS = [
+  {
+    title: 'Log in to Binance',
+    content: (
+      <div className="space-y-3 text-sm text-text-secondary">
+        <p>Go to your Binance account and navigate to <b className="text-text">API Management</b>.</p>
+        <a
+          href="https://www.binance.com/en/my/settings/api-management"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-primary hover:underline"
+        >
+          Open Binance API Management <ExternalLink size={12} />
+        </a>
+        <p>Click <b className="text-text">"Create API"</b> and choose <b className="text-text">"System generated"</b>.</p>
+      </div>
+    ),
+  },
+  {
+    title: 'Set IP Whitelist',
+    content: (
+      <div className="space-y-3 text-sm text-text-secondary">
+        <p>In your API key settings, add our server IP to the <b className="text-text">IP access restriction</b>:</p>
+        <div className="flex items-center gap-2 bg-surface/50 rounded-lg px-3 py-2 font-mono text-text">
+          <span>{SERVER_IP}</span>
+          <button
+            onClick={() => navigator.clipboard.writeText(SERVER_IP)}
+            className="p-1 hover:bg-white/10 rounded"
+            title="Copy IP"
+          >
+            <Copy size={14} className="text-text-secondary" />
+          </button>
+        </div>
+        <div className="flex items-start gap-2 text-xs bg-warning/10 text-warning rounded-lg px-3 py-2">
+          <Shield size={14} className="shrink-0 mt-0.5" />
+          <span>IP restriction ensures only our server can use this key. Without it, anyone with your key could trade.</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: 'Enable Futures',
+    content: (
+      <div className="space-y-3 text-sm text-text-secondary">
+        <p>In the API restrictions section, enable:</p>
+        <ul className="space-y-1.5 ml-4">
+          <li className="flex items-center gap-2">
+            <Check size={14} className="text-success" />
+            <span><b className="text-text">Enable Futures</b> - Required for trading</span>
+          </li>
+        </ul>
+        <div className="flex items-start gap-2 text-xs bg-success/10 text-success rounded-lg px-3 py-2">
+          <Shield size={14} className="shrink-0 mt-0.5" />
+          <span>Do NOT enable "Enable Withdrawals". Our bot only needs trading permissions, never withdrawal access.</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: 'Paste Keys',
+    isForm: true,
+  },
+];
+
 function ApiKeySection() {
   const { data: status, refetch } = useApi('/agent/api-keys/status');
+  const [step, setStep] = useState(0);
+  const [showWizard, setShowWizard] = useState(false);
   const [form, setForm] = useState({ api_key: '', api_secret: '', is_testnet: false });
   const [msg, setMsg] = useState('');
   const [verifying, setVerifying] = useState(false);
@@ -26,9 +94,11 @@ function ApiKeySection() {
     setMsg('');
     try {
       await api.put('/agent/api-keys', form);
-      setMsg('API keys saved');
+      setMsg('API keys saved successfully!');
       setForm({ api_key: '', api_secret: '', is_testnet: form.is_testnet });
       refetch();
+      setShowWizard(false);
+      setStep(0);
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to save');
     }
@@ -46,6 +116,8 @@ function ApiKeySection() {
     setVerifying(false);
   };
 
+  const currentStep = WIZARD_STEPS[step];
+
   return (
     <Card>
       <div className="flex items-center gap-2 mb-4">
@@ -57,49 +129,110 @@ function ApiKeySection() {
           </span>
         )}
       </div>
-      <form onSubmit={handleSave} className="space-y-3">
-        <input
-          type="password"
-          placeholder="API Key"
-          value={form.api_key}
-          onChange={(e) => setForm({ ...form, api_key: e.target.value })}
-          required
-          className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
-        />
-        <input
-          type="password"
-          placeholder="API Secret"
-          value={form.api_secret}
-          onChange={(e) => setForm({ ...form, api_secret: e.target.value })}
-          required
-          className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
-        />
-        <label className="flex items-center gap-2 text-sm text-text-secondary">
-          <input
-            type="checkbox"
-            checked={form.is_testnet}
-            onChange={(e) => setForm({ ...form, is_testnet: e.target.checked })}
-            className="rounded"
-          />
-          Testnet mode
-        </label>
-        <div className="flex gap-2">
-          <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors">
-            Save Keys
-          </button>
-          {status?.has_api_key && (
-            <button
-              type="button"
-              onClick={handleVerify}
-              disabled={verifying}
-              className="px-4 py-2 bg-success/15 text-success hover:bg-success/25 text-sm rounded-lg transition-colors"
-            >
+
+      {/* Current status + actions when keys exist */}
+      {status?.has_api_key && !showWizard && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-sm">
+            <Check size={16} className="text-success" />
+            <span className="text-text">API Key configured</span>
+            {status.is_testnet && <span className="text-xs bg-warning/15 text-warning px-2 py-0.5 rounded">Testnet</span>}
+          </div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowWizard(true)} className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors">
+              Update Keys
+            </button>
+            <button onClick={handleVerify} disabled={verifying}
+              className="px-4 py-2 bg-success/15 text-success hover:bg-success/25 text-sm rounded-lg transition-colors">
               {verifying ? 'Verifying...' : 'Verify'}
             </button>
+          </div>
+          {msg && <p className="text-xs text-text-secondary">{msg}</p>}
+        </div>
+      )}
+
+      {/* Wizard */}
+      {(showWizard || !status?.has_api_key) && (
+        <div className="space-y-4">
+          {/* Step indicator */}
+          <div className="flex items-center gap-1">
+            {WIZARD_STEPS.map((s, i) => (
+              <div key={i} className="flex items-center">
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  i < step ? 'bg-success text-white' :
+                  i === step ? 'bg-primary text-white' : 'bg-white/10 text-text-secondary'
+                }`}>
+                  {i < step ? <Check size={12} /> : i + 1}
+                </div>
+                {i < WIZARD_STEPS.length - 1 && (
+                  <div className={`w-8 h-0.5 mx-1 ${i < step ? 'bg-success' : 'bg-white/10'}`} />
+                )}
+              </div>
+            ))}
+          </div>
+
+          <h4 className="text-sm font-semibold">{currentStep.title}</h4>
+
+          {currentStep.isForm ? (
+            <form onSubmit={handleSave} className="space-y-3">
+              <p className="text-sm text-text-secondary">Copy the API Key and Secret from Binance and paste them below:</p>
+              <input
+                type="password"
+                placeholder="API Key"
+                value={form.api_key}
+                onChange={(e) => setForm({ ...form, api_key: e.target.value })}
+                required
+                className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
+              />
+              <input
+                type="password"
+                placeholder="API Secret"
+                value={form.api_secret}
+                onChange={(e) => setForm({ ...form, api_secret: e.target.value })}
+                required
+                className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
+              />
+              <label className="flex items-center gap-2 text-sm text-text-secondary">
+                <input type="checkbox" checked={form.is_testnet}
+                  onChange={(e) => setForm({ ...form, is_testnet: e.target.checked })} className="rounded" />
+                Testnet mode (for testing only)
+              </label>
+              <div className="flex gap-2">
+                <button type="button" onClick={() => setStep(step - 1)}
+                  className="flex items-center gap-1 px-4 py-2 text-text-secondary hover:text-text text-sm rounded-lg border border-border transition-colors">
+                  <ChevronLeft size={14} /> Back
+                </button>
+                <button type="submit" className="flex items-center gap-1 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors">
+                  Save & Finish <Check size={14} />
+                </button>
+              </div>
+              {msg && <p className="text-xs text-text-secondary">{msg}</p>}
+            </form>
+          ) : (
+            <>
+              {currentStep.content}
+              <div className="flex gap-2 pt-2">
+                {step > 0 && (
+                  <button onClick={() => setStep(step - 1)}
+                    className="flex items-center gap-1 px-4 py-2 text-text-secondary hover:text-text text-sm rounded-lg border border-border transition-colors">
+                    <ChevronLeft size={14} /> Back
+                  </button>
+                )}
+                <button onClick={() => setStep(step + 1)}
+                  className="flex items-center gap-1 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors">
+                  Next <ChevronRight size={14} />
+                </button>
+                {status?.has_api_key && (
+                  <button onClick={() => { setShowWizard(false); setStep(0); }}
+                    className="px-4 py-2 text-text-secondary hover:text-text text-sm transition-colors">
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </>
           )}
         </div>
-        {msg && <p className="text-xs text-text-secondary">{msg}</p>}
-      </form>
+      )}
     </Card>
   );
 }

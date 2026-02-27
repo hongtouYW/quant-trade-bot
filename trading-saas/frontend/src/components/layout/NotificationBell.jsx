@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
+import { useSocket } from '../../hooks/useSocket';
 import api from '../../api/client';
 
 const typeIcons = {
@@ -15,17 +16,23 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
 
-  // Poll unread count every 10s
+  // Poll unread count every 30s (WebSocket handles real-time)
   const { data: countData, refetch: refetchCount } = useApi(
     '/agent/notifications/unread-count',
-    { interval: 10000 }
+    { interval: 30000 }
   );
 
   // Load full list only when panel is open
   const { data: listData, refetch: refetchList } = useApi(
     '/agent/notifications/?limit=30',
-    { interval: 15000, enabled: open }
+    { interval: 30000, enabled: open }
   );
+
+  // Real-time notification push via WebSocket
+  useSocket('notification', () => {
+    refetchCount();
+    if (open) refetchList();
+  });
 
   const unread = countData?.unread_count || 0;
   const notifications = listData?.notifications || [];

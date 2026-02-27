@@ -5,7 +5,7 @@ import NotificationBell from './NotificationBell';
 import {
   LayoutDashboard, Users, Bot, Receipt, Settings,
   BarChart3, History, Briefcase, LogOut, TrendingUp, ScrollText,
-  Menu, X,
+  Menu, X, MoreHorizontal, HelpCircle,
 } from 'lucide-react';
 
 const adminNav = [
@@ -24,6 +24,25 @@ const agentNav = [
   { to: '/agent/bot', icon: Bot, label: 'Bot' },
   { to: '/agent/billing', icon: Receipt, label: 'Billing' },
   { to: '/agent/settings', icon: Settings, label: 'Settings' },
+  { to: '/agent/faq', icon: HelpCircle, label: 'FAQ & Help' },
+];
+
+// Bottom tab: 5 core items for mobile (agent)
+const agentBottomTabs = [
+  { to: '/agent', icon: LayoutDashboard, label: 'Home' },
+  { to: '/agent/positions', icon: TrendingUp, label: 'Positions' },
+  { to: '/agent/bot', icon: Bot, label: 'Bot' },
+  { to: '/agent/history', icon: History, label: 'History' },
+  { to: '/agent/settings', icon: Settings, label: 'Settings' },
+];
+
+// Bottom tab: admin
+const adminBottomTabs = [
+  { to: '/admin', icon: LayoutDashboard, label: 'Home' },
+  { to: '/admin/agents', icon: Users, label: 'Agents' },
+  { to: '/admin/bots', icon: Bot, label: 'Bots' },
+  { to: '/admin/billing', icon: Receipt, label: 'Revenue' },
+  { to: '/admin/audit', icon: ScrollText, label: 'Audit' },
 ];
 
 export default function Sidebar() {
@@ -31,6 +50,7 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const nav = user?.role === 'admin' ? adminNav : agentNav;
+  const bottomTabs = user?.role === 'admin' ? adminBottomTabs : agentBottomTabs;
 
   const handleLogout = () => {
     const loginPath = `/${user?.role || 'agent'}/login`;
@@ -42,10 +62,7 @@ export default function Sidebar() {
     <>
       {/* Mobile top bar */}
       <div className="lg:hidden fixed top-0 left-0 right-0 h-14 bg-bg-card border-b border-border flex items-center px-4 z-20">
-        <button onClick={() => setOpen(true)} className="text-text-secondary hover:text-text">
-          <Menu size={22} />
-        </button>
-        <h1 className="text-sm font-bold text-primary ml-3 flex items-center gap-1.5">
+        <h1 className="text-sm font-bold text-primary flex items-center gap-1.5">
           <Briefcase size={16} /> Trading SaaS
         </h1>
         <div className="flex items-center gap-2 ml-auto">
@@ -56,21 +73,29 @@ export default function Sidebar() {
         </div>
       </div>
 
-      {/* Overlay */}
-      {open && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setOpen(false)}
-        />
-      )}
+      {/* Mobile bottom tab bar */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-bg-card border-t border-border flex items-center justify-around z-20 pb-safe">
+        {bottomTabs.map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={to === '/admin' || to === '/agent'}
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-0.5 px-2 py-1 text-[10px] transition-colors ${
+                isActive
+                  ? 'text-primary'
+                  : 'text-text-secondary'
+              }`
+            }
+          >
+            <Icon size={20} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
 
-      {/* Sidebar */}
-      <aside className={`
-        fixed left-0 top-0 h-screen w-56 bg-bg-card border-r border-border flex flex-col z-40
-        transition-transform duration-200
-        lg:translate-x-0
-        ${open ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      {/* Desktop Sidebar */}
+      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-56 bg-bg-card border-r border-border flex-col z-40">
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div>
             <h1 className="text-lg font-bold text-primary flex items-center gap-2">
@@ -82,10 +107,7 @@ export default function Sidebar() {
             </p>
           </div>
           <div className="flex items-center gap-1">
-            {user?.role === 'agent' && <div className="hidden lg:block"><NotificationBell /></div>}
-            <button onClick={() => setOpen(false)} className="lg:hidden text-text-secondary hover:text-text">
-              <X size={18} />
-            </button>
+            {user?.role === 'agent' && <NotificationBell />}
           </div>
         </div>
 
@@ -95,7 +117,6 @@ export default function Sidebar() {
               key={to}
               to={to}
               end={to === '/admin' || to === '/agent'}
-              onClick={() => setOpen(false)}
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
                   isActive
