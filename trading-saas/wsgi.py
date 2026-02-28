@@ -1,15 +1,20 @@
 """WSGI Entry Point"""
+from gevent import monkey
+monkey.patch_all()
+
 import os
 import threading
 from datetime import datetime, date
 from calendar import monthrange
+import importlib
 from app import create_app
 from app.extensions import socketio
 
 app = create_app()
 
 # Import WebSocket event handlers so they register with socketio
-import app.api.ws_events  # noqa: F401, E402
+# Use importlib to avoid shadowing the 'app' variable with the 'app' package
+importlib.import_module('app.api.ws_events')
 
 
 def _auto_restart_bots():

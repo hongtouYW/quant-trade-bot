@@ -227,6 +227,20 @@ def verify_api_keys():
 
 # === Telegram ===
 
+@agent_bp.route('/telegram', methods=['GET'])
+@agent_required
+def get_telegram():
+    agent_id = get_current_user_id()
+    tg = AgentTelegramConfig.query.filter_by(agent_id=agent_id).first()
+    if not tg:
+        return jsonify({'configured': False})
+    return jsonify({
+        'configured': True,
+        'chat_id': tg.chat_id,
+        'is_enabled': tg.is_enabled,
+    })
+
+
 @agent_bp.route('/telegram', methods=['PUT'])
 @agent_required
 def set_telegram():

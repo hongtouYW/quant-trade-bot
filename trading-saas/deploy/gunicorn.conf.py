@@ -7,7 +7,7 @@ bind = "127.0.0.1:5200"
 # Worker processes - single worker for WebSocket + SocketIO
 # gevent handles concurrency via greenlets (coroutines)
 workers = 1
-worker_class = "geventwebsocket.gunicorn.workers.GeventWebSocketWorker"
+worker_class = "gevent"
 timeout = 120
 keepalive = 5
 

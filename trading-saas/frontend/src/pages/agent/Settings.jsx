@@ -238,25 +238,54 @@ function ApiKeySection() {
 }
 
 function TelegramSection() {
+  const { data: existing } = useApi('/agent/telegram');
   const [form, setForm] = useState({ bot_token: '', chat_id: '', is_enabled: true });
   const [msg, setMsg] = useState('');
+  const [msgColor, setMsgColor] = useState('text-text-secondary');
+
+  useEffect(() => {
+    if (existing?.configured) {
+      setForm(f => ({
+        ...f,
+        chat_id: existing.chat_id || '',
+        is_enabled: existing.is_enabled ?? true,
+      }));
+    }
+  }, [existing]);
 
   const handleSave = async (e) => {
     e.preventDefault();
+    if (!form.bot_token) {
+      setMsg('Please enter the Bot Token');
+      setMsgColor('text-warning');
+      return;
+    }
     try {
       await api.put('/agent/telegram', form);
       setMsg('Telegram config saved');
+      setMsgColor('text-success');
+      setForm(f => ({ ...f, bot_token: '' }));
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed');
+      setMsgColor('text-danger');
     }
   };
 
   const handleTest = async () => {
+    setMsg('Sending...');
+    setMsgColor('text-text-secondary');
     try {
       const res = await api.post('/agent/telegram/test');
-      setMsg(res.data.success ? 'Test message sent!' : 'Test failed');
+      if (res.data.success) {
+        setMsg('Test message sent!');
+        setMsgColor('text-success');
+      } else {
+        setMsg(`Failed: ${res.data.error || 'Unknown error'}`);
+        setMsgColor('text-danger');
+      }
     } catch (err) {
       setMsg(err.response?.data?.error || 'Test failed');
+      setMsgColor('text-danger');
     }
   };
 
@@ -265,19 +294,22 @@ function TelegramSection() {
       <div className="flex items-center gap-2 mb-4">
         <MessageSquare size={18} className="text-primary" />
         <h3 className="text-sm font-semibold">Telegram Notifications</h3>
+        {existing?.configured && (
+          <span className="ml-auto text-xs text-success">Configured</span>
+        )}
       </div>
       <form onSubmit={handleSave} className="space-y-3">
         <input
           type="password"
-          placeholder="Bot Token"
+          placeholder={existing?.configured ? 'Bot Token (leave blank to keep current)' : 'Bot Token'}
           value={form.bot_token}
           onChange={(e) => setForm({ ...form, bot_token: e.target.value })}
-          required
+          required={!existing?.configured}
           className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
         />
         <input
           type="text"
-          placeholder="Chat ID"
+          placeholder="Chat ID (e.g. -1001234567890)"
           value={form.chat_id}
           onChange={(e) => setForm({ ...form, chat_id: e.target.value })}
           required
@@ -296,15 +328,17 @@ function TelegramSection() {
           <button type="submit" className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors">
             Save
           </button>
-          <button
-            type="button"
-            onClick={handleTest}
-            className="px-4 py-2 bg-success/15 text-success hover:bg-success/25 text-sm rounded-lg transition-colors"
-          >
-            Send Test
-          </button>
+          {existing?.configured && (
+            <button
+              type="button"
+              onClick={handleTest}
+              className="px-4 py-2 bg-success/15 text-success hover:bg-success/25 text-sm rounded-lg transition-colors"
+            >
+              Send Test
+            </button>
+          )}
         </div>
-        {msg && <p className="text-xs text-text-secondary">{msg}</p>}
+        {msg && <p className={`text-xs ${msgColor}`}>{msg}</p>}
       </form>
     </Card>
   );
