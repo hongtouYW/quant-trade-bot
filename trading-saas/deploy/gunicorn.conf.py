@@ -25,5 +25,6 @@ proc_name = "trading-saas"
 max_requests = 5000
 max_requests_jitter = 100
 
-# Preload app for faster worker startup
-preload_app = True
+# Do NOT preload: bot threads and DB sessions created during startup
+# must live in the worker process, not the master (which forks workers).
+preload_app = False
