@@ -135,7 +135,7 @@ def get_stats():
     ).filter(
         Trade.agent_id == agent_id, Trade.status == 'CLOSED', Trade.pnl < 0
     ).scalar() or 0)
-    profit_factor = float(gross_profit) / gross_loss if gross_loss > 0 else 0
+    profit_factor = float(gross_profit) / float(gross_loss) if gross_loss > 0 else 0
 
     # Max drawdown from trade history
     closed_trades = Trade.query.filter_by(
