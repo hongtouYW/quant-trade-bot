@@ -3,7 +3,7 @@ import csv
 import io
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, Response
-from sqlalchemy import func
+from sqlalchemy import func, case
 
 from ..middleware.auth_middleware import agent_required, admin_required, get_current_user_id
 from ..models.trade import Trade, DailyStat
@@ -102,7 +102,7 @@ def get_stats():
         func.sum(Trade.funding_fee),
         func.max(Trade.pnl),
         func.min(Trade.pnl),
-        func.sum(db.case((Trade.pnl > 0, 1), else_=0)),
+        func.sum(case((Trade.pnl > 0, 1), else_=0)),
         func.avg(Trade.pnl),
     ).filter(
         Trade.agent_id == agent_id, Trade.status == 'CLOSED'
