@@ -54,6 +54,11 @@ class AgentBot:
         # Max hold time forced close (48 hours)
         self.max_hold_minutes = 2880
 
+        # Lock to serialize position opens (prevent race conditions)
+        self._open_lock = threading.Lock()
+        # Consecutive error counter for backoff
+        self._consecutive_errors = 0
+
         self.executor = None
         self.risk_manager = None
         self.config = {}
@@ -215,7 +220,41 @@ class AgentBot:
 
     def _open_position(self, symbol: str, analysis: dict):
         """Open a new position."""
+        # Serialize concurrent opens — only one at a time per bot instance
+        if not self._open_lock.acquire(blocking=False):
+            self._log('warn', f"Skip {symbol}: another position open in progress")
+            return
+
         try:
+            # ── DB-level deduplication guard ────────────────────────────────
+            # Check DB directly, not just in-memory dict.
+            # This prevents duplicates when bot restarts after a partial write
+            # (order sent to Binance but DB commit failed before tracking).
+            existing = Trade.query.filter_by(
+                agent_id=self.agent_id, symbol=symbol, status='OPEN'
+            ).first()
+            if existing:
+                self._log('warn', f"Skip {symbol}: open trade #{existing.id} already in DB")
+                # Re-sync to in-memory if somehow missing
+                if symbol not in self.positions:
+                    self.positions[symbol] = {
+                        'trade_id': existing.id,
+                        'direction': existing.direction,
+                        'entry_price': float(existing.entry_price),
+                        'amount': float(existing.amount),
+                        'leverage': existing.leverage,
+                        'stop_loss': float(existing.stop_loss) if existing.stop_loss else 0,
+                        'take_profit': float(existing.take_profit) if existing.take_profit else 0,
+                        'peak_roi': float(existing.peak_roi) if existing.peak_roi else 0,
+                        'entry_time': existing.entry_time.strftime('%Y-%m-%d %H:%M:%S'),
+                        'score': existing.score or 0,
+                        'roi_stop_loss': float(self.config.get('roi_stop_loss', -10)),
+                        'roi_trailing_start': float(self.config.get('roi_trailing_start', 6)),
+                        'roi_trailing_distance': float(self.config.get('roi_trailing_distance', 3)),
+                    }
+                return
+            # ────────────────────────────────────────────────────────────────
+
             score = analysis['score']
             direction = analysis['direction']
             entry_price = analysis['price']
@@ -329,6 +368,8 @@ class AgentBot:
         except Exception as e:
             self._log('error', f"Open position failed: {e}")
             traceback.print_exc()
+        finally:
+            self._open_lock.release()
 
     # ─── Check Position ──────────────────────────────────────
 
@@ -742,10 +783,22 @@ class AgentBot:
                     try:
                         if not self._paused:
                             self._scan_once()
+                        # Reset error counter on successful scan
+                        self._consecutive_errors = 0
                     except Exception as e:
-                        self._log('error', f"Scan error: {e}")
+                        self._consecutive_errors += 1
+                        self._log('error', f"Scan error (#{self._consecutive_errors}): {e}")
                         traceback.print_exc()
                         self._update_state('error', str(e))
+
+                        # Exponential backoff on repeated errors:
+                        # 1 error → 60s, 2 → 120s, 3 → 240s, 4+ → 300s (5 min max)
+                        backoff = min(scan_interval * (2 ** (self._consecutive_errors - 1)), 300)
+                        if self._consecutive_errors > 1:
+                            self._log('warn', f"Backoff {backoff}s due to "
+                                      f"{self._consecutive_errors} consecutive errors")
+                            self._stop_event.wait(timeout=backoff)
+                            continue
 
                     # Wait with periodic stop-event checking
                     self._stop_event.wait(timeout=scan_interval)
