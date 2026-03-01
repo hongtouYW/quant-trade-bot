@@ -7,6 +7,7 @@ Each agent gets its own AgentBot running in a thread, using:
 - RiskManager for risk control
 - SQLAlchemy models for persistence
 """
+import json
 import time
 import threading
 import traceback
@@ -161,6 +162,7 @@ class AgentBot:
                 'peak_roi': float(trade.peak_roi) if trade.peak_roi else 0,
                 'entry_time': trade.entry_time.strftime('%Y-%m-%d %H:%M:%S'),
                 'score': trade.score or 0,
+                'open_fee': float(trade.fee) if trade.fee else 0,
                 'roi_stop_loss': float(self.config.get('roi_stop_loss', -10)),
                 'roi_trailing_start': float(self.config.get('roi_trailing_start', 6)),
                 'roi_trailing_distance': float(self.config.get('roi_trailing_distance', 3)),
@@ -189,6 +191,41 @@ class AgentBot:
                     self.risk_manager = RiskManager(self.agent_id, self.config)
         except Exception as e:
             self._log('error', f"Config reload failed: {e}")
+
+    def _fetch_funding_fee(self, symbol: str, entry_time_str: str) -> float:
+        """Fetch actual funding fee from Binance for a position."""
+        try:
+            bn_symbol = symbol.replace('/', '')
+            since_ms = 0
+            if entry_time_str:
+                entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
+                since_ms = int(entry_dt.timestamp() * 1000)
+
+            incomes = self.executor.exchange.fapiPrivateGetIncome({
+                'symbol': bn_symbol,
+                'incomeType': 'FUNDING_FEE',
+                'startTime': since_ms,
+                'limit': 100,
+            })
+            # Positive = received, negative = paid
+            # Return as cost (positive = we paid)
+            total = sum(float(inc['income']) for inc in incomes)
+            return -total  # flip: positive income = negative cost
+        except Exception as e:
+            self._log('warn', f"Funding fee fetch failed for {symbol}: {e}")
+            # Fallback to estimate
+            position_value = 0
+            pos = self.positions.get(symbol)
+            if pos:
+                position_value = pos['amount'] * pos['leverage']
+            holding_hours = 0
+            if entry_time_str:
+                try:
+                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
+                    holding_hours = (datetime.now() - entry_dt).total_seconds() / 3600
+                except Exception:
+                    pass
+            return position_value * 0.0001 * (holding_hours / 8)
 
     def _reconcile_binance_positions(self):
         """Detect positions on Binance that the DB doesn't know about.
@@ -345,8 +382,9 @@ class AgentBot:
                 self._log('error', f"Order failed for {symbol}")
                 return
 
-            # Use actual fill price from exchange
+            # Use actual fill price and fee from exchange
             fill_price = order['price']
+            open_fee = order.get('fee', 0)
 
             # Recalculate stop/take with actual fill price
             stp = calculate_stop_take(fill_price, direction, leverage, self.config)
@@ -363,6 +401,7 @@ class AgentBot:
                 take_profit=Decimal(str(stp['take_profit'])),
                 entry_time=datetime.now(timezone.utc),
                 status='OPEN',
+                fee=Decimal(str(round(open_fee, 6))),
                 score=score,
                 binance_order_id=order.get('order_id'),
                 strategy_version=self.config.get('strategy_version', 'v4.2'),
@@ -382,6 +421,7 @@ class AgentBot:
                 'peak_roi': 0,
                 'entry_time': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S'),
                 'score': score,
+                'open_fee': open_fee,
                 'roi_stop_loss': stp['roi_stop_loss'],
                 'roi_trailing_start': stp['roi_trailing_start'],
                 'roi_trailing_distance': stp['roi_trailing_distance'],
@@ -391,9 +431,9 @@ class AgentBot:
             db.session.add(AuditLog(
                 user_type='agent', user_id=self.agent_id,
                 action='open_position',
-                details={'symbol': symbol, 'direction': direction,
+                details=json.dumps({'symbol': symbol, 'direction': direction,
                          'amount': amount, 'leverage': leverage,
-                         'score': score, 'price': fill_price},
+                         'score': score, 'price': fill_price}),
             ))
             db.session.commit()
 
@@ -426,6 +466,10 @@ class AgentBot:
         except Exception as e:
             self._log('error', f"Open position failed: {e}")
             traceback.print_exc()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
         finally:
             self._open_lock.release()
 
@@ -540,34 +584,6 @@ class AgentBot:
             entry_price = position['entry_price']
             amount = position['amount']
             leverage = position['leverage']
-            fee_rate = float(self.config.get('fee_rate', 0.0005))
-
-            # Calculate PnL
-            if direction == 'LONG':
-                price_change_pct = (exit_price - entry_price) / entry_price
-            else:
-                price_change_pct = (entry_price - exit_price) / entry_price
-
-            roi = price_change_pct * leverage * 100
-            pnl_before_fee = amount * price_change_pct * leverage
-
-            # Fees
-            position_value = amount * leverage
-            total_fee = position_value * fee_rate * 2  # open + close
-
-            # Funding fee estimate
-            entry_time_str = position.get('entry_time', '')
-            holding_hours = 0
-            if entry_time_str:
-                try:
-                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
-                    holding_hours = (datetime.now() - entry_dt).total_seconds() / 3600
-                except Exception:
-                    pass
-            funding_rate = 0.0001  # 0.01% per 8h
-            funding_fee = position_value * funding_rate * (holding_hours / 8)
-
-            pnl = pnl_before_fee - total_fee - funding_fee
 
             # Close on Binance — MUST succeed before marking DB as CLOSED
             close_result = self.executor.close_position(symbol, direction)
@@ -576,18 +592,29 @@ class AgentBot:
                           f"keeping position OPEN in DB to prevent ghost position")
                 return
 
-            # Use actual close price if available
+            # Use actual close price from Binance
             actual_price = close_result.get('price')
             if actual_price and actual_price > 0:
                 exit_price = actual_price
-                # Recalculate with actual price
-                if direction == 'LONG':
-                    price_change_pct = (exit_price - entry_price) / entry_price
-                else:
-                    price_change_pct = (entry_price - exit_price) / entry_price
-                roi = price_change_pct * leverage * 100
-                pnl_before_fee = amount * price_change_pct * leverage
-                pnl = pnl_before_fee - total_fee - funding_fee
+
+            # Calculate PnL with actual price
+            if direction == 'LONG':
+                price_change_pct = (exit_price - entry_price) / entry_price
+            else:
+                price_change_pct = (entry_price - exit_price) / entry_price
+
+            roi = price_change_pct * leverage * 100
+            pnl_before_fee = amount * price_change_pct * leverage
+
+            # Use actual fees from Binance order responses
+            open_fee = position.get('open_fee', 0)
+            close_fee = close_result.get('fee', 0)
+            total_fee = open_fee + close_fee
+
+            # Funding fee: fetch from Binance income API
+            funding_fee = self._fetch_funding_fee(symbol, position.get('entry_time', ''))
+
+            pnl = pnl_before_fee - total_fee - funding_fee
 
             # Update database (only after Binance close confirmed)
             trade = Trade.query.get(position.get('trade_id'))
@@ -617,9 +644,9 @@ class AgentBot:
             db.session.add(AuditLog(
                 user_type='agent', user_id=self.agent_id,
                 action='close_position',
-                details={'symbol': symbol, 'direction': direction,
+                details=json.dumps({'symbol': symbol, 'direction': direction,
                          'pnl': round(pnl, 4), 'roi': round(roi, 4),
-                         'reason': reason},
+                         'reason': reason}),
             ))
             db.session.commit()
 
@@ -650,6 +677,10 @@ class AgentBot:
         except Exception as e:
             self._log('error', f"Close position failed: {e}")
             traceback.print_exc()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
 
     def _update_daily_stats(self, pnl: float, fees: float):
         """Update or create daily stats record."""

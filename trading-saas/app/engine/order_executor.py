@@ -124,6 +124,13 @@ class OrderExecutor:
                 params={'reduceOnly': False}
             )
 
+            # Extract actual fee from order response
+            fee_cost = 0.0
+            if order.get('fee') and order['fee'].get('cost'):
+                fee_cost = abs(float(order['fee']['cost']))
+            elif order.get('fees'):
+                fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+
             return {
                 'order_id': order.get('id'),
                 'symbol': symbol,
@@ -133,6 +140,7 @@ class OrderExecutor:
                 'price': float(order.get('average', price)),
                 'amount_usdt': amount_usdt,
                 'leverage': leverage,
+                'fee': fee_cost,
                 'status': order.get('status'),
                 'raw': order,
             }
@@ -164,7 +172,11 @@ class OrderExecutor:
                 # Fetch open position to get quantity
                 positions = self.exchange.fetch_positions([symbol])
                 for pos in positions:
-                    if pos['symbol'] == symbol and float(pos.get('contracts', 0)) > 0:
+                    # ccxt returns symbol as "DOT/USDT:USDT" for futures,
+                    # match both exact and base format
+                    pos_symbol = pos['symbol'].split(':')[0]
+                    if (pos['symbol'] == symbol or pos_symbol == symbol) \
+                            and float(pos.get('contracts', 0)) > 0:
                         quantity = float(pos['contracts'])
                         break
                 if not quantity:
@@ -178,12 +190,20 @@ class OrderExecutor:
                 params={'reduceOnly': True}
             )
 
+            # Extract actual fee from order response
+            fee_cost = 0.0
+            if order.get('fee') and order['fee'].get('cost'):
+                fee_cost = abs(float(order['fee']['cost']))
+            elif order.get('fees'):
+                fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+
             return {
                 'order_id': order.get('id'),
                 'symbol': symbol,
                 'side': side,
                 'quantity': quantity,
                 'price': float(order.get('average', 0)),
+                'fee': fee_cost,
                 'status': order.get('status'),
                 'raw': order,
             }
@@ -198,13 +218,13 @@ class OrderExecutor:
             positions = self.exchange.fetch_positions()
             return [
                 {
-                    'symbol': pos['symbol'],
+                    'symbol': pos['symbol'].split(':')[0],
                     'side': pos['side'],
                     'contracts': float(pos.get('contracts', 0)),
                     'notional': float(pos.get('notional', 0)),
                     'unrealized_pnl': float(pos.get('unrealizedPnl', 0)),
                     'entry_price': float(pos.get('entryPrice', 0)),
-                    'leverage': int(pos.get('leverage', 1)),
+                    'leverage': int(pos.get('leverage') or 1),
                     'margin': float(pos.get('initialMargin', 0)),
                 }
                 for pos in positions
