@@ -143,6 +143,8 @@ class AgentBot:
         # Initialize risk manager
         self.risk_manager = RiskManager(self.agent_id, self.config)
 
+        self._config_reload_counter = 0
+
         # Load existing open trades into memory
         open_trades = Trade.query.filter_by(
             agent_id=self.agent_id, status='OPEN'
@@ -169,6 +171,24 @@ class AgentBot:
 
         # Reconcile: detect ghost positions on Binance not tracked in DB
         self._reconcile_binance_positions()
+
+    def _reload_trading_config(self):
+        """Hot-reload trading config from DB (lightweight, no API key reload)."""
+        try:
+            trading_config = AgentTradingConfig.query.filter_by(
+                agent_id=self.agent_id
+            ).first()
+            if trading_config:
+                new_config = trading_config.to_dict()
+                if new_config != self.config:
+                    self._log('info', f"Config updated: "
+                              f"max_positions={new_config.get('max_positions')}, "
+                              f"min_score={new_config.get('min_score')}, "
+                              f"roi_stop_loss={new_config.get('roi_stop_loss')}")
+                    self.config = new_config
+                    self.risk_manager = RiskManager(self.agent_id, self.config)
+        except Exception as e:
+            self._log('error', f"Config reload failed: {e}")
 
     def _reconcile_binance_positions(self):
         """Detect positions on Binance that the DB doesn't know about.
@@ -654,6 +674,12 @@ class AgentBot:
         """Run one complete scan cycle."""
         self.scan_count += 1
         self._log('info', f"Scan #{self.scan_count} | Positions: {len(self.positions)}")
+
+        # Hot-reload config every 5 scans (~100s at 20s interval)
+        self._config_reload_counter += 1
+        if self._config_reload_counter >= 5:
+            self._config_reload_counter = 0
+            self._reload_trading_config()
 
         # Signal panel tracking
         scan_filtered = []
