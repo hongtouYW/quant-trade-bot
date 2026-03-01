@@ -167,6 +167,44 @@ class AgentBot:
         self._log('info', f"Config loaded. Strategy: {self.config.get('strategy_version')}, "
                   f"Open positions: {len(self.positions)}")
 
+        # Reconcile: detect ghost positions on Binance not tracked in DB
+        self._reconcile_binance_positions()
+
+    def _reconcile_binance_positions(self):
+        """Detect positions on Binance that the DB doesn't know about.
+
+        This catches 'ghost' positions caused by:
+        - DB marked CLOSED but Binance close order failed
+        - Duplicate opens where only one was tracked in memory
+        - Bot crash after Binance order but before DB write
+        """
+        try:
+            binance_positions = self.executor.get_open_positions()
+            if not binance_positions:
+                return
+
+            db_symbols = set(self.positions.keys())
+            for bpos in binance_positions:
+                symbol = bpos['symbol']
+                if symbol not in db_symbols:
+                    self._log('warn',
+                              f"GHOST POSITION detected: {symbol} "
+                              f"({bpos['side']}, {bpos['contracts']} contracts, "
+                              f"entry ${bpos['entry_price']:.6f}) exists on Binance "
+                              f"but NOT in DB. Sending alert.")
+                    self._send_telegram(
+                        f"⚠️ <b>Ghost Position Detected</b>\n"
+                        f"Symbol: {symbol}\n"
+                        f"Side: {bpos['side']}\n"
+                        f"Contracts: {bpos['contracts']}\n"
+                        f"Entry: ${bpos['entry_price']:.6f}\n"
+                        f"Unrealized PnL: {bpos['unrealized_pnl']:.2f}U\n\n"
+                        f"This position is NOT tracked by the bot.\n"
+                        f"Please close it manually on Binance."
+                    )
+        except Exception as e:
+            self._log('error', f"Binance reconciliation failed: {e}")
+
     def _update_state(self, status: str, error: str = None):
         """Update bot state in database."""
         state = BotState.query.filter_by(agent_id=self.agent_id).first()
@@ -511,23 +549,27 @@ class AgentBot:
 
             pnl = pnl_before_fee - total_fee - funding_fee
 
-            # Close on Binance
+            # Close on Binance — MUST succeed before marking DB as CLOSED
             close_result = self.executor.close_position(symbol, direction)
-            if close_result:
-                # Use actual close price if available
-                actual_price = close_result.get('price')
-                if actual_price and actual_price > 0:
-                    exit_price = actual_price
-                    # Recalculate with actual price
-                    if direction == 'LONG':
-                        price_change_pct = (exit_price - entry_price) / entry_price
-                    else:
-                        price_change_pct = (entry_price - exit_price) / entry_price
-                    roi = price_change_pct * leverage * 100
-                    pnl_before_fee = amount * price_change_pct * leverage
-                    pnl = pnl_before_fee - total_fee - funding_fee
+            if not close_result:
+                self._log('error', f"Binance close FAILED for {symbol} — "
+                          f"keeping position OPEN in DB to prevent ghost position")
+                return
 
-            # Update database
+            # Use actual close price if available
+            actual_price = close_result.get('price')
+            if actual_price and actual_price > 0:
+                exit_price = actual_price
+                # Recalculate with actual price
+                if direction == 'LONG':
+                    price_change_pct = (exit_price - entry_price) / entry_price
+                else:
+                    price_change_pct = (entry_price - exit_price) / entry_price
+                roi = price_change_pct * leverage * 100
+                pnl_before_fee = amount * price_change_pct * leverage
+                pnl = pnl_before_fee - total_fee - funding_fee
+
+            # Update database (only after Binance close confirmed)
             trade = Trade.query.get(position.get('trade_id'))
             if trade:
                 trade.exit_price = Decimal(str(exit_price))
