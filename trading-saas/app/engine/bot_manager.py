@@ -30,7 +30,7 @@ class BotManager:
         self.app = app
         self._bots = {}       # agent_id -> AgentBot
         self._threads = {}    # agent_id -> Thread
-        self._scan_interval = 60  # seconds
+        self._scan_interval = 20  # seconds
         self._restart_history = {}  # agent_id -> [timestamp, ...]
         self._watchdog_thread = None
         self._watchdog_running = False
