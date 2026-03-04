@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+        # 成功登录
+    }
+}
+
+# 测试API并查看错误
+send "cd /opt/trading-bot/quant-trade-bot/xmr_monitor\r"
+expect "*#"
+
+send "python3 -c \"import requests; print(requests.get('http://localhost:5111/api/stats').text)\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

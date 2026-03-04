@@ -66,3 +66,5 @@ htmlcov/
 
 # 个人配置示例文件保留，实际配置文件忽略
 # config.json.example (示例文件应该被包含)
+deploy_simple.sh
+view_trading_status.sh

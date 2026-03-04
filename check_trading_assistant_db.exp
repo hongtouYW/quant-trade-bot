@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 检查trading_assistant.db
+send "echo '=== trading_assistant.db (root) ===' && sqlite3 /opt/trading-bot/trading_assistant.db '.tables'\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/trading_assistant.db \"SELECT id, symbol, direction, status, investment, entry_price, pnl FROM trades ORDER BY id DESC LIMIT 10\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/trading_assistant.db \"SELECT SUM(pnl) as total_pnl FROM trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+# 2. 检查quant-trade-bot下的trading_assistant.db
+send "echo '=== trading_assistant.db (quant) ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db '.tables' 2>/dev/null || echo '无表'\r"
+expect "*#"
+
+# 3. paper_trader.py 使用哪个db_path
+send "grep -n 'db_path\\|DB_PATH' /opt/trading-bot/quant-trade-bot/xmr_monitor/paper_trader.py | head -5\r"
+expect "*#"
+
+send "exit\r"
+expect eof

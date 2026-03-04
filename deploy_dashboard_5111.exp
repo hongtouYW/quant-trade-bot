@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn scp -o StrictHostKeyChecking=no /Users/hongtou/newproject/quant-trade-bot/xmr_monitor/trading_assistant_dashboard.py root@$host:/opt/trading-bot/quant-trade-bot/xmr_monitor/
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {}
+    eof {}
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+# 杀掉旧进程并重启
+send "pkill -f trading_assistant_dashboard.py\r"
+expect "*#"
+
+send "cd /opt/trading-bot/quant-trade-bot/xmr_monitor && nohup python3 -u trading_assistant_dashboard.py > /tmp/dashboard_5111.log 2>&1 &\r"
+expect "*#"
+
+send "sleep 3\r"
+expect "*#"
+
+send "netstat -tlnp | grep 5111\r"
+expect "*#"
+
+send "curl -s http://localhost:5111/api/stats | head -100\r"
+expect "*#"
+
+send "exit\r"
+expect eof

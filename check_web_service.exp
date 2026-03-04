@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "supervisorctl status\r"
+expect "*#"
+
+send "curl -s http://localhost:5111/api/stats 2>&1 | head -20\r"
+expect "*#"
+
+send "tail -30 /var/log/supervisor/web-monitor-stderr*\r"
+expect "*#"
+
+send "exit\r"
+expect eof

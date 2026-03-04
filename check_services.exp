@@ -1,0 +1,39 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 检查supervisor服务状态
+send "echo '=== 1. Supervisor服务状态 ===' && supervisorctl status\r"
+expect "*#"
+
+# 2. 检查哪些交易脚本在运行
+send "echo '=== 2. 运行中的交易进程 ===' && ps aux | grep -E 'trader|trading' | grep -v grep\r"
+expect "*#"
+
+# 3. 检查supervisor配置
+send "echo '=== 3. Supervisor配置文件 ===' && ls -la /etc/supervisord.d/\r"
+expect "*#"
+
+# 4. 检查web-monitor是否指向正确的数据库
+send "echo '=== 4. web_monitor.py DB路径 ===' && grep -n 'DB_PATH' /opt/trading-bot/src/dashboard/web_monitor.py | head -3\r"
+expect "*#"
+
+# 5. 检查数据库文件
+send "echo '=== 5. 数据库文件 ===' && ls -la /opt/trading-bot/data/db/\r"
+expect "*#"
+
+send "exit\r"
+expect eof

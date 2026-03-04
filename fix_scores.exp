@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 从reason字段提取评分并更新score列
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"UPDATE real_trades SET score = CAST(SUBSTR(reason, INSTR(reason, '评分') + 6, 2) AS INTEGER) WHERE reason LIKE '%评分%分%';\"\r"
+expect "*#"
+
+# 验证更新结果
+send "echo '=== Updated scores ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT symbol, score, reason FROM real_trades WHERE score > 0 LIMIT 10;'\r"
+expect "*#"
+
+# 查看real_trades表结构
+send "echo '=== real_trades schema ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db '.schema real_trades'\r"
+expect "*#"
+
+send "exit\r"
+expect eof
+
+puts "\n✅ Scores extracted from reason field"

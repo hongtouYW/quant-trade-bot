@@ -1,0 +1,21 @@
+#!/usr/bin/expect -f
+
+set timeout 45
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "sed -n '75,150p' /opt/trading-bot/src/dashboard/web_monitor.py\r"
+expect "*#"
+
+send "exit\r"
+expect eof

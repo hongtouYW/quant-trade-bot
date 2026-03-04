@@ -1,0 +1,103 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# ========== 1. 创建 account_snapshots 表 ==========
+send "echo '=== 1. 创建 account_snapshots 表 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"CREATE TABLE IF NOT EXISTS account_snapshots (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, total_capital REAL, available_capital REAL, margin_used REAL, unrealized_pnl REAL, realized_pnl REAL, total_fees REAL, total_funding_fees REAL, open_positions INTEGER, daily_pnl REAL, max_drawdown REAL);\"\r"
+expect "*#"
+
+# ========== 2. 创建 funding_history 表 ==========
+send "echo '=== 2. 创建 funding_history 表 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"CREATE TABLE IF NOT EXISTS funding_history (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, trade_id INTEGER, symbol TEXT, funding_rate REAL, position_value REAL, funding_fee REAL, direction TEXT);\"\r"
+expect "*#"
+
+# ========== 3. 创建 trade_signals 表 ==========
+send "echo '=== 3. 创建 trade_signals 表 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"CREATE TABLE IF NOT EXISTS trade_signals (id INTEGER PRIMARY KEY AUTOINCREMENT, timestamp TEXT DEFAULT CURRENT_TIMESTAMP, symbol TEXT, signal_type TEXT, score INTEGER, rsi REAL, trend TEXT, volume_ratio REAL, reasons TEXT, executed INTEGER DEFAULT 0, trade_id INTEGER);\"\r"
+expect "*#"
+
+# ========== 4. 创建 daily_stats 表 ==========
+send "echo '=== 4. 创建 daily_stats 表 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"CREATE TABLE IF NOT EXISTS daily_stats (id INTEGER PRIMARY KEY AUTOINCREMENT, date TEXT UNIQUE, starting_capital REAL, ending_capital REAL, trades_opened INTEGER DEFAULT 0, trades_closed INTEGER DEFAULT 0, win_trades INTEGER DEFAULT 0, loss_trades INTEGER DEFAULT 0, total_pnl REAL DEFAULT 0, total_fees REAL DEFAULT 0, total_funding_fees REAL DEFAULT 0, best_trade REAL, worst_trade REAL, max_drawdown REAL DEFAULT 0);\"\r"
+expect "*#"
+
+# ========== 5. 增强 real_trades 表 ==========
+send "echo '=== 5. 增强 real_trades 表 ==='\r"
+expect "*#"
+
+# 添加新字段 (使用 ALTER TABLE，如果字段已存在会报错但不影响)
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN entry_score INTEGER DEFAULT 0;\" 2>/dev/null || echo 'entry_score already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN entry_rsi REAL;\" 2>/dev/null || echo 'entry_rsi already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN entry_trend TEXT;\" 2>/dev/null || echo 'entry_trend already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN slippage REAL DEFAULT 0;\" 2>/dev/null || echo 'slippage already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN max_profit REAL DEFAULT 0;\" 2>/dev/null || echo 'max_profit already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN max_loss REAL DEFAULT 0;\" 2>/dev/null || echo 'max_loss already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN duration_minutes INTEGER;\" 2>/dev/null || echo 'duration_minutes already exists'\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"ALTER TABLE real_trades ADD COLUMN close_reason TEXT;\" 2>/dev/null || echo 'close_reason already exists'\r"
+expect "*#"
+
+# ========== 6. 添加 account_config 配置项 ==========
+send "echo '=== 6. 添加 account_config 配置项 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('max_position_size', '500');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('max_positions', '10');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('default_leverage', '3');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('stop_loss_pct', '1.5');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('take_profit_pct', '2.5');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('fee_rate', '0.001');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('min_score', '60');\"\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR IGNORE INTO account_config (key, value) VALUES ('trading_enabled', '1');\"\r"
+expect "*#"
+
+# ========== 7. 验证所有表 ==========
+send "echo ''\r"
+expect "*#"
+send "echo '=== 验证: 所有表 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db '.tables'\r"
+expect "*#"
+
+send "echo '=== 验证: account_config ==='\r"
+expect "*#"
+send "sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db 'SELECT * FROM account_config;'\r"
+expect "*#"
+
+send "echo '=== 验证: real_trades 新字段 ==='\r"
+expect "*#"
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db 'PRAGMA table_info(real_trades);' | grep -E 'entry_score|entry_rsi|entry_trend|slippage|max_profit|max_loss|duration_minutes|close_reason'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

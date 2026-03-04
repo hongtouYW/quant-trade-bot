@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "netstat -tlnp | grep -E '5001|5111'\r"
+expect "*#"
+
+send "ps aux | grep -E 'python.*5111|flask' | grep -v grep\r"
+expect "*#"
+
+send "supervisorctl status\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 创建配置表存储初始资金
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"CREATE TABLE IF NOT EXISTS account_config (key TEXT PRIMARY KEY, value TEXT, created_at TEXT DEFAULT CURRENT_TIMESTAMP, updated_at TEXT DEFAULT CURRENT_TIMESTAMP);\"\r"
+expect "*#"
+
+# 插入初始资金
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR REPLACE INTO account_config (key, value, updated_at) VALUES ('initial_capital', '2000', CURRENT_TIMESTAMP);\"\r"
+expect "*#"
+
+# 同时记录目标利润
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"INSERT OR REPLACE INTO account_config (key, value, updated_at) VALUES ('target_profit', '3400', CURRENT_TIMESTAMP);\"\r"
+expect "*#"
+
+# 验证数据
+send "echo '=== 账户配置 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT * FROM account_config;\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

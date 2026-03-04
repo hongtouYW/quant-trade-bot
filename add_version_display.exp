@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 在"顶部统计"之前添加版本号显示
+send "sed -i 's|<!-- 顶部统计 -->|<!-- 版本号 -->\\n    <div style=\"position: fixed; top: 8px; right: 16px; background: rgba(30,41,59,0.9); padding: 4px 12px; border-radius: 4px; font-size: 12px; color: \\#60a5fa; z-index: 9999;\">v0.7</div>\\n    <!-- 顶部统计 -->|' /opt/trading-bot/quant-trade-bot/index.html\r"
+expect "*#"
+
+# 确认更新
+send "grep -n 'v0.7\\|版本号' /opt/trading-bot/quant-trade-bot/index.html | head -5\r"
+expect "*#"
+
+send "exit\r"
+expect eof

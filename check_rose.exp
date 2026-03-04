@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 15
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+        # 成功登录
+    }
+}
+
+send "sqlite3 /opt/trading-bot/trading_assistant.db 'SELECT symbol, direction, entry_price, entry_time, amount, leverage, stop_loss, take_profit, status FROM real_trades WHERE mode=\"paper\" AND symbol=\"ROSE\" ORDER BY entry_time DESC LIMIT 3;'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

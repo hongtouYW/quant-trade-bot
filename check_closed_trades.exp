@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查所有已平仓交易的数据
+send "echo '=== 已平仓交易详情 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, amount, leverage, entry_price, ROUND(amount * leverage / entry_price, 2) as calc_coins, pnl FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

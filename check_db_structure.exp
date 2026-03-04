@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 查看当前所有表
+send "echo '=== 当前数据库表 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db '.tables'\r"
+expect "*#"
+
+# 查看real_trades表结构
+send "echo '=== real_trades结构 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema real_trades'\r"
+expect "*#"
+
+# 查看account_config表
+send "echo '=== account_config结构 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db '.schema account_config'\r"
+expect "*#"
+
+# 检查哪些字段有数据，哪些是空的
+send "echo '=== 字段使用情况 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT 'score非0:' || SUM(CASE WHEN score != 0 THEN 1 ELSE 0 END) || '/' || COUNT(*), 'reason有值:' || SUM(CASE WHEN reason IS NOT NULL AND reason != '' THEN 1 ELSE 0 END) || '/' || COUNT(*), 'funding_fee非0:' || SUM(CASE WHEN funding_fee != 0 THEN 1 ELSE 0 END) || '/' || COUNT(*) FROM real_trades;\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

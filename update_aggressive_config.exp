@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 更新配置
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE account_config SET value='5', updated_at=datetime('now') WHERE key='default_leverage'\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE account_config SET value='800', updated_at=datetime('now') WHERE key='max_position_size'\"\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE account_config SET value='55', updated_at=datetime('now') WHERE key='min_score'\"\r"
+expect "*#"
+
+# 确认更新
+send "echo '=== 新配置 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT key, value FROM account_config\"\r"
+expect "*#"
+
+# 重启auto-trader使配置生效
+send "supervisorctl restart auto-trader\r"
+expect "*#"
+
+send "sleep 3 && supervisorctl status auto-trader\r"
+expect "*#"
+
+send "exit\r"
+expect eof

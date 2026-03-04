@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn scp -o StrictHostKeyChecking=no /Users/hongtou/newproject/quant-trade-bot/index.html root@$host:/opt/trading-bot/quant-trade-bot/index.html
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {
+    }
+    eof {
+    }
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "echo '前端已更新，请刷新浏览器'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

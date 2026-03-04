@@ -1,0 +1,29 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+# 查看 supervisor 日志
+send "ls -la /var/log/supervisor/\r"
+expect "*#"
+
+send "cat /tmp/web-monitor.log 2>/dev/null | tail -30\r"
+expect "*#"
+
+# 检查 supervisord 配置
+send "cat /etc/supervisord.d/web-monitor.ini 2>/dev/null\r"
+expect "*#"
+
+send "exit\r"
+expect eof

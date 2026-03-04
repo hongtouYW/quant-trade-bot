@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 45
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "echo '=== 持仓状态 ==='\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"SELECT id, symbol, direction, entry_price, stop_loss, status FROM real_trades WHERE mode='paper' AND assistant='交易助手' ORDER BY id DESC LIMIT 12;\"\r"
+expect "*#"
+
+send "echo '=== 当前价格 ==='\r"
+expect "*#"
+
+send "python3 -c \"import requests; symbols=['XRP','SOL','DUSK','OP','BNB','XMR','ATOM']; [print(f'{s}: {float(requests.get(f\\\"https://fapi.binance.com/fapi/v1/ticker/price?symbol={s}USDT\\\").json()[\\\"price\\\"]):.6f}') for s in symbols]\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,23 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 查看前端头部区域
+send "head -100 /opt/trading-bot/quant-trade-bot/index.html | grep -n 'header\\|title\\|<h1\\|<h2\\|量化'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

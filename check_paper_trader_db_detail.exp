@@ -1,0 +1,30 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# paper_trader.db real_trades表
+send "echo '=== paper_trader.db schema ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db '.schema real_trades'\r"
+expect "*#"
+
+send "echo '=== paper_trader.db real_trades ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db 'SELECT * FROM real_trades LIMIT 10'\r"
+expect "*#"
+
+# 查看用户说的DOGE 1000资金在哪里
+send "echo '=== 所有DOGE交易 ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT * FROM real_trades WHERE symbol LIKE '%DOGE%'\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

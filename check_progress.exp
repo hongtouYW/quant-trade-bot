@@ -1,0 +1,28 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "supervisorctl status auto-trader\r"
+expect "*#"
+
+send "curl -s http://localhost:5001/api/stats | python3 -c \"import sys,json; d=json.load(sys.stdin); print('净利润: \$'+str(round(d['total_pnl']-d['total_fees'],2))); print('持仓数: '+str(d['open_positions'])); print('已平仓: '+str(d['total_trades'])); print('胜率: '+str(round(d['win_rate'],1))+'%%')\"\r"
+expect "*#"
+
+send "tail -15 /opt/trading-bot/logs/auto-trader-stdout.log\r"
+expect "*#"
+
+send "exit\r"
+expect eof

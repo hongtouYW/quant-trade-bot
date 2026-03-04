@@ -1,0 +1,45 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "echo '=== Paper Trader 数据库完整检查 ==='\r"
+expect "*#"
+
+send "echo '--- 所有交易记录 ---'\r"
+expect "*#"
+
+send "sqlite3 -header -column /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT id, symbol, direction, amount, leverage, entry_price, exit_price, pnl, fee, status FROM real_trades ORDER BY id;\"\r"
+expect "*#"
+
+send "echo '--- 已平仓统计 ---'\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT COUNT(*) as 交易数, SUM(pnl) as 总盈亏, SUM(fee) as 总手续费 FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "echo '--- 未平仓统计 ---'\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT COUNT(*) as 持仓数, SUM(amount) as 占用资金 FROM real_trades WHERE status='OPEN';\"\r"
+expect "*#"
+
+send "echo '--- 未平仓明细 ---'\r"
+expect "*#"
+
+send "sqlite3 -header -column /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT id, symbol, direction, amount, leverage, entry_price, stop_loss FROM real_trades WHERE status='OPEN';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

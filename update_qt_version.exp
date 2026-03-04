@@ -1,0 +1,26 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 更新版本号为 QT-0.8
+send "sed -i 's/v0.8/QT-0.8/g' /opt/trading-bot/quant-trade-bot/index.html\r"
+expect "*#"
+
+send "grep -n 'QT-0.8' /opt/trading-bot/quant-trade-bot/index.html\r"
+expect "*#"
+
+send "exit\r"
+expect eof

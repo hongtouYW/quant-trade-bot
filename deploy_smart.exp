@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+
+set timeout 120
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn scp -o StrictHostKeyChecking=no /Users/hongtou/newproject/quant-trade-bot/auto_trader_v2.py root@$host:/opt/trading-bot/quant-trade-bot/auto_trader_v2.py
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "100%" {
+    }
+    eof {
+    }
+}
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "supervisorctl restart auto-trader\r"
+expect "*#"
+
+send "sleep 2 && supervisorctl status auto-trader\r"
+expect "*#"
+
+send "exit\r"
+expect eof

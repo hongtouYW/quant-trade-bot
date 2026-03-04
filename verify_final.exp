@@ -1,0 +1,22 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+send "curl -s http://localhost:5001/api/stats | python3 -c \"import sys,json; d=json.load(sys.stdin); print(f'初始资金: \${d[\\\"initial_capital\\\"]:,.2f}'); print(f'总盈亏: \${d[\\\"total_pnl\\\"]:,.2f}'); print(f'当前资金: \${d[\\\"current_capital\\\"]:,.2f}'); print(f'保证金占用: \${d[\\\"margin_used\\\"]:,.2f}'); print(f'可用余额: \${d[\\\"available_capital\\\"]:,.2f}')\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

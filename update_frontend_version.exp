@@ -1,0 +1,27 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 更新title标签
+send "sed -i 's/<title>量化助理 v0.3<\\/title>/<title>量化交易 v0.7<\\/title>/' /opt/trading-bot/quant-trade-bot/index.html\r"
+expect "*#"
+
+# 2. 查找页面顶部显示区域
+send "grep -n 'class=\"logo\\|量化助理\\|系统名' /opt/trading-bot/quant-trade-bot/index.html | head -10\r"
+expect "*#"
+
+send "exit\r"
+expect eof

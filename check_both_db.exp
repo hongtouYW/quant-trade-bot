@@ -1,0 +1,37 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 1. 检查paper_trader.db (交易助手)
+send "echo '=== 交易助手数据库 (paper_trader.db) ===' && sqlite3 /opt/trading-bot/data/db/paper_trader.db '.tables' 2>/dev/null || echo 'DB为空或不存在'\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/data/db/paper_trader.db \"SELECT * FROM trades\" 2>/dev/null || echo '无trades表'\r"
+expect "*#"
+
+# 2. 检查xmr_monitor目录下是否有数据库
+send "echo '=== xmr_monitor目录 ===' && ls -la /opt/trading-bot/quant-trade-bot/xmr_monitor/*.db 2>/dev/null || echo '无db文件'\r"
+expect "*#"
+
+send "echo '=== 检查所有db文件 ===' && find /opt/trading-bot -name '*.db' -exec ls -la {} \;\r"
+expect "*#"
+
+# 3. 检查前端API返回什么
+send "curl -s http://localhost:5001/api/stats 2>/dev/null | head -200\r"
+expect "*#"
+
+send "exit\r"
+expect eof

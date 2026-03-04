@@ -1,0 +1,49 @@
+#!/usr/bin/expect -f
+
+set timeout 60
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+puts "\n========== 完整数据检查 =========="
+
+# 1. 检查trading_assistant.db的表结构
+send "echo '\n=== 1. trading_assistant.db 表结构 ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db '.schema real_trades'\r"
+expect "*#"
+
+# 2. 检查当前持仓数据
+send "echo '\n=== 2. 当前持仓 (OPEN) ===' && sqlite3 -header -column /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT id, symbol, direction, amount, entry_price, leverage, score, status FROM real_trades WHERE status=\"OPEN\";'\r"
+expect "*#"
+
+# 3. 检查已平仓数据
+send "echo '\n=== 3. 已平仓记录 (CLOSED) ===' && sqlite3 -header -column /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db 'SELECT id, symbol, direction, amount, entry_price, exit_price, pnl, score, status FROM real_trades WHERE status=\"CLOSED\" LIMIT 5;'\r"
+expect "*#"
+
+# 4. 检查paper_trading.db的stats表
+send "echo '\n=== 4. paper_trading.db stats ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db 'SELECT * FROM stats ORDER BY timestamp DESC LIMIT 1;'\r"
+expect "*#"
+
+# 5. 测试API响应
+send "echo '\n=== 5. 测试 /api/positions ===' && curl -s http://localhost:5001/api/positions | python3 -m json.tool 2>/dev/null | head -50\r"
+expect "*#"
+
+send "echo '\n=== 6. 测试 /api/trades ===' && curl -s 'http://localhost:5001/api/trades?limit=3' | python3 -m json.tool 2>/dev/null\r"
+expect "*#"
+
+send "echo '\n=== 7. 测试 /api/stats ===' && curl -s http://localhost:5001/api/stats | python3 -m json.tool 2>/dev/null\r"
+expect "*#"
+
+send "exit\r"
+expect eof
+
+puts "\n========== 检查完成 =========="

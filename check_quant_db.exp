@@ -1,0 +1,33 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 检查quant-trade-bot下的trading_assistant.db的real_trades
+send "echo '=== quant trading_assistant real_trades ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"SELECT id, symbol, direction, status, investment, entry_price, pnl FROM real_trades ORDER BY id DESC LIMIT 15\"\r"
+expect "*#"
+
+send "echo '=== 总盈亏 ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/trading_assistant.db \"SELECT SUM(pnl) FROM real_trades WHERE status='CLOSED'\"\r"
+expect "*#"
+
+# 检查paper_trader.db
+send "echo '=== paper_trader.db (quant) ===' && sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db '.tables' 2>/dev/null || echo '无表'\r"
+expect "*#"
+
+send "sqlite3 /opt/trading-bot/quant-trade-bot/data/db/paper_trader.db \"SELECT id, symbol, direction, status, investment, entry_price, pnl FROM trades ORDER BY id DESC LIMIT 10\" 2>/dev/null || echo '无数据'\r"
+expect "*#"
+
+send "exit\r"
+expect eof

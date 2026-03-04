@@ -1,0 +1,38 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 重新计算PnL
+# LONG: pnl = (exit_price - entry_price) / entry_price * margin * leverage
+# SHORT: pnl = (entry_price - exit_price) / entry_price * margin * leverage
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET pnl = ROUND(CASE WHEN direction='long' THEN (exit_price - entry_price) / entry_price * amount * leverage ELSE (entry_price - exit_price) / entry_price * amount * leverage END, 2) WHERE status = 'CLOSED';\"\r"
+expect "*#"
+
+# 重新计算ROI (%)
+# ROI = pnl / margin * 100
+send "sqlite3 /opt/trading-bot/data/db/paper_trading.db \"UPDATE real_trades SET roi = ROUND(pnl / amount * 100, 2) WHERE status = 'CLOSED';\"\r"
+expect "*#"
+
+# 验证修复结果
+send "echo '=== 修复后的PnL验证 ===' && sqlite3 -header -column /opt/trading-bot/data/db/paper_trading.db \"SELECT id, symbol, direction, ROUND(amount,2) as margin, ROUND(entry_price,4) as entry, ROUND(exit_price,4) as exit, pnl, roi FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+# 重新汇总
+send "echo '=== 修正后的汇总 ===' && sqlite3 /opt/trading-bot/data/db/paper_trading.db \"SELECT '总PnL:' || ROUND(SUM(pnl),2) || ' | 总手续费:' || ROUND(SUM(fee),2) || ' | 净盈亏:' || ROUND(SUM(pnl) - SUM(fee), 2) FROM real_trades WHERE status='CLOSED';\"\r"
+expect "*#"
+
+send "exit\r"
+expect eof

@@ -1,0 +1,35 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {
+    }
+}
+
+# 等待几秒让程序运行
+send "sleep 5\r"
+expect "*#"
+
+# 查看最新日志
+send "echo '=== 运行日志 ===' && tail -40 /opt/trading-bot/logs/auto-trader-stdout.log\r"
+expect "*#"
+
+# 检查是否有错误
+send "echo '=== 错误日志 ===' && tail -10 /opt/trading-bot/logs/auto-trader-stderr.log 2>/dev/null || echo '无错误'\r"
+expect "*#"
+
+# 确认进程运行中
+send "supervisorctl status auto-trader\r"
+expect "*#"
+
+send "exit\r"
+expect eof

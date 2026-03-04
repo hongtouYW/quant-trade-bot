@@ -1,0 +1,31 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+set password "qweQWE123!@#abc"
+set host "139.162.41.38"
+
+spawn ssh -o StrictHostKeyChecking=no root@$host
+
+expect {
+    "*password:*" {
+        send "$password\r"
+        exp_continue
+    }
+    "*#" {}
+}
+
+send "python3 << 'PYEOF'
+import requests
+symbols = \['XRP', 'SOL', 'DUSK', 'OP', 'BNB', 'XMR', 'ATOM'\]
+for s in symbols:
+    try:
+        r = requests.get(f'https://fapi.binance.com/fapi/v1/ticker/price?symbol={s}USDT', timeout=5)
+        p = float(r.json().get('price', 0))
+        print(f'{s}: {p}')
+    except Exception as e:
+        print(f'{s}: ERROR')
+PYEOF\r"
+expect "*#"
+
+send "exit\r"
+expect eof
