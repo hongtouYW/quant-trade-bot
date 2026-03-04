@@ -1,0 +1,26 @@
+[Unit]
+Description=Trading SaaS API Server
+After=network.target mysql.service redis.service
+Wants=mysql.service redis.service
+
+[Service]
+Type=notify
+User=root
+Group=root
+WorkingDirectory=/opt/trading-saas
+Environment="PATH=/opt/trading-saas/venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=/opt/trading-saas/.env
+ExecStart=/opt/trading-saas/venv/bin/gunicorn -c /opt/trading-saas/deploy/gunicorn.conf.py wsgi:app
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=trading-saas
+
+[Install]
+WantedBy=multi-user.target
