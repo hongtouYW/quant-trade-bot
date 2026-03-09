@@ -1,4 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(GIT=/Applications/Xcode.app/Contents/Developer/usr/bin/git)",
+      "Bash($GIT log --oneline -5)",
+      "Bash($GIT add -A)",
+      "Bash($GIT status)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -10,6 +19,5 @@
         ]
       }
     ]
-  },
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+  }
 }
