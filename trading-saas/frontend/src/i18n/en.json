@@ -410,7 +410,17 @@
     "actionFailed": "Action failed",
     "restart": "Restart",
     "adminUser": "Admin",
-    "agentUser": "Agent"
+    "agentUser": "Agent",
+    "tradeHistory": "Trade History",
+    "closedTrades": "Closed",
+    "openTrades": "Open",
+    "botPnl": "Bot PnL",
+    "walletOverview": "Wallet",
+    "walletTotal": "Total Balance",
+    "walletFree": "Available",
+    "walletUsed": "In Use",
+    "botPositions": "Bot Positions",
+    "walletNote": "Balance includes all wallet activity. Only bot trades count toward our PnL."
   },
   "notifications": {
     "title": "Notifications",

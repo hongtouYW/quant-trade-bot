@@ -410,7 +410,17 @@
     "actionFailed": "操作失败",
     "restart": "重启",
     "adminUser": "管理员",
-    "agentUser": "代理"
+    "agentUser": "代理",
+    "tradeHistory": "交易历史",
+    "closedTrades": "已平仓",
+    "openTrades": "持仓中",
+    "botPnl": "Bot 盈亏",
+    "walletOverview": "钱包",
+    "walletTotal": "总余额",
+    "walletFree": "可用",
+    "walletUsed": "占用中",
+    "botPositions": "Bot 持仓数",
+    "walletNote": "余额包含钱包所有活动（充值/提现/手动交易）。仅 Bot 开的单计入我们的盈亏报表。"
   },
   "notifications": {
     "title": "通知",

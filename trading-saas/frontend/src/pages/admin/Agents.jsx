@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
+import PnlValue from '../../components/common/PnlValue';
 import Table from '../../components/common/Table';
 import api from '../../api/client';
-import { UserPlus, ChevronDown, ChevronUp, Key, MessageCircle, Bot, ShieldCheck, Lock } from 'lucide-react';
+import { UserPlus, ChevronDown, ChevronUp, Key, MessageCircle, Bot, ShieldCheck, Lock, History } from 'lucide-react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatDate, formatDateTime } from '../../utils/formatDate';
 
@@ -19,17 +20,36 @@ export default function Agents() {
   const [expandedId, setExpandedId] = useState(null);
   const [detail, setDetail] = useState(null);
   const [pwForm, setPwForm] = useState({ agentId: null, password: '', msg: '' });
+  const [tradesData, setTradesData] = useState(null);
+  const [tradesPage, setTradesPage] = useState(1);
+  const [tradesStatus, setTradesStatus] = useState('CLOSED');
+  const [tradesLoading, setTradesLoading] = useState(false);
+
+  const fetchTrades = async (agentId, page = 1, status = 'CLOSED') => {
+    setTradesLoading(true);
+    try {
+      const res = await api.get(`/admin/agents/${agentId}/trades?page=${page}&per_page=10&status=${status}`);
+      setTradesData(res.data);
+    } catch {
+      setTradesData(null);
+    }
+    setTradesLoading(false);
+  };
 
   const toggleExpand = async (agentId) => {
     if (expandedId === agentId) {
       setExpandedId(null);
       setDetail(null);
+      setTradesData(null);
       return;
     }
     try {
       const res = await api.get(`/admin/agents/${agentId}`);
       setDetail(res.data);
       setExpandedId(agentId);
+      setTradesPage(1);
+      setTradesStatus('CLOSED');
+      fetchTrades(agentId, 1, 'CLOSED');
     } catch {
       setExpandedId(agentId);
       setDetail(null);
@@ -233,11 +253,28 @@ export default function Agents() {
                         <p><span className="text-text-secondary">{t('admin.totalTrades')}</span> {detail.trade_stats.total_trades}</p>
                         <p><span className="text-text-secondary">{t('admin.winTrades')}</span> {detail.trade_stats.win_trades}</p>
                         <p>
-                          <span className="text-text-secondary">{t('admin.totalPnl')}</span>{' '}
+                          <span className="text-text-secondary">{t('admin.botPnl')}</span>{' '}
                           <span className={detail.trade_stats.total_pnl >= 0 ? 'text-success' : 'text-danger'}>
                             {detail.trade_stats.total_pnl >= 0 ? '+' : ''}{Number(detail.trade_stats.total_pnl).toFixed(2)}U
                           </span>
                         </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {detail?.wallet && (
+                    <div>
+                      <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">{t('admin.walletOverview')}</h4>
+                      <div className="space-y-1">
+                        <p><span className="text-text-secondary">{t('admin.walletTotal')}</span> {detail.wallet.total_balance.toFixed(2)}U</p>
+                        <p><span className="text-text-secondary">{t('admin.walletFree')}</span> {detail.wallet.free.toFixed(2)}U</p>
+                        <p><span className="text-text-secondary">{t('admin.walletUsed')}</span> {detail.wallet.used.toFixed(2)}U</p>
+                        <p>
+                          <span className="text-text-secondary">{t('admin.botPnl')}</span>{' '}
+                          <PnlValue value={detail.wallet.bot_realized_pnl} />
+                        </p>
+                        <p><span className="text-text-secondary">{t('admin.botPositions')}</span> {detail.wallet.bot_open_positions}</p>
+                        <p className="text-[10px] text-text-tertiary mt-1 italic">{t('admin.walletNote')}</p>
                       </div>
                     </div>
                   )}
@@ -279,6 +316,90 @@ export default function Agents() {
                     )}
                     {pwForm.agentId !== agent.id && pwForm.msg && (
                       <p className="text-xs text-success mt-1">{pwForm.msg}</p>
+                    )}
+                  </div>
+
+                  {/* Trade History */}
+                  <div className="col-span-full mt-4 border-t border-border/50 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-semibold text-text-secondary uppercase flex items-center gap-1">
+                        <History size={14} /> {t('admin.tradeHistory')}
+                      </h4>
+                      <div className="flex gap-1">
+                        {['CLOSED', 'OPEN'].map(s => (
+                          <button
+                            key={s}
+                            onClick={() => { setTradesStatus(s); setTradesPage(1); fetchTrades(agent.id, 1, s); }}
+                            className={`px-2 py-0.5 text-xs rounded ${tradesStatus === s ? 'bg-primary text-white' : 'bg-bg-input text-text-secondary hover:text-text'}`}
+                          >
+                            {s === 'CLOSED' ? t('admin.closedTrades') : t('admin.openTrades')}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {tradesLoading ? (
+                      <p className="text-xs text-text-secondary">{t('common.loading')}</p>
+                    ) : tradesData?.trades?.length > 0 ? (
+                      <>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="text-text-secondary border-b border-border/30">
+                                <th className="text-left py-1.5 px-2">{t('history.symbol')}</th>
+                                <th className="text-left py-1.5 px-2">{t('history.dir')}</th>
+                                <th className="text-right py-1.5 px-2">{t('history.entry')}</th>
+                                {tradesStatus === 'CLOSED' && <th className="text-right py-1.5 px-2">{t('history.exit')}</th>}
+                                <th className="text-right py-1.5 px-2">{t('history.amount')}</th>
+                                <th className="text-center py-1.5 px-2">{t('history.lev')}</th>
+                                {tradesStatus === 'CLOSED' && <th className="text-right py-1.5 px-2">{t('history.pnl')}</th>}
+                                {tradesStatus === 'CLOSED' && <th className="text-right py-1.5 px-2">{t('history.roi')}</th>}
+                                {tradesStatus === 'OPEN' && <th className="text-right py-1.5 px-2">{t('history.pnl')}</th>}
+                                {tradesStatus === 'OPEN' && <th className="text-right py-1.5 px-2">{t('history.roi')}</th>}
+                                <th className="text-right py-1.5 px-2">{tradesStatus === 'CLOSED' ? t('history.closed') : t('positions.opened')}</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {tradesData.trades.map((tr, i) => (
+                                <tr key={i} className="border-b border-border/20 hover:bg-white/[0.02]">
+                                  <td className="py-1.5 px-2 font-medium">{tr.symbol}</td>
+                                  <td className="py-1.5 px-2">
+                                    <Badge variant={tr.direction === 'LONG' ? 'success' : 'danger'}>{tr.direction}</Badge>
+                                  </td>
+                                  <td className="py-1.5 px-2 text-right">${Number(tr.entry_price).toFixed(4)}</td>
+                                  {tradesStatus === 'CLOSED' && <td className="py-1.5 px-2 text-right">${Number(tr.exit_price).toFixed(4)}</td>}
+                                  <td className="py-1.5 px-2 text-right">{tr.amount}U</td>
+                                  <td className="py-1.5 px-2 text-center">{tr.leverage}x</td>
+                                  {tradesStatus === 'CLOSED' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.pnl} /></td>}
+                                  {tradesStatus === 'CLOSED' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.roi} suffix="%" /></td>}
+                                  {tradesStatus === 'OPEN' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.unrealized_pnl} /></td>}
+                                  {tradesStatus === 'OPEN' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.current_roi} suffix="%" /></td>}
+                                  <td className="py-1.5 px-2 text-right text-text-secondary">
+                                    {formatDateTime(tradesStatus === 'CLOSED' ? tr.exit_time : tr.entry_time)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                        {tradesData.pages > 1 && (
+                          <div className="flex items-center justify-center gap-2 mt-2 pt-2 border-t border-border/30">
+                            <button
+                              onClick={() => { const p = Math.max(1, tradesPage - 1); setTradesPage(p); fetchTrades(agent.id, p, tradesStatus); }}
+                              disabled={tradesPage <= 1}
+                              className="px-2 py-0.5 text-xs rounded bg-bg-input text-text disabled:opacity-30"
+                            >{t('common.prev')}</button>
+                            <span className="text-xs text-text-secondary">{tradesPage} / {tradesData.pages} ({tradesData.total})</span>
+                            <button
+                              onClick={() => { const p = Math.min(tradesData.pages, tradesPage + 1); setTradesPage(p); fetchTrades(agent.id, p, tradesStatus); }}
+                              disabled={tradesPage >= tradesData.pages}
+                              className="px-2 py-0.5 text-xs rounded bg-bg-input text-text disabled:opacity-30"
+                            >{t('common.next')}</button>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-text-secondary py-2">{t('common.noData')}</p>
                     )}
                   </div>
                 </div>

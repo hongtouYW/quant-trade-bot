@@ -1,16 +1,46 @@
 """Admin API - Manage Agents"""
+import json as _json
+import logging
 from flask import Blueprint, request, jsonify
 from ..middleware.auth_middleware import admin_required, get_current_user_id
 from ..services.auth_service import hash_password
 from ..services.audit_service import log_action
+from ..services.encryption_service import EncryptionService
 from ..models.agent import Agent
-from ..models.agent_config import AgentTradingConfig
+from ..models.agent_config import AgentApiKey, AgentTradingConfig
 from ..models.bot_state import BotState
 from ..models.trade import Trade
 from ..models.audit import AuditLog
 from ..extensions import db
 
+logger = logging.getLogger(__name__)
+
 admin_bp = Blueprint('admin', __name__)
+
+
+def _fetch_agent_balance(agent_id):
+    """Fetch wallet balance for an agent via exchange API."""
+    from ..api.agent import _create_exchange
+    record = AgentApiKey.query.filter_by(agent_id=agent_id).first()
+    if not record or not record.permissions_verified:
+        return None
+    try:
+        combined_json = EncryptionService.decrypt(record.binance_api_key_enc, record.encryption_iv)
+        keys = _json.loads(combined_json)
+        exchange_name = record.exchange or 'binance'
+        exchange = _create_exchange(exchange_name, keys['k'], keys['s'],
+                                    passphrase=keys.get('p'),
+                                    is_testnet=record.is_testnet)
+        balance = exchange.fetch_balance()
+        usdt = balance.get('USDT', {})
+        return {
+            'total': float(usdt.get('total', 0)),
+            'free': float(usdt.get('free', 0)),
+            'used': float(usdt.get('used', 0)),
+        }
+    except Exception as e:
+        logger.warning(f"Balance fetch failed for agent {agent_id}: {e}")
+        return None
 
 
 @admin_bp.route('/dashboard', methods=['GET'])
@@ -128,12 +158,35 @@ def get_agent(agent_id):
         .first()
     )
 
+    bot_pnl = float(stats[1]) if stats[1] else 0
+
     result = agent.to_admin_dict()
     result['trade_stats'] = {
         'total_trades': stats[0] or 0,
-        'total_pnl': float(stats[1]) if stats[1] else 0,
+        'total_pnl': bot_pnl,
         'win_trades': int(stats[2]) if stats[2] else 0,
     }
+
+    # Fetch wallet balance and calculate PnL breakdown
+    wallet = _fetch_agent_balance(agent_id)
+    if wallet:
+        # Open positions unrealized PnL (bot only)
+        open_pnl = (
+            db.session.query(func.sum(Trade.pnl))
+            .filter(Trade.agent_id == agent_id, Trade.status == 'OPEN')
+            .scalar()
+        )
+        bot_open_pnl = float(open_pnl) if open_pnl else 0
+
+        result['wallet'] = {
+            'total_balance': wallet['total'],
+            'free': wallet['free'],
+            'used': wallet['used'],
+            'bot_realized_pnl': round(bot_pnl, 4),
+            'bot_open_positions': Trade.query.filter_by(agent_id=agent_id, status='OPEN').count(),
+            'note': 'Balance includes all wallet activity. Bot PnL only counts trades opened by our system.',
+        }
+
     return jsonify(result)
 
 
@@ -355,3 +408,65 @@ def leaderboard():
         result.sort(key=lambda x: x['total_pnl'], reverse=True)
 
     return jsonify({'leaderboard': result, 'days': days})
+
+
+@admin_bp.route('/agents/<int:agent_id>/trades', methods=['GET'])
+@admin_required
+def get_agent_trades(agent_id):
+    """Get trade history for a specific agent (admin view)."""
+    admin_id = get_current_user_id()
+    agent = Agent.query.filter_by(id=agent_id, admin_id=admin_id).first()
+    if not agent:
+        return jsonify({'error': 'Agent not found'}), 404
+
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
+    per_page = min(per_page, 100)
+    status_filter = request.args.get('status', 'CLOSED')  # CLOSED or OPEN
+
+    query = Trade.query.filter_by(agent_id=agent_id, status=status_filter)
+    if status_filter == 'CLOSED':
+        query = query.order_by(Trade.exit_time.desc())
+    else:
+        query = query.order_by(Trade.entry_time.desc())
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+
+    trades_list = [t.to_dict() for t in pagination.items]
+
+    # For OPEN positions, fetch current prices and calculate unrealized PnL
+    if status_filter == 'OPEN' and trades_list:
+        import requests as req
+        symbols = list({t['symbol'] for t in trades_list})
+        prices = {}
+        for sym in symbols:
+            try:
+                bn_sym = sym.replace('/', '')
+                r = req.get(f'https://fapi.binance.com/fapi/v1/ticker/price?symbol={bn_sym}', timeout=5)
+                if r.status_code == 200:
+                    prices[sym] = float(r.json()['price'])
+            except Exception:
+                pass
+
+        for t in trades_list:
+            current_price = prices.get(t['symbol'])
+            if current_price and t.get('entry_price'):
+                entry = float(t['entry_price'])
+                leverage = int(t.get('leverage') or 1)
+                amount = float(t.get('amount') or 0)
+                if t['direction'] == 'LONG':
+                    roi = (current_price - entry) / entry * leverage * 100
+                else:
+                    roi = (entry - current_price) / entry * leverage * 100
+                pnl = amount * (roi / 100)
+                t['current_price'] = current_price
+                t['unrealized_pnl'] = round(pnl, 4)
+                t['current_roi'] = round(roi, 2)
+
+    return jsonify({
+        'agent': {'id': agent.id, 'username': agent.username, 'display_name': agent.display_name},
+        'trades': trades_list,
+        'total': pagination.total,
+        'page': pagination.page,
+        'pages': pagination.pages,
+    })
