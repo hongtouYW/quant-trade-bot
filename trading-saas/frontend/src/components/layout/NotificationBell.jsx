@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, X, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useApi } from '../../hooks/useApi';
 import { useSocket } from '../../hooks/useSocket';
+import { useLanguage } from '../../contexts/LanguageContext';
 import api from '../../api/client';
 
 const typeIcons = {
@@ -13,6 +14,7 @@ const typeIcons = {
 };
 
 export default function NotificationBell() {
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const panelRef = useRef(null);
 
@@ -55,30 +57,36 @@ export default function NotificationBell() {
   };
 
   const markRead = async (id) => {
-    await api.post(`/agent/notifications/${id}/read`);
-    refetchList();
-    refetchCount();
+    try {
+      await api.post(`/agent/notifications/${id}/read`);
+      refetchList();
+      refetchCount();
+    } catch {}
   };
 
   const markAllRead = async () => {
-    await api.post('/agent/notifications/read-all');
-    refetchList();
-    refetchCount();
+    try {
+      await api.post('/agent/notifications/read-all');
+      refetchList();
+      refetchCount();
+    } catch {}
   };
 
   const deleteNotif = async (id) => {
-    await api.delete(`/agent/notifications/${id}`);
-    refetchList();
-    refetchCount();
+    try {
+      await api.delete(`/agent/notifications/${id}`);
+      refetchList();
+      refetchCount();
+    } catch {}
   };
 
   const timeAgo = (iso) => {
     if (!iso) return '';
     const diff = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (diff < 60) return 'just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    return `${Math.floor(diff / 86400)}d ago`;
+    if (diff < 60) return t('notifications.justNow');
+    if (diff < 3600) return `${Math.floor(diff / 60)}${t('notifications.mAgo')}`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}${t('notifications.hAgo')}`;
+    return `${Math.floor(diff / 86400)}${t('notifications.dAgo')}`;
   };
 
   return (
@@ -99,15 +107,15 @@ export default function NotificationBell() {
         <div className="absolute right-0 top-full mt-2 w-80 max-h-[28rem] bg-bg-card border border-border rounded-xl shadow-xl z-50 flex flex-col overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-border">
-            <span className="text-sm font-semibold">Notifications</span>
+            <span className="text-sm font-semibold">{t('notifications.title')}</span>
             <div className="flex items-center gap-1">
               {unread > 0 && (
                 <button
                   onClick={markAllRead}
                   className="text-xs text-primary hover:text-primary/80 flex items-center gap-1 px-1.5 py-0.5 rounded hover:bg-white/5"
-                  title="Mark all as read"
+                  title={t('notifications.markAllRead')}
                 >
-                  <CheckCheck size={12} /> Read all
+                  <CheckCheck size={12} /> {t('notifications.readAll')}
                 </button>
               )}
               <button onClick={() => setOpen(false)} className="p-0.5 hover:bg-white/5 rounded">
@@ -143,11 +151,11 @@ export default function NotificationBell() {
                   </div>
                   <div className="flex items-center gap-0.5 shrink-0">
                     {!n.is_read && (
-                      <button onClick={() => markRead(n.id)} className="p-0.5 rounded hover:bg-white/10" title="Mark read">
+                      <button onClick={() => markRead(n.id)} className="p-0.5 rounded hover:bg-white/10" title={t('notifications.markRead')}>
                         <Check size={12} className="text-text-secondary" />
                       </button>
                     )}
-                    <button onClick={() => deleteNotif(n.id)} className="p-0.5 rounded hover:bg-danger/15" title="Delete">
+                    <button onClick={() => deleteNotif(n.id)} className="p-0.5 rounded hover:bg-danger/15" title={t('common.delete')}>
                       <Trash2 size={12} className="text-text-secondary hover:text-danger" />
                     </button>
                   </div>
@@ -155,7 +163,7 @@ export default function NotificationBell() {
               ))
             ) : (
               <div className="py-8 text-center text-xs text-text-secondary">
-                No notifications yet
+                {t('notifications.empty')}
               </div>
             )}
           </div>

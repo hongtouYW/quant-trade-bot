@@ -4,9 +4,12 @@ import { Card } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Table from '../../components/common/Table';
 import api from '../../api/client';
-import { UserPlus, ChevronDown, ChevronUp, Key, MessageCircle, Bot, ShieldCheck } from 'lucide-react';
+import { UserPlus, ChevronDown, ChevronUp, Key, MessageCircle, Bot, ShieldCheck, Lock } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { formatDate, formatDateTime } from '../../utils/formatDate';
 
 export default function Agents() {
+  const { t } = useLanguage();
   const { data, loading, refetch } = useApi('/admin/agents');
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState({
@@ -15,6 +18,7 @@ export default function Agents() {
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
   const [detail, setDetail] = useState(null);
+  const [pwForm, setPwForm] = useState({ agentId: null, password: '', msg: '' });
 
   const toggleExpand = async (agentId) => {
     if (expandedId === agentId) {
@@ -41,13 +45,30 @@ export default function Agents() {
       setForm({ username: '', email: '', password: '', display_name: '', profit_share_pct: 20 });
       refetch();
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create agent');
+      setError(err.response?.data?.error || t('admin.failedCreateAgent'));
+    }
+  };
+
+  const handleResetPassword = async (agentId) => {
+    if (pwForm.password.length < 8) {
+      setPwForm(f => ({ ...f, msg: t('admin.passwordMinLength') }));
+      return;
+    }
+    try {
+      await api.post(`/admin/agents/${agentId}/reset-password`, { new_password: pwForm.password });
+      setPwForm({ agentId: null, password: '', msg: t('admin.passwordReset') });
+    } catch (err) {
+      setPwForm(f => ({ ...f, msg: err.response?.data?.error || t('settings.failed') }));
     }
   };
 
   const toggleTrading = async (agentId) => {
-    await api.post(`/admin/agents/${agentId}/toggle-trading`);
-    refetch();
+    try {
+      await api.post(`/admin/agents/${agentId}/toggle-trading`);
+      refetch();
+    } catch (err) {
+      setError(err.response?.data?.error || t('admin.actionFailed'));
+    }
   };
 
   const StatusIcon = ({ ok, label }) => (
@@ -57,16 +78,16 @@ export default function Agents() {
   );
 
   const columns = [
-    { key: 'id', label: 'ID' },
-    { key: 'username', label: 'Username' },
-    { key: 'display_name', label: 'Name', render: (v) => v || '-' },
-    { key: 'is_active', label: 'Active', render: (v) => (
-      <Badge variant={v ? 'success' : 'danger'}>{v ? 'Yes' : 'No'}</Badge>
+    { key: 'id', label: t('admin.id') },
+    { key: 'username', label: t('admin.username') },
+    { key: 'display_name', label: t('admin.name'), render: (v) => v || '-' },
+    { key: 'is_active', label: t('admin.active'), render: (v) => (
+      <Badge variant={v ? 'success' : 'danger'}>{v ? t('admin.yes') : t('admin.no')}</Badge>
     )},
-    { key: 'is_trading_enabled', label: 'Trading', render: (v) => (
-      <Badge variant={v ? 'success' : 'neutral'}>{v ? 'Enabled' : 'Disabled'}</Badge>
+    { key: 'is_trading_enabled', label: t('admin.trading'), render: (v) => (
+      <Badge variant={v ? 'success' : 'neutral'}>{v ? t('admin.enabled') : t('admin.disabled')}</Badge>
     )},
-    { key: 'config_status', label: 'Config', render: (_, row) => (
+    { key: 'config_status', label: t('admin.config'), render: (_, row) => (
       <div className="flex items-center gap-2">
         <span className="inline-flex items-center gap-0.5 text-xs" title="API Key">
           <Key size={12} className={row.has_api_key ? 'text-success' : 'text-text-tertiary'} />
@@ -80,7 +101,7 @@ export default function Agents() {
         </span>
       </div>
     )},
-    { key: 'profit_share_pct', label: 'Share %', render: (v) => `${v}%` },
+    { key: 'profit_share_pct', label: t('admin.profitShare'), render: (v) => `${v}%` },
     { key: 'actions', label: '', render: (_, row) => (
       <div className="flex items-center gap-2">
         <button
@@ -91,7 +112,7 @@ export default function Agents() {
               : 'bg-success/15 text-success hover:bg-success/25'
           }`}
         >
-          {row.is_trading_enabled ? 'Disable' : 'Enable'}
+          {row.is_trading_enabled ? t('common.disable') : t('common.enable')}
         </button>
         <button
           onClick={(e) => { e.stopPropagation(); toggleExpand(row.id); }}
@@ -106,23 +127,25 @@ export default function Agents() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Agent Management</h2>
+        <h2 className="text-xl font-bold">{t('admin.agentManagement')}</h2>
         <button
           onClick={() => setShowCreate(!showCreate)}
           className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors"
         >
           <UserPlus size={16} />
-          New Agent
+          {t('admin.newAgent')}
         </button>
       </div>
 
       {showCreate && (
         <Card>
-          <h3 className="text-sm font-semibold mb-3">Create New Agent</h3>
+          <h3 className="text-sm font-semibold mb-3">{t('admin.createNewAgent')}</h3>
           <form onSubmit={handleCreate} className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {['username', 'email', 'password', 'display_name'].map((field) => (
+            {['username', 'email', 'password', 'display_name'].map((field) => {
+              const fieldLabels = { username: t('admin.username'), email: t('admin.email'), password: t('login.password'), display_name: t('admin.name') };
+              return (
               <div key={field}>
-                <label className="block text-xs text-text-secondary mb-1">{field.replace('_', ' ')}</label>
+                <label className="block text-xs text-text-secondary mb-1">{fieldLabels[field]}</label>
                 <input
                   type={field === 'password' ? 'password' : field === 'email' ? 'email' : 'text'}
                   value={form[field]}
@@ -131,9 +154,10 @@ export default function Agents() {
                   className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
                 />
               </div>
-            ))}
+              );
+            })}
             <div>
-              <label className="block text-xs text-text-secondary mb-1">Profit Share %</label>
+              <label className="block text-xs text-text-secondary mb-1">{t('admin.profitShare')}</label>
               <input
                 type="number"
                 min="0"
@@ -148,7 +172,7 @@ export default function Agents() {
                 type="submit"
                 className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm rounded-lg transition-colors"
               >
-                Create
+                {t('common.create')}
               </button>
             </div>
             {error && <p className="text-danger text-xs col-span-2">{error}</p>}
@@ -160,7 +184,7 @@ export default function Agents() {
         <Table
           columns={columns}
           data={data?.agents || []}
-          emptyText={loading ? 'Loading...' : 'No agents yet'}
+          emptyText={loading ? t('common.loading') : t('common.noData')}
         />
 
         {expandedId && (
@@ -171,29 +195,29 @@ export default function Agents() {
               return (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                   <div>
-                    <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">Account</h4>
+                    <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">{t('admin.account')}</h4>
                     <div className="space-y-1">
-                      <p><span className="text-text-secondary">Email:</span> {agent.email}</p>
-                      <p><span className="text-text-secondary">Created:</span> {agent.created_at ? new Date(agent.created_at).toLocaleDateString() : '-'}</p>
-                      <p><span className="text-text-secondary">Last Login:</span> {agent.last_login_at ? new Date(agent.last_login_at).toLocaleString() : 'Never'}</p>
+                      <p><span className="text-text-secondary">{t('admin.email')}</span> {agent.email}</p>
+                      <p><span className="text-text-secondary">{t('admin.created')}</span> {agent.created_at ? formatDate(agent.created_at) : '-'}</p>
+                      <p><span className="text-text-secondary">{t('admin.lastLogin')}</span> {agent.last_login_at ? formatDateTime(agent.last_login_at) : t('common.never')}</p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">Configuration</h4>
+                    <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">{t('admin.configuration')}</h4>
                     <div className="space-y-1">
                       <p className="flex items-center gap-2">
                         <Key size={14} className={agent.has_api_key ? 'text-success' : 'text-danger'} />
-                        <span>API Key: {agent.has_api_key ? 'Configured' : 'Not set'}</span>
+                        <span>API Key: {agent.has_api_key ? t('common.configured') : t('common.notSet')}</span>
                         {agent.has_api_key && (
                           <Badge variant={agent.api_key_verified ? 'success' : 'warning'} className="text-[10px]">
-                            {agent.api_key_verified ? 'Verified' : 'Unverified'}
+                            {agent.api_key_verified ? t('common.verified') : t('common.unverified')}
                           </Badge>
                         )}
                       </p>
                       <p className="flex items-center gap-2">
                         <MessageCircle size={14} className={agent.has_telegram ? 'text-success' : 'text-text-tertiary'} />
-                        <span>Telegram: {agent.has_telegram ? 'Configured' : 'Not set'}</span>
+                        <span>Telegram: {agent.has_telegram ? t('common.configured') : t('common.notSet')}</span>
                       </p>
                       <p className="flex items-center gap-2">
                         <Bot size={14} className={agent.bot_status === 'running' ? 'text-success' : 'text-text-tertiary'} />
@@ -204,12 +228,12 @@ export default function Agents() {
 
                   {detail?.trade_stats && (
                     <div>
-                      <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">Trade Stats</h4>
+                      <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">{t('admin.tradeStats')}</h4>
                       <div className="space-y-1">
-                        <p><span className="text-text-secondary">Total Trades:</span> {detail.trade_stats.total_trades}</p>
-                        <p><span className="text-text-secondary">Win Trades:</span> {detail.trade_stats.win_trades}</p>
+                        <p><span className="text-text-secondary">{t('admin.totalTrades')}</span> {detail.trade_stats.total_trades}</p>
+                        <p><span className="text-text-secondary">{t('admin.winTrades')}</span> {detail.trade_stats.win_trades}</p>
                         <p>
-                          <span className="text-text-secondary">Total PnL:</span>{' '}
+                          <span className="text-text-secondary">{t('admin.totalPnl')}</span>{' '}
                           <span className={detail.trade_stats.total_pnl >= 0 ? 'text-success' : 'text-danger'}>
                             {detail.trade_stats.total_pnl >= 0 ? '+' : ''}{Number(detail.trade_stats.total_pnl).toFixed(2)}U
                           </span>
@@ -217,6 +241,46 @@ export default function Agents() {
                       </div>
                     </div>
                   )}
+
+                  <div>
+                    <h4 className="text-xs font-semibold text-text-secondary mb-2 uppercase">{t('admin.resetPassword')}</h4>
+                    {pwForm.agentId === agent.id ? (
+                      <div className="space-y-2">
+                        <input
+                          type="password"
+                          placeholder={t('admin.newPassword')}
+                          value={pwForm.password}
+                          onChange={(e) => setPwForm({ ...pwForm, password: e.target.value })}
+                          className="w-full px-3 py-1.5 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
+                        />
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleResetPassword(agent.id)}
+                            className="px-3 py-1 bg-warning/15 text-warning hover:bg-warning/25 text-xs rounded-lg"
+                          >
+                            {t('admin.resetPassword')}
+                          </button>
+                          <button
+                            onClick={() => setPwForm({ agentId: null, password: '', msg: '' })}
+                            className="px-3 py-1 text-text-secondary hover:text-text text-xs"
+                          >
+                            {t('common.cancel')}
+                          </button>
+                        </div>
+                        {pwForm.msg && <p className="text-xs text-text-secondary">{pwForm.msg}</p>}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setPwForm({ agentId: agent.id, password: '', msg: '' })}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-warning/15 text-warning hover:bg-warning/25 text-xs rounded-lg"
+                      >
+                        <Lock size={12} /> {t('admin.resetPassword')}
+                      </button>
+                    )}
+                    {pwForm.agentId !== agent.id && pwForm.msg && (
+                      <p className="text-xs text-success mt-1">{pwForm.msg}</p>
+                    )}
+                  </div>
                 </div>
               );
             })()}

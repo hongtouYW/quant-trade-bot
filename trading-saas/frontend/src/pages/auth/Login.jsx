@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { Briefcase, Shield } from 'lucide-react';
 
 export default function Login() {
+  const { t } = useLanguage();
   const location = useLocation();
   const role = location.pathname.startsWith('/admin') ? 'admin' : 'agent';
   const isAdmin = role === 'admin';
@@ -23,7 +25,7 @@ export default function Login() {
       await login(username, password, role);
       navigate(`/${role}`);
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed');
+      setError(err.response?.data?.error || t('login.loginFailed'));
     } finally {
       setLoading(false);
     }
@@ -39,16 +41,16 @@ export default function Login() {
               : <Briefcase size={28} className="text-primary" />
             }
           </div>
-          <h1 className="text-2xl font-bold">Trading SaaS</h1>
+          <h1 className="text-2xl font-bold">{t('login.title')}</h1>
           <p className="text-text-secondary text-sm mt-1">
-            {isAdmin ? 'Admin Login' : 'Agent Login'}
+            {isAdmin ? t('login.adminLogin') : t('login.agentLogin')}
           </p>
         </div>
 
         <div className="bg-bg-card rounded-xl border border-border p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Username</label>
+              <label className="block text-xs text-text-secondary mb-1.5">{t('login.username')}</label>
               <input
                 type="text"
                 value={username}
@@ -58,7 +60,7 @@ export default function Login() {
               />
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Password</label>
+              <label className="block text-xs text-text-secondary mb-1.5">{t('login.password')}</label>
               <input
                 type="password"
                 value={password}
@@ -77,14 +79,14 @@ export default function Login() {
               disabled={loading}
               className={`w-full py-2.5 ${isAdmin ? 'bg-warning hover:bg-warning/90' : 'bg-primary hover:bg-primary-dark'} text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50`}
             >
-              {loading ? 'Signing in...' : `Sign In as ${isAdmin ? 'Admin' : 'Agent'}`}
+              {loading ? t('login.signingIn') : isAdmin ? t('login.signInAdmin') : t('login.signInAgent')}
             </button>
           </form>
 
           {!isAdmin && (
             <p className="text-center text-xs text-text-secondary mt-4">
-              Don't have an account?{' '}
-              <Link to="/agent/register" className="text-primary hover:underline">Register</Link>
+              {t('login.noAccount')}{' '}
+              <Link to="/agent/register" className="text-primary hover:underline">{t('login.register')}</Link>
             </p>
           )}
         </div>

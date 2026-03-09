@@ -74,28 +74,32 @@ def create_agent():
     if Agent.query.filter_by(email=data['email']).first():
         return jsonify({'error': 'Email already exists'}), 409
 
-    agent = Agent(
-        admin_id=admin_id,
-        username=data['username'],
-        email=data['email'],
-        password_hash=hash_password(data['password']),
-        display_name=data.get('display_name', data['username']),
-        phone=data.get('phone'),
-        profit_share_pct=data.get('profit_share_pct', 20.0),
-        notes=data.get('notes'),
-    )
-    db.session.add(agent)
-    db.session.flush()  # Get agent.id
+    try:
+        agent = Agent(
+            admin_id=admin_id,
+            username=data['username'],
+            email=data['email'],
+            password_hash=hash_password(data['password']),
+            display_name=data.get('display_name', data['username']),
+            phone=data.get('phone'),
+            profit_share_pct=data.get('profit_share_pct', 20.0),
+            notes=data.get('notes'),
+        )
+        db.session.add(agent)
+        db.session.flush()  # Get agent.id
 
-    # Create default trading config
-    config = AgentTradingConfig(agent_id=agent.id)
-    db.session.add(config)
+        # Create default trading config
+        config = AgentTradingConfig(agent_id=agent.id)
+        db.session.add(config)
 
-    # Create bot state
-    bot_state = BotState(agent_id=agent.id)
-    db.session.add(bot_state)
+        # Create bot state
+        bot_state = BotState(agent_id=agent.id)
+        db.session.add(bot_state)
 
-    db.session.commit()
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to create agent'}), 500
 
     log_action('admin', admin_id, 'create_agent',
                resource=f'agent:{agent.id}',
@@ -193,6 +197,29 @@ def toggle_trading(agent_id):
         'is_trading_enabled': agent.is_trading_enabled,
         'message': f"Trading {'enabled' if agent.is_trading_enabled else 'disabled'}"
     })
+
+
+@admin_bp.route('/agents/<int:agent_id>/reset-password', methods=['POST'])
+@admin_required
+def reset_agent_password(agent_id):
+    admin_id = get_current_user_id()
+    agent = Agent.query.filter_by(id=agent_id, admin_id=admin_id).first()
+    if not agent:
+        return jsonify({'error': 'Agent not found'}), 404
+
+    data = request.get_json()
+    new_password = data.get('new_password', '') if data else ''
+    if len(new_password) < 8:
+        return jsonify({'error': 'Password must be at least 8 characters'}), 400
+
+    agent.password_hash = hash_password(new_password)
+    db.session.commit()
+
+    log_action('admin', admin_id, 'reset_password',
+               resource=f'agent:{agent_id}',
+               details={'username': agent.username})
+
+    return jsonify({'message': 'Password reset successfully'})
 
 
 @admin_bp.route('/bots/status', methods=['GET'])

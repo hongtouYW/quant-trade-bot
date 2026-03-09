@@ -3,8 +3,11 @@ import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import { ScrollText } from 'lucide-react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { formatDateTime } from '../../utils/formatDate';
 
 export default function AuditLog() {
+  const { t } = useLanguage();
   const [page, setPage] = useState(1);
   const [filters, setFilters] = useState({ action: '', user_type: '' });
   const params = new URLSearchParams({ page, per_page: 30 });
@@ -18,7 +21,7 @@ export default function AuditLog() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold">Audit Log</h2>
+      <h2 className="text-xl font-bold">{t('admin.auditLog')}</h2>
 
       <Card className="flex flex-wrap items-center gap-3">
         <select
@@ -26,7 +29,7 @@ export default function AuditLog() {
           onChange={(e) => { setFilters({ ...filters, action: e.target.value }); setPage(1); }}
           className="px-3 py-1.5 bg-bg-input rounded-lg border border-border text-text text-sm"
         >
-          <option value="">All Actions</option>
+          <option value="">{t('admin.allActions')}</option>
           {actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
         <select
@@ -34,12 +37,12 @@ export default function AuditLog() {
           onChange={(e) => { setFilters({ ...filters, user_type: e.target.value }); setPage(1); }}
           className="px-3 py-1.5 bg-bg-input rounded-lg border border-border text-text text-sm"
         >
-          <option value="">All Users</option>
-          <option value="admin">Admin</option>
-          <option value="agent">Agent</option>
+          <option value="">{t('admin.allUsers')}</option>
+          <option value="admin">{t('admin.adminUser')}</option>
+          <option value="agent">{t('admin.agentUser')}</option>
         </select>
         <span className="text-xs text-text-secondary ml-auto">
-          {data?.total || 0} entries
+          {data?.total || 0} {t('common.entries')}
         </span>
       </Card>
 
@@ -47,7 +50,7 @@ export default function AuditLog() {
         {!loading && logs.length === 0 ? (
           <div className="flex flex-col items-center py-12 text-text-secondary">
             <ScrollText size={40} className="mb-3 opacity-40" />
-            <p className="text-sm">No audit log entries yet</p>
+            <p className="text-sm">{t('admin.noAuditEntries')}</p>
           </div>
         ) : (
           <div className="divide-y divide-border/30">
@@ -72,7 +75,7 @@ export default function AuditLog() {
                 </div>
                 <div className="text-right shrink-0">
                   <div className="text-xs text-text-secondary">
-                    {log.created_at ? new Date(log.created_at).toLocaleString() : '-'}
+                    {log.created_at ? formatDateTime(log.created_at) : '-'}
                   </div>
                   {log.ip_address && (
                     <div className="text-xs text-text-secondary/60">{log.ip_address}</div>
@@ -90,7 +93,7 @@ export default function AuditLog() {
               disabled={page <= 1}
               className="px-3 py-1 text-sm rounded bg-bg-input text-text disabled:opacity-30"
             >
-              Prev
+              {t('common.prev')}
             </button>
             <span className="text-sm text-text-secondary">
               {page} / {data.pages}
@@ -100,7 +103,7 @@ export default function AuditLog() {
               disabled={page >= data.pages}
               className="px-3 py-1 text-sm rounded bg-bg-input text-text disabled:opacity-30"
             >
-              Next
+              {t('common.next')}
             </button>
           </div>
         )}

@@ -68,7 +68,7 @@ class BotManager:
             if not agent.is_trading_enabled:
                 return False, "Trading not enabled by admin"
             if not agent.api_key or not agent.api_key.permissions_verified:
-                return False, "Binance API keys not configured or not verified"
+                return False, "API keys not configured or not verified"
 
             # Create and start bot
             bot = AgentBot(agent_id, self.app)

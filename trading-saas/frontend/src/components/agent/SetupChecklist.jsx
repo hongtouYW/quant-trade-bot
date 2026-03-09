@@ -1,9 +1,11 @@
 import { useApi } from '../../hooks/useApi';
 import { Card } from '../common/Card';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { CheckCircle, Circle, Key, MessageSquare, Sliders, Play, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function SetupChecklist() {
+  const { t } = useLanguage();
   const { data: keyStatus } = useApi('/agent/api-keys/status');
   const { data: configData } = useApi('/agent/trading/config');
   const { data: botData } = useApi('/agent/bot/status');
@@ -12,28 +14,28 @@ export default function SetupChecklist() {
   const steps = [
     {
       key: 'api_key',
-      label: 'Set Binance API Key',
+      label: t('setup.setApiKey'),
       done: !!keyStatus?.has_api_key,
       icon: Key,
       link: '/agent/settings',
     },
     {
       key: 'verify',
-      label: 'Verify API Key',
+      label: t('setup.verifyApiKey'),
       done: !!keyStatus?.permissions_verified,
       icon: Key,
       link: '/agent/settings',
     },
     {
       key: 'config',
-      label: 'Configure Trading Strategy',
+      label: t('setup.configStrategy'),
       done: !!configData?.config?.strategy_version,
       icon: Sliders,
       link: '/agent/settings',
     },
     {
       key: 'bot',
-      label: 'Start Bot',
+      label: t('setup.startBot'),
       done: botData?.status === 'running',
       icon: Play,
       link: '/agent/bot',
@@ -50,8 +52,8 @@ export default function SetupChecklist() {
   return (
     <Card className="border border-primary/30 bg-primary/5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">Setup Your Trading Bot</h3>
-        <span className="text-xs text-text-secondary">{completed}/{steps.length} completed</span>
+        <h3 className="text-sm font-semibold">{t('setup.title')}</h3>
+        <span className="text-xs text-text-secondary">{completed}/{steps.length} {t('setup.completed')}</span>
       </div>
 
       <div className="w-full bg-bg-input rounded-full h-1.5 mb-4">

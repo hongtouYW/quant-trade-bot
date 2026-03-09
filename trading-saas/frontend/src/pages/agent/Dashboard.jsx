@@ -3,10 +3,13 @@ import { StatCard, Card } from '../../components/common/Card';
 import PnlValue from '../../components/common/PnlValue';
 import { StatusBadge } from '../../components/common/Badge';
 import SetupChecklist from '../../components/agent/SetupChecklist';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { formatDateTime } from '../../utils/formatDate';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { DollarSign, TrendingUp, BarChart3, Activity, Wallet } from 'lucide-react';
 
 export default function AgentDashboard() {
+  const { t } = useLanguage();
   const { data, loading } = useApi('/agent/dashboard', { interval: 15000 });
   const { data: daily } = useApi('/agent/trades/daily?days=30');
   const { data: stats } = useApi('/agent/trades/stats');
@@ -14,7 +17,7 @@ export default function AgentDashboard() {
   const { data: balanceData } = useApi('/agent/balance');
 
   if (loading || !data) {
-    return <div className="animate-pulse text-text-secondary">Loading dashboard...</div>;
+    return <div className="animate-pulse text-text-secondary">{t('dashboard.loadingDashboard')}</div>;
   }
 
   const chartData = daily?.daily || [];
@@ -22,7 +25,7 @@ export default function AgentDashboard() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Dashboard</h2>
+        <h2 className="text-xl font-bold">{t('dashboard.title')}</h2>
         {bot && <StatusBadge status={bot.status} />}
       </div>
 
@@ -30,34 +33,34 @@ export default function AgentDashboard() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          label="Binance Balance"
+          label={t('dashboard.binanceBalance')}
           value={balanceData?.total != null ? `${balanceData.total.toFixed(2)}U` : `${stats?.current_capital?.toFixed(2) || '-'}U`}
-          sub={balanceData?.free != null ? `Available: ${balanceData.free.toFixed(2)}U` : undefined}
+          sub={balanceData?.free != null ? `${t('dashboard.available')}: ${balanceData.free.toFixed(2)}U` : undefined}
           icon={Wallet}
         />
         <StatCard
-          label="Total PnL"
+          label={t('dashboard.totalPnl')}
           value={<PnlValue value={stats?.total_pnl} />}
           icon={TrendingUp}
           color={stats?.total_pnl >= 0 ? 'text-success' : 'text-danger'}
         />
         <StatCard
-          label="Win Rate"
+          label={t('dashboard.winRate')}
           value={`${stats?.win_rate || 0}%`}
           sub={`${stats?.win_trades || 0}W / ${stats?.loss_trades || 0}L`}
           icon={BarChart3}
         />
         <StatCard
-          label="Open Positions"
+          label={t('dashboard.openPositions')}
           value={stats?.open_positions || 0}
-          sub={`Max DD: ${stats?.max_drawdown || 0}%`}
+          sub={`${t('dashboard.maxDD')}: ${stats?.max_drawdown || 0}%`}
           icon={Activity}
         />
       </div>
 
       {chartData.length > 0 && (
         <Card>
-          <h3 className="text-sm font-semibold mb-3">PnL Trend (30 Days)</h3>
+          <h3 className="text-sm font-semibold mb-3">{t('dashboard.pnlTrend')}</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={chartData}>
@@ -74,7 +77,7 @@ export default function AgentDashboard() {
                   stroke="#3b82f6"
                   strokeWidth={2}
                   dot={false}
-                  name="Cumulative PnL"
+                  name={t('dashboard.cumulativePnl')}
                 />
                 <Line
                   type="monotone"
@@ -82,7 +85,7 @@ export default function AgentDashboard() {
                   stroke="#10b981"
                   strokeWidth={1}
                   dot={false}
-                  name="Daily PnL"
+                  name={t('dashboard.dailyPnl')}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -92,28 +95,28 @@ export default function AgentDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-sm font-semibold mb-2">Performance</h3>
+          <h3 className="text-sm font-semibold mb-2">{t('dashboard.performance')}</h3>
           <div className="space-y-2 text-sm">
-            <Row label="Total Trades" value={stats?.total_trades || 0} />
-            <Row label="Avg PnL" value={<PnlValue value={stats?.avg_pnl} />} />
-            <Row label="Best Trade" value={<PnlValue value={stats?.best_trade} />} />
-            <Row label="Worst Trade" value={<PnlValue value={stats?.worst_trade} />} />
-            <Row label="Profit Factor" value={stats?.profit_factor || '-'} />
-            <Row label="Total Fees" value={`${stats?.total_fees?.toFixed(4) || 0}U`} />
+            <Row label={t('dashboard.totalTrades')} value={stats?.total_trades || 0} />
+            <Row label={t('dashboard.avgPnl')} value={<PnlValue value={stats?.avg_pnl} />} />
+            <Row label={t('dashboard.bestTrade')} value={<PnlValue value={stats?.best_trade} />} />
+            <Row label={t('dashboard.worstTrade')} value={<PnlValue value={stats?.worst_trade} />} />
+            <Row label={t('dashboard.profitFactor')} value={stats?.profit_factor || '-'} />
+            <Row label={t('dashboard.totalFees')} value={`${stats?.total_fees?.toFixed(4) || 0}U`} />
           </div>
         </Card>
 
         <Card>
-          <h3 className="text-sm font-semibold mb-2">Bot Info</h3>
+          <h3 className="text-sm font-semibold mb-2">{t('dashboard.botInfo')}</h3>
           <div className="space-y-2 text-sm">
-            <Row label="Status" value={<StatusBadge status={bot?.status || 'stopped'} />} />
-            <Row label="Risk Score" value={
+            <Row label={t('dashboard.status')} value={<StatusBadge status={bot?.status || 'stopped'} />} />
+            <Row label={t('dashboard.riskScore')} value={
               <span className={bot?.risk_score >= 7 ? 'text-danger' : bot?.risk_score >= 4 ? 'text-warning' : 'text-success'}>
                 {bot?.risk_score ?? '-'}/10
               </span>
             } />
-            <Row label="Last Scan" value={bot?.last_scan ? new Date(bot.last_scan).toLocaleString() : '-'} />
-            <Row label="Strategy" value={data.strategy_version || 'v4.2'} />
+            <Row label={t('dashboard.lastScan')} value={bot?.last_scan ? formatDateTime(bot.last_scan) : '-'} />
+            <Row label={t('dashboard.strategy')} value={data.strategy_version || 'v4.2'} />
           </div>
         </Card>
       </div>

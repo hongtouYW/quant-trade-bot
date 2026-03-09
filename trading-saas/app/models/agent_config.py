@@ -10,6 +10,7 @@ class AgentApiKey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     agent_id = db.Column(db.Integer, db.ForeignKey('agents.id', ondelete='CASCADE'),
                          unique=True, nullable=False)
+    exchange = db.Column(db.String(20), nullable=False, default='binance')
     binance_api_key_enc = db.Column(db.LargeBinary(512), nullable=False)
     binance_api_secret_enc = db.Column(db.LargeBinary(512), nullable=False)
     encryption_iv = db.Column(db.LargeBinary(16), nullable=False)
@@ -23,6 +24,7 @@ class AgentApiKey(db.Model):
     def to_dict(self):
         return {
             'has_api_key': True,
+            'exchange': self.exchange or 'binance',
             'is_testnet': self.is_testnet,
             'permissions_verified': self.permissions_verified,
             'last_verified_at': self.last_verified_at.isoformat() if self.last_verified_at else None,
@@ -73,6 +75,13 @@ class AgentTradingConfig(db.Model):
     enable_trend_filter = db.Column(db.Boolean, default=True)
     enable_btc_filter = db.Column(db.Boolean, default=True)
     short_bias = db.Column(db.Numeric(5, 3), default=1.050)
+    # V5 strategy fields
+    tp1_roi = db.Column(db.Numeric(5, 2), default=10.00)
+    tp1_close_ratio = db.Column(db.Numeric(3, 2), default=0.50)
+    tp2_roi = db.Column(db.Numeric(5, 2), default=20.00)
+    use_atr_stop = db.Column(db.Boolean, default=False)
+    atr_stop_multiplier = db.Column(db.Numeric(3, 1), default=1.5)
+    adx_min_threshold = db.Column(db.Integer, default=25)
     custom_params = db.Column(db.Text, nullable=True)  # JSON as text for MariaDB 5.5
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
@@ -97,5 +106,11 @@ class AgentTradingConfig(db.Model):
             'enable_trend_filter': self.enable_trend_filter,
             'enable_btc_filter': self.enable_btc_filter,
             'short_bias': float(self.short_bias) if self.short_bias else 1.05,
+            'tp1_roi': float(self.tp1_roi) if self.tp1_roi else 10.0,
+            'tp1_close_ratio': float(self.tp1_close_ratio) if self.tp1_close_ratio else 0.5,
+            'tp2_roi': float(self.tp2_roi) if self.tp2_roi else 20.0,
+            'use_atr_stop': self.use_atr_stop if self.use_atr_stop is not None else False,
+            'atr_stop_multiplier': float(self.atr_stop_multiplier) if self.atr_stop_multiplier else 1.5,
+            'adx_min_threshold': self.adx_min_threshold if self.adx_min_threshold else 25,
             'custom_params': json.loads(self.custom_params) if self.custom_params else None,
         }

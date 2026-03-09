@@ -35,6 +35,7 @@ class RiskManager:
         self.max_drawdown_pct = float(config.get('max_drawdown_pct', 20))
         self.max_positions = int(config.get('max_positions', 15))
         self.max_leverage = int(config.get('max_leverage', 3))
+        self.is_v5 = config.get('strategy_version', '').startswith('v5')
 
     def calculate_risk_metrics(self, positions: list) -> dict:
         """Calculate comprehensive risk metrics.
@@ -116,22 +117,36 @@ class RiskManager:
         )
         daily_pnl = sum(float(t.pnl) for t in daily_trades if t.pnl)
 
-        # 7. Risk score (0-10)
+        # 7. Risk score (0-10) — v5 uses stricter thresholds
         risk_score = 0
 
-        # Drawdown risk (0-3)
-        if current_drawdown > 15:
-            risk_score += 3
-        elif current_drawdown > 10:
-            risk_score += 2
-        elif current_drawdown > 5:
-            risk_score += 1
+        if self.is_v5:
+            # V5: stricter drawdown thresholds for 10x
+            if current_drawdown > 10:
+                risk_score += 3
+            elif current_drawdown > 7:
+                risk_score += 2
+            elif current_drawdown > 4:
+                risk_score += 1
 
-        # Consecutive losses (0-2)
-        if consecutive_losses >= 3:
-            risk_score += 2
-        elif consecutive_losses >= 2:
-            risk_score += 1
+            # V5: stricter consecutive losses
+            if consecutive_losses >= 2:
+                risk_score += 2
+            elif consecutive_losses >= 1:
+                risk_score += 1
+        else:
+            # V4.2: original thresholds
+            if current_drawdown > 15:
+                risk_score += 3
+            elif current_drawdown > 10:
+                risk_score += 2
+            elif current_drawdown > 5:
+                risk_score += 1
+
+            if consecutive_losses >= 3:
+                risk_score += 2
+            elif consecutive_losses >= 2:
+                risk_score += 1
 
         # Position concentration (0-2) - only when >= 3 positions
         if position_count >= 3:
@@ -147,8 +162,8 @@ class RiskManager:
             elif max(long_ratio, short_ratio) > 70:
                 risk_score += 1
 
-        # Leverage risk (0-1)
-        if avg_leverage > 3:
+        # Leverage risk (0-1) — skip for v5 (10x is expected)
+        if not self.is_v5 and avg_leverage > 3:
             risk_score += 1
 
         # Daily loss limit check
@@ -193,12 +208,14 @@ class RiskManager:
         else:
             return 'LOW', 1.0, False            # Normal trading
 
-    def check_can_open(self, positions: list, direction: str = None) -> tuple:
+    def check_can_open(self, positions: list, direction: str = None,
+                       symbol: str = None) -> tuple:
         """Pre-trade risk check: can we open a new position?
 
         Args:
             positions: Current open positions
             direction: 'LONG' or 'SHORT'
+            symbol: Symbol to open (for duplicate check)
 
         Returns:
             (allowed: bool, reason: str)
@@ -206,6 +223,12 @@ class RiskManager:
         # Position count limit
         if len(positions) >= self.max_positions:
             return False, f"Max positions reached ({self.max_positions})"
+
+        # Duplicate symbol check
+        if symbol:
+            existing = [p.get('symbol', '') for p in positions]
+            if symbol in existing:
+                return False, f"Already holding {symbol}"
 
         # Calculate risk
         metrics = self.calculate_risk_metrics(positions)

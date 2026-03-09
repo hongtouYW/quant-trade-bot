@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../api/client';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { UserPlus } from 'lucide-react';
 
 export default function Register() {
+  const { t } = useLanguage();
   const [form, setForm] = useState({ username: '', email: '', password: '', display_name: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -22,7 +24,7 @@ export default function Register() {
       setSuccess(res.data.message);
       setTimeout(() => navigate('/agent/login'), 2000);
     } catch (err) {
-      setError(err.response?.data?.error || 'Registration failed');
+      setError(err.response?.data?.error || t('register.registrationFailed'));
     } finally {
       setLoading(false);
     }
@@ -35,14 +37,14 @@ export default function Register() {
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/15 mb-4">
             <UserPlus size={28} className="text-primary" />
           </div>
-          <h1 className="text-2xl font-bold">Create Account</h1>
-          <p className="text-text-secondary text-sm mt-1">Register as a trading agent</p>
+          <h1 className="text-2xl font-bold">{t('register.title')}</h1>
+          <p className="text-text-secondary text-sm mt-1">{t('register.subtitle')}</p>
         </div>
 
         <div className="bg-bg-card rounded-xl border border-border p-6">
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Username *</label>
+              <label className="block text-xs text-text-secondary mb-1.5">{t('register.username')}</label>
               <input
                 type="text"
                 value={form.username}
@@ -52,32 +54,32 @@ export default function Register() {
                 maxLength={50}
                 pattern="[a-zA-Z0-9_]+"
                 className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
-                placeholder="e.g. trader_john"
+                placeholder={t('register.usernamePlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Email *</label>
+              <label className="block text-xs text-text-secondary mb-1.5">{t('register.email')}</label>
               <input
                 type="email"
                 value={form.email}
                 onChange={set('email')}
                 required
                 className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
-                placeholder="you@example.com"
+                placeholder={t('register.emailPlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Display Name</label>
+              <label className="block text-xs text-text-secondary mb-1.5">{t('register.displayName')}</label>
               <input
                 type="text"
                 value={form.display_name}
                 onChange={set('display_name')}
                 className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
-                placeholder="Optional"
+                placeholder={t('register.displayNamePlaceholder')}
               />
             </div>
             <div>
-              <label className="block text-xs text-text-secondary mb-1.5">Password *</label>
+              <label className="block text-xs text-text-secondary mb-1.5">{t('register.password')}</label>
               <input
                 type="password"
                 value={form.password}
@@ -85,7 +87,7 @@ export default function Register() {
                 required
                 minLength={8}
                 className="w-full px-3 py-2 bg-bg-input rounded-lg border border-border text-text text-sm focus:outline-none focus:border-primary"
-                placeholder="At least 8 characters"
+                placeholder={t('register.passwordPlaceholder')}
               />
             </div>
 
@@ -101,16 +103,16 @@ export default function Register() {
               disabled={loading}
               className="w-full py-2.5 bg-primary hover:bg-primary-dark text-white font-medium rounded-lg text-sm transition-colors disabled:opacity-50"
             >
-              {loading ? 'Registering...' : 'Create Account'}
+              {loading ? t('register.registering') : t('register.createAccount')}
             </button>
           </form>
 
           <p className="text-center text-xs text-text-secondary mt-4">
-            Already have an account?{' '}
-            <Link to="/agent/login" className="text-primary hover:underline">Sign in</Link>
+            {t('register.hasAccount')}{' '}
+            <Link to="/agent/login" className="text-primary hover:underline">{t('register.signIn')}</Link>
           </p>
           <p className="text-center text-xs text-text-secondary/60 mt-2">
-            Trading will be enabled after admin approval.
+            {t('register.adminApproval')}
           </p>
         </div>
       </div>

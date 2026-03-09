@@ -1,4 +1,4 @@
-"""Order Executor - Real Binance Futures trading via ccxt.
+"""Order Executor - Futures trading via ccxt (Binance / Bitget).
 
 Handles order creation, position closing, and exchange API interactions.
 Each AgentBot gets its own OrderExecutor with isolated API credentials.
@@ -7,30 +7,43 @@ import time
 import ccxt
 from typing import Optional
 
+EXCHANGE_OPTIONS = {
+    'binance': {'defaultType': 'future'},
+    'bitget':  {'defaultType': 'swap'},
+}
+
 
 class OrderExecutor:
-    """Executes real orders on Binance Futures via ccxt."""
+    """Executes real orders on futures exchanges via ccxt."""
 
     def __init__(self, api_key: str, api_secret: str,
-                 is_testnet: bool = False):
+                 is_testnet: bool = False,
+                 exchange_name: str = 'binance',
+                 passphrase: str = None):
         """Initialize ccxt exchange connection.
 
         Args:
-            api_key: Binance API key (plaintext, already decrypted)
-            api_secret: Binance API secret (plaintext, already decrypted)
-            is_testnet: Use Binance testnet if True
+            api_key: API key (plaintext, already decrypted)
+            api_secret: API secret (plaintext, already decrypted)
+            is_testnet: Use testnet/sandbox if True
+            exchange_name: 'binance' or 'bitget'
+            passphrase: API passphrase (required for Bitget)
         """
+        self.exchange_name = exchange_name
+        opts = EXCHANGE_OPTIONS.get(exchange_name, EXCHANGE_OPTIONS['binance'])
         config = {
             'apiKey': api_key,
             'secret': api_secret,
             'enableRateLimit': True,
-            'options': {'defaultType': 'future'},
+            'options': {'defaultType': opts['defaultType']},
         }
+        if exchange_name == 'bitget' and passphrase:
+            config['password'] = passphrase
 
         if is_testnet:
             config['sandbox'] = True
 
-        self.exchange = ccxt.binance(config)
+        self.exchange = getattr(ccxt, exchange_name)(config)
 
         if is_testnet:
             self.exchange.set_sandbox_mode(True)
@@ -210,6 +223,64 @@ class OrderExecutor:
 
         except Exception as e:
             print(f"[OrderExecutor] Close position failed {symbol}: {e}")
+            return None
+
+    def reduce_position(self, symbol: str, direction: str,
+                        ratio: float = 0.5) -> Optional[dict]:
+        """Partially close a position (for v5 partial take-profit).
+
+        Args:
+            symbol: Trading pair
+            direction: 'LONG' or 'SHORT'
+            ratio: Fraction to close (0.5 = close half)
+
+        Returns:
+            Order info dict with price and fee, or None
+        """
+        try:
+            positions = self.exchange.fetch_positions([symbol])
+            quantity = None
+            for pos in positions:
+                pos_symbol = pos['symbol'].split(':')[0]
+                if (pos['symbol'] == symbol or pos_symbol == symbol) \
+                        and float(pos.get('contracts', 0)) > 0:
+                    full_qty = float(pos['contracts'])
+                    quantity = full_qty * ratio
+                    break
+
+            if not quantity or quantity <= 0:
+                print(f"[OrderExecutor] No position to reduce for {symbol}")
+                return None
+
+            # Precision
+            quantity = float(self.exchange.amount_to_precision(symbol, quantity))
+            if quantity <= 0:
+                return None
+
+            side = 'sell' if direction == 'LONG' else 'buy'
+            order = self.exchange.create_market_order(
+                symbol, side, quantity,
+                params={'reduceOnly': True}
+            )
+
+            fee_cost = 0.0
+            if order.get('fee') and order['fee'].get('cost'):
+                fee_cost = abs(float(order['fee']['cost']))
+            elif order.get('fees'):
+                fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+
+            return {
+                'order_id': order.get('id'),
+                'symbol': symbol,
+                'side': side,
+                'quantity': quantity,
+                'price': float(order.get('average', 0)),
+                'fee': fee_cost,
+                'status': order.get('status'),
+            }
+
+        except Exception as e:
+            print(f"[OrderExecutor] Reduce position failed {symbol}: {e}")
             return None
 
     def get_open_positions(self) -> list:

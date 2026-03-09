@@ -30,6 +30,12 @@ class Trade(db.Model):
     peak_roi = db.Column(db.Numeric(10, 4), default=0)
     binance_order_id = db.Column(db.String(50))
     strategy_version = db.Column(db.String(20))
+    # V5 partial take-profit fields
+    tp1_hit = db.Column(db.Boolean, default=False)
+    tp1_price = db.Column(db.Numeric(20, 8), nullable=True)
+    tp1_time = db.Column(db.DateTime, nullable=True)
+    partial_pnl = db.Column(db.Numeric(15, 4), default=0)
+    original_amount = db.Column(db.Numeric(15, 2), nullable=True)
     created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc),
                            onupdate=lambda: datetime.now(timezone.utc))
@@ -61,6 +67,10 @@ class Trade(db.Model):
             'close_reason': self.close_reason,
             'peak_roi': float(self.peak_roi) if self.peak_roi else 0,
             'strategy_version': self.strategy_version,
+            'tp1_hit': self.tp1_hit or False,
+            'tp1_price': float(self.tp1_price) if self.tp1_price else None,
+            'partial_pnl': float(self.partial_pnl) if self.partial_pnl else 0,
+            'original_amount': float(self.original_amount) if self.original_amount else None,
         }
 
 

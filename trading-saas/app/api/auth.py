@@ -95,13 +95,17 @@ def agent_register():
         is_active=True,
         is_trading_enabled=False,  # Requires admin approval
     )
-    db.session.add(agent)
-    db.session.flush()
+    try:
+        db.session.add(agent)
+        db.session.flush()
 
-    # Create default trading config and bot state
-    db.session.add(AgentTradingConfig(agent_id=agent.id))
-    db.session.add(BotState(agent_id=agent.id))
-    db.session.commit()
+        # Create default trading config and bot state
+        db.session.add(AgentTradingConfig(agent_id=agent.id))
+        db.session.add(BotState(agent_id=agent.id))
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Registration failed. Please try again.'}), 500
 
     log_action('agent', agent.id, 'self_register',
                details={'username': username, 'email': email})

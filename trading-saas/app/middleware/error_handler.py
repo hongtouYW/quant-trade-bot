@@ -1,11 +1,14 @@
 """Global Error Handlers"""
+import logging
 from flask import jsonify
+
+logger = logging.getLogger(__name__)
 
 
 def register_error_handlers(app):
     @app.errorhandler(400)
     def bad_request(e):
-        return jsonify({'error': 'Bad request', 'message': str(e)}), 400
+        return jsonify({'error': 'Bad request'}), 400
 
     @app.errorhandler(401)
     def unauthorized(e):
@@ -21,7 +24,7 @@ def register_error_handlers(app):
 
     @app.errorhandler(422)
     def unprocessable(e):
-        return jsonify({'error': 'Unprocessable entity', 'message': str(e)}), 422
+        return jsonify({'error': 'Unprocessable entity'}), 422
 
     @app.errorhandler(429)
     def rate_limited(e):
@@ -29,4 +32,5 @@ def register_error_handlers(app):
 
     @app.errorhandler(500)
     def internal_error(e):
+        logger.exception("Internal server error")
         return jsonify({'error': 'Internal server error'}), 500

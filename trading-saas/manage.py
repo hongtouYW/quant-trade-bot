@@ -68,6 +68,24 @@ def seed_strategies():
                 'dynamic_leverage': True, 'dynamic_tpsl': True,
             }
         },
+        'v5.0': {
+            'label': 'v5.0 高杠杆三重确认',
+            'description': '10x杠杆/MACD+BB+ADX三重确认/分步止盈/ATR动态止损/最多5仓',
+            'config': {
+                'min_score': 75, 'long_min_score': 80,
+                'max_leverage': 10, 'max_positions': 5,
+                'max_position_size': 150,
+                'short_bias': 1.05,
+                'enable_trend_filter': True, 'enable_btc_filter': True,
+                'roi_stop_loss': -8,
+                'roi_trailing_start': 20, 'roi_trailing_distance': 5,
+                'daily_loss_limit': 100, 'max_drawdown_pct': 12,
+                'cooldown_minutes': 60,
+                'tp1_roi': 10, 'tp1_close_ratio': 0.5, 'tp2_roi': 20,
+                'use_atr_stop': True, 'atr_stop_multiplier': 1.5,
+                'adx_min_threshold': 25,
+            }
+        },
     }
 
     with app.app_context():

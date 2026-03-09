@@ -1,6 +1,8 @@
 """Trading Data API - Positions, History, Stats, Real-time PnL"""
 import csv
 import io
+import logging
+import requests as req
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, Response
 from sqlalchemy import func, case
@@ -9,8 +11,47 @@ from ..middleware.auth_middleware import agent_required, admin_required, get_cur
 from ..models.trade import Trade, DailyStat
 from ..models.agent import Agent
 from ..extensions import db
+from ..engine.signal_analyzer import exchange_symbol
 
+logger = logging.getLogger(__name__)
 trading_bp = Blueprint('trading', __name__)
+
+# Exchange price endpoints
+_PRICE_ENDPOINTS = {
+    'binance': 'https://fapi.binance.com/fapi/v1/ticker/price',
+    'bitget':  'https://api.bitget.com/api/v2/mix/market/tickers',
+}
+
+
+def _get_agent_exchange(agent_id: int) -> str:
+    """Get exchange name from agent's API key config."""
+    try:
+        from ..models.agent_config import AgentApiKey
+        record = AgentApiKey.query.filter_by(agent_id=agent_id).first()
+        if record:
+            return record.exchange or 'binance'
+    except Exception:
+        pass
+    return 'binance'
+
+
+def _fetch_all_prices(exchange: str = 'binance') -> dict:
+    """Fetch all futures ticker prices in one call."""
+    try:
+        if exchange == 'bitget':
+            resp = req.get(
+                _PRICE_ENDPOINTS['bitget'],
+                params={'productType': 'USDT-FUTURES'},
+                timeout=5,
+            )
+            data = resp.json().get('data', [])
+            return {item['symbol']: float(item['lastPr']) for item in data}
+        else:
+            resp = req.get(_PRICE_ENDPOINTS['binance'], timeout=5)
+            return {item['symbol']: float(item['price']) for item in resp.json()}
+    except Exception:
+        logger.warning(f"Failed to fetch {exchange} prices for PnL enrichment")
+        return {}
 
 
 @trading_bp.route('/positions', methods=['GET'])
@@ -22,12 +63,38 @@ def get_positions():
         agent_id=agent_id, status='OPEN'
     ).order_by(Trade.entry_time.desc()).all()
 
+    # Batch-fetch all futures prices (single HTTP call)
+    ex = _get_agent_exchange(agent_id)
+    all_prices = _fetch_all_prices(ex) if trades else {}
+
     positions = []
     for t in trades:
         d = t.to_dict()
-        # Try to get live PnL from the running bot
         d['unrealized_pnl'] = None
         d['current_roi'] = None
+        d['current_price'] = None
+
+        # Calculate unrealized PnL from current price
+        binance_sym = exchange_symbol(t.symbol, ex)
+        current_price = all_prices.get(binance_sym)
+        if current_price and t.entry_price:
+            entry = float(t.entry_price)
+            if entry <= 0:
+                positions.append(d)
+                continue
+            amount = float(t.amount) if t.amount else 0
+            leverage = int(t.leverage or 1)
+
+            if t.direction == 'LONG':
+                price_change_pct = (current_price - entry) / entry
+            else:
+                price_change_pct = (entry - current_price) / entry
+
+            d['current_price'] = current_price
+            d['current_roi'] = round(price_change_pct * leverage * 100, 2)
+            d['unrealized_pnl'] = round(price_change_pct * leverage * amount, 2)
+
+        # Try peak_roi from BotManager
         try:
             from ..engine.bot_manager import BotManager
             manager = BotManager.get_instance()
@@ -64,9 +131,17 @@ def get_history():
     if direction:
         query = query.filter(Trade.direction == direction.upper())
     if date_from:
-        query = query.filter(Trade.exit_time >= date_from)
+        try:
+            date_from_dt = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(Trade.exit_time >= date_from_dt)
+        except ValueError:
+            pass
     if date_to:
-        query = query.filter(Trade.exit_time <= date_to + ' 23:59:59')
+        try:
+            date_to_dt = datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(Trade.exit_time <= date_to_dt)
+        except ValueError:
+            pass
 
     query = query.order_by(Trade.exit_time.desc())
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
@@ -218,9 +293,17 @@ def export_csv():
     if direction:
         query = query.filter(Trade.direction == direction.upper())
     if date_from:
-        query = query.filter(Trade.exit_time >= date_from)
+        try:
+            date_from_dt = datetime.strptime(date_from, '%Y-%m-%d')
+            query = query.filter(Trade.exit_time >= date_from_dt)
+        except ValueError:
+            pass
     if date_to:
-        query = query.filter(Trade.exit_time <= date_to + ' 23:59:59')
+        try:
+            date_to_dt = datetime.strptime(date_to, '%Y-%m-%d').replace(hour=23, minute=59, second=59)
+            query = query.filter(Trade.exit_time <= date_to_dt)
+        except ValueError:
+            pass
 
     trades = query.order_by(Trade.exit_time.desc()).all()
 

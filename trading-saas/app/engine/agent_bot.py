@@ -26,6 +26,8 @@ from ..services.encryption_service import EncryptionService
 
 from .signal_analyzer import (
     analyze_signal, calculate_position_size, calculate_stop_take,
+    analyze_signal_v5, calculate_position_size_v5, calculate_stop_take_v5,
+    analyze_signal_v6,
     fetch_price, DEFAULT_WATCHLIST, COIN_TIERS, SKIP_COINS,
 )
 from .order_executor import OrderExecutor
@@ -106,12 +108,15 @@ class AgentBot:
         keys = _json.loads(combined_json)
         api_key = keys['k']
         api_secret = keys['s']
+        self.exchange_name = api_key_record.exchange or 'binance'
 
         # Initialize executor
         self.executor = OrderExecutor(
             api_key=api_key,
             api_secret=api_secret,
             is_testnet=api_key_record.is_testnet,
+            exchange_name=self.exchange_name,
+            passphrase=keys.get('p'),
         )
 
         # Load trading config
@@ -171,8 +176,8 @@ class AgentBot:
         self._log('info', f"Config loaded. Strategy: {self.config.get('strategy_version')}, "
                   f"Open positions: {len(self.positions)}")
 
-        # Reconcile: detect ghost positions on Binance not tracked in DB
-        self._reconcile_binance_positions()
+        # Reconcile: detect ghost positions on exchange not tracked in DB
+        self._reconcile_exchange_positions()
 
     def _reload_trading_config(self):
         """Hot-reload trading config from DB (lightweight, no API key reload)."""
@@ -193,24 +198,30 @@ class AgentBot:
             self._log('error', f"Config reload failed: {e}")
 
     def _fetch_funding_fee(self, symbol: str, entry_time_str: str) -> float:
-        """Fetch actual funding fee from Binance for a position."""
+        """Fetch actual funding fee from exchange for a position."""
         try:
-            bn_symbol = symbol.replace('/', '')
             since_ms = 0
             if entry_time_str:
                 entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
                 since_ms = int(entry_dt.timestamp() * 1000)
 
-            incomes = self.executor.exchange.fapiPrivateGetIncome({
-                'symbol': bn_symbol,
-                'incomeType': 'FUNDING_FEE',
-                'startTime': since_ms,
-                'limit': 100,
-            })
-            # Positive = received, negative = paid
-            # Return as cost (positive = we paid)
-            total = sum(float(inc['income']) for inc in incomes)
-            return -total  # flip: positive income = negative cost
+            if self.exchange_name == 'binance':
+                bn_symbol = symbol.replace('/', '')
+                incomes = self.executor.exchange.fapiPrivateGetIncome({
+                    'symbol': bn_symbol,
+                    'incomeType': 'FUNDING_FEE',
+                    'startTime': since_ms,
+                    'limit': 100,
+                })
+                total = sum(float(inc['income']) for inc in incomes)
+                return -total  # flip: positive income = negative cost
+            else:
+                # Bitget / other exchanges: use ccxt unified method
+                trades = self.executor.exchange.fetch_funding_history(
+                    symbol, since=since_ms, limit=100
+                )
+                total = sum(float(t.get('amount', 0)) for t in trades)
+                return -total  # flip: positive income = negative cost (same as Binance)
         except Exception as e:
             self._log('warn', f"Funding fee fetch failed for {symbol}: {e}")
             # Fallback to estimate
@@ -227,13 +238,13 @@ class AgentBot:
                     pass
             return position_value * 0.0001 * (holding_hours / 8)
 
-    def _reconcile_binance_positions(self):
-        """Detect positions on Binance that the DB doesn't know about.
+    def _reconcile_exchange_positions(self):
+        """Detect positions on exchange that the DB doesn't know about.
 
         This catches 'ghost' positions caused by:
-        - DB marked CLOSED but Binance close order failed
+        - DB marked CLOSED but exchange close order failed
         - Duplicate opens where only one was tracked in memory
-        - Bot crash after Binance order but before DB write
+        - Bot crash after exchange order but before DB write
         """
         try:
             binance_positions = self.executor.get_open_positions()
@@ -247,7 +258,7 @@ class AgentBot:
                     self._log('warn',
                               f"GHOST POSITION detected: {symbol} "
                               f"({bpos['side']}, {bpos['contracts']} contracts, "
-                              f"entry ${bpos['entry_price']:.6f}) exists on Binance "
+                              f"entry ${bpos['entry_price']:.6f}) exists on {self.exchange_name} "
                               f"but NOT in DB. Sending alert.")
                     self._send_telegram(
                         f"⚠️ <b>Ghost Position Detected</b>\n"
@@ -257,10 +268,10 @@ class AgentBot:
                         f"Entry: ${bpos['entry_price']:.6f}\n"
                         f"Unrealized PnL: {bpos['unrealized_pnl']:.2f}U\n\n"
                         f"This position is NOT tracked by the bot.\n"
-                        f"Please close it manually on Binance."
+                        f"Please close it manually on {self.exchange_name}."
                     )
         except Exception as e:
-            self._log('error', f"Binance reconciliation failed: {e}")
+            self._log('error', f"Exchange reconciliation failed: {e}")
 
     def _update_state(self, status: str, error: str = None):
         """Update bot state in database."""
@@ -324,7 +335,7 @@ class AgentBot:
             # ── DB-level deduplication guard ────────────────────────────────
             # Check DB directly, not just in-memory dict.
             # This prevents duplicates when bot restarts after a partial write
-            # (order sent to Binance but DB commit failed before tracking).
+            # (order sent to exchange but DB commit failed before tracking).
             existing = Trade.query.filter_by(
                 agent_id=self.agent_id, symbol=symbol, status='OPEN'
             ).first()
@@ -362,9 +373,16 @@ class AgentBot:
             # Get risk-adjusted multiplier
             risk_multiplier = self.risk_manager.get_position_multiplier(positions_list)
 
-            amount, leverage = calculate_position_size(
-                score, available, self.config, symbol
-            )
+            if self.config.get('strategy_version', '').startswith('v5'):
+                atr_val = analysis.get('atr')
+                amount, leverage = calculate_position_size_v5(
+                    score, available, self.config, symbol,
+                    atr=atr_val, price=entry_price
+                )
+            else:
+                amount, leverage = calculate_position_size(
+                    score, available, self.config, symbol
+                )
 
             # Apply risk multiplier
             if risk_multiplier < 1.0:
@@ -374,9 +392,14 @@ class AgentBot:
                 return
 
             # Calculate stop/take
-            stp = calculate_stop_take(entry_price, direction, leverage, self.config)
+            if self.config.get('strategy_version', '').startswith('v5'):
+                atr_val = analysis.get('atr')
+                stp = calculate_stop_take_v5(entry_price, direction, leverage,
+                                             self.config, atr=atr_val)
+            else:
+                stp = calculate_stop_take(entry_price, direction, leverage, self.config)
 
-            # Execute real order on Binance
+            # Execute real order on exchange
             order = self.executor.open_position(symbol, direction, amount, leverage)
             if not order:
                 self._log('error', f"Order failed for {symbol}")
@@ -387,7 +410,12 @@ class AgentBot:
             open_fee = order.get('fee', 0)
 
             # Recalculate stop/take with actual fill price
-            stp = calculate_stop_take(fill_price, direction, leverage, self.config)
+            if self.config.get('strategy_version', '').startswith('v5'):
+                atr_val = analysis.get('atr')
+                stp = calculate_stop_take_v5(fill_price, direction, leverage,
+                                             self.config, atr=atr_val)
+            else:
+                stp = calculate_stop_take(fill_price, direction, leverage, self.config)
 
             # Record trade in database
             trade = Trade(
@@ -494,6 +522,8 @@ class AgentBot:
             roi_trail_dist = position.get('roi_trailing_distance', 3)
 
             # Calculate current ROI
+            if not entry_price or entry_price <= 0:
+                return
             if direction == 'LONG':
                 current_roi = ((current_price - entry_price) / entry_price) * leverage * 100
             else:
@@ -504,6 +534,16 @@ class AgentBot:
             if current_roi > peak_roi:
                 position['peak_roi'] = current_roi
                 peak_roi = current_roi
+
+            # V5: Partial take-profit at TP1
+            if self.config.get('strategy_version', '').startswith('v5'):
+                tp1_roi_thresh = float(self.config.get('tp1_roi', 10))
+                tp1_ratio = float(self.config.get('tp1_close_ratio', 0.5))
+                if current_roi >= tp1_roi_thresh and not position.get('tp1_hit'):
+                    self._partial_close(
+                        symbol, tp1_ratio,
+                        f"TP1 hit (+{current_roi:.1f}%)"
+                    )
 
             should_close = False
             reason = ""
@@ -585,19 +625,22 @@ class AgentBot:
             amount = position['amount']
             leverage = position['leverage']
 
-            # Close on Binance — MUST succeed before marking DB as CLOSED
+            # Close on exchange — MUST succeed before marking DB as CLOSED
             close_result = self.executor.close_position(symbol, direction)
             if not close_result:
-                self._log('error', f"Binance close FAILED for {symbol} — "
+                self._log('error', f"{self.exchange_name} close FAILED for {symbol} — "
                           f"keeping position OPEN in DB to prevent ghost position")
                 return
 
-            # Use actual close price from Binance
+            # Use actual close price from exchange
             actual_price = close_result.get('price')
             if actual_price and actual_price > 0:
                 exit_price = actual_price
 
             # Calculate PnL with actual price
+            if not entry_price or entry_price <= 0:
+                self._log('error', f"Invalid entry_price for {symbol}: {entry_price}")
+                return
             if direction == 'LONG':
                 price_change_pct = (exit_price - entry_price) / entry_price
             else:
@@ -606,17 +649,17 @@ class AgentBot:
             roi = price_change_pct * leverage * 100
             pnl_before_fee = amount * price_change_pct * leverage
 
-            # Use actual fees from Binance order responses
+            # Use actual fees from exchange order responses
             open_fee = position.get('open_fee', 0)
             close_fee = close_result.get('fee', 0)
             total_fee = open_fee + close_fee
 
-            # Funding fee: fetch from Binance income API
+            # Funding fee: fetch from exchange income API
             funding_fee = self._fetch_funding_fee(symbol, position.get('entry_time', ''))
 
             pnl = pnl_before_fee - total_fee - funding_fee
 
-            # Update database (only after Binance close confirmed)
+            # Update database (only after exchange close confirmed)
             trade = Trade.query.get(position.get('trade_id'))
             if trade:
                 trade.exit_price = Decimal(str(exit_price))
@@ -676,6 +719,80 @@ class AgentBot:
 
         except Exception as e:
             self._log('error', f"Close position failed: {e}")
+            traceback.print_exc()
+            try:
+                db.session.rollback()
+            except Exception:
+                pass
+
+    def _partial_close(self, symbol: str, ratio: float, reason: str):
+        """V5: Partially close a position (e.g. 50% at TP1)."""
+        try:
+            position = self.positions.get(symbol)
+            if not position:
+                return
+
+            direction = position['direction']
+            entry_price = position['entry_price']
+            amount = position['amount']
+            leverage = position['leverage']
+
+            # Execute partial close on exchange
+            result = self.executor.reduce_position(symbol, direction, ratio)
+            if not result:
+                self._log('error', f"Partial close FAILED for {symbol}")
+                return
+
+            close_price = result.get('price', 0)
+            close_fee = result.get('fee', 0)
+
+            # Calculate partial PnL
+            if not entry_price or entry_price <= 0:
+                self._log('error', f"Invalid entry_price for {symbol}: {entry_price}")
+                return
+            if direction == 'LONG':
+                price_pct = (close_price - entry_price) / entry_price
+            else:
+                price_pct = (entry_price - close_price) / entry_price
+
+            closed_amount = amount * ratio
+            partial_pnl = closed_amount * price_pct * leverage - close_fee
+
+            # Update DB trade record
+            trade = Trade.query.get(position.get('trade_id'))
+            if trade:
+                trade.tp1_hit = True
+                trade.tp1_price = Decimal(str(close_price))
+                trade.tp1_time = datetime.now(timezone.utc)
+                trade.partial_pnl = Decimal(str(round(partial_pnl, 4)))
+                trade.original_amount = Decimal(str(amount))
+                # Reduce the tracked amount
+                new_amount = amount * (1 - ratio)
+                trade.amount = Decimal(str(round(new_amount, 2)))
+                # Add partial close fee to total fee
+                current_fee = float(trade.fee) if trade.fee else 0
+                trade.fee = Decimal(str(round(current_fee + close_fee, 6)))
+                db.session.commit()
+
+            # Update in-memory position
+            position['amount'] = amount * (1 - ratio)
+            position['tp1_hit'] = True
+            position['open_fee'] = position.get('open_fee', 0) + close_fee
+
+            self._log('trade', f"PARTIAL CLOSE {direction} {symbol} "
+                      f"{ratio:.0%} @ ${close_price:.6f} PnL: {partial_pnl:+.2f}U - {reason}")
+
+            self._send_telegram(
+                f"<b>Partial Close {direction}</b> {symbol}\n"
+                f"Closed: {ratio:.0%} ({closed_amount:.0f}U)\n"
+                f"Price: ${close_price:.6f}\n"
+                f"Partial PnL: {partial_pnl:+.2f}U\n"
+                f"Remaining: {position['amount']:.0f}U\n"
+                f"Reason: {reason}"
+            )
+
+        except Exception as e:
+            self._log('error', f"Partial close failed: {e}")
             traceback.print_exc()
             try:
                 db.session.rollback()
@@ -769,14 +886,20 @@ class AgentBot:
 
                 # Pre-trade risk check
                 can_open, risk_reason = self.risk_manager.check_can_open(
-                    positions_list
+                    positions_list, symbol=symbol
                 )
                 if not can_open:
                     self._log('warn', f"Risk blocked: {risk_reason}")
                     break
 
-                # Analyze signal
-                score, analysis = analyze_signal(symbol, self.config)
+                # Analyze signal — route by strategy version
+                strategy_ver = self.config.get('strategy_version', '')
+                if strategy_ver.startswith('v5'):
+                    score, analysis = analyze_signal_v5(symbol, self.config)
+                elif strategy_ver.startswith('v6'):
+                    score, analysis = analyze_signal_v6(symbol, self.config, exchange=self.exchange_name)
+                else:
+                    score, analysis = analyze_signal(symbol, self.config)
                 scan_analyzed += 1
                 if not analysis or score < min_score:
                     continue

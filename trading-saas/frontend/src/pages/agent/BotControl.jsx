@@ -4,6 +4,8 @@ import { useSocket } from '../../hooks/useSocket';
 import { Card } from '../../components/common/Card';
 import { StatusBadge } from '../../components/common/Badge';
 import api from '../../api/client';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { formatDateTime, formatTime } from '../../utils/formatDate';
 import { Play, Square, Pause, PlayCircle, ScrollText, Radio, Filter, TrendingUp, TrendingDown, Wifi, WifiOff } from 'lucide-react';
 
 const levelColors = {
@@ -15,6 +17,7 @@ const levelColors = {
 };
 
 export default function BotControl() {
+  const { t } = useLanguage();
   const { data: bot, loading, refetch } = useApi('/agent/bot/status', { interval: 5000 });
   const { data: signals, refetch: refetchSignals } = useApi('/agent/bot/signals', { interval: 10000 });
   const { data: logsData, refetch: refetchLogs } = useApi('/agent/bot/logs', { interval: 10000 });
@@ -31,12 +34,12 @@ export default function BotControl() {
       await api.post(`/agent/bot/${act}`);
       refetch();
     } catch (err) {
-      alert(err.response?.data?.error || `Failed to ${act}`);
+      alert(err.response?.data?.error || t('bot.actionFailed'));
     }
   };
 
   if (loading) {
-    return <div className="animate-pulse text-text-secondary">Loading bot status...</div>;
+    return <div className="animate-pulse text-text-secondary">{t('bot.loadingBot')}</div>;
   }
 
   const status = bot?.status || 'stopped';
@@ -44,11 +47,11 @@ export default function BotControl() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
-        <h2 className="text-xl font-bold">Bot Control</h2>
+        <h2 className="text-xl font-bold">{t('bot.title')}</h2>
         {wsConnected ? (
-          <Wifi size={14} className="text-success" title="WebSocket connected" />
+          <Wifi size={14} className="text-success" title={t('bot.wsConnected')} />
         ) : (
-          <WifiOff size={14} className="text-text-secondary" title="Polling mode" />
+          <WifiOff size={14} className="text-text-secondary" title={t('bot.pollingMode')} />
         )}
       </div>
 
@@ -73,7 +76,7 @@ export default function BotControl() {
               onClick={() => action('start')}
               className="flex items-center gap-2 px-6 py-2.5 bg-success hover:bg-success/80 text-white rounded-lg text-sm font-medium transition-colors"
             >
-              <Play size={16} /> Start Bot
+              <Play size={16} /> {t('bot.startBot')}
             </button>
           ) : status === 'running' ? (
             <>
@@ -81,13 +84,13 @@ export default function BotControl() {
                 onClick={() => action('pause')}
                 className="flex items-center gap-2 px-4 py-2.5 bg-warning hover:bg-warning/80 text-black rounded-lg text-sm font-medium transition-colors"
               >
-                <Pause size={16} /> Pause
+                <Pause size={16} /> {t('bot.pause')}
               </button>
               <button
                 onClick={() => action('stop')}
                 className="flex items-center gap-2 px-4 py-2.5 bg-danger hover:bg-danger/80 text-white rounded-lg text-sm font-medium transition-colors"
               >
-                <Square size={16} /> Stop
+                <Square size={16} /> {t('bot.stop')}
               </button>
             </>
           ) : status === 'paused' ? (
@@ -96,13 +99,13 @@ export default function BotControl() {
                 onClick={() => action('resume')}
                 className="flex items-center gap-2 px-4 py-2.5 bg-success hover:bg-success/80 text-white rounded-lg text-sm font-medium transition-colors"
               >
-                <PlayCircle size={16} /> Resume
+                <PlayCircle size={16} /> {t('bot.resume')}
               </button>
               <button
                 onClick={() => action('stop')}
                 className="flex items-center gap-2 px-4 py-2.5 bg-danger hover:bg-danger/80 text-white rounded-lg text-sm font-medium transition-colors"
               >
-                <Square size={16} /> Stop
+                <Square size={16} /> {t('bot.stop')}
               </button>
             </>
           ) : null}
@@ -110,9 +113,9 @@ export default function BotControl() {
       </Card>
 
       <Card>
-        <h3 className="text-sm font-semibold mb-3">Details</h3>
+        <h3 className="text-sm font-semibold mb-3">{t('bot.details')}</h3>
         <div className="space-y-2 text-sm">
-          <Row label="Risk Score" value={
+          <Row label={t('bot.riskScore')} value={
             <span className={
               (bot?.risk_score || 0) >= 7 ? 'text-danger' :
               (bot?.risk_score || 0) >= 4 ? 'text-warning' : 'text-success'
@@ -120,8 +123,8 @@ export default function BotControl() {
               {bot?.risk_score ?? '-'}/10
             </span>
           } />
-          <Row label="Open Positions" value={bot?.open_positions ?? '-'} />
-          <Row label="Last Scan" value={bot?.last_scan ? new Date(bot.last_scan).toLocaleString() : 'Never'} />
+          <Row label={t('bot.openPositions')} value={bot?.open_positions ?? '-'} />
+          <Row label={t('bot.lastScan')} value={bot?.last_scan ? formatDateTime(bot.last_scan) : t('common.never')} />
         </div>
       </Card>
 
@@ -129,10 +132,10 @@ export default function BotControl() {
       <Card>
         <div className="flex items-center gap-2 mb-3">
           <Radio size={16} className="text-blue-400" />
-          <h3 className="text-sm font-semibold">Signal Scanner</h3>
+          <h3 className="text-sm font-semibold">{t('bot.signalScanner')}</h3>
           {signals?.last_scan_time && (
             <span className="text-xs text-text-secondary ml-auto">
-              Last scan: {new Date(signals.last_scan_time).toLocaleTimeString()}
+              {t('bot.lastScanTime')} {formatTime(signals.last_scan_time)}
             </span>
           )}
         </div>
@@ -140,17 +143,17 @@ export default function BotControl() {
         {signals?.last_scan_time ? (
           <>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-              <MiniStat label="Analyzed" value={signals.signals_analyzed} />
-              <MiniStat label="Passed" value={signals.signals_passed} color="text-success" />
-              <MiniStat label="Filtered" value={signals.signals_filtered?.length || 0} color="text-warning" />
-              <MiniStat label="Opened" value={signals.positions_opened} color="text-primary" />
+              <MiniStat label={t('bot.analyzed')} value={signals.signals_analyzed} />
+              <MiniStat label={t('bot.passed')} value={signals.signals_passed} color="text-success" />
+              <MiniStat label={t('bot.filtered')} value={signals.signals_filtered?.length || 0} color="text-warning" />
+              <MiniStat label={t('bot.opened')} value={signals.positions_opened} color="text-primary" />
             </div>
 
             {signals.signals_filtered?.length > 0 && (
               <div className="border-t border-border/30 pt-3">
                 <div className="flex items-center gap-1 mb-2">
                   <Filter size={12} className="text-text-secondary" />
-                  <span className="text-xs font-medium text-text-secondary">Filtered Signals</span>
+                  <span className="text-xs font-medium text-text-secondary">{t('bot.filteredSignals')}</span>
                 </div>
                 <div className="space-y-1.5">
                   {signals.signals_filtered.map((sig, i) => (
@@ -175,12 +178,12 @@ export default function BotControl() {
             )}
 
             {signals.signals_filtered?.length === 0 && signals.signals_passed === 0 && (
-              <p className="text-xs text-text-secondary">No signals detected in last scan.</p>
+              <p className="text-xs text-text-secondary">{t('bot.noSignals')}</p>
             )}
           </>
         ) : (
           <p className="text-xs text-text-secondary">
-            {status === 'running' ? 'Waiting for first scan...' : 'Start the bot to see signal data.'}
+            {status === 'running' ? t('bot.waitingFirstScan') : t('bot.startBotToSee')}
           </p>
         )}
       </Card>
@@ -188,9 +191,9 @@ export default function BotControl() {
       <Card>
         <div className="flex items-center gap-2 mb-3">
           <ScrollText size={16} className="text-text-secondary" />
-          <h3 className="text-sm font-semibold">Activity Log</h3>
+          <h3 className="text-sm font-semibold">{t('bot.activityLog')}</h3>
           <span className="text-xs text-text-secondary ml-auto">
-            {logsData?.logs?.length || 0} entries (last 100)
+            {logsData?.logs?.length || 0} {t('bot.lastEntries')}
           </span>
         </div>
         {logsData?.logs?.length > 0 ? (
@@ -207,7 +210,7 @@ export default function BotControl() {
           </div>
         ) : (
           <p className="text-xs text-text-secondary">
-            {status === 'running' ? 'Waiting for activity...' : 'Start the bot to see activity logs.'}
+            {status === 'running' ? t('bot.waitingActivity') : t('bot.startBotLogs')}
           </p>
         )}
       </Card>

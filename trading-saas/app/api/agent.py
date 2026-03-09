@@ -1,7 +1,10 @@
 """Agent API - Profile, API Keys, Telegram, Strategy Config"""
 import json as _json
+import logging
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
+
+logger = logging.getLogger(__name__)
 from ..middleware.auth_middleware import agent_required, get_current_user_id
 from ..services.encryption_service import EncryptionService
 from ..services.audit_service import log_action
@@ -11,6 +14,30 @@ from ..models.strategy_preset import StrategyPreset
 from ..extensions import db
 
 agent_bp = Blueprint('agent', __name__)
+
+# Exchange configuration for ccxt initialization
+EXCHANGE_CONFIG = {
+    'binance': {'defaultType': 'future'},
+    'bitget':  {'defaultType': 'swap'},
+}
+
+def _create_exchange(exchange_name: str, api_key: str, api_secret: str,
+                     passphrase: str = None, is_testnet: bool = False):
+    """Create a ccxt exchange instance based on exchange name."""
+    import ccxt
+    cfg = EXCHANGE_CONFIG.get(exchange_name, EXCHANGE_CONFIG['binance'])
+    params = {
+        'apiKey': api_key,
+        'secret': api_secret,
+        'enableRateLimit': True,
+        'options': {'defaultType': cfg['defaultType']},
+    }
+    if exchange_name == 'bitget' and passphrase:
+        params['password'] = passphrase
+    exchange = getattr(ccxt, exchange_name)(params)
+    if is_testnet:
+        exchange.set_sandbox_mode(True)
+    return exchange
 
 
 @agent_bp.route('/dashboard', methods=['GET'])
@@ -73,6 +100,8 @@ def get_profile():
 def update_profile():
     agent_id = get_current_user_id()
     agent = Agent.query.get(agent_id)
+    if not agent:
+        return jsonify({'error': 'Agent not found'}), 404
     data = request.get_json()
 
     updatable = ['display_name', 'phone']
@@ -95,19 +124,13 @@ def get_balance():
         return jsonify({'error': 'API keys not configured or not verified'}), 400
 
     try:
-        import ccxt
         combined_json = EncryptionService.decrypt(record.binance_api_key_enc, record.encryption_iv)
         keys = _json.loads(combined_json)
+        exchange_name = record.exchange or 'binance'
 
-        exchange = ccxt.binance({
-            'apiKey': keys['k'],
-            'secret': keys['s'],
-            'enableRateLimit': True,
-            'options': {'defaultType': 'future'},
-        })
-        if record.is_testnet:
-            exchange.set_sandbox_mode(True)
-
+        exchange = _create_exchange(exchange_name, keys['k'], keys['s'],
+                                    passphrase=keys.get('p'),
+                                    is_testnet=record.is_testnet)
         balance = exchange.fetch_balance()
         usdt = balance.get('USDT', {})
 
@@ -117,7 +140,8 @@ def get_balance():
             'used': float(usdt.get('used', 0)),
         })
     except Exception as e:
-        return jsonify({'error': str(e)}), 400
+        logger.exception("Balance fetch failed")
+        return jsonify({'error': 'Failed to fetch balance'}), 400
 
 
 # === API Keys ===
@@ -131,12 +155,20 @@ def set_api_keys():
     if not data.get('api_key') or not data.get('api_secret'):
         return jsonify({'error': 'api_key and api_secret required'}), 400
 
-    # Encrypt both key+secret as a single JSON blob with one nonce
-    combined = _json.dumps({'k': data['api_key'], 's': data['api_secret']})
+    exchange_name = data.get('exchange', 'binance')
+    if exchange_name not in ('binance', 'bitget'):
+        return jsonify({'error': 'Unsupported exchange'}), 400
+
+    # Encrypt key+secret+passphrase as a single JSON blob
+    blob = {'k': data['api_key'], 's': data['api_secret']}
+    if data.get('passphrase'):
+        blob['p'] = data['passphrase']
+    combined = _json.dumps(blob)
     blob_enc, nonce = EncryptionService.encrypt(combined)
 
     existing = AgentApiKey.query.filter_by(agent_id=agent_id).first()
     if existing:
+        existing.exchange = exchange_name
         existing.binance_api_key_enc = blob_enc
         existing.binance_api_secret_enc = b''
         existing.encryption_iv = nonce
@@ -145,6 +177,7 @@ def set_api_keys():
     else:
         api_key_record = AgentApiKey(
             agent_id=agent_id,
+            exchange=exchange_name,
             binance_api_key_enc=blob_enc,
             binance_api_secret_enc=b'',
             encryption_iv=nonce,
@@ -155,7 +188,7 @@ def set_api_keys():
     db.session.commit()
 
     log_action('agent', agent_id, 'set_api_keys',
-               details={'is_testnet': data.get('is_testnet', False)})
+               details={'exchange': exchange_name, 'is_testnet': data.get('is_testnet', False)})
 
     return jsonify({'message': 'API keys saved', 'has_api_key': True})
 
@@ -192,21 +225,13 @@ def verify_api_keys():
         return jsonify({'error': 'No API keys configured'}), 400
 
     try:
-        import ccxt
         combined_json = EncryptionService.decrypt(record.binance_api_key_enc, record.encryption_iv)
         keys = _json.loads(combined_json)
-        api_key = keys['k']
-        api_secret = keys['s']
+        exchange_name = record.exchange or 'binance'
 
-        exchange = ccxt.binance({
-            'apiKey': api_key,
-            'secret': api_secret,
-            'enableRateLimit': True,
-            'options': {'defaultType': 'future'},
-        })
-        if record.is_testnet:
-            exchange.set_sandbox_mode(True)
-
+        exchange = _create_exchange(exchange_name, keys['k'], keys['s'],
+                                    passphrase=keys.get('p'),
+                                    is_testnet=record.is_testnet)
         balance = exchange.fetch_balance()
         usdt_balance = balance.get('USDT', {}).get('total', 0)
 
@@ -222,7 +247,8 @@ def verify_api_keys():
     except Exception as e:
         record.permissions_verified = False
         db.session.commit()
-        return jsonify({'verified': False, 'error': str(e)}), 400
+        logger.exception("API key verification failed")
+        return jsonify({'verified': False, 'error': 'API key verification failed'}), 400
 
 
 # === Telegram ===
@@ -294,7 +320,8 @@ def test_telegram():
             return jsonify({'success': True, 'message': 'Test message sent'})
         return jsonify({'success': False, 'error': resp.text}), 400
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 400
+        logger.exception("Telegram test failed")
+        return jsonify({'success': False, 'error': 'Telegram test failed'}), 400
 
 
 # === Trading Config ===
@@ -344,7 +371,7 @@ def update_trading_config():
 @agent_bp.route('/trading/strategies', methods=['GET'])
 @agent_required
 def list_strategies():
-    presets = StrategyPreset.query.filter_by(is_active=True).all()
+    presets = StrategyPreset.query.filter_by(is_active=True).order_by(StrategyPreset.version).all()
     return jsonify({'strategies': [p.to_dict() for p in presets]})
 
 
@@ -372,12 +399,22 @@ def switch_strategy(version):
         'long_min_score': 'long_min_score',
         'max_leverage': 'max_leverage',
         'max_positions': 'max_positions',
+        'max_position_size': 'max_position_size',
         'roi_stop_loss': 'roi_stop_loss',
         'roi_trailing_start': 'roi_trailing_start',
         'roi_trailing_distance': 'roi_trailing_distance',
         'enable_trend_filter': 'enable_trend_filter',
         'enable_btc_filter': 'enable_btc_filter',
         'short_bias': 'short_bias',
+        'daily_loss_limit': 'daily_loss_limit',
+        'max_drawdown_pct': 'max_drawdown_pct',
+        'cooldown_minutes': 'cooldown_minutes',
+        'tp1_roi': 'tp1_roi',
+        'tp1_close_ratio': 'tp1_close_ratio',
+        'tp2_roi': 'tp2_roi',
+        'use_atr_stop': 'use_atr_stop',
+        'atr_stop_multiplier': 'atr_stop_multiplier',
+        'adx_min_threshold': 'adx_min_threshold',
     }
     for preset_key, config_field in field_map.items():
         if preset_key in preset_config:

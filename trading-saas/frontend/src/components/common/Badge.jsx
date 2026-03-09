@@ -1,3 +1,5 @@
+import { useLanguage } from '../../contexts/LanguageContext';
+
 const variants = {
   success: 'bg-success/15 text-success',
   danger: 'bg-danger/15 text-danger',
@@ -15,17 +17,18 @@ export default function Badge({ children, variant = 'neutral' }) {
 }
 
 export function StatusBadge({ status }) {
+  const { t } = useLanguage();
   const map = {
-    running: { label: 'Running', variant: 'success' },
-    stopped: { label: 'Stopped', variant: 'neutral' },
-    paused: { label: 'Paused', variant: 'warning' },
-    error: { label: 'Error', variant: 'danger' },
-    OPEN: { label: 'Open', variant: 'info' },
-    CLOSED: { label: 'Closed', variant: 'neutral' },
-    open: { label: 'Open', variant: 'info' },
-    pending: { label: 'Pending', variant: 'warning' },
-    approved: { label: 'Approved', variant: 'success' },
-    paid: { label: 'Paid', variant: 'success' },
+    running: { label: t('status.running'), variant: 'success' },
+    stopped: { label: t('status.stopped'), variant: 'neutral' },
+    paused: { label: t('status.paused'), variant: 'warning' },
+    error: { label: t('status.error'), variant: 'danger' },
+    OPEN: { label: t('status.open'), variant: 'info' },
+    CLOSED: { label: t('status.closed'), variant: 'neutral' },
+    open: { label: t('status.open'), variant: 'info' },
+    pending: { label: t('status.pending'), variant: 'warning' },
+    approved: { label: t('status.approved'), variant: 'success' },
+    paid: { label: t('status.paid'), variant: 'success' },
   };
   const { label, variant } = map[status] || { label: status, variant: 'neutral' };
   return <Badge variant={variant}>{label}</Badge>;

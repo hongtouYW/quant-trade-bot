@@ -1,9 +1,19 @@
 """Application Configuration"""
 import os
+import sys
 from datetime import timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
+
+
+def _require_env(key: str, hint: str = '') -> str:
+    """Require env var in production, allow default in dev."""
+    val = os.environ.get(key, '')
+    if not val and os.environ.get('FLASK_ENV') == 'production':
+        print(f"FATAL: {key} must be set in production. {hint}")
+        sys.exit(1)
+    return val
 
 
 class Config:
@@ -55,3 +65,21 @@ class Config:
     # Admin Telegram notifications (circuit breaker alerts)
     ADMIN_TELEGRAM_BOT_TOKEN = os.environ.get('ADMIN_TELEGRAM_BOT_TOKEN', '')
     ADMIN_TELEGRAM_CHAT_ID = os.environ.get('ADMIN_TELEGRAM_CHAT_ID', '')
+
+
+# --- Production safety checks ---
+if os.environ.get('FLASK_ENV') == 'production':
+    _errors = []
+    if Config.SECRET_KEY in ('dev-secret-change-me', ''):
+        _errors.append('FLASK_SECRET_KEY must be set (not default)')
+    if Config.JWT_SECRET_KEY in ('jwt-dev-secret', ''):
+        _errors.append('JWT_SECRET_KEY must be set (not default)')
+    _emk = Config.ENCRYPTION_MASTER_KEY
+    if not _emk or len(_emk) != 64 or not all(c in '0123456789abcdefABCDEF' for c in _emk):
+        _errors.append('ENCRYPTION_MASTER_KEY must be 64-char hex')
+    if '*' in Config.CORS_ORIGINS:
+        _errors.append('CORS_ORIGINS must not be * in production')
+    if _errors:
+        for e in _errors:
+            print(f"FATAL CONFIG: {e}")
+        sys.exit(1)

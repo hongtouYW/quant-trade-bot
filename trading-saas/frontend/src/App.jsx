@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -25,6 +26,7 @@ import FAQ from './pages/agent/FAQ';
 export default function App() {
   return (
     <BrowserRouter>
+      <LanguageProvider>
       <AuthProvider>
         <Routes>
           {/* Separate login pages */}
@@ -61,6 +63,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
+      </LanguageProvider>
     </BrowserRouter>
   );
 }
