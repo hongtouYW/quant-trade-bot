@@ -22,8 +22,13 @@ loglevel = "info"
 proc_name = "trading-saas"
 
 # Restart workers after this many requests (prevent memory leaks)
-max_requests = 5000
-max_requests_jitter = 100
+# Reduced from 5000 to 2000: worker was growing to ~280MB before recycling,
+# causing OOM kills when old+new workers overlap during graceful restart.
+max_requests = 2000
+max_requests_jitter = 200
+
+# Graceful timeout: give the old worker time to finish requests before kill
+graceful_timeout = 30
 
 # Do NOT preload: bot threads and DB sessions created during startup
 # must live in the worker process, not the master (which forks workers).

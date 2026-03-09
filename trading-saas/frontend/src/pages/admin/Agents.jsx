@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
@@ -24,33 +24,45 @@ export default function Agents() {
   const [tradesPage, setTradesPage] = useState(1);
   const [tradesStatus, setTradesStatus] = useState('CLOSED');
   const [tradesLoading, setTradesLoading] = useState(false);
+  const expandedIdRef = useRef(null);
 
   const fetchTrades = async (agentId, page = 1, status = 'CLOSED') => {
     setTradesLoading(true);
     try {
       const res = await api.get(`/admin/agents/${agentId}/trades?page=${page}&per_page=10&status=${status}`);
-      setTradesData(res.data);
+      // Guard against stale response: only update if this agent is still expanded
+      if (expandedIdRef.current === agentId) {
+        setTradesData(res.data);
+      }
     } catch {
-      setTradesData(null);
+      if (expandedIdRef.current === agentId) {
+        setTradesData(null);
+      }
     }
-    setTradesLoading(false);
+    if (expandedIdRef.current === agentId) {
+      setTradesLoading(false);
+    }
   };
 
   const toggleExpand = async (agentId) => {
     if (expandedId === agentId) {
       setExpandedId(null);
+      expandedIdRef.current = null;
       setDetail(null);
       setTradesData(null);
       return;
     }
+    expandedIdRef.current = agentId;
     try {
       const res = await api.get(`/admin/agents/${agentId}`);
+      if (expandedIdRef.current !== agentId) return; // user switched away
       setDetail(res.data);
       setExpandedId(agentId);
       setTradesPage(1);
       setTradesStatus('CLOSED');
       fetchTrades(agentId, 1, 'CLOSED');
     } catch {
+      if (expandedIdRef.current !== agentId) return;
       setExpandedId(agentId);
       setDetail(null);
     }
@@ -76,7 +88,7 @@ export default function Agents() {
     }
     try {
       await api.post(`/admin/agents/${agentId}/reset-password`, { new_password: pwForm.password });
-      setPwForm({ agentId: null, password: '', msg: t('admin.passwordReset') });
+      setPwForm({ agentId: null, password: '', msg: '', successAgentId: agentId });
     } catch (err) {
       setPwForm(f => ({ ...f, msg: err.response?.data?.error || t('settings.failed') }));
     }
@@ -314,8 +326,8 @@ export default function Agents() {
                         <Lock size={12} /> {t('admin.resetPassword')}
                       </button>
                     )}
-                    {pwForm.agentId !== agent.id && pwForm.msg && (
-                      <p className="text-xs text-success mt-1">{pwForm.msg}</p>
+                    {pwForm.successAgentId === agent.id && (
+                      <p className="text-xs text-success mt-1">{t('admin.passwordReset')}</p>
                     )}
                   </div>
 
@@ -360,14 +372,14 @@ export default function Agents() {
                               </tr>
                             </thead>
                             <tbody>
-                              {tradesData.trades.map((tr, i) => (
-                                <tr key={i} className="border-b border-border/20 hover:bg-white/[0.02]">
+                              {tradesData.trades.map((tr) => (
+                                <tr key={tr.id} className="border-b border-border/20 hover:bg-white/[0.02]">
                                   <td className="py-1.5 px-2 font-medium">{tr.symbol}</td>
                                   <td className="py-1.5 px-2">
                                     <Badge variant={tr.direction === 'LONG' ? 'success' : 'danger'}>{tr.direction}</Badge>
                                   </td>
                                   <td className="py-1.5 px-2 text-right">${Number(tr.entry_price).toFixed(4)}</td>
-                                  {tradesStatus === 'CLOSED' && <td className="py-1.5 px-2 text-right">${Number(tr.exit_price).toFixed(4)}</td>}
+                                  {tradesStatus === 'CLOSED' && <td className="py-1.5 px-2 text-right">{tr.exit_price ? `$${Number(tr.exit_price).toFixed(4)}` : '-'}</td>}
                                   <td className="py-1.5 px-2 text-right">{tr.amount}U</td>
                                   <td className="py-1.5 px-2 text-center">{tr.leverage}x</td>
                                   {tradesStatus === 'CLOSED' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.pnl} /></td>}
@@ -375,7 +387,7 @@ export default function Agents() {
                                   {tradesStatus === 'OPEN' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.unrealized_pnl} /></td>}
                                   {tradesStatus === 'OPEN' && <td className="py-1.5 px-2 text-right"><PnlValue value={tr.current_roi} suffix="%" /></td>}
                                   <td className="py-1.5 px-2 text-right text-text-secondary">
-                                    {formatDateTime(tradesStatus === 'CLOSED' ? tr.exit_time : tr.entry_time)}
+                                    {(tradesStatus === 'CLOSED' ? tr.exit_time : tr.entry_time) ? formatDateTime(tradesStatus === 'CLOSED' ? tr.exit_time : tr.entry_time) : '-'}
                                   </td>
                                 </tr>
                               ))}

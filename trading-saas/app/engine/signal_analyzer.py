@@ -258,13 +258,15 @@ def fetch_klines(symbol: str, interval: str = '1h', limit: int = 100,
         es = exchange_symbol(symbol, exchange)
 
         if exchange == 'bitget':
+            # Bitget uses different interval format: '1h' → '1H', '4h' → '4H', '1d' → '1D'
+            bg_interval = interval.upper() if interval[-1] in ('h', 'd', 'w') else interval
             # Bitget mix market candles
             resp = requests.get(
                 f"{api['base']}{api['klines']}",
                 params={
                     'symbol': es,
                     'productType': 'USDT-FUTURES',
-                    'granularity': interval,
+                    'granularity': bg_interval,
                     'limit': str(limit),
                 },
                 timeout=timeout,
@@ -319,7 +321,12 @@ def fetch_price(symbol: str, timeout: int = 5,
             )
             resp.raise_for_status()
             data = resp.json().get('data', [])
-            if data:
+            # Verify we got the right symbol (endpoint may return all tickers)
+            for item in data:
+                if item.get('symbol', '').upper() == es.upper():
+                    return float(item['lastPr'])
+            # Fallback: if only one result returned, trust it
+            if len(data) == 1:
                 return float(data[0]['lastPr'])
             return None
         else:
@@ -385,7 +392,7 @@ def get_btc_trend(timeout: int = 10) -> dict:
 
 # ─── Core Signal Analysis ────────────────────────────────────
 
-def analyze_signal(symbol: str, config: dict) -> tuple:
+def analyze_signal(symbol: str, config: dict, exchange: str = 'binance') -> tuple:
     """Analyze trading signal for a symbol (0-100 score).
 
     Args:
@@ -400,7 +407,7 @@ def analyze_signal(symbol: str, config: dict) -> tuple:
         (score: int, analysis: dict | None)
     """
     try:
-        klines = fetch_klines(symbol, '1h', 100)
+        klines = fetch_klines(symbol, '1h', 100, exchange=exchange)
         if not klines or len(klines) < 50:
             return 0, None
 
@@ -815,14 +822,14 @@ def analyze_signal_v6(symbol: str, config: dict, exchange: str = 'binance') -> t
 
 # ─── V5 Signal Analysis (10x leverage, triple confirmation) ───
 
-def analyze_signal_v5(symbol: str, config: dict) -> tuple:
+def analyze_signal_v5(symbol: str, config: dict, exchange: str = 'binance') -> tuple:
     """V5 signal analysis: MACD + BB + RSI + ADX triple confirmation.
 
     Designed for 10x leverage — stricter entry, ADX trend filter.
     Returns: (score: int, analysis: dict | None)
     """
     try:
-        klines = fetch_klines(symbol, '1h', 100)
+        klines = fetch_klines(symbol, '1h', 100, exchange=exchange)
         if not klines or len(klines) < 50:
             return 0, None
 

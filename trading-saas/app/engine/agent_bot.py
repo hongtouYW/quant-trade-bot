@@ -509,7 +509,7 @@ class AgentBot:
             current_price = self.executor.get_price(symbol)
             if not current_price:
                 # Fallback to direct API
-                current_price = fetch_price(symbol)
+                current_price = fetch_price(symbol, exchange=self.exchange_name)
             if not current_price:
                 return
 
@@ -895,11 +895,11 @@ class AgentBot:
                 # Analyze signal — route by strategy version
                 strategy_ver = self.config.get('strategy_version', '')
                 if strategy_ver.startswith('v5'):
-                    score, analysis = analyze_signal_v5(symbol, self.config)
+                    score, analysis = analyze_signal_v5(symbol, self.config, exchange=self.exchange_name)
                 elif strategy_ver.startswith('v6'):
                     score, analysis = analyze_signal_v6(symbol, self.config, exchange=self.exchange_name)
                 else:
-                    score, analysis = analyze_signal(symbol, self.config)
+                    score, analysis = analyze_signal(symbol, self.config, exchange=self.exchange_name)
                 scan_analyzed += 1
                 if not analysis or score < min_score:
                     continue

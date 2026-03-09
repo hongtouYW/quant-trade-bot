@@ -204,7 +204,11 @@ def update_agent(agent_id):
         if field in data:
             setattr(agent, field, data[field])
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to update agent'}), 500
 
     log_action('admin', admin_id, 'update_agent',
                resource=f'agent:{agent_id}',
@@ -223,7 +227,11 @@ def deactivate_agent(agent_id):
 
     agent.is_active = False
     agent.is_trading_enabled = False
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to deactivate agent'}), 500
 
     log_action('admin', admin_id, 'deactivate_agent',
                resource=f'agent:{agent_id}')
@@ -240,7 +248,11 @@ def toggle_trading(agent_id):
         return jsonify({'error': 'Agent not found'}), 404
 
     agent.is_trading_enabled = not agent.is_trading_enabled
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to toggle trading'}), 500
 
     log_action('admin', admin_id, 'toggle_trading',
                resource=f'agent:{agent_id}',
@@ -266,7 +278,11 @@ def reset_agent_password(agent_id):
         return jsonify({'error': 'Password must be at least 8 characters'}), 400
 
     agent.password_hash = hash_password(new_password)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({'error': 'Failed to reset password'}), 500
 
     log_action('admin', admin_id, 'reset_password',
                resource=f'agent:{agent_id}',
@@ -436,15 +452,17 @@ def get_agent_trades(agent_id):
 
     # For OPEN positions, fetch current prices and calculate unrealized PnL
     if status_filter == 'OPEN' and trades_list:
-        import requests as req
+        from ..engine.signal_analyzer import fetch_price
+        # Determine agent's exchange
+        api_record = AgentApiKey.query.filter_by(agent_id=agent_id).first()
+        ex_name = (api_record.exchange or 'binance') if api_record else 'binance'
         symbols = list({t['symbol'] for t in trades_list})
         prices = {}
         for sym in symbols:
             try:
-                bn_sym = sym.replace('/', '')
-                r = req.get(f'https://fapi.binance.com/fapi/v1/ticker/price?symbol={bn_sym}', timeout=5)
-                if r.status_code == 200:
-                    prices[sym] = float(r.json()['price'])
+                p = fetch_price(sym, timeout=5, exchange=ex_name)
+                if p:
+                    prices[sym] = p
             except Exception:
                 pass
 
