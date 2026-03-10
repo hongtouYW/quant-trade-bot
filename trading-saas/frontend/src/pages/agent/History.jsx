@@ -27,7 +27,7 @@ export default function History() {
     { key: 'entry_price', label: t('history.entry'), render: (v) => `$${Number(v).toFixed(6)}` },
     { key: 'exit_price', label: t('history.exit'), render: (v) => v ? `$${Number(v).toFixed(6)}` : '-' },
     { key: 'amount', label: t('history.amount'), render: (v) => `${v}U` },
-    { key: 'leverage', label: t('history.lev'), render: (v) => `${v}x` },
+    { key: 'leverage', label: t('history.lev'), render: (v) => `${v ?? '-'}x` },
     { key: 'pnl', label: t('history.pnl'), render: (v) => <PnlValue value={v} /> },
     { key: 'roi', label: t('history.roi'), render: (v) => (
       <PnlValue value={v} suffix="%" />
@@ -46,7 +46,7 @@ export default function History() {
     const csvParams = new URLSearchParams();
     if (filters.symbol) csvParams.set('symbol', filters.symbol);
     if (filters.direction) csvParams.set('direction', filters.direction);
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('agent_access_token');
     const base = import.meta.env.VITE_API_BASE || '/api';
     const url = `${base}/agent/trades/export/csv?${csvParams}`;
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })

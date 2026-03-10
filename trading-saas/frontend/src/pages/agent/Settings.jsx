@@ -3,7 +3,7 @@ import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import api from '../../api/client';
 import { useLanguage } from '../../contexts/LanguageContext';
-import { Key, MessageSquare, Sliders, Check, AlertTriangle, ChevronRight, ChevronLeft, ExternalLink, Shield, Copy } from 'lucide-react';
+import { Key, MessageSquare, Sliders, Check, ChevronRight, ChevronLeft, ExternalLink, Shield, Copy } from 'lucide-react';
 
 export default function Settings() {
   const { t } = useLanguage();
@@ -325,7 +325,7 @@ function TelegramSection() {
 
   const handleSave = async (e) => {
     e.preventDefault();
-    if (!form.bot_token) {
+    if (!form.bot_token && !existing?.configured) {
       setMsg(t('settings.enterBotToken'));
       setMsgColor('text-warning');
       return;

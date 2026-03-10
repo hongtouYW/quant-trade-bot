@@ -6,7 +6,7 @@ import SetupChecklist from '../../components/agent/SetupChecklist';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { formatDateTime } from '../../utils/formatDate';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import { DollarSign, TrendingUp, BarChart3, Activity, Wallet } from 'lucide-react';
+import { TrendingUp, BarChart3, Activity, Wallet } from 'lucide-react';
 
 export default function AgentDashboard() {
   const { t } = useLanguage();
@@ -116,7 +116,7 @@ export default function AgentDashboard() {
               </span>
             } />
             <Row label={t('dashboard.lastScan')} value={bot?.last_scan ? formatDateTime(bot.last_scan) : '-'} />
-            <Row label={t('dashboard.strategy')} value={data.strategy_version || 'v4.2'} />
+            <Row label={t('dashboard.strategy')} value={stats?.strategy_version || data?.strategy_version || 'v4.2'} />
           </div>
         </Card>
       </div>

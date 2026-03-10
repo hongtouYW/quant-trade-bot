@@ -248,6 +248,7 @@ def get_stats():
         'max_drawdown': round(max_dd, 2),
         'current_capital': round(cumulative, 2),
         'open_positions': open_count,
+        'strategy_version': tc.strategy_version if tc else None,
     })
 
 

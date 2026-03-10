@@ -11,6 +11,7 @@ export function useApi(url, { interval = 0, enabled = true } = {}) {
 
   const fetch = useCallback(async () => {
     if (!enabled || !url) return;
+    setLoading(true);
     try {
       const res = await api.get(url);
       setData(res.data);

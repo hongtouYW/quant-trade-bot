@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useApi } from '../../hooks/useApi';
 import { Card } from '../../components/common/Card';
 import Badge from '../../components/common/Badge';

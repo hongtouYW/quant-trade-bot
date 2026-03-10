@@ -19,7 +19,7 @@ export default function Positions() {
     )},
     { key: 'entry_price', label: t('positions.entry'), render: (v) => `$${Number(v).toFixed(6)}` },
     { key: 'amount', label: t('positions.amount'), render: (v) => `${v}U` },
-    { key: 'leverage', label: t('positions.lev'), render: (v) => `${v}x` },
+    { key: 'leverage', label: t('positions.lev'), render: (v) => `${v ?? '-'}x` },
     { key: 'stop_loss', label: t('positions.sl'), render: (v) => v ? `$${Number(v).toFixed(4)}` : '-' },
     { key: 'take_profit', label: t('positions.tp'), render: (v) => v ? `$${Number(v).toFixed(4)}` : '-' },
     { key: 'score', label: t('positions.score') },
