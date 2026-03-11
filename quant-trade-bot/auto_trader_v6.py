@@ -154,11 +154,11 @@ class AutoTraderV6:
         try:
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
-            c.execute('''SELECT symbol, direction, entry_price, amount, leverage, stop_loss, take_profit,
+            c.execute('''SELECT id, symbol, direction, entry_price, amount, leverage, stop_loss, take_profit,
                          entry_time, score, final_stop_loss, max_profit FROM real_trades
                          WHERE status="OPEN" AND assistant=?''', (self.ASSISTANT_NAME,))
             for row in c.fetchall():
-                sym, dr, ep, amt, lev, sl, tp, et, sc, fsl, mp = row
+                tid, sym, dr, ep, amt, lev, sl, tp, et, sc, fsl, mp = row
                 # Restore peak_roi: use max_profit from DB, or calculate from current price
                 peak_roi = 0
                 if mp and mp > 0:
@@ -183,7 +183,7 @@ class AutoTraderV6:
                     'direction': dr, 'entry_price': ep, 'amount': amt,
                     'leverage': lev, 'stop_loss': sl, 'take_profit': tp,
                     'entry_time': et, 'score': sc or 0,
-                    'peak_roi': peak_roi,
+                    'peak_roi': peak_roi, 'trade_id': tid,
                 }
                 if peak_roi > 0:
                     print(f"    {sym}: peak_roi={peak_roi:.1f}% (恢复)")
@@ -474,7 +474,7 @@ class AutoTraderV6:
     # ==================== 仓位管理 ====================
 
     def calc_position_size(self, score):
-        available = self.current_capital - sum(p['amount'] / p.get('leverage', 1) for p in self.positions.values())
+        available = self.current_capital - sum(p['amount'] for p in self.positions.values())
         leverage = min(3, self.max_leverage)
 
         if score >= 90:
@@ -515,28 +515,19 @@ class AutoTraderV6:
 
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-            self.positions[symbol] = {
-                'direction': direction, 'entry_price': entry_price,
-                'amount': amount, 'leverage': leverage,
-                'stop_loss': stop_loss, 'take_profit': take_profit,
-                'entry_time': now, 'score': score,
-                'peak_roi': 0,
-            }
-
             bonus = analysis.get('bonus', 0)
             adx_val = analysis.get('adx')
             adx_str = f" ADX={adx_val:.0f}" if adx_val else ""
             reason_text = f"[v6] sc={score}(+{bonus}) RSI={analysis['rsi']:.1f} {direction} {leverage}x{adx_str}"
 
+            # DB check and INSERT first, before writing to memory
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
-            # Check for duplicate OPEN position
             c.execute("SELECT COUNT(*) FROM real_trades WHERE symbol=? AND status='OPEN' AND assistant=?",
                       (symbol, self.ASSISTANT_NAME))
             if c.fetchone()[0] > 0:
                 conn.close()
                 print(f"  跳过 {symbol}: DB中已有OPEN记录")
-                del self.positions[symbol]
                 return
             c.execute('''INSERT INTO real_trades (symbol, direction, entry_price, amount, leverage,
                          stop_loss, take_profit, entry_time, status, score, reason,
@@ -548,8 +539,18 @@ class AutoTraderV6:
                        self.ASSISTANT_NAME, self.MODE,
                        analysis['rsi'], 'v6-paper',
                        stop_loss, take_profit))
+            trade_id = c.lastrowid
             conn.commit()
             conn.close()
+
+            # Only write to memory AFTER successful DB insert
+            self.positions[symbol] = {
+                'direction': direction, 'entry_price': entry_price,
+                'amount': amount, 'leverage': leverage,
+                'stop_loss': stop_loss, 'take_profit': take_profit,
+                'entry_time': now, 'score': score,
+                'peak_roi': 0, 'trade_id': trade_id,
+            }
 
             print(f"  >> [v6] OPEN {symbol} {direction} ${amount} @{entry_price:.6f} {leverage}x SL={stop_loss:.6f} sc={score}(+{bonus})")
 
@@ -577,8 +578,8 @@ class AutoTraderV6:
                 # Persist peak_roi to DB
                 try:
                     conn = sqlite3.connect(self.db_path)
-                    conn.execute("UPDATE real_trades SET max_profit=? WHERE symbol=? AND status='OPEN' AND assistant=?",
-                                 (roi, symbol, self.ASSISTANT_NAME))
+                    conn.execute("UPDATE real_trades SET max_profit=? WHERE id=? AND status='OPEN'",
+                                 (roi, pos.get('trade_id', 0)))
                     conn.commit()
                     conn.close()
                 except:
@@ -670,11 +671,11 @@ class AutoTraderV6:
                          pnl=?, roi=?, fee=?, funding_fee=?,
                          close_reason=?, reason=reason||' | '||?,
                          final_stop_loss=?
-                         WHERE symbol=? AND status='OPEN' AND assistant=?''',
+                         WHERE id=? AND status='OPEN''',
                       (exit_price, now, pnl, roi_db, total_fee, funding_fee,
                        reason, reason,
                        pos.get('stop_loss', 0),
-                       symbol, self.ASSISTANT_NAME))
+                       pos.get('trade_id', 0)))
             conn.commit()
             conn.close()
 
@@ -798,7 +799,7 @@ class AutoTraderV6:
                 print(f"  冷却中 (还剩{remaining}m)")
                 return
 
-        available = self.current_capital - sum(p['amount'] / p.get('leverage', 1) for p in self.positions.values())
+        available = self.current_capital - sum(p['amount'] for p in self.positions.values())
         if self.risk_pause:
             print(f"  [风控] 暂停中，不开新仓")
             return
@@ -861,4 +862,4 @@ class AutoTraderV6:
 
 if __name__ == '__main__':
     trader = AutoTraderV6()
-    trader.run(interval=60)
+    trader.run(interval=20)

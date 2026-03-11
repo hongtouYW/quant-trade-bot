@@ -119,7 +119,7 @@ def get_stats():
                 SUM(COALESCE(pnl, 0)) as total_pnl,
                 SUM(COALESCE(fee, 0)) as total_fees,
                 SUM(COALESCE(funding_fee, 0)) as total_funding_fees,
-                AVG(CASE WHEN status = 'CLOSED' THEN roi END) as avg_roi,
+                AVG(CASE WHEN status = 'CLOSED' AND amount > 0 THEN pnl/amount*100 END) as avg_roi,
                 MAX(pnl) as best_trade,
                 MIN(pnl) as worst_trade
             FROM real_trades
@@ -444,7 +444,7 @@ def get_trades():
         cursor.execute('''
             SELECT
                 symbol, direction, entry_price, exit_price,
-                amount, leverage, pnl, roi, fee, funding_fee, entry_time, exit_time,
+                amount, leverage, pnl, CASE WHEN amount > 0 THEN pnl/amount*100 ELSE 0 END as roi, fee, funding_fee, entry_time, exit_time,
                 status, reason, stop_loss, take_profit,
                 initial_stop_loss, final_stop_loss, stop_move_count
             FROM real_trades
@@ -473,7 +473,7 @@ def get_daily_trades(date):
         cursor.execute('''
             SELECT
                 symbol, direction, entry_price, exit_price,
-                amount, leverage, pnl, roi, fee, funding_fee,
+                amount, leverage, pnl, CASE WHEN amount > 0 THEN pnl/amount*100 ELSE 0 END as roi, fee, funding_fee,
                 entry_time, exit_time, status, reason
             FROM real_trades
             WHERE mode = 'paper' AND assistant = '交易助手'
