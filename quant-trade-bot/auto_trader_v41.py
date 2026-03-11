@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-量化交易 v1 策略 - 基于交易助手 backtest_engine v1 原始策略
-独立数据库: paper_trading.db (real_trades表, assistant='量化v1')
-v1特点: 低门槛(55分)/高杠杆(最大10x)/无BTC过滤/ROI止盈止损/1h冷却
+量化交易 v4.1 策略 - 基于交易助手 paper_trader v4.1 核心逻辑
+独立数据库: paper_trading_v41.db
+区别于 v4.3.1: 固定3x杠杆, ATR价格止损, 温和BTC惩罚
 """
 
 import requests
@@ -13,27 +13,18 @@ import os
 import sqlite3
 from datetime import datetime
 
-class AutoTraderV1:
+class AutoTraderV41:
     def __init__(self):
-        # === v1 核心参数 (与 STRATEGY_PRESETS['v1'] 完全一致) ===
+        # === 基本配置 ===
         self.initial_capital = 2000
         self.current_capital = 2000
         self.fee_rate = 0.0005  # 0.05% Binance合约
-        self.min_score = 55          # v1: 低门槛
-        self.max_positions = 10      # 最多10仓 (实盘多币种)
-        self.max_leverage = 10       # v1: 最大10x杠杆
-        self.cooldown_seconds = 3600 # v1: 1小时冷却
-        self.min_hold_minutes = 60   # 1h最短持仓
-        self.max_hold_minutes = 2880 # 48h最长持仓
-
-        # === v1 ROI止盈止损参数 ===
-        self.roi_stop_loss = -10     # ROI跌到-10%平仓
-        self.roi_trailing_start = 5  # ROI达+5%启动移动止盈
-        self.roi_trailing_distance = 3  # 从峰值回撤3%平仓
-
-        # === 无BTC过滤, 无SHORT加成 (v1核心特征) ===
-        # enable_trend_filter = False
-        # short_bias = 1.0
+        self.min_score = 60
+        self.max_positions = 15
+        self.short_bias = 1.05   # 做空加成5%
+        self.min_hold_minutes = 180   # 3h最短持仓
+        self.max_hold_minutes = 2880  # 48h最长持仓
+        self.fixed_leverage = 3       # v4.1: 固定3x (非动态)
 
         # === 监控币种 (~150个) ===
         self.watch_symbols = [
@@ -57,11 +48,37 @@ class AutoTraderV1:
             'HYPE', 'LINA', 'LEVER', 'ALPHA', 'UNFI',
             'YGG', 'PIXEL', 'PORTAL', 'XAI', 'DYM', 'MANTA', 'ZK', 'W', 'SAGA', 'RSR',
         ]
+
+        # === 币种分层 (基于回测) ===
+        self.coin_tiers = {
+            # T1: 高盈利币 - 1.3x仓位
+            'ICP': 'T1', 'XMR': 'T1', 'IOTA': 'T1', 'DASH': 'T1',
+            'COMP': 'T1', 'KAVA': 'T1', 'UNI': 'T1', 'SAND': 'T1',
+            'AXS': 'T1', 'NEAR': 'T1', 'DOT': 'T1', 'CHZ': 'T1',
+            'ENJ': 'T1', 'ADA': 'T1', 'VET': 'T1', 'BCH': 'T1',
+            'ATOM': 'T1', 'ROSE': 'T1', 'DYDX': 'T1', 'IMX': 'T1',
+            'AAVE': 'T1', 'XLM': 'T1', 'LINK': 'T1', 'SXP': 'T1',
+            'ALGO': 'T1', 'CRV': 'T1',
+            # T2: 中等盈利 - 1.0x仓位
+            'ALPHA': 'T2', 'MKR': 'T2', 'ETC': 'T2', 'NEO': 'T2',
+            'THETA': 'T2', 'ZEC': 'T2', 'RENDER': 'T2', 'GRT': 'T2',
+            'SNX': 'T2', 'HBAR': 'T2', 'CELO': 'T2', 'ETH': 'T2',
+            'FIL': 'T2', 'HYPE': 'T2', 'SHIB': 'T2', 'BNB': 'T2',
+            'PYTH': 'T2', 'BTC': 'T2', 'LINA': 'T2', 'FLOKI': 'T2',
+            'SEI': 'T2', 'XRP': 'T2', 'ORDI': 'T2',
+            # T3: 低盈利 - 0.7x仓位
+            'WIF': 'T3', 'FET': 'T3', 'LTC': 'T3', 'LEVER': 'T3',
+            'MATIC': 'T3', 'ENA': 'T3', 'MANA': 'T3', 'PENGU': 'T3',
+            'STRK': 'T3', 'INJ': 'T3', 'DOGE': 'T3', 'OP': 'T3',
+            'TRUMP': 'T3', 'TRX': 'T3', 'ONE': 'T3', 'JUP': 'T3',
+        }
         self.skip_coins = ['BERA', 'IP', 'LIT', 'TROY', 'VIRTUAL', 'BONK', 'PEPE']
+        self.tier_multiplier = {'T1': 1.3, 'T2': 1.0, 'T3': 0.7}
 
         # === 状态 ===
         self.positions = {}
         self.last_close_time = None
+        self._btc_trend_cache = None
 
         # === 数据库 (5001系统的DB) ===
         self.db_path = '/opt/trading-bot/data/db/paper_trading.db'
@@ -70,24 +87,28 @@ class AutoTraderV1:
         self.load_positions()
         self._restore_capital()
 
-        print(f"[量化v1] 系统启动")
-        print(f"  策略: v1原始 | min_score={self.min_score} | max_lev={self.max_leverage}x | 无BTC过滤")
-        print(f"  ROI: SL={self.roi_stop_loss}% | 移动止盈+{self.roi_trailing_start}%启动/{self.roi_trailing_distance}%回撤")
+        t1 = sum(1 for v in self.coin_tiers.values() if v == 'T1')
+        t2 = sum(1 for v in self.coin_tiers.values() if v == 'T2')
+        t3 = sum(1 for v in self.coin_tiers.values() if v == 'T3')
+        print(f"[量化v4.1] 系统启动")
+        print(f"  策略: 固定{self.fixed_leverage}x | ATR止损 | 最多{self.max_positions}仓 | SHORT+5%")
         print(f"  资金: {self.current_capital:.2f}U (初始{self.initial_capital}U)")
-        print(f"  币种: {len(self.watch_symbols)}个 | 最多{self.max_positions}仓 | 冷却{self.cooldown_seconds//60}分钟")
+        print(f"  分层: T1={t1} T2={t2} T3={t3} 跳过={len(self.skip_coins)}")
+        print(f"  币种: {len(self.watch_symbols)}个")
 
-    # ==================== 数据库 ====================
-    ASSISTANT_NAME = '量化v1'
+    # ==================== 数据库 (兼容5001 real_trades表) ====================
+    ASSISTANT_NAME = '量化v4.1'
     MODE = 'paper'
 
     def init_database(self):
-        """确保real_trades表存在"""
+        """real_trades表已存在,不需要创建"""
         pass
 
     def _restore_capital(self):
         try:
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
+            # 只计算v4.1自己的交易
             c.execute('SELECT COALESCE(SUM(pnl), 0) FROM real_trades WHERE status="CLOSED" AND assistant=?',
                       (self.ASSISTANT_NAME,))
             total_pnl = c.fetchone()[0]
@@ -111,7 +132,8 @@ class AutoTraderV1:
                     'direction': dr, 'entry_price': ep, 'amount': amt,
                     'leverage': lev, 'stop_loss': sl, 'take_profit': tp,
                     'entry_time': et, 'score': sc or 0,
-                    'peak_roi': 0,
+                    'highest_price': ep if dr == 'LONG' else 0,
+                    'lowest_price': ep if dr == 'SHORT' else float('inf')
                 }
             conn.close()
             if self.positions:
@@ -163,10 +185,58 @@ class AutoTraderV1:
         rs = avg_g / avg_l
         return 100 - (100 / (1 + rs))
 
-    # ==================== 信号分析 (v1: 纯信号, 无BTC过滤) ====================
+    def calc_atr(self, klines, period=14):
+        """计算ATR和ATR%"""
+        if not klines or len(klines) < period + 1:
+            return None, None
+        highs = [float(k[2]) for k in klines]
+        lows = [float(k[3]) for k in klines]
+        closes = [float(k[4]) for k in klines]
+        trs = []
+        for i in range(1, len(klines)):
+            tr = max(highs[i] - lows[i], abs(highs[i] - closes[i-1]), abs(lows[i] - closes[i-1]))
+            trs.append(tr)
+        atr = sum(trs[-period:]) / period
+        price = closes[-1]
+        atr_pct = (atr / price) * 100 if price > 0 else 0
+        return atr, atr_pct
+
+    def get_btc_trend(self):
+        """BTC大盘趋势 (缓存5分钟)"""
+        now = datetime.now()
+        if self._btc_trend_cache:
+            ct, cr = self._btc_trend_cache
+            if (now - ct).total_seconds() < 300:
+                return cr
+        try:
+            klines = self.get_klines('BTC', '1h', 100)
+            if not klines:
+                return {'direction': 'neutral', 'strength': 0}
+            closes = [float(k[4]) for k in klines]
+            ma7 = sum(closes[-7:]) / 7
+            ma25 = sum(closes[-25:]) / 25
+            ma50 = sum(closes[-50:]) / 50
+            price = closes[-1]
+            if price > ma7 > ma25 > ma50:
+                d, s = 'up', 2
+            elif price > ma7 > ma25:
+                d, s = 'up', 1
+            elif price < ma7 < ma25 < ma50:
+                d, s = 'down', 2
+            elif price < ma7 < ma25:
+                d, s = 'down', 1
+            else:
+                d, s = 'neutral', 0
+            result = {'direction': d, 'strength': s, 'price': price, 'ma7': ma7, 'ma25': ma25, 'ma50': ma50}
+            self._btc_trend_cache = (now, result)
+            return result
+        except:
+            return {'direction': 'neutral', 'strength': 0}
+
+    # ==================== 信号分析 ====================
 
     def analyze_signal(self, symbol):
-        """v1信号评分 (0-100) + 方向 — 无BTC过滤, 无SHORT加成"""
+        """信号评分 (0-100) + 方向"""
         try:
             klines = self.get_klines(symbol, '1h', 100)
             if not klines or len(klines) < 50:
@@ -193,7 +263,7 @@ class AutoTraderV1:
             else:
                 rsi_sc = 5
 
-            # 2. 趋势 (30分, 双权重)
+            # 2. 趋势 (30分)
             ma7 = sum(closes[-7:]) / 7
             ma20 = sum(closes[-20:]) / 20
             ma50 = sum(closes[-50:]) / 50
@@ -235,7 +305,7 @@ class AutoTraderV1:
             else:
                 pos_sc = 5
 
-            # 方向决定
+            # 方向
             if votes['LONG'] > votes['SHORT']:
                 direction = 'LONG'
             elif votes['SHORT'] > votes['LONG']:
@@ -245,64 +315,111 @@ class AutoTraderV1:
 
             total = rsi_sc + trend_sc + vol_sc + pos_sc
 
-            # v1: 无BTC过滤, 无RSI冲突惩罚, 无SHORT加成
-            # 分数就是原始信号强度
+            # === BTC趋势过滤 (v4.1: 温和版) ===
+            btc = self.get_btc_trend()
+            btc_dir = btc['direction']
+            btc_str = btc['strength']
+
+            # 个币自身趋势
+            coin_own = False
+            if direction == 'LONG' and price > ma7 > ma20:
+                coin_own = True
+            elif direction == 'SHORT' and price < ma7 < ma20:
+                coin_own = True
+
+            # v4.1温和惩罚 (vs v4.3: 更激进)
+            if btc_dir == 'down' and direction == 'LONG':
+                if coin_own:
+                    total = int(total * 0.50)  # v4.1: 50% (v4.3是35%)
+                elif btc_str >= 2:
+                    total = int(total * 0.25)  # v4.1: 25% (v4.3是15%)
+                else:
+                    total = int(total * 0.40)  # v4.1: 40% (v4.3是25%)
+            elif btc_dir == 'up' and direction == 'SHORT':
+                if coin_own:
+                    total = int(total * 0.75)
+                elif btc_str >= 2:
+                    total = int(total * 0.50)  # v4.1: 50% (v4.3是45%)
+                else:
+                    total = int(total * 0.65)  # v4.1: 65% (v4.3是60%)
+            # v4.1: 没有 btc_below_ma50 额外检查
+
+            # RSI与趋势冲突
+            rsi_dir = 'LONG' if rsi < 50 else 'SHORT'
+            trend_dir = 'LONG' if price > ma20 else 'SHORT'
+            if rsi_dir != trend_dir and not coin_own:
+                total = int(total * 0.85)
+
+            # SHORT加成
+            if direction == 'SHORT':
+                total = int(total * self.short_bias)
+
+            atr, atr_pct = self.calc_atr(klines)
 
             analysis = {
                 'price': price, 'rsi': rsi, 'ma7': ma7, 'ma20': ma20, 'ma50': ma50,
                 'volume_ratio': vol_ratio, 'direction': direction, 'score': total,
+                'btc_trend': btc_dir, 'coin_own_trend': coin_own,
+                'atr': atr, 'atr_pct': atr_pct
             }
             return total, analysis
 
         except Exception as e:
             return 0, None
 
-    # ==================== 仓位管理 (v1: 评分动态杠杆) ====================
+    # ==================== 仓位管理 ====================
 
-    def calc_position_size(self, score):
-        """v1仓位: 评分决定杠杆和仓位大小 (与 backtest_engine 一致)"""
+    def calc_position_size(self, score, symbol=None):
+        """v4.1仓位: 固定3x杠杆, 基于评分的仓位大小"""
         available = self.current_capital - sum(p['amount'] for p in self.positions.values())
 
         if score >= 85:
-            size = min(400, available * 0.25)
-            leverage = min(5, self.max_leverage)
+            size = min(200, available * 0.10)
         elif score >= 75:
-            size = min(300, available * 0.20)
-            leverage = min(3, self.max_leverage)
+            size = min(250, available * 0.15)
         elif score >= 70:
-            size = min(200, available * 0.15)
-            leverage = min(3, self.max_leverage)
+            size = min(200, available * 0.12)
         elif score >= 60:
-            size = min(150, available * 0.10)
-            leverage = min(3, self.max_leverage)
-        elif score >= 55:
-            size = min(100, available * 0.08)
-            leverage = min(3, self.max_leverage)
+            size = min(150, available * 0.08)
         else:
-            return 0, 0
+            return 0
 
-        return max(50, int(size)), leverage
+        # Tier乘数
+        if symbol:
+            tier = self.coin_tiers.get(symbol, 'T3')
+            mult = self.tier_multiplier.get(tier, 0.7)
+            size = size * mult
+
+        return max(50, int(size))
 
     def open_position(self, symbol, analysis):
-        """开仓 — v1 ROI止盈止损"""
+        """开仓"""
         try:
             score = analysis['score']
             direction = analysis['direction']
             entry_price = analysis['price']
+            leverage = self.fixed_leverage  # v4.1: 固定3x
 
-            amount, leverage = self.calc_position_size(score)
+            amount = self.calc_position_size(score, symbol)
             if amount < 50:
                 return
 
-            # v1: ROI止损 → 反算止损价
-            stop_pct = self.roi_stop_loss / (leverage * 100)  # 负值
-            if direction == 'LONG':
-                stop_loss = entry_price * (1 + stop_pct)  # stop_pct是负的
+            # v4.1: ATR止损 (3-8%, ATR*2倍)
+            atr_pct = analysis.get('atr_pct')
+            if atr_pct and atr_pct > 0:
+                stop_pct = max(0.03, min(0.08, atr_pct * 2.0 / 100))
             else:
-                stop_loss = entry_price * (1 - stop_pct)
+                stop_pct = 0.05  # 默认5%
 
-            # 移动止盈: 不设固定TP, 由check_position中的trailing逻辑处理
-            take_profit = 0  # 0表示使用移动止盈
+            # 止盈 = 止损 * 2 (2:1 R:R)
+            tp_pct = stop_pct * 2.0
+
+            if direction == 'LONG':
+                stop_loss = entry_price * (1 - stop_pct)
+                take_profit = entry_price * (1 + tp_pct)
+            else:
+                stop_loss = entry_price * (1 + stop_pct)
+                take_profit = entry_price * (1 - tp_pct)
 
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
@@ -311,13 +428,15 @@ class AutoTraderV1:
                 'amount': amount, 'leverage': leverage,
                 'stop_loss': stop_loss, 'take_profit': take_profit,
                 'entry_time': now, 'score': score,
-                'peak_roi': 0,
+                'highest_price': entry_price if direction == 'LONG' else 0,
+                'lowest_price': entry_price if direction == 'SHORT' else float('inf'),
             }
 
-            # 写DB
+            # 写DB (real_trades表)
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
-            reason_text = f"v1 sc={score} RSI={analysis['rsi']:.1f} {direction} {leverage}x"
+            tier = self.coin_tiers.get(symbol, '?')
+            reason_text = f"sc={score} RSI={analysis['rsi']:.1f} BTC={analysis['btc_trend']}"
             c.execute('''INSERT INTO real_trades (symbol, direction, entry_price, amount, leverage,
                          stop_loss, take_profit, entry_time, status, score, reason,
                          assistant, mode, entry_rsi, entry_trend,
@@ -326,19 +445,19 @@ class AutoTraderV1:
                       (symbol, direction, entry_price, amount, leverage,
                        stop_loss, take_profit, now, score, reason_text,
                        self.ASSISTANT_NAME, self.MODE,
-                       analysis['rsi'], 'v1',
+                       analysis['rsi'], analysis['btc_trend'],
                        stop_loss, take_profit))
             conn.commit()
             conn.close()
 
-            print(f"  >> OPEN {symbol} {direction} ${amount} @{entry_price:.6f} {leverage}x SL={stop_loss:.6f} sc={score}")
+            print(f"  >> OPEN {symbol} {direction} ${amount} @{entry_price:.6f} {leverage}x SL={stop_loss:.6f} TP={take_profit:.6f} sc={score}")
 
         except Exception as e:
             print(f"  开仓失败 {symbol}: {e}")
             import traceback; traceback.print_exc()
 
     def check_position(self, symbol, pos):
-        """检查持仓 — v1 ROI移动止盈"""
+        """检查持仓"""
         try:
             price = self.get_price(symbol)
             if not price:
@@ -348,17 +467,11 @@ class AutoTraderV1:
             ep = pos['entry_price']
             lev = pos['leverage']
 
-            # 计算ROI
+            # ROI
             if direction == 'LONG':
                 roi = ((price - ep) / ep) * lev * 100
             else:
                 roi = ((ep - price) / ep) * lev * 100
-
-            # 更新峰值ROI
-            if roi > pos.get('peak_roi', 0):
-                pos['peak_roi'] = roi
-
-            peak_roi = pos['peak_roi']
 
             # 持仓时间
             hold_min = 0
@@ -368,7 +481,7 @@ class AutoTraderV1:
             except:
                 pass
 
-            # 1h最短保护 (除非亏>15% ROI)
+            # 3h最短保护 (除非亏>15% ROI)
             min_hold_protect = hold_min < self.min_hold_minutes and roi > -15
 
             should_close = False
@@ -379,23 +492,53 @@ class AutoTraderV1:
                 should_close = True
                 reason = f"timeout {hold_min/60:.0f}h ROI={roi:+.1f}%"
 
-            # 2. ROI止损: ROI <= roi_stop_loss
-            if not should_close and roi <= self.roi_stop_loss:
-                if min_hold_protect:
-                    pass  # 最短持仓保护
-                else:
+            # 2. 止盈
+            tp = pos.get('take_profit', 0)
+            if not should_close and tp > 0:
+                if direction == 'LONG' and price >= tp:
                     should_close = True
-                    reason = f"SL hit ROI={roi:+.1f}% (limit={self.roi_stop_loss}%)"
+                    reason = f"TP hit @{price:.6f} ROI={roi:+.1f}%"
+                elif direction == 'SHORT' and price <= tp:
+                    should_close = True
+                    reason = f"TP hit @{price:.6f} ROI={roi:+.1f}%"
 
-            # 3. 移动止盈: 峰值ROI超过启动线后, 回撤超过距离就平仓
-            if not should_close and peak_roi >= self.roi_trailing_start:
-                trail_exit_roi = peak_roi - self.roi_trailing_distance
-                if roi <= trail_exit_roi:
-                    should_close = True
-                    if trail_exit_roi > 0:
-                        reason = f"trail TP @{price:.6f} peakROI={peak_roi:+.1f}% exitROI={trail_exit_roi:+.1f}%"
+            # 3. 止损 (v4.1: 固定SL也受3h保护)
+            sl = pos.get('stop_loss', 0)
+            if not should_close and sl > 0:
+                hit = False
+                if direction == 'LONG' and price <= sl:
+                    hit = True
+                elif direction == 'SHORT' and price >= sl:
+                    hit = True
+                if hit:
+                    if min_hold_protect:
+                        pass  # 3h保护
                     else:
-                        reason = f"trail SL @{price:.6f} peakROI={peak_roi:+.1f}% exitROI={trail_exit_roi:+.1f}%"
+                        should_close = True
+                        reason = f"SL hit @{price:.6f} ROI={roi:+.1f}%"
+
+            # 4. 移动追踪: 高/低点回撤止盈
+            if not should_close:
+                if direction == 'LONG':
+                    if price > pos.get('highest_price', ep):
+                        pos['highest_price'] = price
+                    hp = pos['highest_price']
+                    if hp > ep * 1.02:  # 至少涨2%才激活
+                        drawdown = (hp - price) / hp
+                        if drawdown > 0.015:  # 从高点回撤1.5%
+                            should_close = True
+                            trail_pnl = ((price - ep) / ep) * lev * 100
+                            reason = f"trail TP @{price:.6f} peak={hp:.6f} ROI={trail_pnl:+.1f}%"
+                else:
+                    if price < pos.get('lowest_price', ep):
+                        pos['lowest_price'] = price
+                    lp = pos['lowest_price']
+                    if lp < ep * 0.98:  # 至少跌2%才激活
+                        drawup = (price - lp) / lp
+                        if drawup > 0.015:
+                            should_close = True
+                            trail_pnl = ((ep - price) / ep) * lev * 100
+                            reason = f"trail TP @{price:.6f} low={lp:.6f} ROI={trail_pnl:+.1f}%"
 
             if should_close:
                 self.close_position(symbol, price, reason)
@@ -438,7 +581,7 @@ class AutoTraderV1:
             pnl = pnl_raw - total_fee - funding_fee
             self.current_capital += pnl
 
-            # 更新DB
+            # 更新DB (real_trades表)
             now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
@@ -467,7 +610,7 @@ class AutoTraderV1:
     # ==================== 主循环 ====================
 
     def scan_market(self):
-        """扫描市场 — v1: 无方向限制, 无MA斜率过滤"""
+        """扫描市场"""
         print(f"\n=== 扫描 {datetime.now().strftime('%H:%M:%S')} 持仓{len(self.positions)} 余额${self.current_capital:.2f} ===")
 
         opps = []
@@ -477,18 +620,32 @@ class AutoTraderV1:
             score, ana = self.analyze_signal(sym)
             if score >= self.min_score and ana:
                 d = ana['direction']
-                # v1: 无方向限制, 无LONG>=70, 无85+LONG跳过, 无MA斜率过滤
+                # v4.1: LONG需70+
+                if d == 'LONG' and score < 70:
+                    continue
+                # v4: 85+ LONG跳过
+                if score >= 85 and d == 'LONG':
+                    continue
+                # MA斜率过滤
+                ma20 = ana.get('ma20', 0)
+                ma50 = ana.get('ma50', 0)
+                if ma20 > 0 and ma50 > 0:
+                    slope = (ma20 - ma50) / ma50
+                    if d == 'LONG' and slope < -0.01:
+                        continue
+                    if d == 'SHORT' and slope > 0.01:
+                        continue
+                tier = self.coin_tiers.get(sym, '?')
                 opps.append((sym, score, ana))
-                print(f"  * {sym} {score}分 {d}")
+                print(f"  * {sym}[{tier}] {score}分 {d}")
 
         opps.sort(key=lambda x: x[1], reverse=True)
 
-        # v1: 1小时冷却
+        # 30分钟冷却
         if self.last_close_time:
             cd = (datetime.now() - self.last_close_time).total_seconds()
-            if cd < self.cooldown_seconds:
-                remaining = int((self.cooldown_seconds - cd) / 60)
-                print(f"  冷却中 (还剩{remaining}m)")
+            if cd < 1800:
+                print(f"  冷却中 (还剩{int((1800-cd)/60)}m)")
                 return
 
         available = self.current_capital - sum(p['amount'] for p in self.positions.values())
@@ -547,5 +704,5 @@ class AutoTraderV1:
 
 
 if __name__ == '__main__':
-    trader = AutoTraderV1()
+    trader = AutoTraderV41()
     trader.run(interval=60)

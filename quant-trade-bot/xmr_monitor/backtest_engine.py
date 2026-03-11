@@ -65,6 +65,644 @@ def get_dynamic_stop_pct(atr_pct, multiplier=2.0, range_min=0.03, range_max=0.08
     return stop_pct, volatility
 
 
+
+
+def calculate_macd(closes, fast=12, slow=26, signal_period=9):
+    """计算MACD (v5)"""
+    if len(closes) < slow + signal_period:
+        return None
+
+    def ema(data, period):
+        multiplier = 2.0 / (period + 1)
+        result = [data[0]]
+        for i in range(1, len(data)):
+            result.append(data[i] * multiplier + result[-1] * (1 - multiplier))
+        return result
+
+    ema_fast = ema(closes, fast)
+    ema_slow = ema(closes, slow)
+
+    macd_line = [f - s for f, s in zip(ema_fast, ema_slow)]
+    signal_line = ema(macd_line[slow-1:], signal_period)  # Start after slow EMA stabilizes
+
+    # Align lengths
+    macd_val = macd_line[-1]
+    signal_val = signal_line[-1]
+    histogram = macd_val - signal_val
+    prev_histogram = macd_line[-2] - signal_line[-2] if len(signal_line) >= 2 else 0
+
+    return {
+        'macd': macd_val,
+        'signal': signal_val,
+        'histogram': histogram,
+        'prev_histogram': prev_histogram,
+        'crossover_up': prev_histogram <= 0 and histogram > 0,
+        'crossover_down': prev_histogram >= 0 and histogram < 0,
+    }
+
+
+def calculate_bollinger_bands(closes, period=20, std_dev=2.0):
+    """计算布林带 (v5)"""
+    if len(closes) < period:
+        return None
+
+    sma = sum(closes[-period:]) / period
+    variance = sum((c - sma) ** 2 for c in closes[-period:]) / period
+    std = variance ** 0.5
+
+    upper = sma + std_dev * std
+    lower = sma - std_dev * std
+    bandwidth = (upper - lower) / sma * 100 if sma > 0 else 0
+    price = closes[-1]
+    percent_b = (price - lower) / (upper - lower) if upper > lower else 0.5
+
+    return {
+        'upper': upper,
+        'middle': sma,
+        'lower': lower,
+        'bandwidth': bandwidth,
+        'percent_b': percent_b,
+        'price': price,
+    }
+
+
+def calculate_adx(candles, period=14):
+    """计算ADX (v5) - Wilder's smoothing"""
+    if len(candles) < period * 2 + 1:
+        return None
+
+    plus_dm = []
+    minus_dm = []
+    tr_list = []
+
+    for i in range(1, len(candles)):
+        high = candles[i]['high']
+        low = candles[i]['low']
+        prev_high = candles[i-1]['high']
+        prev_low = candles[i-1]['low']
+        prev_close = candles[i-1]['close']
+
+        up_move = high - prev_high
+        down_move = prev_low - low
+
+        pdm = up_move if up_move > down_move and up_move > 0 else 0
+        mdm = down_move if down_move > up_move and down_move > 0 else 0
+
+        tr = max(high - low, abs(high - prev_close), abs(low - prev_close))
+
+        plus_dm.append(pdm)
+        minus_dm.append(mdm)
+        tr_list.append(tr)
+
+    if len(tr_list) < period:
+        return None
+
+    # Wilder's smoothing (first value is SMA, then EMA-like)
+    def wilder_smooth(data, period):
+        result = [sum(data[:period]) / period]
+        for i in range(period, len(data)):
+            result.append((result[-1] * (period - 1) + data[i]) / period)
+        return result
+
+    smooth_tr = wilder_smooth(tr_list, period)
+    smooth_pdm = wilder_smooth(plus_dm, period)
+    smooth_mdm = wilder_smooth(minus_dm, period)
+
+    # Calculate +DI and -DI
+    dx_list = []
+    for i in range(len(smooth_tr)):
+        if smooth_tr[i] == 0:
+            continue
+        plus_di = 100 * smooth_pdm[i] / smooth_tr[i]
+        minus_di = 100 * smooth_mdm[i] / smooth_tr[i]
+        di_sum = plus_di + minus_di
+        if di_sum > 0:
+            dx_list.append(100 * abs(plus_di - minus_di) / di_sum)
+
+    if len(dx_list) < period:
+        return None
+
+    # ADX = smoothed DX
+    adx = sum(dx_list[-period:]) / period
+    return round(adx, 1)
+
+
+def analyze_signal_v5(candles, config=None):
+    """V5信号分析 — MACD+RSI+BB+ADX三重确认 (100分+奖励)
+
+    Scoring:
+    - MACD(12,26,9): 25pts
+    - RSI(14): 20pts
+    - BB(20,2): 20pts
+    - ADX(14): 15pts
+    - Volume: 10pts
+    - BTC filter: 10pts (N/A in backtest, give 5pts base)
+    - Triple Confirm bonus: +10pts
+    """
+    if len(candles) < 100:
+        return 0, None
+
+    closes = [c['close'] for c in candles]
+    volumes = [c['volume'] for c in candles]
+    current_price = closes[-1]
+
+    config = config or {}
+    adx_min = config.get('adx_min_threshold', 25)
+
+    # --- ADX gate ---
+    adx = calculate_adx(candles, 14)
+    if adx is None or adx < adx_min:
+        return 0, None  # Skip ranging market
+
+    # --- Calculate all indicators ---
+    rsi = calculate_rsi(closes, 14)
+    macd = calculate_macd(closes, 12, 26, 9)
+    bb = calculate_bollinger_bands(closes, 20, 2.0)
+    atr, atr_pct = calculate_atr_from_candles(candles, 14)
+
+    if macd is None or bb is None:
+        return 0, None
+
+    votes = {'LONG': 0, 'SHORT': 0}
+    score = 0
+
+    # 1. MACD (25pts)
+    macd_score = 0
+    if macd['crossover_up']:
+        macd_score = 25
+        votes['LONG'] += 2
+    elif macd['crossover_down']:
+        macd_score = 25
+        votes['SHORT'] += 2
+    elif macd['histogram'] > 0 and macd['histogram'] > macd['prev_histogram']:
+        macd_score = 15
+        votes['LONG'] += 1
+    elif macd['histogram'] < 0 and macd['histogram'] < macd['prev_histogram']:
+        macd_score = 15
+        votes['SHORT'] += 1
+    else:
+        macd_score = 5
+    score += macd_score
+
+    # 2. RSI (20pts)
+    rsi_score = 0
+    if rsi < 25:
+        rsi_score = 20
+        votes['LONG'] += 2
+    elif rsi > 75:
+        rsi_score = 20
+        votes['SHORT'] += 2
+    elif rsi < 35:
+        rsi_score = 15
+        votes['LONG'] += 1
+    elif rsi > 65:
+        rsi_score = 15
+        votes['SHORT'] += 1
+    elif rsi < 45:
+        rsi_score = 8
+        votes['LONG'] += 1
+    elif rsi > 55:
+        rsi_score = 8
+        votes['SHORT'] += 1
+    else:
+        rsi_score = 3
+    score += rsi_score
+
+    # 3. Bollinger Bands (20pts)
+    bb_score = 0
+    if bb['percent_b'] < 0.05:
+        bb_score = 20
+        votes['LONG'] += 2
+    elif bb['percent_b'] > 0.95:
+        bb_score = 20
+        votes['SHORT'] += 2
+    elif bb['percent_b'] < 0.2:
+        bb_score = 15
+        votes['LONG'] += 1
+    elif bb['percent_b'] > 0.8:
+        bb_score = 15
+        votes['SHORT'] += 1
+    elif bb['percent_b'] < 0.35:
+        bb_score = 8
+        votes['LONG'] += 1
+    elif bb['percent_b'] > 0.65:
+        bb_score = 8
+        votes['SHORT'] += 1
+    else:
+        bb_score = 3
+    score += bb_score
+
+    # 4. ADX (15pts) - trend strength
+    adx_score = 0
+    if adx >= 40:
+        adx_score = 15  # Strong trend
+    elif adx >= 30:
+        adx_score = 12
+    elif adx >= 25:
+        adx_score = 8
+    else:
+        adx_score = 3
+    score += adx_score
+
+    # 5. Volume (10pts)
+    avg_volume = sum(volumes[-20:]) / 20 if len(volumes) >= 20 else 1
+    recent_volume = volumes[-1]
+    volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
+    if volume_ratio > 1.5:
+        vol_score = 10
+    elif volume_ratio > 1.2:
+        vol_score = 7
+    elif volume_ratio > 1:
+        vol_score = 5
+    else:
+        vol_score = 2
+    score += vol_score
+
+    # 6. BTC filter (10pts) - N/A in single-coin backtest, give base 5pts
+    score += 5
+
+    # --- Direction ---
+    if votes['LONG'] > votes['SHORT']:
+        direction = 'LONG'
+    elif votes['SHORT'] > votes['LONG']:
+        direction = 'SHORT'
+    else:
+        direction = 'LONG' if rsi < 50 else 'SHORT'
+
+    # --- Triple Confirmation Bonus (+10pts) ---
+    macd_dir = 'LONG' if macd['histogram'] > 0 else 'SHORT'
+    rsi_dir = 'LONG' if rsi < 50 else 'SHORT'
+    bb_dir = 'LONG' if bb['percent_b'] < 0.4 else ('SHORT' if bb['percent_b'] > 0.6 else None)
+    if bb_dir and macd_dir == rsi_dir == bb_dir == direction:
+        score += 10
+
+    # SHORT bias
+    short_bias = config.get('short_bias', 1.05)
+    if direction == 'SHORT' and short_bias != 1.0:
+        score = int(score * short_bias)
+
+    analysis = {
+        'price': current_price,
+        'direction': direction,
+        'score': score,
+        'rsi': rsi,
+        'macd_histogram': macd['histogram'],
+        'bb_percent_b': bb['percent_b'],
+        'adx': adx,
+        'atr': atr,
+        'atr_pct': atr_pct,
+        'volume_ratio': volume_ratio,
+    }
+
+    return score, analysis
+
+
+def calculate_position_size_v5(score, available, config=None, atr=None, price=None):
+    """V5仓位计算 - 固定10x，ATR风险控制
+
+    Args:
+        score: 信号评分
+        available: 可用资金
+        config: 策略配置
+        atr: ATR值
+        price: 当前价格
+
+    Returns:
+        (amount, leverage)
+    """
+    config = config or {}
+    leverage = config.get('max_leverage', 10)
+    max_size = config.get('max_position_size', 150)
+
+    # ATR-based sizing: risk 1% of capital per trade
+    if atr and price and atr > 0:
+        risk_per_trade = available * 0.01
+        stop_distance = atr * 1.5  # 1.5x ATR stop
+        stop_pct = stop_distance / price
+        # amount = risk / (stop_pct * leverage)
+        amount = risk_per_trade / (stop_pct * leverage) if stop_pct > 0 else 0
+        amount = min(amount, max_size, available * 0.3)
+    else:
+        # Fallback: score-based sizing
+        if score >= 90:
+            amount = min(max_size, available * 0.25)
+        elif score >= 80:
+            amount = min(max_size * 0.8, available * 0.2)
+        elif score >= 75:
+            amount = min(max_size * 0.6, available * 0.15)
+        else:
+            amount = min(max_size * 0.4, available * 0.1)
+
+    return max(0, amount), leverage
+
+
+
+def analyze_signal_v6(candles, config=None):
+    """V6信号分析 - v5三重确认(MACD+RSI+BB+ADX) + v4.2 MA趋势过滤
+    评分体系(总分110): MACD25 + RSI20 + BB20 + ADX15 + MA10 + Vol10 + Triple10
+    ADX gate: 20 (比v5的25宽松，适应3x杠杆)
+    """
+    if len(candles) < 100:
+        return 0, None
+
+    closes = [c['close'] for c in candles]
+    volumes = [c['volume'] for c in candles]
+    current_price = closes[-1]
+
+    config = config or {}
+    adx_min = config.get('adx_min_threshold', 20)
+
+    adx = calculate_adx(candles, 14)
+    if adx is None or adx < adx_min:
+        return 0, None
+
+    rsi = calculate_rsi(closes, 14)
+    macd = calculate_macd(closes, 12, 26, 9)
+    bb = calculate_bollinger_bands(closes, 20, 2.0)
+    atr, atr_pct = calculate_atr_from_candles(candles, 14)
+
+    if macd is None or bb is None:
+        return 0, None
+
+    votes = {'LONG': 0, 'SHORT': 0}
+    score = 0
+
+    # 1. MACD (25pts)
+    if macd['crossover_up']:
+        score += 25; votes['LONG'] += 2
+    elif macd['crossover_down']:
+        score += 25; votes['SHORT'] += 2
+    elif macd['histogram'] > 0 and macd['histogram'] > macd['prev_histogram']:
+        score += 15; votes['LONG'] += 1
+    elif macd['histogram'] < 0 and macd['histogram'] < macd['prev_histogram']:
+        score += 15; votes['SHORT'] += 1
+    else:
+        score += 5
+
+    # 2. RSI (20pts)
+    if rsi < 25:
+        score += 20; votes['LONG'] += 2
+    elif rsi > 75:
+        score += 20; votes['SHORT'] += 2
+    elif rsi < 35:
+        score += 15; votes['LONG'] += 1
+    elif rsi > 65:
+        score += 15; votes['SHORT'] += 1
+    elif rsi < 45:
+        score += 8; votes['LONG'] += 1
+    elif rsi > 55:
+        score += 8; votes['SHORT'] += 1
+    else:
+        score += 3
+
+    # 3. BB (20pts)
+    if bb['percent_b'] < 0.05:
+        score += 20; votes['LONG'] += 2
+    elif bb['percent_b'] > 0.95:
+        score += 20; votes['SHORT'] += 2
+    elif bb['percent_b'] < 0.2:
+        score += 15; votes['LONG'] += 1
+    elif bb['percent_b'] > 0.8:
+        score += 15; votes['SHORT'] += 1
+    elif bb['percent_b'] < 0.35:
+        score += 8; votes['LONG'] += 1
+    elif bb['percent_b'] > 0.65:
+        score += 8; votes['SHORT'] += 1
+    else:
+        score += 3
+
+    # 4. ADX (15pts)
+    if adx >= 40:
+        score += 15
+    elif adx >= 30:
+        score += 12
+    elif adx >= 25:
+        score += 8
+    elif adx >= 20:
+        score += 5
+    else:
+        score += 3
+
+    # 5. MA趋势 (10pts) - 新增
+    ma7 = sum(closes[-7:]) / 7
+    ma20 = sum(closes[-20:]) / 20
+    ma50 = sum(closes[-50:]) / 50 if len(closes) >= 50 else ma20
+
+    if current_price > ma7 > ma20 > ma50:
+        score += 10; votes['LONG'] += 1
+    elif current_price < ma7 < ma20 < ma50:
+        score += 10; votes['SHORT'] += 1
+    elif current_price > ma7 > ma20:
+        score += 6; votes['LONG'] += 1
+    elif current_price < ma7 < ma20:
+        score += 6; votes['SHORT'] += 1
+    else:
+        score += 2
+
+    # 6. Volume (10pts)
+    avg_volume = sum(volumes[-20:]) / 20 if len(volumes) >= 20 else 1
+    recent_volume = volumes[-1]
+    volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
+    if volume_ratio > 1.5:
+        score += 10
+    elif volume_ratio > 1.2:
+        score += 7
+    elif volume_ratio > 1:
+        score += 5
+    else:
+        score += 2
+
+    # Direction
+    if votes['LONG'] > votes['SHORT']:
+        direction = 'LONG'
+    elif votes['SHORT'] > votes['LONG']:
+        direction = 'SHORT'
+    else:
+        direction = 'LONG' if rsi < 50 else 'SHORT'
+
+    # Triple Confirmation Bonus (+10pts)
+    macd_dir = 'LONG' if macd['histogram'] > 0 else 'SHORT'
+    rsi_dir = 'LONG' if rsi < 50 else 'SHORT'
+    bb_dir = 'LONG' if bb['percent_b'] < 0.4 else ('SHORT' if bb['percent_b'] > 0.6 else None)
+    if bb_dir and macd_dir == rsi_dir == bb_dir == direction:
+        score += 10
+
+    # RSI/MA conflict penalty (x0.85)
+    trend_dir = 'LONG' if current_price > ma20 else 'SHORT'
+    if rsi_dir != trend_dir:
+        score = int(score * 0.85)
+
+    # SHORT bias
+    short_bias = config.get('short_bias', 1.05)
+    if direction == 'SHORT' and short_bias != 1.0:
+        score = int(score * short_bias)
+
+    analysis = {
+        'price': current_price,
+        'direction': direction,
+        'score': score,
+        'rsi': rsi,
+        'macd_histogram': macd['histogram'],
+        'bb_percent_b': bb['percent_b'],
+        'adx': adx,
+        'atr': atr,
+        'atr_pct': atr_pct,
+        'volume_ratio': volume_ratio,
+        'ma7': ma7, 'ma20': ma20, 'ma50': ma50,
+    }
+
+    return score, analysis
+
+
+def analyze_signal_v6b(candles, config=None):
+    """V6b: v4.2评分为基础 + MACD/BB/ADX额外加分
+    基础分 = RSI(30) + MA趋势(30) + Volume(20) + PricePos(20) = 100
+    加分 = MACD确认(+10) + ADX强趋势(+8) + BB极端(+7) = +25
+    总分上限 = 125, min_score 60
+    """
+    if len(candles) < 100:
+        return 0, None
+
+    closes = [c['close'] for c in candles]
+    volumes = [c['volume'] for c in candles]
+    highs = [c['high'] for c in candles]
+    lows = [c['low'] for c in candles]
+    current_price = closes[-1]
+    config = config or {}
+
+    votes = {"LONG": 0, "SHORT": 0}
+
+    # === 1. RSI (30pts) — 同v4 ===
+    rsi = calculate_rsi(closes, 14)
+    if rsi < 30:
+        rsi_score = 30; votes["LONG"] += 1
+    elif rsi > 70:
+        rsi_score = 30; votes["SHORT"] += 1
+    elif rsi < 45:
+        rsi_score = 15; votes["LONG"] += 1
+    elif rsi > 55:
+        rsi_score = 15; votes["SHORT"] += 1
+    else:
+        rsi_score = 5
+
+    # === 2. MA趋势 (30pts) — 同v4 ===
+    ma7 = sum(closes[-7:]) / 7
+    ma20 = sum(closes[-20:]) / 20
+    ma50 = sum(closes[-50:]) / 50 if len(closes) >= 50 else ma20
+
+    if current_price > ma7 > ma20 > ma50:
+        trend_score = 30; votes["LONG"] += 2
+    elif current_price < ma7 < ma20 < ma50:
+        trend_score = 30; votes["SHORT"] += 2
+    elif current_price > ma7 > ma20:
+        trend_score = 15; votes["LONG"] += 1
+    elif current_price < ma7 < ma20:
+        trend_score = 15; votes["SHORT"] += 1
+    else:
+        trend_score = 5
+
+    # === 3. Volume (20pts) — 同v4 ===
+    avg_volume = sum(volumes[-20:]) / 20 if len(volumes) >= 20 else 1
+    recent_volume = volumes[-1]
+    volume_ratio = recent_volume / avg_volume if avg_volume > 0 else 1
+    if volume_ratio > 1.5:
+        volume_score = 20
+    elif volume_ratio > 1.2:
+        volume_score = 15
+    elif volume_ratio > 1:
+        volume_score = 10
+    else:
+        volume_score = 5
+
+    # === 4. Price Position (20pts) — 同v4 ===
+    high_50 = max(highs[-50:]) if len(highs) >= 50 else max(highs)
+    low_50 = min(lows[-50:]) if len(lows) >= 50 else min(lows)
+    price_position = (current_price - low_50) / (high_50 - low_50) if high_50 > low_50 else 0.5
+
+    if price_position < 0.2:
+        position_score = 20; votes["LONG"] += 1
+    elif price_position > 0.8:
+        position_score = 20; votes["SHORT"] += 1
+    elif price_position < 0.35:
+        position_score = 10; votes["LONG"] += 1
+    elif price_position > 0.65:
+        position_score = 10; votes["SHORT"] += 1
+    else:
+        position_score = 5
+
+    total_score = rsi_score + trend_score + volume_score + position_score
+
+    # === Direction ===
+    if votes["LONG"] > votes["SHORT"]:
+        direction = "LONG"
+    elif votes["SHORT"] > votes["LONG"]:
+        direction = "SHORT"
+    else:
+        direction = "LONG" if rsi < 50 else "SHORT"
+
+    # === RSI/趋势冲突惩罚 (同v4) ===
+    rsi_dir = "LONG" if rsi < 50 else "SHORT"
+    trend_dir = "LONG" if current_price > ma20 else "SHORT"
+    if rsi_dir != trend_dir:
+        total_score = int(total_score * 0.85)
+
+    # === v5 指标加分 (新增部分) ===
+    macd = calculate_macd(closes, 12, 26, 9)
+    bb = calculate_bollinger_bands(closes, 20, 2.0)
+    adx = calculate_adx(candles, 14)
+
+    # MACD确认 (+10)
+    if macd:
+        macd_dir = "LONG" if macd["histogram"] > 0 else "SHORT"
+        if macd_dir == direction:
+            if macd["crossover_up"] or macd["crossover_down"]:
+                total_score += 10  # 交叉+方向一致
+            elif (macd["histogram"] > 0 and macd["histogram"] > macd["prev_histogram"]) or                  (macd["histogram"] < 0 and macd["histogram"] < macd["prev_histogram"]):
+                total_score += 6   # 动量增强+方向一致
+            else:
+                total_score += 3   # 方向一致
+
+    # ADX强趋势 (+8)
+    if adx is not None:
+        if adx >= 35:
+            total_score += 8
+        elif adx >= 25:
+            total_score += 5
+        elif adx >= 20:
+            total_score += 2
+
+    # BB极端位置 (+7)
+    if bb:
+        if (direction == "LONG" and bb["percent_b"] < 0.1) or            (direction == "SHORT" and bb["percent_b"] > 0.9):
+            total_score += 7
+        elif (direction == "LONG" and bb["percent_b"] < 0.25) or              (direction == "SHORT" and bb["percent_b"] > 0.75):
+            total_score += 4
+
+    # SHORT bias
+    short_bias = config.get("short_bias", 1.05)
+    if direction == "SHORT" and short_bias != 1.0:
+        total_score = int(total_score * short_bias)
+
+    atr, atr_pct = calculate_atr_from_candles(candles, 14)
+
+    analysis = {
+        "price": current_price,
+        "rsi": rsi,
+        "ma7": ma7, "ma20": ma20, "ma50": ma50,
+        "volume_ratio": volume_ratio,
+        "price_position": price_position,
+        "direction": direction,
+        "score": total_score,
+        "adx": adx,
+        "macd_histogram": macd["histogram"] if macd else None,
+        "bb_percent_b": bb["percent_b"] if bb else None,
+        "atr": atr,
+        "atr_pct": atr_pct,
+    }
+
+    return total_score, analysis
+
+
 def analyze_signal(candles):
     """分析交易信号（0-100分），从K线数据"""
     if len(candles) < 50:
@@ -301,6 +939,13 @@ def run_backtest(candles_1h, config):
     dynamic_tpsl = config.get('dynamic_tpsl', False)  # v4.3 动态止盈止损(移动止盈)
     fixed_tp_mode = config.get('fixed_tp_mode', False)  # v4.3.1 固定止盈模式
     leverage_based_tpsl = config.get('leverage_based_tpsl', False)  # v4.3.1 杠杆联动止盈止损
+    # V5 模式
+    v5_mode = config.get('v5_mode', False)
+    tp1_roi = config.get('tp1_roi', 10)         # TP1: +10% ROI
+    tp1_close_ratio = config.get('tp1_close_ratio', 0.5)  # TP1 平50%仓位
+    tp2_roi = config.get('tp2_roi', 20)          # TP2: +20% ROI 开始尾随
+    tp2_trail_dist = config.get('tp2_trail_distance', 5)   # TP2 尾随距离 5%
+    adx_min_threshold = config.get('adx_min_threshold', 25)
     # ROI模式参数（基于本金盈亏%）— 作为默认值，dynamic_tpsl开启时会被覆盖
     roi_stop_loss = config.get('roi_stop_loss', -8)        # 止损: ROI跌到-8%平仓
     roi_take_profit = config.get('roi_take_profit', 0)     # 固定止盈目标，0表示用移动止盈
@@ -324,6 +969,64 @@ def run_backtest(candles_1h, config):
         if capital <= 0:
             bankrupt = True
             break
+
+        # === V5 TP1 部分止盈检查 ===
+        if v5_mode:
+            tp1_closes = []
+            for sym, pos in positions.items():
+                if not pos.get('tp1_hit', False) and pos.get('v5_mode', False):
+                    lev = pos['leverage']
+                    ep = pos['entry_price']
+                    tp1 = pos.get('tp1_roi', tp1_roi)
+                    if pos['direction'] == 'LONG':
+                        best_roi = ((candle['high'] - ep) / ep) * lev * 100
+                    else:
+                        best_roi = ((ep - candle['low']) / ep) * lev * 100
+                    if best_roi >= tp1:
+                        tp1_closes.append(sym)
+            for sym in tp1_closes:
+                pos = positions[sym]
+                ep = pos['entry_price']
+                lev = pos['leverage']
+                ratio = pos.get('tp1_close_ratio', 0.5)
+                tp1_val = pos.get('tp1_roi', tp1_roi)
+                # Calculate TP1 exit price
+                tp1_pct = tp1_val / (lev * 100)
+                if pos['direction'] == 'LONG':
+                    exit_price = ep * (1 + tp1_pct)
+                else:
+                    exit_price = ep * (1 - tp1_pct)
+                # Close partial (ratio of amount)
+                close_amount = pos['amount'] * ratio
+                pnl, fee, funding = _calc_pnl(
+                    {**pos, 'amount': close_amount}, exit_price, fee_rate, i - pos['bar_index'])
+                capital += pnl
+                trade_id += 1
+                trades.append({
+                    'trade_id': trade_id,
+                    'direction': pos['direction'],
+                    'entry_price': ep,
+                    'exit_price': exit_price,
+                    'amount': close_amount,
+                    'leverage': lev,
+                    'pnl': round(pnl, 2),
+                    'roi': round(tp1_val, 1),
+                    'fee': round(fee, 2),
+                    'funding_fee': round(funding, 2),
+                    'reason': f'V5 TP1 止盈 (+{tp1_val}% 平{int(ratio*100)}%)',
+                    'entry_time': pos['entry_time'],
+                    'exit_time': _ts_to_str(candle['time']),
+                    'score': pos['score'],
+                    'stop_moves': 0,
+                    'stop_loss': round(pos['stop_loss'], 6),
+                    'tp_trigger': round(exit_price, 6),
+                })
+                # Update remaining position
+                pos['amount'] = pos['amount'] * (1 - ratio)
+                pos['tp1_hit'] = True
+                # After TP1, use TP2 trailing params
+                pos['roi_trailing_start'] = pos.get('roi_trailing_start', tp2_roi)
+                pos['roi_trailing_distance'] = pos.get('roi_trailing_distance', tp2_trail_dist)
 
         # === 检查所有持仓 ===
         symbols_to_close = []
@@ -390,7 +1093,18 @@ def run_backtest(candles_1h, config):
 
         # 信号分析
         lookback = candles_1h[max(0, i-99):i+1]
-        score, analysis = analyze_signal(lookback)
+
+        v6_mode = config.get('v6_mode', False)
+        v6b_mode = config.get('v6b_mode', False)
+        if v6b_mode:
+            score, analysis = analyze_signal_v6b(lookback, config)
+        elif v6_mode:
+            score, analysis = analyze_signal_v6(lookback, config)
+        elif v5_mode:
+            # V5: MACD+RSI+BB+ADX 三重确认
+            score, analysis = analyze_signal_v5(lookback, config)
+        else:
+            score, analysis = analyze_signal(lookback)
 
         if score < min_score or analysis is None:
             continue
@@ -401,17 +1115,17 @@ def run_backtest(candles_1h, config):
         if direction == 'LONG' and score < long_min_score:
             continue
 
-        # 趋势过滤：MA20斜率与方向冲突时跳过
-        if enable_trend_filter and len(lookback) >= 25:
-            ma20_now = sum(c['close'] for c in lookback[-20:]) / 20
-            ma20_prev = sum(c['close'] for c in lookback[-25:-5]) / 20
-            ma20_slope = (ma20_now - ma20_prev) / ma20_prev
-            # v4.1: LONG方向使用更严格的斜率阈值
-            long_threshold = long_ma_slope_threshold
-            if direction == 'LONG' and ma20_slope < -long_threshold:
-                continue
-            if direction == 'SHORT' and ma20_slope > ma_slope_threshold:
-                continue
+        if not v5_mode:
+            # 趋势过滤：MA20斜率与方向冲突时跳过 (v4 only, v5 uses ADX)
+            if enable_trend_filter and len(lookback) >= 25:
+                ma20_now = sum(c['close'] for c in lookback[-20:]) / 20
+                ma20_prev = sum(c['close'] for c in lookback[-25:-5]) / 20
+                ma20_slope = (ma20_now - ma20_prev) / ma20_prev
+                long_threshold = long_ma_slope_threshold
+                if direction == 'LONG' and ma20_slope < -long_threshold:
+                    continue
+                if direction == 'SHORT' and ma20_slope > ma_slope_threshold:
+                    continue
 
         # 方向限制
         long_count = sum(1 for p in positions.values() if p['direction'] == 'LONG')
@@ -427,11 +1141,15 @@ def run_backtest(candles_1h, config):
         if available < 50:
             continue
 
-        amount, leverage = calculate_position_size(score, available, max_leverage, high_score_leverage, dynamic_leverage)
+        if v5_mode:
+            atr_val = analysis.get('atr')
+            amount, leverage = calculate_position_size_v5(score, available, config, atr_val, analysis['price'])
+        else:
+            amount, leverage = calculate_position_size(score, available, max_leverage, high_score_leverage, dynamic_leverage)
 
-        # v4.3.1 激进杠杆覆盖
-        if dynamic_leverage_v431:
-            leverage = calculate_dynamic_leverage_v431(score, max_leverage)
+            # v4.3.1 激进杠杆覆盖
+            if dynamic_leverage_v431:
+                leverage = calculate_dynamic_leverage_v431(score, max_leverage)
 
         if amount < 50:
             continue
@@ -474,6 +1192,18 @@ def run_backtest(candles_1h, config):
         else:
             stop_loss = entry_price * (1 - stop_price_pct)  # 负值所以是加
 
+        # V5 mode: use ATR-based stop and dual TP
+        if v5_mode:
+            atr_val = analysis.get('atr')
+            if atr_val and atr_val > 0:
+                atr_stop_pct = (atr_val * 1.5 / entry_price) * leverage * 100
+                pos_roi_stop = -min(atr_stop_pct, 10)  # Cap at -10%
+            else:
+                pos_roi_stop = roi_stop_loss
+            pos_roi_tp = 0  # Use trailing mode
+            pos_roi_trail_start = tp2_roi  # TP2 trailing start at +20%
+            pos_roi_trail_dist = tp2_trail_dist  # 5% distance
+
         # 用 bar index 作为 key（单币种回测）
         pos_key = f"pos_{trade_id + 1}"
         positions[pos_key] = {
@@ -490,7 +1220,12 @@ def run_backtest(candles_1h, config):
             'entry_time': _ts_to_str(candle['time']),
             'score': score,
             'stop_move_count': 0,
-            'bar_index': i
+            'bar_index': i,
+            'v5_mode': v5_mode,
+            'tp1_hit': False,
+            'tp1_roi': tp1_roi,
+            'tp1_close_ratio': tp1_close_ratio,
+            'original_amount': amount,
         }
 
     # === 强制平仓剩余持仓 ===

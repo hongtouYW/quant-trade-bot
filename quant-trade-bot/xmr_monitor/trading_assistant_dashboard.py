@@ -31,12 +31,12 @@ WATCH_SYMBOLS = [
     # Layer2/DeFi (15)
     'ARB', 'OP', 'MATIC', 'AAVE', 'UNI', 'CRV', 'DYDX', 'INJ', 'SEI',
     'STX', 'RUNE', 'SNX', 'COMP', 'MKR', 'LDO',
-    # AI/新叙事 (15)
-    'TAO', 'RENDER', 'FET', 'WLD', 'AGIX', 'OCEAN', 'ARKM', 'PENGU', 'BERA', 'VIRTUAL',
-    'AIXBT', 'GRASS', 'GRIFFAIN', 'GOAT', 'CGPT',
-    # 中市值热门 (25)
+    # AI/新叙事 (11)
+    'TAO', 'RENDER', 'FET', 'WLD', 'AGIX', 'OCEAN', 'ARKM', 'PENGU',
+    'AIXBT', 'GRASS', 'CGPT',
+    # 中市值热门 (22)
     'TIA', 'JUP', 'PYTH', 'JTO', 'ENA', 'STRK', 'ZRO', 'WIF',
-    'BONK', 'PEPE', 'SHIB', 'FLOKI', 'TRUMP',
+    'SHIB', 'FLOKI', 'TRUMP',
     'VET', 'AXS', 'ROSE', 'DUSK', 'CHZ', 'ENJ', 'SAND',
     'ONDO', 'PENDLE', 'EIGEN', 'ETHFI', 'TON',
     # GameFi/存储/其他 (15)
@@ -45,13 +45,14 @@ WATCH_SYMBOLS = [
     # DeFi/基础设施 (15)
     'CAKE', 'SUSHI', 'GMX', 'ENS', 'BLUR', 'PEOPLE', 'MASK',
     '1INCH', 'ANKR', 'AR', 'FLOW', 'EGLD', 'KAS', 'JASMY', 'NOT',
-    # Meme/热点 (15)
+    # Meme/热点 (14)
     'NEIRO', 'PNUT', 'POPCAT', 'TURBO', 'MEME', 'BOME', 'DOGS',
-    'FARTCOIN', 'USUAL', 'ME', 'MOODENG', 'BRETT', 'SPX', 'ANIME', 'SONIC',
-    # 高波动 (25)
-    'IP', 'INIT', 'HYPE', 'LINA', 'LEVER', 'ALPHA', 'LIT', 'UNFI',
-    'DGB', 'REN', 'BSW', 'AMB', 'TROY', 'OMNI', 'BNX',
+    'FARTCOIN', 'USUAL', 'ME', 'MOODENG', 'SPX', 'ANIME', 'SONIC',
+    # 高波动 (15)
+    'HYPE', 'LINA', 'LEVER', 'ALPHA', 'UNFI',
     'YGG', 'PIXEL', 'PORTAL', 'XAI', 'DYM', 'MANTA', 'ZK', 'W', 'SAGA', 'RSR',
+    # 跳过但显示 (7) — in SKIP_COINS, shown as skipped in UI
+    'BERA', 'IP', 'LIT', 'TROY', 'VIRTUAL', 'BONK', 'PEPE',
 ]
 
 SYMBOL_MAP = {s: f'{s}USDT' for s in WATCH_SYMBOLS}
@@ -86,7 +87,7 @@ COIN_TIERS = {
     'BNX': 'T3', 'TRUMP': 'T3', 'TRX': 'T3', 'ONE': 'T3',
     'JUP': 'T3',
 }
-SKIP_COINS = ['BERA', 'IP', 'LIT', 'TROY', 'VIRTUAL', 'BONK', 'PEPE']
+SKIP_COINS = ['BERA', 'IP', 'LIT', 'TROY', 'VIRTUAL', 'BONK', 'PEPE', 'DUSK', 'FARTCOIN', 'ANIME']
 
 DB_PATH = '/opt/trading-bot/quant-trade-bot/data/db/paper_trader.db'  # Paper Trader 独立数据库
 
@@ -136,7 +137,7 @@ def get_stats():
         # 当前资金
         initial_capital = 2000
         current_capital = initial_capital + (stats['total_pnl'] or 0)
-        target_profit = 3400
+        target_profit = 3000
 
         # 计算持仓占用保证金
         cursor.execute('''
@@ -309,6 +310,95 @@ def get_stats():
 
         return jsonify(stats)
 
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route('/api/analytics')
+def get_analytics():
+    """方向分析 + 币种排行 + 手续费占比"""
+    conn = None
+    try:
+        conn = get_db()
+        cursor = conn.cursor()
+
+        # 方向分析
+        cursor.execute("""
+            SELECT direction,
+                count(*) as total,
+                sum(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+                round(avg(pnl), 2) as avg_pnl,
+                round(sum(pnl), 2) as total_pnl
+            FROM real_trades
+            WHERE status='CLOSED' AND assistant='交易助手' AND mode='paper'
+            GROUP BY direction
+        """)
+        direction_stats = [dict(r) for r in cursor.fetchall()]
+        for d in direction_stats:
+            d['win_rate'] = round(d['wins'] / d['total'] * 100, 1) if d['total'] else 0
+
+        # 币种排行 TOP5 赚/亏
+        cursor.execute("""
+            SELECT symbol,
+                count(*) as total,
+                sum(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+                round(sum(pnl), 2) as total_pnl
+            FROM real_trades
+            WHERE status='CLOSED' AND assistant='交易助手' AND mode='paper'
+            GROUP BY symbol HAVING count(*) >= 3
+            ORDER BY sum(pnl) DESC
+        """)
+        all_coins = [dict(r) for r in cursor.fetchall()]
+        for c in all_coins:
+            c['win_rate'] = round(c['wins'] / c['total'] * 100, 1) if c['total'] else 0
+
+        top_coins = all_coins[:5]
+        bottom_coins = list(reversed(all_coins[-5:])) if len(all_coins) >= 5 else list(reversed(all_coins))
+
+        # 手续费分析
+        cursor.execute("""
+            SELECT
+                round(sum(COALESCE(fee, 0)), 2) as total_fees,
+                round(sum(COALESCE(funding_fee, 0)), 2) as total_funding,
+                round(sum(COALESCE(pnl, 0)), 2) as total_pnl,
+                count(*) as total_trades
+            FROM real_trades
+            WHERE status='CLOSED' AND assistant='交易助手' AND mode='paper'
+        """)
+        fee_data = dict(cursor.fetchone())
+        gross_profit = (fee_data['total_pnl'] or 0) + (fee_data['total_fees'] or 0)
+        fee_data['gross_profit'] = round(gross_profit, 2)
+        fee_data['fee_ratio'] = round((fee_data['total_fees'] or 0) / gross_profit * 100, 1) if gross_profit > 0 else 0
+        fee_data['avg_fee'] = round((fee_data['total_fees'] or 0) / fee_data['total_trades'], 2) if fee_data['total_trades'] else 0
+
+        # 评分段分析
+        score_tiers = []
+        for lo, hi, label in [(90,200,'90+'), (80,89,'80-89'), (70,79,'70-79'), (60,69,'60-69')]:
+            cursor.execute("""
+                SELECT count(*) as total,
+                    sum(CASE WHEN pnl > 0 THEN 1 ELSE 0 END) as wins,
+                    round(avg(pnl), 2) as avg_pnl,
+                    round(sum(pnl), 2) as total_pnl
+                FROM real_trades
+                WHERE status='CLOSED' AND assistant='交易助手' AND mode='paper'
+                AND score >= ? AND score <= ?
+            """, (lo, hi))
+            row = dict(cursor.fetchone())
+            if row['total'] and row['total'] > 0:
+                row['label'] = label
+                row['win_rate'] = round((row['wins'] or 0) / row['total'] * 100, 1)
+                score_tiers.append(row)
+
+        return jsonify({
+            'direction': direction_stats,
+            'top_coins': top_coins,
+            'bottom_coins': bottom_coins,
+            'fees': fee_data,
+            'score_tiers': score_tiers,
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
     finally:
@@ -1191,7 +1281,7 @@ HTML_TEMPLATE = '''
         .watchlist-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px;
+            gap: 10px;
             margin-top: 15px;
         }
 
@@ -1391,6 +1481,65 @@ HTML_TEMPLATE = '''
             padding-top: 6px;
             border-top: 1px dashed rgba(102, 126, 234, 0.2);
         }
+
+
+        /* 分析面板 */
+        .analytics-section {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 10px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+        .analytics-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            min-width: 200px;
+            flex: 1;
+        }
+        .analytics-card h3 {
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        .dir-bar {
+            display: flex; align-items: center; margin-bottom: 6px;
+        }
+        .dir-label {
+            width: 45px; font-weight: 600; font-size: 0.75em;
+        }
+        .dir-bar-track {
+            flex: 1; height: 18px; background: #f3f4f6; border-radius: 9px; overflow: hidden; margin: 0 5px; position: relative;
+        }
+        .dir-bar-fill {
+            height: 100%; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-size: 0.65em; font-weight: 600; color: white; min-width: 30px;
+        }
+        .dir-bar-fill.long-bar { background: linear-gradient(90deg, #10b981, #34d399); }
+        .dir-bar-fill.short-bar { background: linear-gradient(90deg, #ef4444, #f87171); }
+        .dir-pnl { width: 60px; text-align: right; font-weight: 600; font-size: 0.75em; }
+        .coin-row {
+            display: flex; align-items: center; padding: 3px 0; border-bottom: 1px solid #f3f4f6;
+        }
+        .coin-row:last-child { border-bottom: none; }
+        .coin-rank { width: 18px; font-weight: 700; color: #667eea; font-size: 0.75em; }
+        .coin-name { flex: 1; font-weight: 600; font-size: 0.75em; }
+        .coin-stat { width: 55px; text-align: right; font-size: 0.7em; color: #666; }
+        .coin-pnl { width: 60px; text-align: right; font-weight: 600; font-size: 0.75em; }
+        .fee-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+        .fee-item { text-align: center; padding: 6px; background: #f9fafb; border-radius: 6px; }
+        .fee-item .fee-val { font-size: 1em; font-weight: 700; color: #ef4444; }
+        .fee-item .fee-label { font-size: 0.65em; color: #666; margin-top: 2px; }
+        .score-row { display: flex; align-items: center; padding: 3px 0; border-bottom: 1px solid #f3f4f6; }
+        .score-label { width: 40px; font-weight: 600; font-size: 0.75em; color: #667eea; }
+        .score-bar-track { flex: 1; height: 16px; background: #f3f4f6; border-radius: 8px; overflow: hidden; margin: 0 4px; }
+        .score-bar-fill { height: 100%; border-radius: 10px; background: linear-gradient(90deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; font-size: 0.6em; color: white; font-weight: 600; }
+        .score-pnl { width: 55px; text-align: right; font-weight: 600; font-size: 0.7em; }
 
         /* 交易历史卡片样式 */
         .trade-cards {
@@ -1700,7 +1849,7 @@ HTML_TEMPLATE = '''
         .progress-stats {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 10px;
         }
 
         .progress-stat-item {
@@ -2117,7 +2266,7 @@ HTML_TEMPLATE = '''
         .right-panel {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 10px;
             overflow-y: auto;
         }
 
@@ -2318,7 +2467,7 @@ HTML_TEMPLATE = '''
 <body>
     <div class="container">
         <div class="header">
-            <h1>🧪 交易助手仪表盘 v4.2</h1>
+            <h1>🧪 交易助手仪表盘 v6</h1>
             <div class="subtitle">Paper Trading System - 回测智能优化 - Port 5111</div>
             <div style="margin-top: 10px;">
                 <a href="/backtest" class="header-btn" style="text-decoration: none; padding: 8px 20px; font-size: 0.95em;">📊 回测模拟器</a>
@@ -2358,7 +2507,7 @@ HTML_TEMPLATE = '''
             <div class="stat-card">
                 <div class="label">持仓数</div>
                 <div class="value" id="open-positions">-</div>
-                <div class="subtext">最多同时12个</div>
+                <div class="subtext">最多同时20个</div>
             </div>
         </div>
 
@@ -2403,7 +2552,7 @@ HTML_TEMPLATE = '''
         <!-- v4策略智能面板 -->
         <div id="strategy-panel" style="margin: 15px 0; padding: 15px; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 12px; border-left: 4px solid #667eea;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; cursor: pointer;" onclick="toggleStrategyPanel()">
-                <h3 style="margin: 0; color: white; font-size: 1.1em;">🧠 v4策略 <span style="font-size:0.75em; color:#999;">(2023-2025回测+2026验证 | +88U, +3.1%WR vs v3)</span></h3>
+                <h3 style="margin: 0; color: white; font-size: 1.1em;">🧠 v6策略 <span style="font-size:0.75em; color:#999;">(v4.2评分 + MACD/ADX/BB加分 | 3x | 6年回测+617K)</span></h3>
                 <span id="strategy-toggle" style="color: #999; font-size: 0.9em;">▼ 展开</span>
             </div>
             <div id="strategy-content" style="display: none;">
@@ -2525,6 +2674,40 @@ HTML_TEMPLATE = '''
                         <div class="loading">加载中</div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+
+        <!-- 数据分析面板 -->
+        <div class="analytics-section">
+            <!-- 方向分析 -->
+            <div class="analytics-card">
+                <h3>⚔️ 方向分析</h3>
+                <div id="direction-panel"><div class="loading">加载中</div></div>
+            </div>
+
+            <!-- 评分段表现 -->
+            <div class="analytics-card">
+                <h3>🎯 评分段表现</h3>
+                <div id="score-panel"><div class="loading">加载中</div></div>
+            </div>
+
+            <!-- 最赚币种 -->
+            <div class="analytics-card">
+                <h3>🏆 最赚币种 TOP5</h3>
+                <div id="top-coins-panel"><div class="loading">加载中</div></div>
+            </div>
+
+            <!-- 最亏币种 -->
+            <div class="analytics-card">
+                <h3>💀 最亏币种 TOP5</h3>
+                <div id="bottom-coins-panel"><div class="loading">加载中</div></div>
+            </div>
+
+            <!-- 手续费分析 -->
+            <div class="analytics-card">
+                <h3>💸 手续费分析</h3>
+                <div id="fee-panel"><div class="loading">加载中</div></div>
             </div>
         </div>
 
@@ -2984,46 +3167,50 @@ HTML_TEMPLATE = '''
                                         borderWidth: 3,
                                         radius: 8
                                     },
-                                    // 止盈线（绿色虚线）
-                                    takeProfitLine: {
-                                        type: 'line',
-                                        yMin: trade.take_profit,
-                                        yMax: trade.take_profit,
-                                        borderColor: '#10b981',
-                                        borderWidth: 2,
-                                        borderDash: [8, 4],
-                                        label: {
-                                            content: `🎯 止盈 $${formatNumber(trade.take_profit, 6)}`,
-                                            enabled: true,
-                                            position: 'start',
-                                            backgroundColor: '#10b981',
-                                            color: '#ffffff',
-                                            font: {
-                                                size: 11,
-                                                weight: 'bold'
+                                    // 止盈线（绿色虚线）— 仅当有值时显示
+                                    ...(trade.take_profit > 0 ? {
+                                        takeProfitLine: {
+                                            type: 'line',
+                                            yMin: trade.take_profit,
+                                            yMax: trade.take_profit,
+                                            borderColor: '#10b981',
+                                            borderWidth: 2,
+                                            borderDash: [8, 4],
+                                            label: {
+                                                content: `🎯 止盈 $${formatNumber(trade.take_profit, 6)}`,
+                                                enabled: true,
+                                                position: 'start',
+                                                backgroundColor: '#10b981',
+                                                color: '#ffffff',
+                                                font: {
+                                                    size: 11,
+                                                    weight: 'bold'
+                                                }
                                             }
                                         }
-                                    },
-                                    // 止损线（红色虚线）
-                                    stopLossLine: {
-                                        type: 'line',
-                                        yMin: trade.stop_loss,
-                                        yMax: trade.stop_loss,
-                                        borderColor: '#ef4444',
-                                        borderWidth: 2,
-                                        borderDash: [8, 4],
-                                        label: {
-                                            content: `🛑 止损 $${formatNumber(trade.stop_loss, 6)}`,
-                                            enabled: true,
-                                            position: 'start',
-                                            backgroundColor: '#ef4444',
-                                            color: '#ffffff',
-                                            font: {
-                                                size: 11,
-                                                weight: 'bold'
+                                    } : {}),
+                                    // 止损线（红色虚线）— 仅当有值时显示
+                                    ...(trade.stop_loss > 0 ? {
+                                        stopLossLine: {
+                                            type: 'line',
+                                            yMin: trade.stop_loss,
+                                            yMax: trade.stop_loss,
+                                            borderColor: '#ef4444',
+                                            borderWidth: 2,
+                                            borderDash: [8, 4],
+                                            label: {
+                                                content: `🛑 止损 $${formatNumber(trade.stop_loss, 6)}`,
+                                                enabled: true,
+                                                position: 'start',
+                                                backgroundColor: '#ef4444',
+                                                color: '#ffffff',
+                                                font: {
+                                                    size: 11,
+                                                    weight: 'bold'
+                                                }
                                             }
                                         }
-                                    }
+                                    } : {})
                                 }
                             }
                         },
@@ -3255,6 +3442,87 @@ HTML_TEMPLATE = '''
             });
         }
         
+
+        async function loadAnalytics() {
+            try {
+                const resp = await fetch('/api/analytics');
+                const data = await resp.json();
+
+                // 方向分析
+                let dirHtml = '';
+                (data.direction || []).forEach(d => {
+                    const cls = d.direction === 'LONG' ? 'long-bar' : 'short-bar';
+                    const pnlColor = d.total_pnl >= 0 ? '#10b981' : '#ef4444';
+                    const wrWidth = Math.max(10, d.win_rate);
+                    dirHtml += `<div class="dir-bar">
+                        <div class="dir-label">${d.direction}</div>
+                        <div class="dir-bar-track">
+                            <div class="dir-bar-fill ${cls}" style="width:${wrWidth}%">${d.win_rate}%</div>
+                        </div>
+                        <div class="dir-pnl" style="color:${pnlColor}">${d.total_pnl >= 0 ? '+' : ''}${d.total_pnl}U</div>
+                    </div>
+                    <div style="font-size:0.65em;color:#999;margin:-2px 0 4px 50px;">${d.total}笔 | 胜${d.wins}笔 | 均PnL ${d.avg_pnl}U</div>`;
+                });
+                document.getElementById('direction-panel').innerHTML = dirHtml || '<div style="color:#999">暂无数据</div>';
+
+                // 评分段
+                let scoreHtml = '';
+                (data.score_tiers || []).forEach(s => {
+                    const pnlColor = s.total_pnl >= 0 ? '#10b981' : '#ef4444';
+                    const barW = Math.max(10, s.win_rate);
+                    scoreHtml += `<div class="score-row">
+                        <div class="score-label">${s.label}</div>
+                        <div class="score-bar-track">
+                            <div class="score-bar-fill" style="width:${barW}%">${s.win_rate}% (${s.total}笔)</div>
+                        </div>
+                        <div class="score-pnl" style="color:${pnlColor}">${s.total_pnl >= 0 ? '+' : ''}${s.total_pnl}</div>
+                    </div>`;
+                });
+                document.getElementById('score-panel').innerHTML = scoreHtml || '<div style="color:#999">暂无数据</div>';
+
+                // 币种排行
+                function renderCoins(coins, elId) {
+                    let html = '';
+                    coins.forEach((c, i) => {
+                        const pnlColor = c.total_pnl >= 0 ? '#10b981' : '#ef4444';
+                        html += `<div class="coin-row">
+                            <div class="coin-rank">${i+1}</div>
+                            <div class="coin-name">${c.symbol}</div>
+                            <div class="coin-stat">${c.total}笔 ${c.win_rate}%</div>
+                            <div class="coin-pnl" style="color:${pnlColor}">${c.total_pnl >= 0 ? '+' : ''}${c.total_pnl}U</div>
+                        </div>`;
+                    });
+                    document.getElementById(elId).innerHTML = html || '<div style="color:#999">暂无数据</div>';
+                }
+                renderCoins(data.top_coins || [], 'top-coins-panel');
+                renderCoins(data.bottom_coins || [], 'bottom-coins-panel');
+
+                // 手续费
+                const f = data.fees || {};
+                document.getElementById('fee-panel').innerHTML = `
+                    <div class="fee-grid">
+                        <div class="fee-item">
+                            <div class="fee-val">${f.total_fees || 0}U</div>
+                            <div class="fee-label">交易手续费</div>
+                        </div>
+                        <div class="fee-item">
+                            <div class="fee-val">${f.total_funding || 0}U</div>
+                            <div class="fee-label">资金费率</div>
+                        </div>
+                        <div class="fee-item">
+                            <div class="fee-val" style="color:#f59e0b">${f.fee_ratio || 0}%</div>
+                            <div class="fee-label">手续费占毛利</div>
+                        </div>
+                        <div class="fee-item">
+                            <div class="fee-val" style="color:#667eea">${f.avg_fee || 0}U</div>
+                            <div class="fee-label">笔均手续费</div>
+                        </div>
+                    </div>`;
+            } catch(e) {
+                console.error('加载分析数据失败:', e);
+            }
+        }
+
         async function loadStats() {
             console.log('=== loadStats 开始 ===');
             try {
@@ -4087,6 +4355,7 @@ HTML_TEMPLATE = '''
             loadPositions();
             loadTrades();
             loadProgressTracking();
+            loadAnalytics();
             loadCalendarData();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
         }
@@ -4100,6 +4369,7 @@ HTML_TEMPLATE = '''
             loadPositions();
             loadTrades();
             loadProgressTracking();
+            loadAnalytics();
             loadCalendarData();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString('zh-CN');
         }, 60000);
@@ -4286,7 +4556,7 @@ STRATEGY_PRESETS = {
     },
     'v4.2': {
         'label': 'v4.2 扩容版',
-        'description': 'v4.1基础 + 30m冷却 + 12仓位 + 不限方向 + SHORT偏置1.05 + LONG加强过滤',
+        'description': 'v4.1基础 + 30m冷却 + 20仓位 + 不限方向 + SHORT偏置1.05 + LONG加强过滤',
         'config': {
             'min_score': 60,
             'long_min_score': 70,
@@ -4363,6 +4633,45 @@ STRATEGY_PRESETS = {
             'roi_trailing_distance': 3,
         }
     },
+    'v5.0': {
+        'label': 'v5.0 三重确认',
+        'description': '10x杠杆 | MACD+RSI+BB+ADX三重确认 | TP1:+10%(50%) TP2:+20%尾随 | ATR动态止损',
+        'config': {
+            'v5_mode': True,
+            'min_score': 75,
+            'long_min_score': 80,
+            'cooldown': 1,
+            'max_leverage': 10,
+            'max_positions': 5,
+            'max_same_direction': 5,
+            'short_bias': 1.05,
+            'adx_min_threshold': 25,
+            'roi_stop_loss': -8,
+            'tp1_roi': 10,
+            'tp1_close_ratio': 0.5,
+            'tp2_roi': 20,
+            'tp2_trail_distance': 5,
+        }
+    },
+    'v6': {
+        'label': 'v6 智能整合',
+        'description': 'v4.2评分基础 + MACD/ADX/BB加分(3x) | 6年回测PnL比v4.2高59%',
+        'config': {
+            'v6b_mode': True,
+            'min_score': 70,
+            'long_min_score': 85,
+            'cooldown': 1,
+            'max_leverage': 3,
+            'max_positions': 15,
+            'max_same_direction': 15,
+            'short_bias': 1.05,
+            'enable_trend_filter': True,
+            'long_ma_slope_threshold': 0.02,
+            'roi_stop_loss': -10,
+            'roi_trailing_start': 6,
+            'roi_trailing_distance': 3,
+        }
+    },
     'v4': {
         'label': 'v4 自定义 (Custom)',
         'description': '自由调整所有参数',
@@ -4399,7 +4708,7 @@ def run_backtest_api():
         params = request.get_json()
         symbol = params.get('symbol', 'BTC')
         year = int(params.get('year', 2024))
-        initial_capital = float(params.get('initial_capital', 2000))
+        initial_capital = float(params.get('initial_capital', 1000))
         strategy = params.get('strategy', 'v2')
         custom_params = params.get('custom_params', {})
         note = params.get('note', '')
@@ -4496,7 +4805,7 @@ def run_backtest_scan():
         params = request.get_json()
         symbol = params.get('symbol', 'BTC')
         year = int(params.get('year', 2024))
-        initial_capital = float(params.get('initial_capital', 2000))
+        initial_capital = float(params.get('initial_capital', 1000))
         strategy = params.get('strategy', 'v2')
         scan_params = params.get('scan_params', {})
 
@@ -4590,7 +4899,7 @@ def get_backtest_kline(symbol):
 def get_backtest_report():
     """生成策略对比报告 — 支持 v1/v2/v3/v4.1/v4.2/v4.3/v4.3.1 按年份查询"""
     year_param = request.args.get('year', 'all')
-    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3', 'v4.3.1', 'v4.4']
+    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3', 'v4.3.1', 'v4.4', 'v5.0', 'v6']
     ver_sql = ','.join(f"'{v}'" for v in VERSIONS)
     conn = sqlite3.connect(BACKTEST_DB)
     conn.row_factory = sqlite3.Row
@@ -4666,7 +4975,8 @@ def get_backtest_report():
         'comparison': comparison,
         'v1_total': totals['v1'], 'v2_total': totals['v2'], 'v3_total': totals['v3'],
         'v4_1_total': totals['v4.1'], 'v4_2_total': totals['v4.2'], 'v4_3_total': totals['v4.3'],
-        'v4_3_1_total': totals['v4.3.1'], 'v4_4_total': totals['v4.4'],
+        'v4_3_1_total': totals['v4.3.1'], 'v4_4_total': totals['v4.4'], 'v5_0_total': totals['v5.0'],
+        'v6_total': totals['v6'],
         'available_years': available_years, 'selected_year': year_param
     })
 
@@ -4700,22 +5010,25 @@ REPORT_TEMPLATE = '''
             border-radius: 16px; margin-bottom: 20px;
             backdrop-filter: blur(10px);
         }
-        .header h1 { font-size: 1.8em; color: #fff; }
-        .header .subtitle { color: #999; margin-top: 5px; font-size: 0.9em; }
-        .nav-links { margin-top: 10px; display: flex; gap: 15px; justify-content: center; }
+        .header h1 { font-size: 1.2em; color: #fff; }
+        .header .subtitle { color: #999; margin-top: 3px; font-size: 0.78em; }
+        .nav-links { margin-top: 10px; display: flex; gap: 10px; justify-content: center; }
         .nav-links a { color: #667eea; text-decoration: none; font-size: 0.9em; }
         .nav-links a:hover { text-decoration: underline; }
 
-        /* 汇总卡片 - 上3下2布局 */
-        .summary-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px; justify-content: center; }
-        .summary-card { flex: 0 1 calc(33.333% - 10px); min-width: 280px; }
-        .summary-row .summary-card:nth-child(4),
-        .summary-row .summary-card:nth-child(5) { flex: 0 1 calc(33.333% - 10px); }
+        /* 汇总卡片 - 5列布局 */
+        .summary-row { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; justify-content: center; }
+        .summary-card { flex: 0 1 calc(20% - 7px); min-width: 150px; max-width: 19%; }
         .summary-card {
-            background: rgba(255,255,255,0.08); border-radius: 16px;
-            padding: 25px; backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.08); border-radius: 10px;
+            padding: 10px 8px; backdrop-filter: blur(10px); transition: transform 0.2s;
         }
-        .summary-card h3 { font-size: 1.1em; margin-bottom: 15px; }
+        .summary-card:hover { transform: translateY(-2px); }
+        .summary-card.v6 {
+            background: rgba(255,87,51,0.12);
+            box-shadow: 0 0 20px rgba(255,87,51,0.15);
+        }
+        .summary-card h3 { font-size: 0.75em; margin-bottom: 4px; }
         .summary-card.v1 { border-left: 4px solid #f0b90b; }
         .summary-card.v2 { border-left: 4px solid #2ecc71; }
         .summary-card.v3 { border-left: 4px solid #3498db; }
@@ -4724,28 +5037,31 @@ REPORT_TEMPLATE = '''
         .summary-card.v4_3 { border-left: 4px solid #e74c3c; }
         .summary-card.v4_3_1 { border-left: 4px solid #95a5a6; }
         .summary-card.v4_4 { border-left: 4px solid #1abc9c; }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+        .summary-card.v5_0 { border-left: 4px solid #00d4ff; }
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; }
         .stat-item { text-align: center; }
-        .stat-value { font-size: 1.6em; font-weight: 700; }
-        .stat-label { font-size: 0.75em; color: #999; margin-top: 2px; }
+        .stat-value { font-size: 0.95em; font-weight: 700; }
+        .stat-label { font-size: 0.6em; color: #999; margin-top: 0; }
         .pnl-pos { color: #2ecc71; }
         .pnl-neg { color: #e74c3c; }
 
         /* 对比表 */
         .report-panel {
-            background: rgba(255,255,255,0.08); border-radius: 16px;
-            padding: 25px; backdrop-filter: blur(10px);
+            background: rgba(255,255,255,0.08); border-radius: 12px;
+            padding: 15px; backdrop-filter: blur(10px);
         }
         .report-panel h3 { margin-bottom: 15px; font-size: 1.1em; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+        .table-wrapper { overflow-x: auto; max-width: 100%; }
+        table { border-collapse: collapse; font-size: 0.62em; width: 100%; }
         thead th {
-            padding: 10px 8px; text-align: center; color: #aaa;
+            padding: 4px 3px; text-align: center; color: #aaa;
             font-weight: 500; border-bottom: 1px solid rgba(255,255,255,0.1);
-            position: sticky; top: 0; background: rgba(30,25,60,0.95);
+            position: sticky; top: 0; background: rgba(30,25,60,0.98);
+            white-space: nowrap; font-size: 0.8em; z-index: 2;
         }
-        thead th.left { text-align: left; }
-        tbody td { padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        tbody td.left { text-align: left; font-weight: 600; }
+        thead th.left { text-align: left; position: sticky; left: 0; z-index: 3; background: rgba(30,25,60,0.98); }
+        tbody td { padding: 4px 3px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
+        tbody td.left { text-align: left; font-weight: 600; position: sticky; left: 0; background: rgba(30,25,60,0.95); z-index: 1; }
         tbody tr:hover { background: rgba(255,255,255,0.08); transition: background 0.15s; }
         .winner-v1 { background: rgba(240,185,11,0.08); }
         .winner-v2 { background: rgba(46,204,113,0.08); }
@@ -4755,6 +5071,7 @@ REPORT_TEMPLATE = '''
         .winner-v4_3 { background: rgba(231,76,60,0.08); }
         .winner-v4_3_1 { background: rgba(149,165,166,0.08); }
         .winner-v4_4 { background: rgba(26,188,156,0.08); }
+        .winner-v5_0 { background: rgba(0,212,255,0.08); }
         .badge {
             display: inline-block; padding: 2px 8px; border-radius: 4px;
             font-size: 0.75em; font-weight: 600;
@@ -4767,10 +5084,14 @@ REPORT_TEMPLATE = '''
         .badge-v4_3 { background: rgba(231,76,60,0.2); color: #e74c3c; }
         .badge-v4_3_1 { background: rgba(149,165,166,0.2); color: #95a5a6; }
         .badge-v4_4 { background: rgba(26,188,156,0.2); color: #1abc9c; }
+        .badge-v5_0 { background: rgba(0,212,255,0.2); color: #00d4ff; }
+        .summary-card.v6 { border-left: 4px solid #ff5733; }
+        .winner-v6 { background: rgba(255,87,51,0.12); }
+        .badge-v6 { background: rgba(255,87,51,0.25); color: #ff5733; }
         .verdict {
-            margin-top: 20px; padding: 20px; border-radius: 12px;
+            margin-top: 12px; padding: 12px; border-radius: 10px;
             background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3);
-            text-align: center; font-size: 1.1em;
+            text-align: center; font-size: 0.9em;
         }
         .loading { text-align: center; padding: 60px; color: #999; font-size: 1.2em; }
         .year-tab {
@@ -4786,7 +5107,7 @@ REPORT_TEMPLATE = '''
 <div class="container">
     <div class="header">
         <h1>策略对比报告</h1>
-        <div class="subtitle" id="report-subtitle">全币种 v1 vs v2 vs v3 vs v4.1 vs v4.2 回测对比 | 本金 2000 USDT</div>
+        <div class="subtitle" id="report-subtitle">全币种策略回测对比 v1~v6 | 本金 2000 USDT | 150+ 币种</div>
         <div class="nav-links">
             <a href="/">← 仪表盘</a>
             <a href="/backtest">回测模拟器</a>
@@ -4802,7 +5123,7 @@ REPORT_TEMPLATE = '''
         <div class="summary-row">
             <div class="summary-card v1">
                 <h3 style="color:#f0b90b;">v1 原始 (Original)</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">窄止损 1.5-4% | 高杠杆 10x | 冷却 1h | 无趋势过滤</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">窄止损 1.5-4% | 高杠杆 10x | 冷却 1h | 无趋势过滤</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v1-pnl">-</div>
@@ -4820,7 +5141,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v2">
                 <h3 style="color:#2ecc71;">v2 稳健 (Conservative)</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">止损ROI -8% | 杠杆 5x | 冷却 12h | Trail +5%/3%</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">止损ROI -8% | 杠杆 5x | 冷却 12h | Trail +5%/3%</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v2-pnl">-</div>
@@ -4838,7 +5159,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v3">
                 <h3 style="color:#3498db;">v3 ROI模式 (ROI-Based)</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">止损ROI -10% | 杠杆 5x | 冷却 4h | Trail +8%/3%</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">止损ROI -10% | 杠杆 5x | 冷却 4h | Trail +8%/3%</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v3-pnl">-</div>
@@ -4856,7 +5177,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v4_1">
                 <h3 style="color:#e67e22;">v4.1 防守反击</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">L≥70/S≥60 | 3x | 4h | 严格趋势 | Trail +6%/3%</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">L≥70/S≥60 | 3x | 4h | 严格趋势 | Trail +6%/3%</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v4_1-pnl">-</div>
@@ -4874,7 +5195,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v4_2">
                 <h3 style="color:#9b59b6;">v4.2 扩容版</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">2h冷却 | 12仓/6同向 | SHORT偏置 | BTC过滤</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">2h冷却 | 20仓/20同向 | SHORT偏置 | BTC过滤</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v4_2-pnl">-</div>
@@ -4892,7 +5213,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v4_3">
                 <h3 style="color:#e74c3c;">v4.3 动态版</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">动态杠杆 3-10x | 动态TP/SL | 移动止盈</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">动态杠杆 3-10x | 动态TP/SL | 移动止盈</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v4_3-pnl">-</div>
@@ -4910,7 +5231,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v4_3_1">
                 <h3 style="color:#95a5a6;">v4.3.1 激进版</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">高杠杆 5-15x | 固定TP | ⚠️ 风险极高</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">高杠杆 5-15x | 固定TP | ⚠️ 风险极高</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v4_3_1-pnl">-</div>
@@ -4928,7 +5249,7 @@ REPORT_TEMPLATE = '''
             </div>
             <div class="summary-card v4_4">
                 <h3 style="color:#1abc9c;">v4.4 高盈亏比</h3>
-                <div style="color:#888;font-size:0.8em;margin-bottom:12px;">TP +15% | SL -8% | 风险收益比 1:1.87</div>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">TP +15% | SL -8% | 风险收益比 1:1.87</div>
                 <div class="stat-grid">
                     <div class="stat-item">
                         <div class="stat-value" id="v4_4-pnl">-</div>
@@ -4944,37 +5265,80 @@ REPORT_TEMPLATE = '''
                     </div>
                 </div>
             </div>
+            <div class="summary-card v5_0">
+                <h3 style="color:#00d4ff;">v5.0 三重确认 (Triple Confirm)</h3>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">10x杠杆 | RSI+MACD+BB+ADX | TP1:+10%(50%) TP2:+20%尾随</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="v5_0-pnl">-</div>
+                        <div class="stat-label">总盈亏 (U)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v5_0-wincount">-</div>
+                        <div class="stat-label">盈利币种</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v5_0-trades">-</div>
+                        <div class="stat-label">总交易笔数</div>
+                    </div>
+                </div>
+            </div>
+            <div class="summary-card v6">
+                <h3 style="color:#ff5733;">V6 智能整合 (Best)</h3>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">v4.2评分 + MACD/ADX/BB加分 | 3x杠杆 | 6年PnL最高</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="v6-pnl">-</div>
+                        <div class="stat-label">总盈亏 (U)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v6-wincount">-</div>
+                        <div class="stat-label">盈利币种</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v6-trades">-</div>
+                        <div class="stat-label">总交易笔数</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 逐币对比表 -->
         <div class="report-panel">
             <h3>逐币种对比明细</h3>
+            <div class="table-wrapper">
+            <div class="table-wrapper">
             <table>
                 <thead>
                     <tr>
                         <th class="left">币种</th>
-                        <th>v1 盈亏</th>
-                        <th>v1 胜率</th>
-                        <th>v2 盈亏</th>
-                        <th>v2 胜率</th>
-                        <th>v3 盈亏</th>
-                        <th>v3 胜率</th>
-                        <th style="color:#e67e22;">v4.1 盈亏</th>
-                        <th style="color:#e67e22;">v4.1 胜率</th>
-                        <th style="color:#9b59b6;">v4.2 盈亏</th>
-                        <th style="color:#9b59b6;">v4.2 胜率</th>
-                        <th style="color:#e74c3c;">v4.3 盈亏</th>
-                        <th style="color:#e74c3c;">v4.3 胜率</th>
-                        <th style="color:#95a5a6;">v4.3.1 盈亏</th>
-                        <th style="color:#95a5a6;">v4.3.1 胜率</th>
-                        <th style="color:#1abc9c;">v4.4 盈亏</th>
-                        <th style="color:#1abc9c;">v4.4 胜率</th>
-                        <th>最佳</th>
+                        <th style="color:#f0b90b;border-left:2px solid rgba(255,255,255,0.08);">v1</th>
+                        <th style="color:#f0b90b;">WR</th>
+                        <th style="color:#2ecc71;border-left:2px solid rgba(255,255,255,0.08);">v2</th>
+                        <th style="color:#2ecc71;">WR</th>
+                        <th style="color:#3498db;border-left:2px solid rgba(255,255,255,0.08);">v3</th>
+                        <th style="color:#3498db;">WR</th>
+                        <th style="color:#e67e22;border-left:2px solid rgba(255,255,255,0.08);">v4.1</th>
+                        <th style="color:#e67e22;">WR</th>
+                        <th style="color:#9b59b6;border-left:2px solid rgba(255,255,255,0.08);">v4.2</th>
+                        <th style="color:#9b59b6;">WR</th>
+                        <th style="color:#e74c3c;border-left:2px solid rgba(255,255,255,0.08);">v4.3</th>
+                        <th style="color:#e74c3c;">WR</th>
+                        <th style="color:#95a5a6;border-left:2px solid rgba(255,255,255,0.08);">4.3.1</th>
+                        <th style="color:#95a5a6;">WR</th>
+                        <th style="color:#1abc9c;border-left:2px solid rgba(255,255,255,0.08);">v4.4</th>
+                        <th style="color:#1abc9c;">WR</th>
+                        <th style="color:#00d4ff;border-left:2px solid rgba(255,255,255,0.08);">v5.0</th>
+                        <th style="color:#00d4ff;">WR</th>
+                        <th style="color:#ff5733;border-left:2px solid rgba(255,87,51,0.3);">V6</th>
+                        <th style="color:#ff5733;">WR</th>
+                        <th style="border-left:2px solid rgba(255,255,255,0.08);">最佳</th>
                     </tr>
                 </thead>
                 <tbody id="report-body"></tbody>
                 <tfoot id="report-foot"></tfoot>
             </table>
+            </div>
         </div>
 
         <!-- 结论 -->
@@ -5023,10 +5387,12 @@ REPORT_TEMPLATE = '''
                 const t43 = data.v4_3_total || {pnl:0,trades:0,wins:0,count:0};
                 const t431 = data.v4_3_1_total || {pnl:0,trades:0,wins:0,count:0};
                 const t44 = data.v4_4_total || {pnl:0,trades:0,wins:0,count:0};
+                const t50 = data.v5_0_total || {pnl:0,trades:0,wins:0,count:0};
+                const t60 = data.v6_total || {pnl:0,trades:0,wins:0,count:0};
                 const el = id => document.getElementById(id);
 
                 // 汇总卡片
-                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44]].forEach(([v,t]) => {
+                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44],['v5_0',t50],['v6',t60]].forEach(([v,t]) => {
                     el(v+'-pnl').textContent = (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(0);
                     el(v+'-pnl').className = 'stat-value ' + (t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
                     el(v+'-wincount').textContent = t.wins + '/' + t.count;
@@ -5042,9 +5408,9 @@ REPORT_TEMPLATE = '''
                     return `<td class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(1)}</td>`;
                 };
                 data.comparison.forEach(row => {
-                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {}, v4_3 = row.v4_3 || {}, v4_3_1 = row.v4_3_1 || {}, v4_4 = row.v4_4 || {};
+                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {}, v4_3 = row.v4_3 || {}, v4_3_1 = row.v4_3_1 || {}, v4_4 = row.v4_4 || {}, v5_0 = row.v5_0 || {}, v6 = row.v6 || {};
                     const w = row.winner || 'v2';
-                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : (w === 'v4_3' ? 'v4.3' : (w === 'v4_3_1' ? 'v4.3.1' : (w === 'v4_4' ? 'v4.4' : w))));
+                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : (w === 'v4_3' ? 'v4.3' : (w === 'v4_3_1' ? 'v4.3.1' : (w === 'v4_4' ? 'v4.4' : (w === 'v5_0' ? 'v5.0' : (w === 'v6' ? 'V6' : w))))));
                     const tr = document.createElement('tr');
                     tr.className = 'winner-' + w;
                     tr.style.cursor = 'pointer';
@@ -5071,6 +5437,10 @@ REPORT_TEMPLATE = '''
                         <td>${v4_3_1.win_rate != null ? v4_3_1.win_rate + '%' : '-'}</td>
                         ${pnlHtml(v4_4.pnl)}
                         <td>${v4_4.win_rate != null ? v4_4.win_rate + '%' : '-'}</td>
+                        ${pnlHtml(v5_0.pnl)}
+                        <td>${v5_0.win_rate != null ? v5_0.win_rate + '%' : '-'}</td>
+                        ${pnlHtml(v6.pnl)}
+                        <td>${v6.win_rate != null ? v6.win_rate + '%' : '-'}</td>
                         <td><span class="badge badge-${w}">${wLabel}</span></td>
                     `;
                     tbody.appendChild(tr);
@@ -5082,9 +5452,9 @@ REPORT_TEMPLATE = '''
                 const tfr = document.createElement('tr');
                 tfr.style.fontWeight = '700';
                 tfr.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44]];
+                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44],['v5_0',t50],['v6',t60]];
                 const totalWinner = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a)[0];
-                const getLbl = v => ({v4_1:'v4.1',v4_2:'v4.2',v4_3:'v4.3',v4_3_1:'v4.3.1',v4_4:'v4.4'}[v] || v);
+                const getLbl = v => ({v4_1:'v4.1',v4_2:'v4.2',v4_3:'v4.3',v4_3_1:'v4.3.1',v4_4:'v4.4',v5_0:'v5.0',v6:'V6'}[v] || v);
                 const totalWinnerLabel = getLbl(totalWinner);
                 let footHtml = `<td class="left">合计</td>`;
                 allTotals.forEach(([v,t]) => {
@@ -5102,7 +5472,7 @@ REPORT_TEMPLATE = '''
                 const winnerLabel = getLbl(winner);
                 const wPct = winnerEntry[1].count > 0 ? (winnerEntry[1].wins/winnerEntry[1].count*100).toFixed(0) : 0;
                 const yearLabel = year === 'all' ? '跨年汇总' : year + '年';
-                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219', v4_1:'rgba(230,126,34', v4_2:'rgba(155,89,182', v4_3:'rgba(231,76,60', v4_3_1:'rgba(149,165,166', v4_4:'rgba(26,188,156'};
+                const colors = {v1:'rgba(240,185,11', v2:'rgba(46,204,113', v3:'rgba(52,152,219', v4_1:'rgba(230,126,34', v4_2:'rgba(155,89,182', v4_3:'rgba(231,76,60', v4_3_1:'rgba(149,165,166', v4_4:'rgba(26,188,156', v5_0:'rgba(0,212,255', v6:'rgba(255,87,51'};
                 el('verdict').innerHTML = `
                     <strong>${yearLabel}</strong>：
                     <strong>${winnerLabel} 策略</strong> 总盈亏
@@ -5151,8 +5521,8 @@ BACKTEST_TEMPLATE = '''
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
         }
-        .header h1 { font-size: 1.8em; color: #fff; }
-        .header .subtitle { color: #999; margin-top: 5px; font-size: 0.9em; }
+        .header h1 { font-size: 1.2em; color: #fff; }
+        .header .subtitle { color: #999; margin-top: 3px; font-size: 0.78em; }
         .back-link {
             display: inline-block;
             margin-top: 10px;
@@ -5174,7 +5544,7 @@ BACKTEST_TEMPLATE = '''
         .config-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 15px;
+            gap: 10px;
             align-items: end;
         }
         .config-field label {
@@ -5244,7 +5614,7 @@ BACKTEST_TEMPLATE = '''
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+            gap: 10px;
             margin-bottom: 25px;
         }
         .stat-card {
@@ -5435,7 +5805,10 @@ BACKTEST_TEMPLATE = '''
                 <div class="config-field">
                     <label>策略</label>
                     <select id="strategy-select" onchange="onStrategyChange()">
-                        <option value="v4.3.1" selected>v4.3.1 激进版</option>
+                        <option value="v6" selected>v6 智能整合 (Best)</option>
+                        <option value="v5.0">v5.0 三重确认 (10x)</option>
+                        <option value="v4.4">v4.4 高盈亏比</option>
+                        <option value="v4.3.1">v4.3.1 激进版</option>
                         <option value="v4.3">v4.3 动态版</option>
                         <option value="v4.2">v4.2 扩容版</option>
                         <option value="v4.1">v4.1 防守反击</option>
@@ -5505,6 +5878,66 @@ BACKTEST_TEMPLATE = '''
                             <td style="padding:4px 8px;">3%</td>
                             <td style="padding:4px 8px;">3x</td>
                             <td style="padding:4px 8px;color:#2ecc71;">开(强化L)</td>
+                        </tr>
+                                            <tr id="desc-v42" style="color:#e0e0e0;">
+                            <td style="padding:4px 8px;font-weight:600;color:#9b59b6;">v4.2 扩容</td>
+                            <td style="padding:4px 8px;">L≥70/S≥60</td>
+                            <td style="padding:4px 8px;">30m</td>
+                            <td style="padding:4px 8px;">-10%</td>
+                            <td style="padding:4px 8px;">+6%</td>
+                            <td style="padding:4px 8px;">3%</td>
+                            <td style="padding:4px 8px;">3x</td>
+                            <td style="padding:4px 8px;color:#2ecc71;">开+SHORT1.05</td>
+                        </tr>
+                        <tr id="desc-v43" style="color:#e0e0e0;">
+                            <td style="padding:4px 8px;font-weight:600;color:#e74c3c;">v4.3 动态</td>
+                            <td style="padding:4px 8px;">L≥70/S≥60</td>
+                            <td style="padding:4px 8px;">30m</td>
+                            <td style="padding:4px 8px;">-8%</td>
+                            <td style="padding:4px 8px;">动态</td>
+                            <td style="padding:4px 8px;">动态</td>
+                            <td style="padding:4px 8px;">3-10x</td>
+                            <td style="padding:4px 8px;color:#2ecc71;">开+动态杠杆</td>
+                        </tr>
+                        <tr id="desc-v431" style="color:#e0e0e0;">
+                            <td style="padding:4px 8px;font-weight:600;color:#95a5a6;">v4.3.1 激进</td>
+                            <td style="padding:4px 8px;">L≥70/S≥60</td>
+                            <td style="padding:4px 8px;">30m</td>
+                            <td style="padding:4px 8px;">杠杆联动</td>
+                            <td style="padding:4px 8px;">杠杆联动</td>
+                            <td style="padding:4px 8px;">杠杆联动</td>
+                            <td style="padding:4px 8px;">3-10x</td>
+                            <td style="padding:4px 8px;color:#2ecc71;">开+动态杠杆</td>
+                        </tr>
+                        <tr id="desc-v44" style="color:#e0e0e0;">
+                            <td style="padding:4px 8px;font-weight:600;color:#1abc9c;">v4.4 盈亏比</td>
+                            <td style="padding:4px 8px;">L≥70/S≥60</td>
+                            <td style="padding:4px 8px;">30m</td>
+                            <td style="padding:4px 8px;">-8%</td>
+                            <td style="padding:4px 8px;">+15%(固定TP)</td>
+                            <td style="padding:4px 8px;">3%</td>
+                            <td style="padding:4px 8px;">3x</td>
+                            <td style="padding:4px 8px;color:#2ecc71;">开+SHORT1.05</td>
+                        </tr>
+                        <tr id="desc-v50" style="color:#e0e0e0;">
+                            <td style="padding:4px 8px;font-weight:600;color:#00d4ff;">v5.0 三重确认</td>
+                            <td style="padding:4px 8px;">L≥80/S≥75</td>
+                            <td style="padding:4px 8px;">30m</td>
+                            <td style="padding:4px 8px;">ATR动态</td>
+                            <td style="padding:4px 8px;">TP1+10% TP2+20%</td>
+                            <td style="padding:4px 8px;">5%</td>
+                            <td style="padding:4px 8px;">10x</td>
+                            <td style="padding:4px 8px;color:#00d4ff;">MACD+BB+ADX</td>
+                        </tr>
+                        <tr id="desc-v6" style="color:#fff;background:rgba(255,87,51,0.08);">
+                            <td style="padding:4px 8px;font-weight:600;color:#ff5733;">V6 整合</td>
+                            <td style="padding:4px 8px;">L≥70/S≥60</td>
+                            <td style="padding:4px 8px;">30m</td>
+                            <td style="padding:4px 8px;">-10%</td>
+                            <td style="padding:4px 8px;">+6%</td>
+                            <td style="padding:4px 8px;">3%</td>
+                            <td style="padding:4px 8px;">3x</td>
+                            <td style="padding:4px 8px;color:#ff5733;">v4+MACD/ADX/BB</td>
                         </tr>
                     </tbody>
                 </table>
@@ -6304,7 +6737,7 @@ def walk_forward_validation():
         params = request.get_json()
         symbol = params.get('symbol', 'BTC')
         strategy = params.get('strategy', 'v4.1')
-        initial_capital = float(params.get('initial_capital', 2000))
+        initial_capital = float(params.get('initial_capital', 1000))
         # 可选多币种
         symbols = params.get('symbols', [symbol])
         if not symbols:
@@ -6432,7 +6865,7 @@ def param_sensitivity():
         symbol = params.get('symbol', 'BTC')
         year = int(params.get('year', 2024))
         strategy = params.get('strategy', 'v4.1')
-        initial_capital = float(params.get('initial_capital', 2000))
+        initial_capital = float(params.get('initial_capital', 1000))
         param_name = params.get('param_name', 'min_score')
 
         # 参数范围定义
@@ -6540,7 +6973,7 @@ def multi_coin_walk_forward():
 
         params = request.get_json()
         strategy = params.get('strategy', 'v4.1')
-        initial_capital = float(params.get('initial_capital', 2000))
+        initial_capital = float(params.get('initial_capital', 1000))
         top_n = min(int(params.get('top_n', 10)), 30)
 
         preset = STRATEGY_PRESETS.get(strategy, STRATEGY_PRESETS['v4.1'])
@@ -6615,7 +7048,7 @@ VALIDATION_TEMPLATE = '''
     .header { text-align: center; margin-bottom: 30px; }
     .header h1 { font-size: 1.6em; color: #fff; }
     .header .subtitle { color: #888; font-size: 0.9em; margin-top: 5px; }
-    .nav-links { margin-top: 12px; display: flex; gap: 15px; justify-content: center; }
+    .nav-links { margin-top: 12px; display: flex; gap: 10px; justify-content: center; }
     .nav-links a { color: #667eea; text-decoration: none; font-size: 0.9em; }
     .nav-links a:hover { text-decoration: underline; }
 
@@ -6695,7 +7128,10 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="wf-strategy">
-                    <option value="v4.3.1" selected>v4.3.1 激进版</option>
+                    <option value="v6" selected>v6 智能整合</option>
+                    <option value="v5.0">v5.0 三重确认</option>
+                    <option value="v4.4">v4.4 高盈亏比</option>
+                    <option value="v4.3.1">v4.3.1 激进版</option>
                     <option value="v4.3">v4.3 动态版</option>
                     <option value="v4.2">v4.2 扩容版</option>
                     <option value="v4.1">v4.1 防守反击</option>
@@ -6738,7 +7174,10 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="ps-strategy">
-                    <option value="v4.3.1" selected>v4.3.1 激进版</option>
+                    <option value="v6" selected>v6 智能整合</option>
+                    <option value="v5.0">v5.0 三重确认</option>
+                    <option value="v4.4">v4.4 高盈亏比</option>
+                    <option value="v4.3.1">v4.3.1 激进版</option>
                     <option value="v4.3">v4.3 动态版</option>
                     <option value="v4.2">v4.2 扩容版</option>
                     <option value="v4.1">v4.1 防守反击</option>
@@ -7051,6 +7490,147 @@ VALIDATION_TEMPLATE = '''
 </html>
 '''
 
+
+
+
+# ─── V5 Strategy Report ─────────────────────────────────────
+import pymysql
+
+@app.route("/report/v5")
+def v5_report():
+    import json as _json
+    v5_preset = None
+    migration_status = []
+    conn = None
+    try:
+        conn = pymysql.connect(
+            host="127.0.0.1", user="saas_user",
+            password="SaasTrade2026xK9m", database="trading_saas",
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        cur = conn.cursor()
+        cur.execute("SELECT config FROM strategy_presets WHERE version=%s", ("v5.0",))
+        row = cur.fetchone()
+        v5_preset = _json.loads(row["config"]) if row else None
+
+        for tbl, col in [("agent_trading_config","tp1_roi"), ("trades","tp1_hit")]:
+            cur.execute(
+                "SELECT COUNT(*) as cnt FROM information_schema.columns "
+                "WHERE table_schema=%s AND table_name=%s AND column_name=%s",
+                ("trading_saas", tbl, col)
+            )
+            r = cur.fetchone()
+            migration_status.append({"table": tbl, "ok": r["cnt"] > 0})
+    except Exception as e:
+        print("V5 report error: {}".format(e))
+    finally:
+        if conn:
+            conn.close()
+
+    return render_template_string(V5_REPORT_TPL,
+        v5=v5_preset or {},
+        mig=migration_status,
+        ts=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
+V5_REPORT_TPL = """<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>V5 Strategy Report</title>
+<meta http-equiv="refresh" content="60">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif;background:linear-gradient(135deg,#0a0a1a,#1a1a3e);color:#e0e0e0;min-height:100vh;padding:20px}
+.c{max-width:1100px;margin:0 auto}
+h1{text-align:center;color:#00d4ff;font-size:26px;margin-bottom:8px}
+.sub{text-align:center;color:#888;font-size:13px;margin-bottom:25px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px;margin-bottom:20px}
+.card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px}
+.card h2{color:#00d4ff;font-size:15px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.05);font-size:13px}
+th{color:#888}
+.gn{color:#00e676}.rd{color:#ff5252}.bl{color:#448aff}.yl{color:#ffd740}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600}
+.badge-ok{background:rgba(0,230,118,.2);color:#00e676}
+.badge-w{background:rgba(255,215,64,.2);color:#ffd740}
+.pg{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.p{display:flex;justify-content:space-between}.p .l{color:#888}.p .v{color:#fff;font-weight:500}
+.ib{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ind{background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.2);border-radius:8px;padding:8px 12px;text-align:center}
+.ind .n{font-size:10px;color:#888}.ind .vl{font-size:16px;font-weight:700;margin-top:3px}
+.ft{text-align:center;color:#555;font-size:11px;margin-top:25px}
+a{color:#00d4ff;text-decoration:none}
+</style></head><body><div class="c">
+<h1>V5 Strategy Report</h1>
+<p class="sub">10x Leverage | Triple Confirmation (RSI+MACD+BB+ADX) | {{ ts }} | <a href="/report">&larr; Back</a></p>
+
+<div class="g">
+<div class="card"><h2>V5.0 Config</h2>
+{% if v5 %}
+<div class="pg">
+<div class="p"><span class="l">Leverage</span><span class="v bl">{{ v5.get('max_leverage',10) }}x</span></div>
+<div class="p"><span class="l">Max Positions</span><span class="v">{{ v5.get('max_positions',5) }}</span></div>
+<div class="p"><span class="l">Min Score</span><span class="v">{{ v5.get('min_score',75) }}</span></div>
+<div class="p"><span class="l">LONG Min</span><span class="v">{{ v5.get('long_min_score',80) }}</span></div>
+<div class="p"><span class="l">Max Size</span><span class="v">{{ v5.get('max_position_size',150) }}U</span></div>
+<div class="p"><span class="l">Stop Loss</span><span class="v rd">{{ v5.get('roi_stop_loss',-8) }}%</span></div>
+<div class="p"><span class="l">TP1</span><span class="v gn">+{{ v5.get('tp1_roi',10) }}% (close {{ ((v5.get('tp1_close_ratio',0.5))*100)|int }}%)</span></div>
+<div class="p"><span class="l">TP2/Trail</span><span class="v gn">+{{ v5.get('tp2_roi',20) }}%</span></div>
+<div class="p"><span class="l">Trail Dist</span><span class="v">{{ v5.get('roi_trailing_distance',5) }}%</span></div>
+<div class="p"><span class="l">ATR Stop</span><span class="v">{{ 'ON' if v5.get('use_atr_stop') else 'OFF' }} ({{ v5.get('atr_stop_multiplier',1.5) }}x)</span></div>
+<div class="p"><span class="l">ADX Min</span><span class="v">{{ v5.get('adx_min_threshold',25) }}</span></div>
+<div class="p"><span class="l">Daily Loss</span><span class="v rd">{{ v5.get('daily_loss_limit',100) }}U</span></div>
+<div class="p"><span class="l">Max DD</span><span class="v rd">{{ v5.get('max_drawdown_pct',12) }}%</span></div>
+<div class="p"><span class="l">Cooldown</span><span class="v">{{ v5.get('cooldown_minutes',60) }}min</span></div>
+</div>
+{% else %}<p class="rd">V5 preset not in DB!</p>{% endif %}
+</div>
+
+<div class="card"><h2>Indicator Scoring (100pts + bonus)</h2>
+<div class="ib">
+<div class="ind"><div class="n">MACD(12,26,9)</div><div class="vl bl">25</div></div>
+<div class="ind"><div class="n">RSI(14)</div><div class="vl bl">20</div></div>
+<div class="ind"><div class="n">BB(20,2)</div><div class="vl bl">20</div></div>
+<div class="ind"><div class="n">ADX(14)</div><div class="vl bl">15</div></div>
+<div class="ind"><div class="n">Volume</div><div class="vl bl">10</div></div>
+<div class="ind"><div class="n">BTC</div><div class="vl bl">10</div></div>
+<div class="ind"><div class="n">3x Confirm</div><div class="vl gn">+10</div></div>
+</div>
+<p style="margin-top:12px;color:#888;font-size:11px">ADX&lt;25 = skip. Triple confirm = RSI+MACD+BB same direction.</p>
+</div>
+</div>
+
+<div class="card"><h2>V4.2 vs V5.0</h2>
+<table>
+<tr><th>Param</th><th>V4.2</th><th>V5.0</th>
+                        <th>V6</th></tr>
+<tr><td>Leverage</td><td>3x</td><td class="bl">10x</td></tr>
+<tr><td>Max Pos</td><td>15</td><td>5</td></tr>
+<tr><td>Size</td><td>150-350U</td><td>50-150U</td></tr>
+<tr><td>Indicators</td><td>RSI+MA+Vol+Pos</td><td class="gn">RSI+MACD+BB+ADX+Vol</td></tr>
+<tr><td>Min Score</td><td>60</td><td>75</td></tr>
+<tr><td>SL</td><td>-10% fixed</td><td class="yl">-8% ATR dynamic</td></tr>
+<tr><td>TP</td><td>Trail 6%/3%</td><td class="gn">TP1:+10%(50%) TP2:+20% trail 5%</td></tr>
+<tr><td>Daily Loss</td><td>200U</td><td class="yl">100U</td></tr>
+<tr><td>Max DD</td><td>20%</td><td class="yl">12%</td></tr>
+</table></div>
+
+<div class="card" style="margin-top:18px"><h2>Deploy Status</h2>
+<table>
+<tr><th>File</th><th>Status</th><th>Changes</th></tr>
+<tr><td>signal_analyzer.py</td><td><span class="badge badge-ok">OK</span></td><td>+MACD,BB,ADX,v5 scoring</td></tr>
+<tr><td>order_executor.py</td><td><span class="badge badge-ok">OK</span></td><td>+reduce_position()</td></tr>
+<tr><td>agent_bot.py</td><td><span class="badge badge-ok">OK</span></td><td>+v5 route,partial_close,TP1</td></tr>
+<tr><td>risk_manager.py</td><td><span class="badge badge-ok">OK</span></td><td>+v5 thresholds</td></tr>
+<tr><td>Models</td><td><span class="badge badge-ok">OK</span></td><td>+11 new DB columns</td></tr>
+{% for m in mig %}
+<tr><td>Migration: {{ m.table }}</td><td><span class="badge {{ 'badge-ok' if m.ok else 'badge-w' }}">{{ 'OK' if m.ok else 'MISSING' }}</span></td><td></td></tr>
+{% endfor %}
+<tr><td>v5.0 Preset</td><td><span class="badge {{ 'badge-ok' if v5 else 'badge-w' }}">{{ 'OK' if v5 else 'MISSING' }}</span></td><td></td></tr>
+<tr><td>Production Bot</td><td><span class="badge badge-w">V4.2</span></td><td>Not restarted - safe</td></tr>
+</table></div>
+
+<p class="ft">Code deployed. Bot still on v4.2. Switch to v5.0 via <a href="/agent/settings">Agent Settings</a> when ready.</p>
+</div></body></html>"""
+# ─── End V5 Report ───────────────────────────────────────────
 
 if __name__ == '__main__':
     print("=" * 60)

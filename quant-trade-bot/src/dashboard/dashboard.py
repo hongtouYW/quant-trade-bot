@@ -1,3 +1,4 @@
+import pymysql
 import json
 import time
 from datetime import datetime
@@ -350,6 +351,226 @@ def api_status():
         'prices': get_prices(config),
         'time': datetime.now().isoformat()
     })
+
+#!/usr/bin/env python3
+"""Add /report route to the 5111 dashboard for V5 strategy status."""
+
+# This code gets appended before `if __name__` in the dashboard.py
+
+import pymysql
+
+V5_REPORT_HTML = '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>V5 Strategy Report</title>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="60">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0a0a1a 0%, #1a1a3e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 10px; color: #00d4ff; font-size: 28px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 30px; font-size: 14px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card h2 { color: #00d4ff; font-size: 16px; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+        th { color: #888; font-weight: 500; }
+        .green { color: #00e676; }
+        .red { color: #ff5252; }
+        .yellow { color: #ffd740; }
+        .blue { color: #448aff; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+        .badge-ok { background: rgba(0,230,118,0.2); color: #00e676; }
+        .badge-warn { background: rgba(255,215,64,0.2); color: #ffd740; }
+        .badge-new { background: rgba(0,212,255,0.2); color: #00d4ff; }
+        .param-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .param { display: flex; justify-content: space-between; }
+        .param-label { color: #888; }
+        .param-value { color: #fff; font-weight: 500; }
+        .indicator-box { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+        .indicator { background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.2); border-radius: 8px; padding: 10px 15px; text-align: center; }
+        .indicator .name { font-size: 11px; color: #888; }
+        .indicator .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
+        .comparison { margin-top: 20px; }
+        .comparison table th { color: #00d4ff; }
+        .footer { text-align: center; color: #555; font-size: 12px; margin-top: 30px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>V5 Strategy Report</h1>
+    <p class="subtitle">10x Leverage | Triple Confirmation (RSI + MACD + BB + ADX) | Updated: {{ update_time }}</p>
+
+    <div class="grid">
+        <div class="card">
+            <h2>V5 Strategy Config</h2>
+            {% if v5_preset %}
+            <div class="param-grid">
+                <div class="param"><span class="param-label">Leverage</span><span class="param-value blue">{{ v5_preset.get('max_leverage', 10) }}x</span></div>
+                <div class="param"><span class="param-label">Max Positions</span><span class="param-value">{{ v5_preset.get('max_positions', 5) }}</span></div>
+                <div class="param"><span class="param-label">Min Score</span><span class="param-value">{{ v5_preset.get('min_score', 75) }}</span></div>
+                <div class="param"><span class="param-label">LONG Min Score</span><span class="param-value">{{ v5_preset.get('long_min_score', 80) }}</span></div>
+                <div class="param"><span class="param-label">Max Position Size</span><span class="param-value">{{ v5_preset.get('max_position_size', 150) }}U</span></div>
+                <div class="param"><span class="param-label">ROI Stop Loss</span><span class="param-value red">{{ v5_preset.get('roi_stop_loss', -8) }}%</span></div>
+                <div class="param"><span class="param-label">TP1 ROI</span><span class="param-value green">+{{ v5_preset.get('tp1_roi', 10) }}% (close {{ (v5_preset.get('tp1_close_ratio', 0.5) * 100)|int }}%)</span></div>
+                <div class="param"><span class="param-label">TP2 / Trailing Start</span><span class="param-value green">+{{ v5_preset.get('tp2_roi', 20) }}%</span></div>
+                <div class="param"><span class="param-label">Trailing Distance</span><span class="param-value">{{ v5_preset.get('roi_trailing_distance', 5) }}%</span></div>
+                <div class="param"><span class="param-label">ATR Stop</span><span class="param-value">{{ 'ON' if v5_preset.get('use_atr_stop') else 'OFF' }} ({{ v5_preset.get('atr_stop_multiplier', 1.5) }}x ATR)</span></div>
+                <div class="param"><span class="param-label">ADX Threshold</span><span class="param-value">{{ v5_preset.get('adx_min_threshold', 25) }}</span></div>
+                <div class="param"><span class="param-label">Daily Loss Limit</span><span class="param-value red">{{ v5_preset.get('daily_loss_limit', 100) }}U</span></div>
+                <div class="param"><span class="param-label">Max Drawdown</span><span class="param-value red">{{ v5_preset.get('max_drawdown_pct', 12) }}%</span></div>
+                <div class="param"><span class="param-label">Cooldown</span><span class="param-value">{{ v5_preset.get('cooldown_minutes', 60) }} min</span></div>
+            </div>
+            {% else %}
+            <p class="red">V5 preset not found in DB!</p>
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <h2>New Indicators (V5)</h2>
+            <div class="indicator-box">
+                <div class="indicator"><div class="name">MACD(12,26,9)</div><div class="value blue">25pts</div></div>
+                <div class="indicator"><div class="name">RSI(14)</div><div class="value blue">20pts</div></div>
+                <div class="indicator"><div class="name">Bollinger Bands(20,2)</div><div class="value blue">20pts</div></div>
+                <div class="indicator"><div class="name">ADX(14)</div><div class="value blue">15pts</div></div>
+                <div class="indicator"><div class="name">Volume</div><div class="value blue">10pts</div></div>
+                <div class="indicator"><div class="name">BTC Filter</div><div class="value blue">10pts</div></div>
+                <div class="indicator"><div class="name">Triple Confirm Bonus</div><div class="value green">+10pts</div></div>
+            </div>
+            <p style="margin-top:15px;color:#888;font-size:12px;">Total: 100pts max + 10 bonus. ADX &lt; 25 = skip (no ranging market trades at 10x).</p>
+        </div>
+    </div>
+
+    <div class="card comparison">
+        <h2>V4.2 vs V5.0 Comparison</h2>
+        <table>
+            <tr><th>Parameter</th><th>V4.2 (Current)</th><th>V5.0 (New)</th></tr>
+            <tr><td>Leverage</td><td>3x</td><td class="blue">10x</td></tr>
+            <tr><td>Max Positions</td><td>15</td><td>5</td></tr>
+            <tr><td>Position Size</td><td>150-350U</td><td>50-150U</td></tr>
+            <tr><td>Indicators</td><td>RSI + MA + Vol + Position</td><td class="green">RSI + MACD + BB + ADX + Vol</td></tr>
+            <tr><td>Min Score</td><td>60</td><td>75</td></tr>
+            <tr><td>Stop Loss</td><td>-10% ROI (fixed)</td><td class="yellow">-8% ROI (ATR dynamic)</td></tr>
+            <tr><td>Take Profit</td><td>Trailing 6%/3%</td><td class="green">TP1: +10% (50%) → TP2: +20% trailing 5%</td></tr>
+            <tr><td>Daily Loss Limit</td><td>200U</td><td class="yellow">100U</td></tr>
+            <tr><td>Max Drawdown</td><td>20%</td><td class="yellow">12%</td></tr>
+            <tr><td>Cooldown</td><td>30 min</td><td>60 min</td></tr>
+            <tr><td>Risk: Drawdown Alert</td><td>15%/10%/5%</td><td class="yellow">10%/7%/4%</td></tr>
+            <tr><td>Risk: Consec. Losses</td><td>3/2</td><td class="yellow">2/1</td></tr>
+        </table>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h2>DB Migration Status</h2>
+        <table>
+            <tr><th>Table</th><th>New Columns</th><th>Status</th></tr>
+            {% for m in migration_status %}
+            <tr>
+                <td>{{ m.table }}</td>
+                <td>{{ m.columns }}</td>
+                <td><span class="badge {{ 'badge-ok' if m.ok else 'badge-warn' }}">{{ 'OK' if m.ok else 'MISSING' }}</span></td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td>strategy_presets</td>
+                <td>v5.0 preset</td>
+                <td><span class="badge {{ 'badge-ok' if v5_preset else 'badge-warn' }}">{{ 'OK' if v5_preset else 'MISSING' }}</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card" style="margin-top:20px;">
+        <h2>Deployment Status</h2>
+        <table>
+            <tr><th>Component</th><th>Status</th><th>Note</th></tr>
+            <tr><td>signal_analyzer.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+MACD, BB, ADX, analyze_signal_v5(), position_size_v5(), stop_take_v5()</td></tr>
+            <tr><td>order_executor.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+reduce_position()</td></tr>
+            <tr><td>agent_bot.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+v5 routing, _partial_close(), TP1 logic</td></tr>
+            <tr><td>risk_manager.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+v5 stricter thresholds</td></tr>
+            <tr><td>agent_config.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+6 v5 config columns</td></tr>
+            <tr><td>trade.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+5 partial TP columns</td></tr>
+            <tr><td>agent API</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+v5 field_map</td></tr>
+            <tr><td>manage.py</td><td><span class="badge badge-ok">DEPLOYED</span></td><td>+v5.0 preset</td></tr>
+            <tr><td>Production Bot</td><td><span class="badge badge-warn">NOT RESTARTED</span></td><td>Still running v4.2 — safe, no impact</td></tr>
+        </table>
+    </div>
+
+    <p class="footer">V5 Strategy deployed to server. Production bot still running V4.2. Switch via Agent Settings when ready.</p>
+</div>
+</body>
+</html>
+'''
+
+def get_v5_report_data():
+    """Fetch v5 status from trading_saas MySQL."""
+    conn = None
+    try:
+        conn = pymysql.connect(
+            host='127.0.0.1', user='saas_user',
+            password='SaasTrade2026xK9m', database='trading_saas',
+            cursorclass=pymysql.cursors.DictCursor,
+        )
+        cur = conn.cursor()
+
+        # Check v5 preset
+        cur.execute("SELECT config FROM strategy_presets WHERE version='v5.0'")
+        row = cur.fetchone()
+        v5_preset = json.loads(row['config']) if row else None
+
+        # Check migration status
+        migration_status = []
+
+        cur.execute("SELECT COUNT(*) as cnt FROM information_schema.columns "
+                    "WHERE table_schema='trading_saas' AND table_name='agent_trading_config' AND column_name='tp1_roi'")
+        r = cur.fetchone()
+        migration_status.append({
+            'table': 'agent_trading_config',
+            'columns': 'tp1_roi, tp1_close_ratio, tp2_roi, use_atr_stop, atr_stop_multiplier, adx_min_threshold',
+            'ok': r['cnt'] > 0,
+        })
+
+        cur.execute("SELECT COUNT(*) as cnt FROM information_schema.columns "
+                    "WHERE table_schema='trading_saas' AND table_name='trades' AND column_name='tp1_hit'")
+        r = cur.fetchone()
+        migration_status.append({
+            'table': 'trades',
+            'columns': 'tp1_hit, tp1_price, tp1_time, partial_pnl, original_amount',
+            'ok': r['cnt'] > 0,
+        })
+
+        return v5_preset, migration_status
+    except Exception as e:
+        print(f"V5 report data error: {e}")
+        return None, []
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route('/report')
+def v5_report():
+    from datetime import datetime as dt
+    v5_preset, migration_status = get_v5_report_data()
+    return render_template_string(
+        V5_REPORT_HTML,
+        v5_preset=v5_preset,
+        migration_status=migration_status,
+        update_time=dt.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
 
 if __name__ == '__main__':
     print("🚀 启动监控面板...")

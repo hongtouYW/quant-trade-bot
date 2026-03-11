@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-量化交易机器人 v3.3 - 策略修复
-- 追踪止损功能
-- 保存原始/最终止盈止损
-- 记录止损止盈变化历史
+量化交易机器人 v4.0 - 动量突破策略
+基于30天回测验证:
+- 动量突破信号（24周期新高/新低）
+- BTC大盘趋势过滤（EMA20/EMA50）
+- 成交量确认（>1.3x均量）
+- ATR动态止损（2.5x ATR）
+- 追踪止损（2.0x ATR触发，0.5x ATR距离）
+- 回测结果: 103笔, 43.7%WR, +$452, 1.77 R:R, 10.9% MaxDD
 """
 
 import sqlite3
 import ccxt
 import json
 import time
-import requests
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 import os
 
 # 项目根目录
@@ -20,8 +23,61 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(os.path.dirname(SCRIPT_DIR), 'data', 'db', 'paper_trading.db')
 CONFIG_PATH = os.path.join(SCRIPT_DIR, 'config', 'config.json')
 
+# ===== 技术指标计算 =====
 
-class AutoTraderV2:
+def calc_ema(closes, period):
+    """指数移动平均线"""
+    if not closes:
+        return []
+    mult = 2.0 / (period + 1)
+    result = [closes[0]]
+    for i in range(1, len(closes)):
+        result.append(closes[i] * mult + result[-1] * (1 - mult))
+    return result
+
+def calc_atr(highs, lows, closes, period=14):
+    """平均真实波幅"""
+    trs = [highs[0] - lows[0]]
+    for i in range(1, len(closes)):
+        tr = max(
+            highs[i] - lows[i],
+            abs(highs[i] - closes[i-1]),
+            abs(lows[i] - closes[i-1])
+        )
+        trs.append(tr)
+    atrs = [None] * (period - 1)
+    if len(trs) >= period:
+        atrs.append(sum(trs[:period]) / period)
+        for i in range(period, len(trs)):
+            atrs.append((atrs[-1] * (period - 1) + trs[i]) / period)
+    return atrs
+
+def calc_rsi(closes, period=14):
+    """相对强弱指标"""
+    if len(closes) < period + 1:
+        return [50] * len(closes)
+    rsis = [50] * period
+    gains = []
+    losses = []
+    for i in range(1, len(closes)):
+        delta = closes[i] - closes[i-1]
+        gains.append(max(delta, 0))
+        losses.append(max(-delta, 0))
+    avg_gain = sum(gains[:period]) / period
+    avg_loss = sum(losses[:period]) / period
+    for i in range(period, len(closes)):
+        if avg_loss == 0:
+            rsis.append(100)
+        else:
+            rs = avg_gain / avg_loss
+            rsis.append(100 - 100 / (1 + rs))
+        if i < len(gains):
+            avg_gain = (avg_gain * (period - 1) + gains[i]) / period
+            avg_loss = (avg_loss * (period - 1) + losses[i]) / period
+    return rsis
+
+
+class AutoTraderV4:
     def __init__(self):
         # 加载Binance配置
         with open(CONFIG_PATH, 'r') as f:
@@ -38,65 +94,265 @@ class AutoTraderV2:
         # 从数据库加载配置
         self.load_config_from_db()
 
-        # API地址
-        self.api_url = "http://localhost:5001/api/recommendations"
-
         # 快照计数器
         self.snapshot_counter = 0
 
-        # 记录每个持仓的最高/最低价
+        # 持仓价格极值 {trade_id: {'highest': x, 'lowest': x}}
         self.price_extremes = {}
 
-        # v3.3: 每个币种的平仓冷却时间 {symbol: datetime}
+        # 平仓冷却 {symbol: datetime}
         self.symbol_cooldown = {}
 
-        # v3.3: 黑名单币种（数据显示胜率<20%，>5笔交易）
-        self.blacklist = {
-            'DOGE/USDT', 'AVAX/USDT', 'LINK/USDT', 'ATOM/USDT', 'AAVE/USDT',
-            'FIL/USDT'
-        }
+        # OHLCV缓存 {symbol: {'data': [...], 'time': timestamp}}
+        self.ohlcv_cache = {}
+        self.cache_ttl = 300  # 5分钟缓存
 
-        print("🤖 量化交易机器人 v3.3 - 策略修复 已启动")
-        print(f"💰 初始资金: ${self.initial_capital}")
-        print(f"🎯 目标利润: ${self.target_profit}")
-        print(f"📊 最大持仓: {self.max_positions}")
-        print(f"📈 单笔最大: ${self.max_position_size}")
-        print(f"⭐ 最低评分: {self.min_score}分")
-        print(f"🔧 默认杠杆: {self.default_leverage}x")
-        print(f"💸 手续费率: {self.fee_rate * 100}%")
-        print(f"🎯 追踪止损: 已启用")
+        # BTC趋势缓存
+        self.btc_trend_cache = {'direction': None, 'strength': 0, 'time': 0}
+
+        # ===== 策略参数（回测验证） =====
+        self.lookback = 24        # 突破回看周期
+        self.vol_mult = 1.3       # 成交量过滤倍数
+        self.sl_atr_mult = 2.5    # 止损=ATR*2.5
+        self.tp_ratio = 3.0       # 止盈=止损*3
+        self.trail_gate_mult = 2.0  # 追踪触发=ATR*2.0
+        self.trail_dist_mult = 0.5  # 追踪距离=ATR*0.5
+        self.cooldown_hours = 12  # 同币种冷却12小时
+        self.circuit_break_count = 3  # 连亏3笔触发熔断
+        self.circuit_break_pause = 15  # 熔断后暂停15个周期
+
+        # 监控币种列表（回测表现好的币种优先）
+        self.watchlist = [
+            'SOL/USDT', 'DOGE/USDT', 'UNI/USDT', 'XRP/USDT', 'APT/USDT',
+            'LINK/USDT', 'ARB/USDT', 'ADA/USDT', 'AVAX/USDT', 'DOT/USDT',
+            'ETH/USDT', 'BNB/USDT', 'ATOM/USDT', 'NEAR/USDT',
+            'OP/USDT', 'SUI/USDT', 'TIA/USDT', 'SEI/USDT', 'INJ/USDT',
+        ]
+
+        print("=" * 60)
+        print("量化交易机器人 v4.0 - 动量突破策略")
+        print("=" * 60)
+        print("资金: $%.2f | 杠杆: %dx | 最大持仓: %d" % (
+            self.initial_capital, self.default_leverage, self.max_positions))
+        print("策略: 动量突破 + BTC趋势过滤 + ATR动态止损")
+        print("回测: 103笔, 43.7%%WR, +$452, R:R=1.77")
+        print("监控: %d个币种" % len(self.watchlist))
         print("=" * 60)
 
     def load_config_from_db(self):
         """从account_config表加载配置"""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-
         cursor.execute("SELECT key, value FROM account_config")
-        config = {row[0]: row[1] for row in cursor.fetchall()}
+        config = dict(cursor.fetchall())
         conn.close()
 
-        # 设置配置（带默认值）
         self.initial_capital = float(config.get('initial_capital', 2000))
         self.target_profit = float(config.get('target_profit', 3400))
         self.max_position_size = float(config.get('max_position_size', 500))
-        self.max_positions = int(config.get('max_positions', 10))
-        self.default_leverage = int(config.get('default_leverage', 3))
-        self.stop_loss_pct = float(config.get('stop_loss_pct', 1.5))
-        self.take_profit_pct = float(config.get('take_profit_pct', 2.5))
+        self.max_positions = int(config.get('max_positions', 3))
+        self.default_leverage = int(config.get('default_leverage', 2))
         self.fee_rate = float(config.get('fee_rate', 0.001))
-        self.min_score = int(config.get('min_score', 60))
         self.trading_enabled = config.get('trading_enabled', '1') == '1'
+
+    # ===== 数据获取 =====
+
+    def fetch_ohlcv(self, symbol, timeframe='1h', limit=100):
+        """获取K线数据（带缓存）"""
+        cache_key = '%s_%s' % (symbol, timeframe)
+        now = time.time()
+
+        if cache_key in self.ohlcv_cache:
+            cached = self.ohlcv_cache[cache_key]
+            if now - cached['time'] < self.cache_ttl:
+                return cached['data']
+
+        try:
+            data = self.exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+            self.ohlcv_cache[cache_key] = {'data': data, 'time': now}
+            return data
+        except Exception as e:
+            print("  获取%s K线失败: %s" % (symbol, e))
+            return None
+
+    def get_btc_trend(self):
+        """获取BTC大盘趋势（EMA20/EMA50）"""
+        now = time.time()
+        if now - self.btc_trend_cache['time'] < 300:  # 5分钟缓存
+            return self.btc_trend_cache['direction'], self.btc_trend_cache['strength']
+
+        data = self.fetch_ohlcv('BTC/USDT', '1h', 100)
+        if not data or len(data) < 55:
+            return 'neutral', 0
+
+        closes = [c[4] for c in data]
+        ema20 = calc_ema(closes, 20)
+        ema50 = calc_ema(closes, 50)
+
+        price = closes[-1]
+        e20 = ema20[-1]
+        e50 = ema50[-1]
+
+        # 强上升: 价格 > EMA20 > EMA50
+        if price > e20 and e20 > e50:
+            direction = 'up'
+            strength = 2
+        # 弱上升: 价格 > EMA50
+        elif price > e50:
+            direction = 'up'
+            strength = 1
+        # 强下降: 价格 < EMA20 < EMA50
+        elif price < e20 and e20 < e50:
+            direction = 'down'
+            strength = 2
+        # 弱下降: 价格 < EMA50
+        elif price < e50:
+            direction = 'down'
+            strength = 1
+        else:
+            direction = 'neutral'
+            strength = 0
+
+        self.btc_trend_cache = {
+            'direction': direction,
+            'strength': strength,
+            'time': now
+        }
+
+        return direction, strength
+
+    # ===== 动量突破信号检测 =====
+
+    def scan_momentum_signals(self):
+        """扫描所有币种的动量突破信号"""
+        btc_direction, btc_strength = self.get_btc_trend()
+        print("\nBTC趋势: %s (强度%d)" % (btc_direction, btc_strength))
+
+        if btc_direction == 'neutral':
+            print("BTC无明确方向，跳过本轮扫描")
+            return []
+
+        signals = []
+        for symbol in self.watchlist:
+            try:
+                signal = self.check_breakout(symbol, btc_direction)
+                if signal:
+                    signals.append(signal)
+            except Exception as e:
+                pass  # 静默跳过错误
+            time.sleep(0.3)  # API限速
+
+        return signals
+
+    def check_breakout(self, symbol, btc_direction):
+        """检测单个币种的动量突破"""
+        data = self.fetch_ohlcv(symbol, '1h', 100)
+        if not data or len(data) < self.lookback + 30:
+            return None
+
+        closes = [c[4] for c in data]
+        highs = [c[2] for c in data]
+        lows = [c[3] for c in data]
+        volumes = [c[5] for c in data]
+
+        i = len(data) - 1  # 最新K线
+        price = closes[i]
+
+        # 1. 计算指标
+        atr = calc_atr(highs, lows, closes, 14)
+        rsi = calc_rsi(closes)
+        ema20 = calc_ema(closes, 20)
+        ema50 = calc_ema(closes, 50)
+
+        if not atr[i]:
+            return None
+
+        atr_val = atr[i]
+
+        # 2. 币种自身趋势
+        coin_trend_up = price > ema50[i] and ema20[i] > ema50[i]
+        coin_trend_down = price < ema50[i] and ema20[i] < ema50[i]
+
+        # 3. 成交量确认
+        avg_vol = sum(volumes[i-self.lookback:i]) / self.lookback
+        vol_ok = volumes[i] > avg_vol * self.vol_mult
+
+        if not vol_ok:
+            return None
+
+        # 4. 突破水平
+        high_n = max(highs[i-self.lookback:i])
+        low_n = min(lows[i-self.lookback:i])
+
+        # 5. 计算动态止损止盈
+        sl_pct = min(max(atr_val / price * 100 * self.sl_atr_mult, 2.5), 6.0)
+        tp_pct = sl_pct * self.tp_ratio
+
+        # 6. 信号判断
+        signal = None
+
+        # 做多: BTC上涨 + 币种上涨 + 突破N周期高点 + RSI合理
+        if btc_direction == 'up' and coin_trend_up:
+            if price > high_n and 50 < rsi[i] < 72:
+                stop_loss = price * (1 - sl_pct / 100)
+                take_profit = price * (1 + tp_pct / 100)
+                signal = {
+                    'symbol': symbol,
+                    'signal': 'buy',
+                    'direction': 'long',
+                    'price': price,
+                    'stop_loss': stop_loss,
+                    'take_profit': take_profit,
+                    'sl_pct': sl_pct,
+                    'tp_pct': tp_pct,
+                    'atr': atr_val,
+                    'rsi': rsi[i],
+                    'volume_ratio': volumes[i] / avg_vol,
+                    'score': int(70 + min(rsi[i] - 50, 20)),  # 70-90 score range
+                    'reasons': [
+                        '突破%d周期高点' % self.lookback,
+                        'BTC趋势向上',
+                        '成交量%.1fx' % (volumes[i] / avg_vol),
+                        'RSI=%.0f' % rsi[i],
+                    ]
+                }
+
+        # 做空: BTC下跌 + 币种下跌 + 跌破N周期低点 + RSI合理
+        elif btc_direction == 'down' and coin_trend_down:
+            if price < low_n and 28 < rsi[i] < 50:
+                stop_loss = price * (1 + sl_pct / 100)
+                take_profit = price * (1 - tp_pct / 100)
+                signal = {
+                    'symbol': symbol,
+                    'signal': 'sell',
+                    'direction': 'short',
+                    'price': price,
+                    'stop_loss': stop_loss,
+                    'take_profit': take_profit,
+                    'sl_pct': sl_pct,
+                    'tp_pct': tp_pct,
+                    'atr': atr_val,
+                    'rsi': rsi[i],
+                    'volume_ratio': volumes[i] / avg_vol,
+                    'score': int(70 + min(50 - rsi[i], 20)),
+                    'reasons': [
+                        '跌破%d周期低点' % self.lookback,
+                        'BTC趋势向下',
+                        '成交量%.1fx' % (volumes[i] / avg_vol),
+                        'RSI=%.0f' % rsi[i],
+                    ]
+                }
+
+        return signal
+
+    # ===== 资金管理 =====
 
     def get_current_capital(self):
         """计算当前资金"""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-
-        # 计算已实现盈亏
         cursor.execute("SELECT SUM(pnl) FROM real_trades WHERE status = 'CLOSED'")
         total_pnl = cursor.fetchone()[0] or 0
-
         conn.close()
         return self.initial_capital + total_pnl
 
@@ -119,86 +375,76 @@ class AutoTraderV2:
         conn.close()
         return positions
 
-    def get_recommendations(self):
-        """从API获取策略推荐"""
-        try:
-            response = requests.get(self.api_url, timeout=180)
-            if response.status_code == 200:
-                recommendations = response.json()
-                print(f"📡 获取到 {len(recommendations)} 个推荐")
-                return recommendations
-            else:
-                print(f"❌ API请求失败: {response.status_code}")
-                return []
-        except Exception as e:
-            print(f"❌ 获取推荐失败: {e}")
-            return []
+    # ===== 开仓 =====
 
-    def open_position(self, recommendation):
-        """开仓 - 记录完整数据"""
-        symbol = recommendation['symbol']
-        signal = recommendation['signal']
-        price = recommendation['price']
-        stop_loss = recommendation['stop_loss']
-        take_profit = recommendation['take_profit']
-        score = recommendation['score']
-        rsi = recommendation.get('rsi', 50)
-        trend = recommendation.get('trend', 'neutral')
-        reasons = recommendation.get('reasons', [])
+    def should_trade(self, signal):
+        """判断是否应该交易"""
+        if not self.trading_enabled:
+            return False
 
-        # 计算仓位大小（基于评分）
+        symbol = signal['symbol']
+
+        # 冷却检查
+        if symbol in self.symbol_cooldown:
+            if datetime.now() < self.symbol_cooldown[symbol]:
+                return False
+
+        # 持仓数检查
+        positions = self.get_open_positions()
+        if len(positions) >= self.max_positions:
+            return False
+
+        # 重复持仓检查
+        for pos in positions:
+            if pos['symbol'] == symbol:
+                return False
+
+        # 资金检查
+        available = self.get_current_capital() - self.get_margin_used()
+        if available < 50:
+            return False
+
+        return True
+
+    def open_position(self, signal):
+        """开仓"""
+        symbol = signal['symbol']
+        price = signal['price']
+        direction = signal['direction']
+        stop_loss = signal['stop_loss']
+        take_profit = signal['take_profit']
+        score = signal['score']
+        rsi = signal['rsi']
+        reasons = signal['reasons']
+
         current_capital = self.get_current_capital()
         margin_used = self.get_margin_used()
         available = current_capital - margin_used
 
-        # v3.3: 评分80+是陷阱（数据:46笔7%胜率-$587），直接跳过
-        if score >= 80:
-            print(f"⚠️  {symbol}: 评分{score}过高=极端信号，跳过（数据验证）")
+        # 固定15%仓位
+        margin = min(available * 0.15, self.max_position_size)
+        if margin < 50:
             return False
 
-        # v3.3: 70-79是最佳区间（48%胜率），给最大仓位
-        if score >= 70:
-            position_pct = 0.20
-        elif score >= 65:
-            position_pct = 0.15
-        else:
-            position_pct = 0.10
-
-        margin = min(available * position_pct, self.max_position_size)
-
-        if margin < 50:  # 最小仓位50U
-            print(f"⏭️  {symbol}: 可用资金不足 (${available:.2f})")
-            return False
-
-        # 方向
-        direction = 'long' if signal == 'buy' else 'short'
-
-        # 计算开仓手续费
         position_value = margin * self.default_leverage
         entry_fee = position_value * self.fee_rate
 
-        print(f"\n{'='*60}")
-        print(f"🎯 开仓: {symbol}")
-        print(f"   方向: {direction.upper()}")
-        print(f"   价格: ${price:.4f}")
-        print(f"   保证金: ${margin:.2f}")
-        print(f"   杠杆: {self.default_leverage}x")
-        print(f"   止损: ${stop_loss:.4f} (-{self.stop_loss_pct}%)")
-        print(f"   止盈: ${take_profit:.4f} (+{self.take_profit_pct}%)")
-        print(f"   评分: {score}分")
-        print(f"   RSI: {rsi:.1f}")
-        print(f"   趋势: {trend}")
-        print(f"   手续费: ${entry_fee:.4f}")
-        print(f"{'='*60}")
+        print("\n" + "=" * 60)
+        print("开仓: %s %s" % (symbol, direction.upper()))
+        print("  价格: $%.4f" % price)
+        print("  保证金: $%.2f | 杠杆: %dx" % (margin, self.default_leverage))
+        print("  止损: $%.4f (-%.1f%%)" % (stop_loss, signal['sl_pct']))
+        print("  止盈: $%.4f (+%.1f%%)" % (take_profit, signal['tp_pct']))
+        print("  ATR: $%.4f | RSI: %.0f | Vol: %.1fx" % (signal['atr'], rsi, signal['volume_ratio']))
+        print("  原因: %s" % ', '.join(reasons))
+        print("=" * 60)
 
-        # 记录到数据库
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
         entry_time = datetime.now().isoformat()
-        reason_text = ', '.join(reasons) if reasons else f"评分{score}分"
+        reason_text = ', '.join(reasons)
 
-        # 保存原始止盈止损
         cursor.execute("""
             INSERT INTO real_trades (
                 symbol, direction, entry_price, amount, leverage,
@@ -210,97 +456,96 @@ class AutoTraderV2:
         """, (
             symbol, direction, price, margin, self.default_leverage,
             stop_loss, take_profit, entry_time,
-            entry_fee, score, reason_text, score, rsi, trend,
-            stop_loss, take_profit  # 保存原始值
+            entry_fee, score, reason_text, score, rsi,
+            'bullish' if direction == 'long' else 'bearish',
+            stop_loss, take_profit
         ))
 
         trade_id = cursor.lastrowid
-
-        # 初始化价格极值
-        self.price_extremes[trade_id] = {
-            'highest': price,
-            'lowest': price
-        }
+        self.price_extremes[trade_id] = {'highest': price, 'lowest': price}
 
         # 记录交易信号
         cursor.execute("""
             INSERT INTO trade_signals (
                 symbol, signal_type, score, rsi, trend, reasons, executed, trade_id
             ) VALUES (?, ?, ?, ?, ?, ?, 1, ?)
-        """, (symbol, signal, score, rsi, trend, json.dumps(reasons), trade_id))
+        """, (symbol, signal['signal'], score, rsi,
+              'bullish' if direction == 'long' else 'bearish',
+              json.dumps(reasons), trade_id))
 
         conn.commit()
         conn.close()
 
-        print(f"✅ 开仓成功！")
+        print("开仓成功!")
         return True
 
+    # ===== 追踪止损（ATR动态版） =====
+
     def update_trailing_stop(self, trade, current_price):
-        """追踪止损逻辑 v4 - 盈利3%后才开始追踪，1.5%追踪距离"""
+        """追踪止损 - ATR动态版"""
         trade_id = trade['id']
         direction = trade['direction']
         entry_price = trade['entry_price']
         current_sl = trade['stop_loss']
         current_tp = trade['take_profit']
+        symbol = trade['symbol']
 
-        # 计算当前盈利百分比
+        # 获取ATR用于计算追踪参数
+        data = self.fetch_ohlcv(symbol, '1h', 30)
+        if data and len(data) > 15:
+            closes = [c[4] for c in data]
+            highs = [c[2] for c in data]
+            lows = [c[3] for c in data]
+            atr_list = calc_atr(highs, lows, closes, 14)
+            atr_val = atr_list[-1] if atr_list[-1] else current_price * 0.02
+        else:
+            atr_val = current_price * 0.02
+
+        # 追踪触发门槛和距离
+        trail_gate_pct = min(max(atr_val / current_price * 100 * self.trail_gate_mult, 2.0), 6.0)
+        trail_dist_pct = min(max(atr_val / current_price * 100 * self.trail_dist_mult, 0.5), 2.0)
+
+        # 计算盈利
         if direction == 'long':
             profit_pct = (current_price - entry_price) / entry_price * 100
         else:
             profit_pct = (entry_price - current_price) / entry_price * 100
 
-        # 未达到3%盈利，不启动追踪（v4: 防止把赢变输）
-        if profit_pct < 3.0:
+        # 未达到追踪门槛
+        if profit_pct < trail_gate_pct:
             return current_sl
 
-        # 获取或初始化价格极值
+        # 初始化价格极值
         if trade_id not in self.price_extremes:
-            self.price_extremes[trade_id] = {
-                'highest': entry_price,
-                'lowest': entry_price
-            }
-
+            self.price_extremes[trade_id] = {'highest': entry_price, 'lowest': entry_price}
         extremes = self.price_extremes[trade_id]
 
         if direction == 'long':
-            # 更新最高价
             if current_price > extremes['highest']:
                 extremes['highest'] = current_price
-
-            # 计算新止损 = 最高价 * (1 - 止损百分比)
-            trail_pct = 1.5  # v4: 追踪距离1.5%（比止损3%更紧，锁住利润）
-            new_sl = extremes['highest'] * (1 - trail_pct / 100)
-
-            # 止损只能上移，不能下移
+            new_sl = extremes['highest'] * (1 - trail_dist_pct / 100)
             if new_sl > current_sl:
                 self._record_sl_change(trade_id, current_sl, new_sl, current_tp, current_tp,
-                                       f"追踪止损上移 (盈利{profit_pct:.1f}% 最高价${extremes['highest']:.4f})",
-                                       current_price, extremes['highest'], None)
+                    "追踪止损上移 (盈利%.1f%% 最高$%.4f ATR$%.4f)" % (profit_pct, extremes['highest'], atr_val),
+                    current_price, extremes['highest'], None)
                 self._update_stop_loss(trade_id, new_sl)
-                print(f"   📈 {trade['symbol']} 盈利{profit_pct:.1f}% 止损上移: ${current_sl:.4f} -> ${new_sl:.4f}")
+                print("  %s 盈利%.1f%% 止损上移: $%.4f -> $%.4f" % (symbol, profit_pct, current_sl, new_sl))
                 return new_sl
         else:
-            # 更新最低价
             if current_price < extremes['lowest']:
                 extremes['lowest'] = current_price
-
-            # 计算新止损 = 最低价 * (1 + 止损百分比)
-            trail_pct = 1.5  # v4: 追踪距离1.5%
-            new_sl = extremes['lowest'] * (1 + trail_pct / 100)
-
-            # 止损只能下移，不能上移
+            new_sl = extremes['lowest'] * (1 + trail_dist_pct / 100)
             if new_sl < current_sl:
                 self._record_sl_change(trade_id, current_sl, new_sl, current_tp, current_tp,
-                                       f"追踪止损下移 (盈利{profit_pct:.1f}% 最低价${extremes['lowest']:.4f})",
-                                       current_price, None, extremes['lowest'])
+                    "追踪止损下移 (盈利%.1f%% 最低$%.4f ATR$%.4f)" % (profit_pct, extremes['lowest'], atr_val),
+                    current_price, None, extremes['lowest'])
                 self._update_stop_loss(trade_id, new_sl)
-                print(f"   📉 {trade['symbol']} 盈利{profit_pct:.1f}% 止损下移: ${current_sl:.4f} -> ${new_sl:.4f}")
+                print("  %s 盈利%.1f%% 止损下移: $%.4f -> $%.4f" % (symbol, profit_pct, current_sl, new_sl))
                 return new_sl
 
         return current_sl
 
     def _update_stop_loss(self, trade_id, new_sl):
-        """更新止损价"""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("""
@@ -312,7 +557,6 @@ class AutoTraderV2:
         conn.close()
 
     def _record_sl_change(self, trade_id, old_sl, new_sl, old_tp, new_tp, reason, current_price, highest, lowest):
-        """记录止损止盈变化"""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         cursor.execute("""
@@ -322,6 +566,8 @@ class AutoTraderV2:
         """, (trade_id, old_sl, new_sl, old_tp, new_tp, reason, current_price, highest, lowest))
         conn.commit()
         conn.close()
+
+    # ===== 持仓监控 =====
 
     def check_and_close_positions(self):
         """检查并平仓"""
@@ -337,160 +583,100 @@ class AutoTraderV2:
             direction = pos['direction']
             entry_price = pos['entry_price']
 
-            # 30分钟最低持仓保护 (数据显示<30min胜率0%)
-            min_hold_ok = True
+            # 最低持仓保护（30分钟，除非亏损>5%）
             try:
                 entry_t = datetime.strptime(
                     str(pos['entry_time']).replace('T', ' ').split('.')[0],
                     '%Y-%m-%d %H:%M:%S'
                 )
                 hold_minutes = (datetime.now() - entry_t).total_seconds() / 60
+
                 if hold_minutes < 30:
-                    min_hold_ok = False
                     if direction == 'long':
                         emergency_pct = (current_price - entry_price) / entry_price * 100
                     else:
                         emergency_pct = (entry_price - current_price) / entry_price * 100
-                    if emergency_pct < -5:
-                        min_hold_ok = True
-                        print(f"   \u26a0\ufe0f {symbol} 紧急平仓: 持仓{hold_minutes:.0f}分钟 亏损{emergency_pct:.1f}%")
-                    else:
-                        print(f"   \U0001f6e1 {symbol} 持仓保护中: {hold_minutes:.0f}/30分钟")
-            except:
+                    if emergency_pct > -5:
+                        continue  # 保护中，跳过
+            except Exception:
                 pass
 
-            # 先更新追踪止损
+            # 更新追踪止损
             stop_loss = self.update_trailing_stop(pos, current_price)
             take_profit = pos['take_profit']
 
-            # 更新最大浮盈/浮亏
+            # 更新浮盈浮亏记录
             self._update_max_profit_loss(pos, current_price)
 
             should_close = False
             close_reason = ""
 
-            # 1. 检查止盈止损
+            # 止盈止损检查
             if direction == 'long':
-                if current_price >= take_profit and min_hold_ok:
+                if current_price >= take_profit:
                     should_close = True
                     close_reason = "止盈"
-                elif current_price <= stop_loss and min_hold_ok:
+                elif current_price <= stop_loss:
+                    is_trailing = stop_loss != pos.get('original_stop_loss')
                     should_close = True
-                    close_reason = "追踪止损" if stop_loss != pos.get('original_stop_loss') else "止损"
-            else:  # short
-                if current_price <= take_profit and min_hold_ok:
+                    close_reason = "追踪止损" if is_trailing else "止损"
+            else:
+                if current_price <= take_profit:
                     should_close = True
                     close_reason = "止盈"
-                elif current_price >= stop_loss and min_hold_ok:
+                elif current_price >= stop_loss:
+                    is_trailing = stop_loss != pos.get('original_stop_loss')
                     should_close = True
-                    close_reason = "追踪止损" if stop_loss != pos.get('original_stop_loss') else "止损"
+                    close_reason = "追踪止损" if is_trailing else "止损"
 
-            # 2. 智能评估 - 主动止损
+            # 超时止损（24小时+亏损>1%）
             if not should_close:
-                smart_exit, smart_reason = self.evaluate_position_health(pos, current_price)
-                if smart_exit:
-                    should_close = True
-                    close_reason = f"智能止损: {smart_reason}"
+                try:
+                    if hold_minutes > 1440:  # 24小时
+                        if direction == 'long':
+                            pnl_pct = (current_price - entry_price) / entry_price * 100
+                        else:
+                            pnl_pct = (entry_price - current_price) / entry_price * 100
+                        if pnl_pct < -1.0:
+                            should_close = True
+                            close_reason = "超时止损(%.0fh/%.1f%%)" % (hold_minutes/60, pnl_pct)
+                except Exception:
+                    pass
 
             if should_close:
                 self.close_position(pos, current_price, close_reason)
                 closed_count += 1
-                # 清理价格极值记录
                 if pos['id'] in self.price_extremes:
                     del self.price_extremes[pos['id']]
                 time.sleep(1)
 
         return closed_count
 
-    def evaluate_position_health(self, pos, current_price):
-        """智能评估持仓健康度，决定是否提前止损"""
-        symbol = pos['symbol']
-        direction = pos['direction']
-        entry_price = pos['entry_price']
-        # Python 3.6 兼容
-        entry_time_str = pos['entry_time'].replace('T', ' ').split('.')[0]
-        entry_time = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
-        holding_minutes = (datetime.now() - entry_time).total_seconds() / 60
-
-        # 计算当前盈亏百分比
-        if direction == 'long':
-            pnl_pct = (current_price - entry_price) / entry_price * 100
-        else:
-            pnl_pct = (entry_price - current_price) / entry_price * 100
-
-        # 获取当前市场指标
-        try:
-            ticker_symbol = symbol.replace('/', '')
-            response = requests.get(f"http://localhost:5001/api/analysis/{ticker_symbol}", timeout=10)
-            if response.status_code == 200:
-                analysis = response.json()
-                current_rsi = analysis.get('rsi', 50)
-                current_trend = analysis.get('trend', 'neutral')
-            else:
-                return False, None
-        except:
-            return False, None
-
-        # 规则1: 持仓超4小时且亏损超1%（v3.3: 从2h/0%放宽）
-        if holding_minutes > 240 and pnl_pct < -1.0:
-            return True, f"持仓{int(holding_minutes)}分钟亏损{pnl_pct:.1f}%"
-
-        # 规则2: 趋势反转
-        entry_trend = pos.get('entry_trend', 'neutral')
-        if direction == 'long' and current_trend == 'bearish' and entry_trend != 'bearish':
-            if pnl_pct < 0.5:
-                return True, f"趋势反转({entry_trend}→{current_trend})"
-        elif direction == 'short' and current_trend == 'bullish' and entry_trend != 'bullish':
-            if pnl_pct < 0.5:
-                return True, f"趋势反转({entry_trend}→{current_trend})"
-
-        # 规则3: RSI反向极端时获利了结
-        if direction == 'long' and current_rsi > 75 and pnl_pct > 0.5:
-            return True, f"RSI超买({current_rsi:.0f})获利了结"
-        elif direction == 'short' and current_rsi < 25 and pnl_pct > 0.5:
-            return True, f"RSI超卖({current_rsi:.0f})获利了结"
-
-        # 规则4: 浮亏超2.5%且持仓超60分钟（v3.3: 从-1%/30min放宽）
-        if pnl_pct < -2.5 and holding_minutes > 60:
-            return True, f"浮亏{pnl_pct:.1f}%超时"
-
-        return False, None
-
     def _update_max_profit_loss(self, pos, current_price):
         """更新最大浮盈/浮亏"""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-
         direction = pos['direction']
         entry_price = pos['entry_price']
-        margin = pos['amount']
-        leverage = pos['leverage']
 
-        # 计算当前盈亏百分比
         if direction == 'long':
             pnl_pct = (current_price - entry_price) / entry_price * 100
         else:
             pnl_pct = (entry_price - current_price) / entry_price * 100
 
-        # 更新最大浮盈/浮亏
         if pnl_pct > 0:
-            cursor.execute("""
-                UPDATE real_trades
-                SET max_profit = MAX(COALESCE(max_profit, 0), ?)
-                WHERE id = ?
-            """, (pnl_pct, pos['id']))
+            cursor.execute("UPDATE real_trades SET max_profit = MAX(COALESCE(max_profit, 0), ?) WHERE id = ?",
+                         (pnl_pct, pos['id']))
         else:
-            cursor.execute("""
-                UPDATE real_trades
-                SET max_loss = MIN(COALESCE(max_loss, 0), ?)
-                WHERE id = ?
-            """, (pnl_pct, pos['id']))
-
+            cursor.execute("UPDATE real_trades SET max_loss = MIN(COALESCE(max_loss, 0), ?) WHERE id = ?",
+                         (pnl_pct, pos['id']))
         conn.commit()
         conn.close()
 
+    # ===== 平仓 =====
+
     def close_position(self, position, exit_price, reason):
-        """平仓 - 计算完整费用"""
+        """平仓"""
         pos_id = position['id']
         symbol = position['symbol']
         direction = position['direction']
@@ -498,8 +684,6 @@ class AutoTraderV2:
         margin = position['amount']
         leverage = position['leverage']
         entry_time_str = position['entry_time']
-
-        # 获取当前止盈止损（可能已被追踪止损修改）
         current_sl = position['stop_loss']
         current_tp = position['take_profit']
 
@@ -512,74 +696,44 @@ class AutoTraderV2:
         position_value = margin * leverage
         pnl_before_fee = position_value * pnl_pct
 
-        # 计算手续费
         entry_fee = position.get('fee', position_value * self.fee_rate)
         exit_fee = position_value * self.fee_rate
         total_fee = entry_fee + exit_fee
 
-        # 计算资金费（每8小时0.01%）
-        # Python 3.6 兼容
         entry_time_clean = entry_time_str.replace('T', ' ').split('.')[0]
         entry_time = datetime.strptime(entry_time_clean, '%Y-%m-%d %H:%M:%S')
         exit_time = datetime.now()
         holding_hours = (exit_time - entry_time).total_seconds() / 3600
-        funding_rate = 0.0001  # 0.01%
-        funding_fee = position_value * funding_rate * (holding_hours / 8)
 
-        # 计算持仓时长（分钟）
+        funding_rate = 0.0001
+        funding_fee = position_value * funding_rate * (holding_hours / 8)
         duration_minutes = int(holding_hours * 60)
 
-        # 最终盈亏
         pnl = pnl_before_fee - exit_fee - funding_fee
         roi = (pnl / margin) * 100
 
-        # 获取原始止盈止损（兼容旧数据，None时用当前值）
         original_sl = position.get('original_stop_loss') or current_sl
         original_tp = position.get('original_take_profit') or current_tp
         adjustments = position.get('sl_tp_adjustments') or 0
 
-        print(f"\n{'='*60}")
-        print(f"🔔 平仓: {symbol}")
-        print(f"   方向: {direction.upper()}")
-        print(f"   入场: ${entry_price:.4f}")
-        print(f"   出场: ${exit_price:.4f}")
-        print(f"   保证金: ${margin:.2f}")
-        print(f"   持仓时长: {duration_minutes}分钟")
-        orig_sl_str = f"${original_sl:.4f}" if original_sl else "N/A"
-        curr_sl_str = f"${current_sl:.4f}" if current_sl else "N/A"
-        print(f"   原始止损: {orig_sl_str} → 最终: {curr_sl_str}")
-        print(f"   止损调整次数: {adjustments or 0}")
-        print(f"   价格盈亏: ${pnl_before_fee:+.2f}")
-        print(f"   手续费: -${total_fee:.4f}")
-        print(f"   资金费: -${funding_fee:.4f}")
-        print(f"   实际盈亏: ${pnl:+.2f} ({roi:+.2f}%)")
-        print(f"   原因: {reason}")
-        print(f"{'='*60}")
+        mark = "+" if pnl > 0 else "-"
+        print("\n%s 平仓: %s %s $%+.2f (%s)" % (mark, symbol, direction.upper(), pnl, reason))
+        print("  入场$%.4f -> 出场$%.4f | 持仓%d分钟 | 调整%d次" % (
+            entry_price, exit_price, duration_minutes, adjustments))
 
-        # 更新数据库
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
 
-        exit_time_str = exit_time.isoformat()
-
         cursor.execute("""
             UPDATE real_trades SET
-                exit_price = ?,
-                exit_time = ?,
-                status = 'CLOSED',
-                pnl = ?,
-                roi = ?,
-                fee = ?,
-                funding_fee = ?,
-                duration_minutes = ?,
-                close_reason = ?,
-                final_stop_loss = ?,
-                final_take_profit = ?
+                exit_price = ?, exit_time = ?, status = 'CLOSED',
+                pnl = ?, roi = ?, fee = ?, funding_fee = ?,
+                duration_minutes = ?, close_reason = ?,
+                final_stop_loss = ?, final_take_profit = ?
             WHERE id = ?
-        """, (exit_price, exit_time_str, pnl, roi, total_fee, funding_fee, duration_minutes, reason,
-              current_sl, current_tp, pos_id))
+        """, (exit_price, exit_time.isoformat(), pnl, roi, total_fee, funding_fee,
+              duration_minutes, reason, current_sl, current_tp, pos_id))
 
-        # 记录资金费
         if funding_fee > 0:
             cursor.execute("""
                 INSERT INTO funding_history (
@@ -590,11 +744,9 @@ class AutoTraderV2:
         conn.commit()
         conn.close()
 
-        # v3.3: 设置30分钟冷却期
-        from datetime import timedelta
-        self.symbol_cooldown[symbol] = datetime.now() + timedelta(minutes=30)
+        # 设置冷却期
+        self.symbol_cooldown[symbol] = datetime.now() + timedelta(hours=self.cooldown_hours)
 
-        print(f"✅ 平仓成功！")
         return True
 
     def get_current_price(self, symbol):
@@ -603,51 +755,50 @@ class AutoTraderV2:
             ticker = self.exchange.fetch_ticker(symbol)
             return ticker['last']
         except Exception as e:
-            print(f"❌ 获取{symbol}价格失败: {e}")
+            print("  获取%s价格失败: %s" % (symbol, e))
             return None
 
-    def should_trade(self, recommendation):
-        """判断是否应该交易"""
-        if not self.trading_enabled:
-            print("⏸️  交易已禁用")
-            return False
+    # ===== 熔断机制 =====
 
-        symbol = recommendation['symbol']
-        score = recommendation['score']
+    def check_circuit_breaker(self):
+        """熔断: 连续N笔亏损暂停"""
+        try:
+            conn = sqlite3.connect(DB_PATH)
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT pnl, exit_time FROM real_trades
+                WHERE status = 'CLOSED' ORDER BY exit_time DESC LIMIT ?
+            """, (self.circuit_break_count,))
+            recent = cursor.fetchall()
+            conn.close()
 
-        # 检查评分
-        if score < self.min_score:
-            return False
-
-        # v3.3: 黑名单币种
-        if symbol in self.blacklist:
-            return False
-
-        # v3.3: 30分钟冷却期（防止快速重入亏损）
-        if symbol in self.symbol_cooldown:
-            cooldown_end = self.symbol_cooldown[symbol]
-            if datetime.now() < cooldown_end:
-                minutes_left = (cooldown_end - datetime.now()).total_seconds() / 60
+            if len(recent) < self.circuit_break_count:
                 return False
 
-        # 检查持仓数量
-        positions = self.get_open_positions()
-        if len(positions) >= self.max_positions:
-            print(f"⏭️  持仓已满 ({len(positions)}/{self.max_positions})")
+            all_losses = all(row[0] < 0 for row in recent)
+            if all_losses:
+                last_exit = recent[0][1]
+                try:
+                    last_time = datetime.strptime(
+                        str(last_exit).replace('T', ' ').split('.')[0],
+                        '%Y-%m-%d %H:%M:%S'
+                    )
+                    hours_since = (datetime.now() - last_time).total_seconds() / 3600
+                    if hours_since > self.cooldown_hours:
+                        print("熔断解除: 已冷却%.0f小时" % hours_since)
+                        return False
+                except Exception:
+                    pass
+
+                total_loss = sum(row[0] for row in recent)
+                print("熔断触发: 连续%d笔亏损 ($%.2f), 暂停开仓" % (self.circuit_break_count, total_loss))
+                return True
+
+            return False
+        except Exception:
             return False
 
-        # 检查是否已持有该币种
-        for pos in positions:
-            if pos['symbol'] == symbol:
-                return False
-
-        # 检查可用资金
-        available = self.get_current_capital() - self.get_margin_used()
-        if available < 50:
-            print(f"⏭️  可用资金不足 (${available:.2f})")
-            return False
-
-        return True
+    # ===== 账户统计 =====
 
     def save_account_snapshot(self):
         """保存账户快照"""
@@ -660,7 +811,6 @@ class AutoTraderV2:
             available = current_capital - margin_used
             positions = self.get_open_positions()
 
-            # 计算未实现盈亏
             unrealized_pnl = 0
             for pos in positions:
                 current_price = self.get_current_price(pos['symbol'])
@@ -671,23 +821,18 @@ class AutoTraderV2:
                         pnl_pct = (pos['entry_price'] - current_price) / pos['entry_price']
                     unrealized_pnl += pos['amount'] * pos['leverage'] * pnl_pct
 
-            # 计算已实现盈亏
             cursor.execute("SELECT SUM(pnl) FROM real_trades WHERE status = 'CLOSED'")
             realized_pnl = cursor.fetchone()[0] or 0
-
-            # 计算总费用
             cursor.execute("SELECT SUM(fee), SUM(funding_fee) FROM real_trades WHERE status = 'CLOSED'")
             fees = cursor.fetchone()
             total_fees = fees[0] or 0
-            total_funding_fees = fees[1] or 0
+            total_funding = fees[1] or 0
 
-            # 计算最大回撤
             max_capital = max(self.initial_capital, current_capital)
-            max_drawdown = ((max_capital - current_capital) / max_capital * 100) if max_capital > 0 else 0
+            max_dd = ((max_capital - current_capital) / max_capital * 100) if max_capital > 0 else 0
 
-            # 计算当日盈亏
             today = date.today().isoformat()
-            cursor.execute("SELECT SUM(pnl) FROM real_trades WHERE status = 'CLOSED' AND DATE(exit_time) = ?", (today,))
+            cursor.execute("SELECT SUM(pnl) FROM real_trades WHERE status='CLOSED' AND DATE(exit_time)=?", (today,))
             daily_pnl = cursor.fetchone()[0] or 0
 
             cursor.execute("""
@@ -696,182 +841,130 @@ class AutoTraderV2:
                     unrealized_pnl, realized_pnl, total_fees, total_funding_fees,
                     open_positions, daily_pnl, max_drawdown
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                current_capital + unrealized_pnl, available, margin_used,
-                unrealized_pnl, realized_pnl, total_fees, total_funding_fees,
-                len(positions), daily_pnl, max_drawdown
-            ))
-
+            """, (current_capital + unrealized_pnl, available, margin_used,
+                  unrealized_pnl, realized_pnl, total_fees, total_funding,
+                  len(positions), daily_pnl, max_dd))
             conn.commit()
             conn.close()
-            print(f"📸 账户快照已保存")
-
         except Exception as e:
-            print(f"❌ 保存快照失败: {e}")
+            print("保存快照失败: %s" % e)
 
     def update_daily_stats(self):
         """更新每日统计"""
         try:
             conn = sqlite3.connect(DB_PATH)
             cursor = conn.cursor()
-
             today = date.today().isoformat()
             current_capital = self.get_current_capital()
 
-            # 获取今日统计
             cursor.execute("""
                 SELECT
-                    COUNT(CASE WHEN DATE(entry_time) = ? THEN 1 END) as opened,
-                    COUNT(CASE WHEN DATE(exit_time) = ? THEN 1 END) as closed,
-                    SUM(CASE WHEN DATE(exit_time) = ? AND pnl > 0 THEN 1 ELSE 0 END) as wins,
-                    SUM(CASE WHEN DATE(exit_time) = ? AND pnl < 0 THEN 1 ELSE 0 END) as losses,
-                    SUM(CASE WHEN DATE(exit_time) = ? THEN pnl ELSE 0 END) as total_pnl,
-                    SUM(CASE WHEN DATE(exit_time) = ? THEN fee ELSE 0 END) as total_fees,
-                    SUM(CASE WHEN DATE(exit_time) = ? THEN funding_fee ELSE 0 END) as funding_fees,
-                    MAX(CASE WHEN DATE(exit_time) = ? THEN pnl END) as best,
-                    MIN(CASE WHEN DATE(exit_time) = ? THEN pnl END) as worst
+                    COUNT(CASE WHEN DATE(entry_time) = ? THEN 1 END),
+                    COUNT(CASE WHEN DATE(exit_time) = ? THEN 1 END),
+                    SUM(CASE WHEN DATE(exit_time) = ? AND pnl > 0 THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN DATE(exit_time) = ? AND pnl < 0 THEN 1 ELSE 0 END),
+                    SUM(CASE WHEN DATE(exit_time) = ? THEN pnl ELSE 0 END),
+                    SUM(CASE WHEN DATE(exit_time) = ? THEN fee ELSE 0 END),
+                    SUM(CASE WHEN DATE(exit_time) = ? THEN funding_fee ELSE 0 END),
+                    MAX(CASE WHEN DATE(exit_time) = ? THEN pnl END),
+                    MIN(CASE WHEN DATE(exit_time) = ? THEN pnl END)
                 FROM real_trades
-            """, (today, today, today, today, today, today, today, today, today))
-
+            """, (today,) * 9)
             stats = cursor.fetchone()
 
-            # 插入或更新每日统计
             cursor.execute("""
                 INSERT OR REPLACE INTO daily_stats (
                     date, starting_capital, ending_capital,
                     trades_opened, trades_closed, win_trades, loss_trades,
                     total_pnl, total_fees, total_funding_fees, best_trade, worst_trade
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                today, self.initial_capital, current_capital,
-                stats[0] or 0, stats[1] or 0, stats[2] or 0, stats[3] or 0,
-                stats[4] or 0, stats[5] or 0, stats[6] or 0, stats[7], stats[8]
-            ))
-
+            """, (today, self.initial_capital, current_capital,
+                  stats[0] or 0, stats[1] or 0, stats[2] or 0, stats[3] or 0,
+                  stats[4] or 0, stats[5] or 0, stats[6] or 0, stats[7], stats[8]))
             conn.commit()
             conn.close()
-
         except Exception as e:
-            print(f"❌ 更新每日统计失败: {e}")
+            print("更新统计失败: %s" % e)
 
-    def check_circuit_breaker(self):
-        """熔断机制：连续亏损时暂停开仓，30分钟后自动解锁"""
-        try:
-            conn = sqlite3.connect(DB_PATH)
-            cursor = conn.cursor()
-            cursor.execute("""
-                SELECT pnl, exit_time FROM real_trades
-                WHERE status = 'CLOSED'
-                ORDER BY exit_time DESC
-                LIMIT 5
-            """)
-            recent = cursor.fetchall()
-            conn.close()
-
-            if len(recent) < 5:
-                return False
-
-            # 最近5笔全部亏损 → 检查熔断
-            all_losses = all(row[0] < 0 for row in recent)
-            if all_losses:
-                # 检查最后一笔亏损的时间，超过30分钟自动解锁
-                last_exit = recent[0][1]
-                try:
-                    last_time = datetime.strptime(
-                        str(last_exit).replace('T', ' ').split('.')[0],
-                        '%Y-%m-%d %H:%M:%S'
-                    )
-                    minutes_since = (datetime.now() - last_time).total_seconds() / 60
-                    if minutes_since > 30:
-                        print(f"🔓 熔断解除：已冷却 {minutes_since:.0f} 分钟，恢复交易")
-                        return False
-                except Exception:
-                    pass
-
-                total_loss = sum(row[0] for row in recent)
-                print(f"🚨 熔断触发：最近5笔全部亏损（合计 ${total_loss:.2f}），暂停开仓")
-                return True
-
-            return False
-        except Exception:
-            return False
+    # ===== 主循环 =====
 
     def run_once(self):
         """执行一次交易循环"""
-        print(f"\n{'='*60}")
-        print(f"⏰ {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - 开始扫描")
-        print(f"{'='*60}")
+        print("\n" + "=" * 60)
+        print("%s - 扫描开始" % datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print("=" * 60)
 
-        # 1. 检查持仓止盈止损
-        print("\n🔍 检查持仓...")
+        # 1. 检查持仓
+        print("\n[1] 检查持仓...")
         closed = self.check_and_close_positions()
         if closed > 0:
-            print(f"✅ 平仓 {closed} 个")
+            print("  平仓 %d 个" % closed)
 
         # 2. 熔断检查
         circuit_break = self.check_circuit_breaker()
 
-        # 3. 获取推荐
-        print("\n🔍 扫描交易机会...")
-        recommendations = self.get_recommendations()
+        # 3. 扫描动量信号
+        print("\n[2] 扫描动量突破信号...")
+        signals = self.scan_momentum_signals()
 
-        # 显示状态
+        # 状态显示
         current_capital = self.get_current_capital()
         margin_used = self.get_margin_used()
         available = current_capital - margin_used
         positions = self.get_open_positions()
 
-        print(f"\n💰 当前资金: ${current_capital:.2f}")
-        print(f"📊 保证金占用: ${margin_used:.2f}")
-        print(f"💵 可用余额: ${available:.2f}")
-        print(f"📈 持仓数: {len(positions)}/{self.max_positions}")
+        print("\n资金: $%.2f | 占用: $%.2f | 可用: $%.2f | 持仓: %d/%d" % (
+            current_capital, margin_used, available, len(positions), self.max_positions))
 
-        # 4. 尝试开仓（熔断时不开新仓，但仍监控已有持仓）
+        if signals:
+            print("发现 %d 个信号" % len(signals))
+
+        # 4. 开仓
         trades_made = 0
         if circuit_break:
-            print("⏸️  熔断中：仅监控持仓，不开新仓")
+            print("熔断中: 仅监控持仓")
         else:
-            for rec in recommendations:
-                if self.should_trade(rec):
-                    if self.open_position(rec):
+            for sig in signals:
+                if self.should_trade(sig):
+                    if self.open_position(sig):
                         trades_made += 1
                         time.sleep(1)
 
         if trades_made > 0:
-            print(f"\n✅ 本轮开仓 {trades_made} 个")
+            print("本轮开仓 %d 个" % trades_made)
 
-        # 4. 保存快照（每60次循环保存一次，约1小时）
+        # 5. 快照（每30次循环）
         self.snapshot_counter += 1
-        if self.snapshot_counter % 60 == 0:
+        if self.snapshot_counter % 30 == 0:
             self.save_account_snapshot()
 
-        # 5. 更新每日统计
+        # 6. 每日统计
         self.update_daily_stats()
 
     def run(self, interval=300):
         """持续运行"""
-        print("\n🚀 量化交易开始运行...")
-        print(f"⏰ 扫描间隔: {interval}秒")
-        print("⚠️  按 Ctrl+C 停止\n")
+        print("\n启动自动交易...")
+        print("扫描间隔: %d秒" % interval)
+        print("按 Ctrl+C 停止\n")
 
         while True:
             try:
                 self.run_once()
-                print(f"\n😴 等待{interval}秒...\n")
+                print("\n等待%d秒...\n" % interval)
                 time.sleep(interval)
             except KeyboardInterrupt:
-                print("\n\n⛔ 收到停止信号")
-                self.save_account_snapshot()  # 退出前保存快照
-                print("🛑 量化交易已停止")
+                print("\n停止信号收到")
+                self.save_account_snapshot()
+                print("交易已停止")
                 break
             except Exception as e:
-                print(f"\n❌ 发生错误: {e}")
+                print("\n错误: %s" % e)
                 import traceback
                 traceback.print_exc()
-                print("⏳ 5分钟后重试...")
+                print("5分钟后重试...")
                 time.sleep(300)
 
 
 if __name__ == '__main__':
-    trader = AutoTraderV2()
-    trader.run(interval=60)  # 5分钟扫描一次
+    trader = AutoTraderV4()
+    trader.run(interval=300)  # 5分钟扫描一次
