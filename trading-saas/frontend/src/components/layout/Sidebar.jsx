@@ -55,6 +55,8 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     const loginPath = `/${user?.role || 'agent'}/login`;
+    // Clean up socket before clearing auth
+    import('../../hooks/useSocket').then(m => m.disconnectSocket());
     logout();
     navigate(loginPath);
   };

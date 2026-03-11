@@ -131,14 +131,16 @@ def get_balance():
         exchange = _create_exchange(exchange_name, keys['k'], keys['s'],
                                     passphrase=keys.get('p'),
                                     is_testnet=record.is_testnet)
-        balance = exchange.fetch_balance()
-        usdt = balance.get('USDT', {})
-
-        return jsonify({
-            'total': float(usdt.get('total', 0)),
-            'free': float(usdt.get('free', 0)),
-            'used': float(usdt.get('used', 0)),
-        })
+        try:
+            balance = exchange.fetch_balance()
+            usdt = balance.get('USDT', {})
+            return jsonify({
+                'total': float(usdt.get('total', 0)),
+                'free': float(usdt.get('free', 0)),
+                'used': float(usdt.get('used', 0)),
+            })
+        finally:
+            exchange.close()
     except Exception as e:
         logger.exception("Balance fetch failed")
         return jsonify({'error': 'Failed to fetch balance'}), 400
@@ -232,8 +234,11 @@ def verify_api_keys():
         exchange = _create_exchange(exchange_name, keys['k'], keys['s'],
                                     passphrase=keys.get('p'),
                                     is_testnet=record.is_testnet)
-        balance = exchange.fetch_balance()
-        usdt_balance = balance.get('USDT', {}).get('total', 0)
+        try:
+            balance = exchange.fetch_balance()
+            usdt_balance = balance.get('USDT', {}).get('total', 0)
+        finally:
+            exchange.close()
 
         record.permissions_verified = True
         record.last_verified_at = datetime.now(timezone.utc)

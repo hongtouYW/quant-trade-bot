@@ -3,6 +3,7 @@
 Extracted from paper_trader.py and backtest_engine.py.
 All functions are stateless and take raw market data as input.
 """
+import threading
 import requests
 from typing import Optional
 
@@ -64,6 +65,7 @@ BINANCE_FUTURES = 'https://fapi.binance.com'  # kept for backward compat
 
 # BTC trend cache (avoid redundant API calls during a scan cycle)
 _btc_trend_cache = {'data': None, 'ts': 0}
+_btc_trend_lock = threading.Lock()
 
 
 # ─── Technical Indicators ───────────────────────────────────
@@ -350,8 +352,9 @@ def get_btc_trend(timeout: int = 10) -> dict:
     """
     import time as _time
     now = _time.time()
-    if _btc_trend_cache['data'] and (now - _btc_trend_cache['ts']) < 120:
-        return _btc_trend_cache['data']
+    with _btc_trend_lock:
+        if _btc_trend_cache['data'] and (now - _btc_trend_cache['ts']) < 120:
+            return _btc_trend_cache['data']
 
     try:
         candles = fetch_klines('BTC/USDT', '1h', 60, timeout=timeout)
@@ -384,8 +387,9 @@ def get_btc_trend(timeout: int = 10) -> dict:
 
         result = {'direction': direction, 'strength': strength,
                   'price': price, 'ma50': ma50}
-        _btc_trend_cache['data'] = result
-        _btc_trend_cache['ts'] = now
+        with _btc_trend_lock:
+            _btc_trend_cache['data'] = result
+            _btc_trend_cache['ts'] = now
         return result
     except Exception:
         return {'direction': 'neutral', 'strength': 0, 'price': 0, 'ma50': 0}
@@ -1091,9 +1095,10 @@ def calculate_stop_take_v5(entry_price: float, direction: str,
     if use_atr and atr and atr > 0:
         atr_stop_pct = (atr * atr_mult) / entry_price
         roi_stop_from_atr = -atr_stop_pct * leverage * 100
-        # Use the tighter of config SL and ATR SL, but not tighter than -5%
-        roi_stop = max(roi_stop_from_atr, roi_stop, -15)
-        roi_stop = min(roi_stop, -5)  # at least -5% ROI stop
+        # Pick the tighter SL, clamped to [-15, -5] range
+        roi_stop = max(roi_stop_from_atr, roi_stop)  # tighter (closer to 0)
+        roi_stop = max(roi_stop, -15)  # floor: no wider than -15%
+        roi_stop = min(roi_stop, -5)   # ceiling: at least -5% ROI stop
 
     stop_price_pct = roi_stop / (leverage * 100)
     tp1_price_pct = tp1_roi / (leverage * 100)

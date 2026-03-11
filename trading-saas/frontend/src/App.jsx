@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -28,6 +29,7 @@ export default function App() {
     <BrowserRouter>
       <LanguageProvider>
       <AuthProvider>
+      <ErrorBoundary>
         <Routes>
           {/* Separate login pages */}
           <Route path="/admin/login" element={<Login />} />
@@ -62,6 +64,7 @@ export default function App() {
           <Route path="/login" element={<Navigate to="/agent/login" replace />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+      </ErrorBoundary>
       </AuthProvider>
       </LanguageProvider>
     </BrowserRouter>

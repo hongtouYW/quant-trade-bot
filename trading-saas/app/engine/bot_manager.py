@@ -83,11 +83,16 @@ class BotManager:
             self._threads[agent_id] = thread
             thread.start()
 
-            # Update state
+            # Update state (use merge to avoid race condition on insert)
             state = BotState.query.filter_by(agent_id=agent_id).first()
             if not state:
                 state = BotState(agent_id=agent_id)
                 db.session.add(state)
+                try:
+                    db.session.flush()
+                except Exception:
+                    db.session.rollback()
+                    state = BotState.query.filter_by(agent_id=agent_id).first()
             state.status = 'running'
             state.pid = thread.ident
             state.started_at = datetime.now(timezone.utc)
