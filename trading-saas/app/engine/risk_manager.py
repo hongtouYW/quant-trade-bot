@@ -171,10 +171,22 @@ class RiskManager:
         if daily_loss_breach:
             risk_score = max(risk_score, 7)
 
-        # Max drawdown check
+        # Max drawdown check — with auto-recovery
         drawdown_breach = current_drawdown > self.max_drawdown_pct
         if drawdown_breach:
-            risk_score = max(risk_score, 8)
+            # Auto-recovery: if recent 3 trades have ≥2 wins, reset peak
+            # to current capital (accept loss, resume trading)
+            recent_wins = sum(1 for t in recent[:3] if t.pnl and float(t.pnl) > 0)
+            if recent_wins >= 2 and len(recent) >= 3:
+                # Reset peak to current capital — drawdown restarts from here
+                peak_capital = current_capital
+                current_drawdown = 0.0
+                drawdown_breach = False
+                print(f"[RiskManager] Agent {self.agent_id}: auto-recovery triggered, "
+                      f"peak reset to {current_capital:.2f} "
+                      f"(recent {recent_wins}/3 wins)")
+            else:
+                risk_score = max(risk_score, 8)
 
         return {
             'risk_score': risk_score,
