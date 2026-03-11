@@ -25,14 +25,14 @@ class AutoTraderV6:
         self.long_min_score = 85
         self.max_positions = 15
         self.max_leverage = 3
-        self.cooldown_seconds = 1800  # 30min
+        self.cooldown_seconds = 3600  # 60min
         self.min_hold_minutes = 60
         self.max_hold_minutes = 2880
         self.short_bias = 1.05
 
         # === 风控参数 ===
-        self.max_drawdown_pct = 15      # 最大回撤%，超过暂停开仓
-        self.daily_loss_limit = 100     # 每日亏损上限U
+        self.max_drawdown_pct = 999     # 风控暂时关闭
+        self.daily_loss_limit = 99999   # 风控暂时关闭
         self.risk_pause = False         # 风控暂停标志
         self.risk_position_multiplier = 1.0  # 仓位缩放
 
@@ -67,7 +67,7 @@ class AutoTraderV6:
 
         # === 状态 ===
         self.positions = {}
-        self.last_close_time = None
+        self.cooldowns = {}  # per-symbol cooldown
         self._last_mode_log = None
         self.ASSISTANT_NAME = '交易助手'
         self.MODE = 'paper' 
@@ -135,18 +135,20 @@ class AutoTraderV6:
         except Exception as e:
             print(f"  恢复失败: {e}")
 
-        # Restore last_close_time from most recent closed trade
+        # Restore per-symbol cooldowns from recent closed trades
         try:
             conn = sqlite3.connect(self.db_path)
             c = conn.cursor()
-            c.execute("SELECT exit_time FROM real_trades WHERE status='CLOSED' AND assistant=? ORDER BY exit_time DESC LIMIT 1", (self.ASSISTANT_NAME,))
-            row = c.fetchone()
+            c.execute("SELECT symbol, exit_time FROM real_trades WHERE status='CLOSED' AND assistant=? AND exit_time IS NOT NULL ORDER BY exit_time DESC LIMIT 30", (self.ASSISTANT_NAME,))
+            for row in c.fetchall():
+                sym, et = row
+                if sym not in self.cooldowns and et:
+                    close_time = datetime.strptime(et, '%Y-%m-%d %H:%M:%S')
+                    elapsed = (datetime.now() - close_time).total_seconds()
+                    if elapsed < self.cooldown_seconds:
+                        self.cooldowns[sym] = close_time
+                        print(f"  冷却恢复: {sym} 平仓{int(elapsed/60)}m前，还需等{int((self.cooldown_seconds-elapsed)/60)}m")
             conn.close()
-            if row and row[0]:
-                self.last_close_time = datetime.strptime(row[0], '%Y-%m-%d %H:%M:%S')
-                elapsed = (datetime.now() - self.last_close_time).total_seconds()
-                if elapsed < self.cooldown_seconds:
-                    print(f"  冷却恢复: 上次平仓{int(elapsed/60)}m前，还需等{int((self.cooldown_seconds-elapsed)/60)}m")
         except Exception as e:
             print(f"  冷却恢复失败: {e}")
 
@@ -671,7 +673,7 @@ class AutoTraderV6:
                          pnl=?, roi=?, fee=?, funding_fee=?,
                          close_reason=?, reason=reason||' | '||?,
                          final_stop_loss=?
-                         WHERE id=? AND status='OPEN''',
+                         WHERE id=? AND status='OPEN' ''',
                       (exit_price, now, pnl, roi_db, total_fee, funding_fee,
                        reason, reason,
                        pos.get('stop_loss', 0),
@@ -681,7 +683,7 @@ class AutoTraderV6:
 
             # Only update memory after DB success
             self.current_capital += pnl
-            self.last_close_time = datetime.now()
+            self.cooldowns[symbol] = datetime.now()
             del self.positions[symbol]
 
             mark = '+' if pnl > 0 else '-'
@@ -792,22 +794,20 @@ class AutoTraderV6:
 
         opps.sort(key=lambda x: x[1], reverse=True)
 
-        if self.last_close_time:
-            cd = (datetime.now() - self.last_close_time).total_seconds()
-            if cd < self.cooldown_seconds:
-                remaining = int((self.cooldown_seconds - cd) / 60)
-                print(f"  冷却中 (还剩{remaining}m)")
-                return
-
         available = self.current_capital - sum(p['amount'] for p in self.positions.values())
-        if self.risk_pause:
-            print(f"  [风控] 暂停中，不开新仓")
-            return
 
         if len(self.positions) < self.max_positions and available > 100:
             opened = 0
             for sym, score, ana in opps:
                 if opened >= 3 or len(self.positions) + opened >= self.max_positions:
+                    break
+                # Per-symbol cooldown check
+                if sym in self.cooldowns:
+                    elapsed = (datetime.now() - self.cooldowns[sym]).total_seconds()
+                    if elapsed < self.cooldown_seconds:
+                        continue
+                    else:
+                        del self.cooldowns[sym]
                     break
                 self.open_position(sym, ana)
                 opened += 1
