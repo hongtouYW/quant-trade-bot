@@ -55,8 +55,8 @@ class AgentBot:
 
         # In-memory position tracking (symbol -> position dict)
         self.positions = {}
-        # Cooldown tracking (symbol -> datetime)
-        self.cooldowns = {}
+        # Global cooldown tracking (matches 5111 v6 behavior)
+        self.last_close_time = None
         # Min hold time protection (3 hours)
         self.min_hold_minutes = 180
         # Max hold time forced close (48 hours)
@@ -733,9 +733,8 @@ class AgentBot:
             # Remove from memory
             del self.positions[symbol]
 
-            # Set cooldown
-            cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
-            self.cooldowns[symbol] = datetime.now(timezone.utc)
+            # Set global cooldown (matches 5111 v6)
+            self.last_close_time = datetime.now(timezone.utc)
 
             # Audit log
             db.session.add(AuditLog(
@@ -917,6 +916,13 @@ class AgentBot:
             cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
             opened_this_scan = 0
 
+            # Global cooldown check (matches 5111 v6)
+            if self.last_close_time:
+                elapsed = (datetime.now(timezone.utc) - self.last_close_time).total_seconds() / 60
+                if elapsed < cooldown_minutes:
+                    self._log('info', f"Global cooldown: {int(cooldown_minutes - elapsed)}m remaining")
+                    return
+
             for symbol in DEFAULT_WATCHLIST:
                 # v4: 跳过持续亏损币 (回测验证)
                 if symbol in SKIP_COINS:
@@ -929,15 +935,6 @@ class AgentBot:
                 # Max 3 new positions per scan (from paper_trader)
                 if opened_this_scan >= 3:
                     break
-
-                # Skip if in cooldown
-                if symbol in self.cooldowns:
-                    cd_time = self.cooldowns[symbol]
-                    elapsed = (datetime.now(timezone.utc) - cd_time).total_seconds() / 60
-                    if elapsed < cooldown_minutes:
-                        continue
-                    else:
-                        del self.cooldowns[symbol]
 
                 # Pre-trade risk check
                 can_open, risk_reason = self.risk_manager.check_can_open(

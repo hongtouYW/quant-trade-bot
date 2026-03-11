@@ -797,36 +797,10 @@ def analyze_signal_v6(symbol: str, config: dict, exchange: str = 'binance') -> t
 
         total_score += bonus
 
-        # BTC trend filter (same as v4 but simplified — no coin_has_own_trend for v6)
-        btc_dir = 'neutral'
-        if config.get('enable_btc_filter', True):
-            btc_trend = get_btc_trend()
-            btc_dir = btc_trend['direction']
-            btc_str = btc_trend['strength']
-            btc_ma50 = btc_trend.get('ma50', 0)
-            btc_price = btc_trend.get('price', 0)
-            btc_below_ma50 = btc_price > 0 and btc_ma50 > 0 and btc_price < btc_ma50
-
-            if btc_dir == 'down' and direction == 'LONG':
-                if btc_str >= 2:
-                    total_score = int(total_score * 0.20)
-                else:
-                    total_score = int(total_score * 0.35)
-            elif btc_below_ma50 and direction == 'LONG':
-                total_score = int(total_score * 0.40)
-            elif btc_dir == 'up' and direction == 'SHORT':
-                if btc_str >= 2:
-                    total_score = int(total_score * 0.50)
-                else:
-                    total_score = int(total_score * 0.65)
-
-        # SHORT bias
+        # SHORT bias (no BTC filter in v6, matches 5111 paper trader)
         short_bias = float(config.get('short_bias', 1.05))
         if direction == 'SHORT':
             total_score = int(total_score * short_bias)
-
-        # Cap score
-        total_score = min(125, total_score)
 
         analysis = {
             'price': current_price,
@@ -842,7 +816,6 @@ def analyze_signal_v6(symbol: str, config: dict, exchange: str = 'binance') -> t
             'adx': adx,
             'macd_histogram': macd['histogram'] if macd else None,
             'bb_percent_b': bb['percent_b'] if bb else None,
-            'btc_trend': btc_dir,
         }
 
         return total_score, analysis
