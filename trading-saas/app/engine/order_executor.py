@@ -29,8 +29,10 @@ class OrderExecutor:
             exchange_name: 'binance' or 'bitget'
             passphrase: API passphrase (required for Bitget)
         """
+        if exchange_name not in ('binance', 'bitget'):
+            raise ValueError(f"Unsupported exchange: {exchange_name}")
         self.exchange_name = exchange_name
-        opts = EXCHANGE_OPTIONS.get(exchange_name, EXCHANGE_OPTIONS['binance'])
+        opts = EXCHANGE_OPTIONS[exchange_name]
         config = {
             'apiKey': api_key,
             'secret': api_secret,
@@ -150,7 +152,7 @@ class OrderExecutor:
                 'direction': direction,
                 'side': side,
                 'quantity': quantity,
-                'price': float(order.get('average', price)),
+                'price': float(order.get('average') or price),
                 'amount_usdt': amount_usdt,
                 'leverage': leverage,
                 'fee': fee_cost,
@@ -184,12 +186,15 @@ class OrderExecutor:
             if quantity is None:
                 # Fetch open position to get quantity
                 positions = self.exchange.fetch_positions([symbol])
+                expected_side = 'long' if direction == 'LONG' else 'short'
                 for pos in positions:
                     # ccxt returns symbol as "DOT/USDT:USDT" for futures,
                     # match both exact and base format
                     pos_symbol = pos['symbol'].split(':')[0]
+                    pos_side = (pos.get('side') or '').lower()
                     if (pos['symbol'] == symbol or pos_symbol == symbol) \
-                            and float(pos.get('contracts', 0)) > 0:
+                            and float(pos.get('contracts', 0)) > 0 \
+                            and pos_side == expected_side:
                         quantity = float(pos['contracts'])
                         break
                 if not quantity:
@@ -215,7 +220,7 @@ class OrderExecutor:
                 'symbol': symbol,
                 'side': side,
                 'quantity': quantity,
-                'price': float(order.get('average', 0)),
+                'price': float(order.get('average') or 0),
                 'fee': fee_cost,
                 'status': order.get('status'),
                 'raw': order,
@@ -274,7 +279,7 @@ class OrderExecutor:
                 'symbol': symbol,
                 'side': side,
                 'quantity': quantity,
-                'price': float(order.get('average', 0)),
+                'price': float(order.get('average') or 0),
                 'fee': fee_cost,
                 'status': order.get('status'),
             }

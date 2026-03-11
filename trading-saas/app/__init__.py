@@ -77,7 +77,7 @@ def create_app(config_class=Config):
             'database': db_ok,
             'running_bots': running_bots,
             'active_agents': agent_count,
-            'version': '1.0.0',
+            'version': '1.1.0',
             'timestamp': int(_time.time()),
         }), 200 if db_ok else 503
 

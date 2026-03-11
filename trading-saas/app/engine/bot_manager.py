@@ -90,6 +90,7 @@ class BotManager:
                 db.session.add(state)
             state.status = 'running'
             state.pid = thread.ident
+            state.started_at = datetime.now(timezone.utc)
             db.session.commit()
 
             return True, f"Bot started for agent {agent_id}"

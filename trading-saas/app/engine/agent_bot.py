@@ -34,6 +34,11 @@ from .order_executor import OrderExecutor
 from .risk_manager import RiskManager
 
 
+def _is_advanced_strategy(version: str) -> bool:
+    """Check if strategy version uses v5+ logic (position sizing, stops, partial TP)."""
+    return version.startswith('v5') or version.startswith('v6')
+
+
 class AgentBot:
     """Trading bot for a single agent. Designed to run in its own thread."""
 
@@ -156,22 +161,50 @@ class AgentBot:
             agent_id=self.agent_id, status='OPEN'
         ).all()
         for trade in open_trades:
-            self.positions[trade.symbol] = {
-                'trade_id': trade.id,
-                'direction': trade.direction,
-                'entry_price': float(trade.entry_price),
-                'amount': float(trade.amount),
-                'leverage': trade.leverage,
-                'stop_loss': float(trade.stop_loss) if trade.stop_loss else 0,
-                'take_profit': float(trade.take_profit) if trade.take_profit else 0,
-                'peak_roi': float(trade.peak_roi) if trade.peak_roi else 0,
-                'entry_time': trade.entry_time.strftime('%Y-%m-%d %H:%M:%S'),
-                'score': trade.score or 0,
-                'open_fee': float(trade.fee) if trade.fee else 0,
-                'roi_stop_loss': float(self.config.get('roi_stop_loss', -10)),
-                'roi_trailing_start': float(self.config.get('roi_trailing_start', 6)),
-                'roi_trailing_distance': float(self.config.get('roi_trailing_distance', 3)),
-            }
+            # trade.fee in DB = open_fee + accumulated partial close fees
+            # We need to separate them to avoid double-counting on final close
+            db_fee = float(trade.fee) if trade.fee else 0
+            if trade.tp1_hit:
+                # Partial close already happened — DB fee includes partial fees
+                # Set partial_fees to the difference, open_fee stays as original
+                # We don't know exact split, so treat entire DB fee as already-tracked
+                # On final close, total_fee = db_tracked_fee + final_close_fee
+                self.positions[trade.symbol] = {
+                    'trade_id': trade.id,
+                    'direction': trade.direction,
+                    'entry_price': float(trade.entry_price),
+                    'amount': float(trade.amount),
+                    'leverage': trade.leverage,
+                    'stop_loss': float(trade.stop_loss) if trade.stop_loss else 0,
+                    'take_profit': float(trade.take_profit) if trade.take_profit else 0,
+                    'peak_roi': float(trade.peak_roi) if trade.peak_roi else 0,
+                    'entry_time': trade.entry_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'score': trade.score or 0,
+                    'open_fee': db_fee,
+                    'partial_fees': 0,  # Already included in open_fee from DB
+                    'tp1_hit': True,
+                    'roi_stop_loss': float(self.config.get('roi_stop_loss', -10)),
+                    'roi_trailing_start': float(self.config.get('roi_trailing_start', 6)),
+                    'roi_trailing_distance': float(self.config.get('roi_trailing_distance', 3)),
+                }
+            else:
+                self.positions[trade.symbol] = {
+                    'trade_id': trade.id,
+                    'direction': trade.direction,
+                    'entry_price': float(trade.entry_price),
+                    'amount': float(trade.amount),
+                    'leverage': trade.leverage,
+                    'stop_loss': float(trade.stop_loss) if trade.stop_loss else 0,
+                    'take_profit': float(trade.take_profit) if trade.take_profit else 0,
+                    'peak_roi': float(trade.peak_roi) if trade.peak_roi else 0,
+                    'entry_time': trade.entry_time.strftime('%Y-%m-%d %H:%M:%S'),
+                    'score': trade.score or 0,
+                    'open_fee': db_fee,
+                    'partial_fees': 0,
+                    'roi_stop_loss': float(self.config.get('roi_stop_loss', -10)),
+                    'roi_trailing_start': float(self.config.get('roi_trailing_start', 6)),
+                    'roi_trailing_distance': float(self.config.get('roi_trailing_distance', 3)),
+                }
 
         self._log('info', f"Config loaded. Strategy: {self.config.get('strategy_version')}, "
                   f"Open positions: {len(self.positions)}")
@@ -193,7 +226,9 @@ class AgentBot:
                               f"min_score={new_config.get('min_score')}, "
                               f"roi_stop_loss={new_config.get('roi_stop_loss')}")
                     self.config = new_config
+                    old_alert_time = getattr(self.risk_manager, '_last_alert_time', None)
                     self.risk_manager = RiskManager(self.agent_id, self.config)
+                    self.risk_manager._last_alert_time = old_alert_time
         except Exception as e:
             self._log('error', f"Config reload failed: {e}")
 
@@ -202,7 +237,7 @@ class AgentBot:
         try:
             since_ms = 0
             if entry_time_str:
-                entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
+                entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
                 since_ms = int(entry_dt.timestamp() * 1000)
 
             if self.exchange_name == 'binance':
@@ -232,8 +267,8 @@ class AgentBot:
             holding_hours = 0
             if entry_time_str:
                 try:
-                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
-                    holding_hours = (datetime.now() - entry_dt).total_seconds() / 3600
+                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+                    holding_hours = (datetime.now(timezone.utc) - entry_dt).total_seconds() / 3600
                 except Exception:
                     pass
             return position_value * 0.0001 * (holding_hours / 8)
@@ -373,7 +408,7 @@ class AgentBot:
             # Get risk-adjusted multiplier
             risk_multiplier = self.risk_manager.get_position_multiplier(positions_list)
 
-            if self.config.get('strategy_version', '').startswith('v5'):
+            if _is_advanced_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
                 amount, leverage = calculate_position_size_v5(
                     score, available, self.config, symbol,
@@ -392,7 +427,7 @@ class AgentBot:
                 return
 
             # Calculate stop/take
-            if self.config.get('strategy_version', '').startswith('v5'):
+            if _is_advanced_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
                 stp = calculate_stop_take_v5(entry_price, direction, leverage,
                                              self.config, atr=atr_val)
@@ -410,7 +445,7 @@ class AgentBot:
             open_fee = order.get('fee', 0)
 
             # Recalculate stop/take with actual fill price
-            if self.config.get('strategy_version', '').startswith('v5'):
+            if _is_advanced_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
                 stp = calculate_stop_take_v5(fill_price, direction, leverage,
                                              self.config, atr=atr_val)
@@ -534,9 +569,14 @@ class AgentBot:
             if current_roi > peak_roi:
                 position['peak_roi'] = current_roi
                 peak_roi = current_roi
+                # Persist peak_roi to DB
+                trade = Trade.query.get(position.get('trade_id'))
+                if trade:
+                    trade.peak_roi = Decimal(str(round(current_roi, 4)))
+                    db.session.commit()
 
-            # V5: Partial take-profit at TP1
-            if self.config.get('strategy_version', '').startswith('v5'):
+            # V5/V6: Partial take-profit at TP1
+            if _is_advanced_strategy(self.config.get('strategy_version', '')):
                 tp1_roi_thresh = float(self.config.get('tp1_roi', 10))
                 tp1_ratio = float(self.config.get('tp1_close_ratio', 0.5))
                 if current_roi >= tp1_roi_thresh and not position.get('tp1_hit'):
@@ -553,8 +593,8 @@ class AgentBot:
             entry_time_str = position.get('entry_time', '')
             if entry_time_str:
                 try:
-                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S')
-                    hold_minutes = (datetime.now() - entry_dt).total_seconds() / 60
+                    entry_dt = datetime.strptime(entry_time_str, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+                    hold_minutes = (datetime.now(timezone.utc) - entry_dt).total_seconds() / 60
                 except Exception:
                     pass
 
@@ -609,7 +649,8 @@ class AgentBot:
                 self._close_position(symbol, current_price, reason)
 
         except Exception as e:
-            print(f"[AgentBot-{self.agent_id}] Check {symbol} failed: {e}")
+            self._log('error', f"Check {symbol} failed: {e}")
+            db.session.rollback()
 
     # ─── Close Position ──────────────────────────────────────
 
@@ -639,7 +680,15 @@ class AgentBot:
 
             # Calculate PnL with actual price
             if not entry_price or entry_price <= 0:
-                self._log('error', f"Invalid entry_price for {symbol}: {entry_price}")
+                self._log('error', f"Invalid entry_price for {symbol}: {entry_price}, "
+                          f"exchange already closed — marking CLOSED in DB")
+                trade = Trade.query.get(position.get('trade_id'))
+                if trade:
+                    trade.status = 'CLOSED'
+                    trade.exit_time = datetime.now(timezone.utc)
+                    trade.close_reason = f"Error: invalid entry_price ({entry_price})"
+                    db.session.commit()
+                del self.positions[symbol]
                 return
             if direction == 'LONG':
                 price_change_pct = (exit_price - entry_price) / entry_price
@@ -652,7 +701,8 @@ class AgentBot:
             # Use actual fees from exchange order responses
             open_fee = position.get('open_fee', 0)
             close_fee = close_result.get('fee', 0)
-            total_fee = open_fee + close_fee
+            partial_fees = position.get('partial_fees', 0)
+            total_fee = open_fee + close_fee + partial_fees
 
             # Funding fee: fetch from exchange income API
             funding_fee = self._fetch_funding_fee(symbol, position.get('entry_time', ''))
@@ -673,15 +723,19 @@ class AgentBot:
                 trade.peak_roi = Decimal(str(round(position.get('peak_roi', 0), 4)))
                 db.session.commit()
 
-            # Update daily stats
-            self._update_daily_stats(pnl, total_fee + funding_fee)
+            # Update daily stats (non-critical, don't block close)
+            try:
+                self._update_daily_stats(pnl, total_fee + funding_fee)
+            except Exception as e:
+                self._log('error', f"Daily stats update failed: {e}")
+                db.session.rollback()
 
             # Remove from memory
             del self.positions[symbol]
 
             # Set cooldown
             cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
-            self.cooldowns[symbol] = datetime.now()
+            self.cooldowns[symbol] = datetime.now(timezone.utc)
 
             # Audit log
             db.session.add(AuditLog(
@@ -777,7 +831,8 @@ class AgentBot:
             # Update in-memory position
             position['amount'] = amount * (1 - ratio)
             position['tp1_hit'] = True
-            position['open_fee'] = position.get('open_fee', 0) + close_fee
+            # Track partial close fees separately (don't add to open_fee to avoid double-counting)
+            position['partial_fees'] = position.get('partial_fees', 0) + close_fee
 
             self._log('trade', f"PARTIAL CLOSE {direction} {symbol} "
                       f"{ratio:.0%} @ ${close_price:.6f} PnL: {partial_pnl:+.2f}U - {reason}")
@@ -878,7 +933,7 @@ class AgentBot:
                 # Skip if in cooldown
                 if symbol in self.cooldowns:
                     cd_time = self.cooldowns[symbol]
-                    elapsed = (datetime.now() - cd_time).total_seconds() / 60
+                    elapsed = (datetime.now(timezone.utc) - cd_time).total_seconds() / 60
                     if elapsed < cooldown_minutes:
                         continue
                     else:
@@ -916,39 +971,41 @@ class AgentBot:
                     scan_passed -= 1
                     continue
 
-                # v4核心: 85+分LONG完全跳过 (回测亏钱, 极端做多=抄底接刀)
-                if score >= 85 and direction == 'LONG':
-                    self._log('info', f"Skip {symbol}: {score}pt LONG (85+ LONG loses money)")
-                    scan_filtered.append({
-                        'symbol': symbol, 'score': score,
-                        'direction': direction, 'reason': '85+ LONG skip',
-                    })
-                    scan_passed -= 1
-                    continue
+                # v4 specific filters (skip for v5/v6 which have their own scoring)
+                if not _is_advanced_strategy(strategy_ver):
+                    # v4核心: 85+分LONG完全跳过 (回测亏钱, 极端做多=抄底接刀)
+                    if score >= 85 and direction == 'LONG':
+                        self._log('info', f"Skip {symbol}: {score}pt LONG (85+ LONG loses money)")
+                        scan_filtered.append({
+                            'symbol': symbol, 'score': score,
+                            'direction': direction, 'reason': '85+ LONG skip',
+                        })
+                        scan_passed -= 1
+                        continue
 
-                # v4: MA slope趋势过滤 — MA20与MA50斜率与方向冲突时跳过
-                ma20 = analysis.get('ma20', 0)
-                ma50 = analysis.get('ma50', 0)
-                if ma20 > 0 and ma50 > 0:
-                    ma_slope = (ma20 - ma50) / ma50
-                    if direction == 'LONG' and ma_slope < -0.01:
-                        self._log('info', f"Skip {symbol}: trend filter (MA slope {ma_slope:.3f})")
-                        scan_filtered.append({
-                            'symbol': symbol, 'score': score,
-                            'direction': direction,
-                            'reason': f'MA slope {ma_slope:.3f}',
-                        })
-                        scan_passed -= 1
-                        continue
-                    if direction == 'SHORT' and ma_slope > 0.01:
-                        self._log('info', f"Skip {symbol}: trend filter (MA slope {ma_slope:.3f})")
-                        scan_filtered.append({
-                            'symbol': symbol, 'score': score,
-                            'direction': direction,
-                            'reason': f'MA slope {ma_slope:.3f}',
-                        })
-                        scan_passed -= 1
-                        continue
+                    # v4: MA slope趋势过滤 — MA20与MA50斜率与方向冲突时跳过
+                    ma20 = analysis.get('ma20', 0)
+                    ma50 = analysis.get('ma50', 0)
+                    if ma20 > 0 and ma50 > 0:
+                        ma_slope = (ma20 - ma50) / ma50
+                        if direction == 'LONG' and ma_slope < -0.01:
+                            self._log('info', f"Skip {symbol}: trend filter (MA slope {ma_slope:.3f})")
+                            scan_filtered.append({
+                                'symbol': symbol, 'score': score,
+                                'direction': direction,
+                                'reason': f'MA slope {ma_slope:.3f}',
+                            })
+                            scan_passed -= 1
+                            continue
+                        if direction == 'SHORT' and ma_slope > 0.01:
+                            self._log('info', f"Skip {symbol}: trend filter (MA slope {ma_slope:.3f})")
+                            scan_filtered.append({
+                                'symbol': symbol, 'score': score,
+                                'direction': direction,
+                                'reason': f'MA slope {ma_slope:.3f}',
+                            })
+                            scan_passed -= 1
+                            continue
 
                 self._log('signal', f"Signal: {symbol} {direction} score={score}")
 

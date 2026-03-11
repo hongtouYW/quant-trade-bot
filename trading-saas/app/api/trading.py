@@ -94,16 +94,8 @@ def get_positions():
             d['current_roi'] = round(price_change_pct * leverage * 100, 2)
             d['unrealized_pnl'] = round(price_change_pct * leverage * amount, 2)
 
-        # Try peak_roi from BotManager
-        try:
-            from ..engine.bot_manager import BotManager
-            manager = BotManager.get_instance()
-            bot = manager._bots.get(agent_id)
-            if bot and t.symbol in bot.positions:
-                pos = bot.positions[t.symbol]
-                d['peak_roi'] = pos.get('peak_roi', 0)
-        except Exception:
-            pass
+        # peak_roi from DB (works across processes, unlike BotManager in-memory)
+        d['peak_roi'] = float(t.peak_roi) if t.peak_roi else 0
         positions.append(d)
 
     return jsonify({'positions': positions})

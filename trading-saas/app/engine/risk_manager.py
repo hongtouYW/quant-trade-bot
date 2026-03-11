@@ -35,7 +35,9 @@ class RiskManager:
         self.max_drawdown_pct = float(config.get('max_drawdown_pct', 20))
         self.max_positions = int(config.get('max_positions', 15))
         self.max_leverage = int(config.get('max_leverage', 3))
-        self.is_v5 = config.get('strategy_version', '').startswith('v5')
+        sv = config.get('strategy_version', '')
+        self.is_v5 = sv.startswith('v5') or sv.startswith('v6')
+        self._last_alert_time = None
 
     def calculate_risk_metrics(self, positions: list) -> dict:
         """Calculate comprehensive risk metrics.
