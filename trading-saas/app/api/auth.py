@@ -117,6 +117,7 @@ def agent_register():
 
 
 @auth_bp.route('/refresh', methods=['POST'])
+@rate_limit(max_requests=30, window_seconds=60)
 @jwt_required(refresh=True)
 def refresh_token():
     identity = get_jwt_identity()

@@ -92,7 +92,8 @@ def get_positions():
 
             d['current_price'] = current_price
             d['current_roi'] = round(price_change_pct * leverage * 100, 2)
-            d['unrealized_pnl'] = round(price_change_pct * leverage * amount, 2)
+            open_fee = float(t.fee or 0)
+            d['unrealized_pnl'] = round(price_change_pct * leverage * amount - open_fee, 2)
 
         # peak_roi from DB (works across processes, unlike BotManager in-memory)
         d['peak_roi'] = float(t.peak_roi) if t.peak_roi else 0

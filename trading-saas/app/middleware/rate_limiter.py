@@ -32,7 +32,9 @@ def _cleanup_store():
     if now - _last_cleanup < 300:  # every 5 minutes
         return
     _last_cleanup = now
-    stale = [k for k, v in _rate_store.items() if not v]
+    cutoff = now - 300  # remove keys with no recent activity
+    stale = [k for k, v in _rate_store.items()
+             if not v or max(v) < cutoff]
     for k in stale:
         _rate_store.pop(k, None)
 

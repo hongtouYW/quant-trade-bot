@@ -33,4 +33,9 @@ def register_error_handlers(app):
     @app.errorhandler(500)
     def internal_error(e):
         logger.exception("Internal server error")
+        try:
+            from ..extensions import db
+            db.session.rollback()
+        except Exception:
+            pass
         return jsonify({'error': 'Internal server error'}), 500

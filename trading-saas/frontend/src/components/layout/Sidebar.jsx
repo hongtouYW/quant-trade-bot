@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { disconnectSocket } from '../../hooks/useSocket';
 import NotificationBell from './NotificationBell';
 import {
   LayoutDashboard, Users, Bot, Receipt, Settings,
@@ -55,8 +56,7 @@ export default function Sidebar() {
 
   const handleLogout = () => {
     const loginPath = `/${user?.role || 'agent'}/login`;
-    // Clean up socket before clearing auth
-    import('../../hooks/useSocket').then(m => m.disconnectSocket());
+    disconnectSocket();
     logout();
     navigate(loginPath);
   };
