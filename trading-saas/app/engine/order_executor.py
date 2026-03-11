@@ -140,11 +140,7 @@ class OrderExecutor:
             )
 
             # Extract actual fee from order response
-            fee_cost = 0.0
-            if order.get('fee') and order['fee'].get('cost'):
-                fee_cost = abs(float(order['fee']['cost']))
-            elif order.get('fees'):
-                fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+            fee_cost = self._extract_fee(order, symbol)
 
             return {
                 'order_id': order.get('id'),
@@ -208,12 +204,7 @@ class OrderExecutor:
                 params={'reduceOnly': True}
             )
 
-            # Extract actual fee from order response
-            fee_cost = 0.0
-            if order.get('fee') and order['fee'].get('cost'):
-                fee_cost = abs(float(order['fee']['cost']))
-            elif order.get('fees'):
-                fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+            fee_cost = self._extract_fee(order, symbol)
 
             return {
                 'order_id': order.get('id'),
@@ -268,11 +259,7 @@ class OrderExecutor:
                 params={'reduceOnly': True}
             )
 
-            fee_cost = 0.0
-            if order.get('fee') and order['fee'].get('cost'):
-                fee_cost = abs(float(order['fee']['cost']))
-            elif order.get('fees'):
-                fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+            fee_cost = self._extract_fee(order, symbol)
 
             return {
                 'order_id': order.get('id'),
@@ -287,6 +274,36 @@ class OrderExecutor:
         except Exception as e:
             print(f"[OrderExecutor] Reduce position failed {symbol}: {e}")
             return None
+
+    def _extract_fee(self, order: dict, symbol: str) -> float:
+        """Extract fee from order response, fallback to fetchMyTrades if needed."""
+        fee_cost = 0.0
+        # Try direct fee from order response
+        if order.get('fee') and order['fee'].get('cost'):
+            fee_cost = abs(float(order['fee']['cost']))
+        elif order.get('fees'):
+            fee_cost = sum(abs(float(f.get('cost', 0))) for f in order['fees'])
+
+        # If fee is still 0, try fetchMyTrades (Binance futures often needs this)
+        if fee_cost == 0 and order.get('id'):
+            try:
+                time.sleep(0.5)  # Brief delay for settlement
+                trades = self.exchange.fetch_my_trades(symbol, limit=5)
+                order_id = str(order['id'])
+                for t in trades:
+                    if str(t.get('order')) == order_id:
+                        if t.get('fee') and t['fee'].get('cost'):
+                            fee_cost += abs(float(t['fee']['cost']))
+            except Exception as e:
+                print(f"[OrderExecutor] fetchMyTrades fee fallback failed: {e}")
+
+        # Last resort: estimate from notional (0.05% taker fee)
+        if fee_cost == 0:
+            avg_price = float(order.get('average') or order.get('price') or 0)
+            amount = float(order.get('filled') or order.get('amount') or 0)
+            fee_cost = avg_price * amount * 0.0005  # 0.05% estimate
+
+        return fee_cost
 
     def get_open_positions(self) -> list:
         """Get all open futures positions."""

@@ -414,6 +414,7 @@ def switch_strategy(version):
         'daily_loss_limit': 'daily_loss_limit',
         'max_drawdown_pct': 'max_drawdown_pct',
         'cooldown_minutes': 'cooldown_minutes',
+        'cooldown': 'cooldown_minutes',
         'tp1_roi': 'tp1_roi',
         'tp1_close_ratio': 'tp1_close_ratio',
         'tp2_roi': 'tp2_roi',
