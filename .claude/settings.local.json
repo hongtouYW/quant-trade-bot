@@ -209,7 +209,11 @@
       "Bash(/private/tmp/claude-501/-Users-hongtou-newproject/d927f09f-ede9-4273-9412-86c76bb48b5d/scratchpad/fix_config.py:*)",
       "Bash(/Users/hongtou/newproject/trading-saas/.claude/hooks/play-tts.sh:*)",
       "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/github_rsa\" git push origin v1.4.0)",
-      "Bash(ssh trading-server:*)"
+      "Bash(ssh trading-server:*)",
+      "Bash(/Applications/Xcode.app/Contents/Developer/usr/bin/git -C /Users/hongtou/newproject log --oneline -3)",
+      "Read(//Users/hongtou/newproject/**)",
+      "Bash(/tmp/add_v7_css.py:*)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''Versions:'''', [v for v in d.get\\(''''comparison'''',[[]]\\)[0].keys\\(\\) if v not in [''''symbol'''',''''winner'''']] if d.get\\(''''comparison''''\\) else ''''no data''''\\); print\\(''''Coins:'''', len\\(d.get\\(''''comparison'''',[]\\)\\)\\); print\\(''''Has v7:'''', ''''v7_total'''' in d\\)\")"
     ]
   }
 }

@@ -802,6 +802,13 @@ def analyze_signal_v6(symbol: str, config: dict, exchange: str = 'binance') -> t
         if direction == 'SHORT':
             total_score = int(total_score * short_bias)
 
+        # MA20 slope (matches Report v6b: ma20_now vs ma20_5bars_ago)
+        ma20_slope = 0
+        if len(closes) >= 25:
+            ma20_now = sum(closes[-20:]) / 20
+            ma20_prev = sum(closes[-25:-5]) / 20
+            ma20_slope = (ma20_now - ma20_prev) / ma20_prev if ma20_prev > 0 else 0
+
         analysis = {
             'price': current_price,
             'rsi': rsi,
@@ -816,6 +823,7 @@ def analyze_signal_v6(symbol: str, config: dict, exchange: str = 'binance') -> t
             'adx': adx,
             'macd_histogram': macd['histogram'] if macd else None,
             'bb_percent_b': bb['percent_b'] if bb else None,
+            'ma20_slope': ma20_slope,
         }
 
         return total_score, analysis

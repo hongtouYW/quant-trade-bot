@@ -402,11 +402,17 @@ class AgentBot:
 
             # Calculate position size
             positions_list = list(self.positions.values())
-            used_margin = sum(p['amount'] for p in positions_list)
-            available = float(self.config.get('initial_capital', 2000)) - used_margin
+            used_margin = sum(p['amount'] / p.get('leverage', 1) for p in positions_list)
+            # Deduct closed PnL, fees, funding from initial capital
+            closed_trades = Trade.query.filter_by(agent_id=self.agent_id, status='CLOSED').all()
+            closed_pnl = sum(float(t.pnl or 0) for t in closed_trades)
+            closed_fees = sum(float(t.fee or 0) for t in closed_trades)
+            closed_funding = sum(float(t.funding_fee or 0) for t in closed_trades)
+            real_capital = float(self.config.get('initial_capital', 2000)) + closed_pnl - closed_fees - closed_funding
+            available = real_capital - used_margin
 
             # Get risk-adjusted multiplier
-            risk_multiplier = self.risk_manager.get_position_multiplier(positions_list)
+            risk_multiplier = 1.0  # risk sizing disabled
 
             if _is_advanced_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
@@ -910,24 +916,16 @@ class AgentBot:
                        f"{'Pausing' if should_pause else 'Reducing positions'}")
 
         # 3. Scan for new signals (only if not paused)
-        if not should_pause and not self._paused:
+        if not self._paused:  # risk pause disabled
             min_score = int(self.config.get('min_score', 60))
             long_min_score = int(self.config.get('long_min_score', 70))
             cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
             opened_this_scan = 0
 
             for symbol in DEFAULT_WATCHLIST:
-                # v4: 跳过持续亏损币 (回测验证)
-                if symbol in SKIP_COINS:
-                    continue
-
                 # Skip if already in position
                 if symbol in self.positions:
                     continue
-
-                # Max 3 new positions per scan (from paper_trader)
-                if opened_this_scan >= 3:
-                    break
 
                 # Per-symbol cooldown check
                 if symbol in self.cooldowns:
@@ -960,6 +958,28 @@ class AgentBot:
                     })
                     scan_passed -= 1
                     continue
+
+                # v6 MA slope trend filter (matches Report v6b exactly)
+                if _is_advanced_strategy(strategy_ver):
+                    ma_slope = analysis.get('ma20_slope', 0)
+                    long_slope_threshold = float(self.config.get('long_ma_slope_threshold', 0.02))
+                    short_slope_threshold = float(self.config.get('ma_slope_threshold', 0.01))
+                    if direction == 'LONG' and ma_slope < -long_slope_threshold:
+                        scan_filtered.append({
+                            'symbol': symbol, 'score': score,
+                            'direction': direction,
+                            'reason': f'v6 MA slope {ma_slope:.3f} < -{long_slope_threshold}',
+                        })
+                        scan_passed -= 1
+                        continue
+                    if direction == 'SHORT' and ma_slope > short_slope_threshold:
+                        scan_filtered.append({
+                            'symbol': symbol, 'score': score,
+                            'direction': direction,
+                            'reason': f'v6 MA slope {ma_slope:.3f} > {short_slope_threshold}',
+                        })
+                        scan_passed -= 1
+                        continue
 
                 # v4 specific filters (skip for v5/v6 which have their own scoring)
                 if not _is_advanced_strategy(strategy_ver):
