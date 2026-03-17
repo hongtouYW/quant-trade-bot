@@ -13,7 +13,7 @@ import threading
 import traceback
 import requests
 from collections import deque
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 from decimal import Decimal
 
 from ..extensions import db
@@ -62,8 +62,6 @@ class AgentBot:
         self.positions = {}
         # Per-symbol cooldown tracking (only closed symbol gets cooldown)
         self.cooldowns = {}
-        # Global cooldown for v6 (any close blocks all opens for cooldown_minutes)
-        self._global_cooldown_until = None
         # Min hold time protection (3 hours)
         self.min_hold_minutes = 180
         # Max hold time forced close (48 hours)
@@ -753,13 +751,8 @@ class AgentBot:
             # Remove from memory
             del self.positions[symbol]
 
-            # Cooldown: v6 uses global cooldown, others use per-symbol
-            strategy_ver = self.config.get('strategy_version', '')
-            cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
-            if strategy_ver.startswith('v6'):
-                self._global_cooldown_until = datetime.now(timezone.utc) + timedelta(minutes=cooldown_minutes)
-            else:
-                self.cooldowns[symbol] = datetime.now(timezone.utc)
+            # Per-symbol cooldown: only the closed symbol is blocked
+            self.cooldowns[symbol] = datetime.now(timezone.utc)
 
             # Audit log
             db.session.add(AuditLog(
@@ -952,19 +945,13 @@ class AgentBot:
                 if symbol in self.positions:
                     continue
 
-                # Cooldown check — v6 uses global cooldown, others use per-symbol
-                if strategy_ver.startswith('v6'):
-                    # Global cooldown: any recent close blocks all new opens
-                    if self._global_cooldown_until and datetime.now(timezone.utc) < self._global_cooldown_until:
-                        break
-                else:
-                    # Per-symbol cooldown
-                    if symbol in self.cooldowns:
-                        elapsed = (datetime.now(timezone.utc) - self.cooldowns[symbol]).total_seconds() / 60
-                        if elapsed < cooldown_minutes:
-                            continue
-                        else:
-                            del self.cooldowns[symbol]
+                # Per-symbol cooldown: only the closed symbol is blocked
+                if symbol in self.cooldowns:
+                    elapsed = (datetime.now(timezone.utc) - self.cooldowns[symbol]).total_seconds() / 60
+                    if elapsed < cooldown_minutes:
+                        continue
+                    else:
+                        del self.cooldowns[symbol]
 
                 # Analyze signal — route by strategy version
                 if strategy_ver.startswith('v5'):
