@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantBot Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        .header {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 20px;
+            color: #58a6ff;
+        }
+        .header .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .status-running { background: #1b4332; color: #4ade80; }
+        .status-stopped { background: #3b1c1c; color: #f87171; }
+        .controls { display: flex; gap: 8px; }
+        .btn {
+            padding: 6px 16px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            background: #21262d;
+            color: #c9d1d9;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .btn:hover { background: #30363d; }
+        .btn-green { border-color: #238636; color: #3fb950; }
+        .btn-green:hover { background: #238636; color: white; }
+        .btn-red { border-color: #da3633; color: #f85149; }
+        .btn-red:hover { background: #da3633; color: white; }
+
+        .dashboard {
+            padding: 16px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+        }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #8b949e;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .card .value {
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .card .sub { font-size: 12px; color: #8b949e; margin-top: 4px; }
+        .positive { color: #3fb950; }
+        .negative { color: #f85149; }
+        .neutral { color: #8b949e; }
+
+        .main-content {
+            padding: 0 24px 24px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .panel-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid #30363d;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-body { padding: 12px 16px; max-height: 400px; overflow-y: auto; }
+        .full-width { grid-column: 1 / -1; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; color: #8b949e; padding: 6px 8px; font-weight: 500; border-bottom: 1px solid #21262d; }
+        td { padding: 6px 8px; border-bottom: 1px solid #21262d; }
+        tr:hover td { background: #1c2128; }
+
+        .log-entry { font-size: 12px; font-family: monospace; padding: 2px 0; line-height: 1.6; }
+        .log-info { color: #8b949e; }
+        .log-warning { color: #d29922; }
+        .log-error { color: #f85149; }
+        .log-ts { color: #484f58; margin-right: 8px; }
+
+        .grade-A { color: #3fb950; font-weight: 700; }
+        .grade-B { color: #58a6ff; font-weight: 600; }
+        .grade-C { color: #d29922; }
+        .grade-D { color: #8b949e; }
+
+        .regime-TRENDING { color: #3fb950; }
+        .regime-RANGING { color: #d29922; }
+        .regime-EXTREME { color: #f85149; }
+
+        .risk-bar {
+            height: 6px;
+            background: #21262d;
+            border-radius: 3px;
+            margin-top: 6px;
+        }
+        .risk-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard { grid-template-columns: 1fr 1fr; }
+            .main-content { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>QuantBot <span style="font-size:12px;color:#8b949e">vFinal | Trend Pullback + Compression Breakout</span></h1>
+        <div style="display:flex;align-items:center;gap:16px">
+            <span id="statusBadge" class="status-badge status-stopped">STOPPED</span>
+            <span style="font-size:12px;color:#8b949e" id="uptime">--:--:--</span>
+            <div class="controls">
+                <button class="btn btn-green" onclick="startBot()">Start</button>
+                <button class="btn btn-red" onclick="stopBot()">Stop</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard">
+        <div class="card">
+            <h3>Account Equity</h3>
+            <div class="value" id="equity">$0.00</div>
+            <div class="sub" id="available">Available: --</div>
+        </div>
+        <div class="card">
+            <h3>Daily PnL</h3>
+            <div class="value" id="dailyPnl">$0.00</div>
+            <div class="sub" id="dailyPnlPct">0.00%</div>
+        </div>
+        <div class="card">
+            <h3>Positions</h3>
+            <div class="value" id="posCount">0 / 3</div>
+            <div class="sub" id="poolSize">Pool: 0 symbols</div>
+        </div>
+        <div class="card">
+            <h3>Today's Trades</h3>
+            <div class="value" id="todayTrades">0</div>
+            <div class="sub" id="winLoss">W: 0 | L: 0</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Positions -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>Open Positions</span>
+                <span id="posLabel" style="font-size:12px;color:#8b949e"></span>
+            </div>
+            <div class="panel-body">
+                <table>
+                    <thead><tr><th>Symbol</th><th>Dir</th><th>Entry</th><th>SL</th><th>PnL</th><th>Time</th></tr></thead>
+                    <tbody id="posTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Active Pool -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>Active Pool</span>
+                <span id="poolLabel" style="font-size:12px;color:#8b949e"></span>
+            </div>
+            <div class="panel-body">
+                <table>
+                    <thead><tr><th>Symbol</th><th>Score</th><th>Dir</th><th>Regime</th><th>Grade</th></tr></thead>
+                    <tbody id="poolTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Risk Status -->
+        <div class="panel">
+            <div class="panel-header">Risk Status</div>
+            <div class="panel-body" id="riskPanel">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                    <div>
+                        <div style="font-size:12px;color:#8b949e">Daily Loss Limit</div>
+                        <div class="risk-bar"><div class="risk-fill" id="lossBar" style="width:0%;background:#f85149"></div></div>
+                        <div style="font-size:11px;color:#8b949e;margin-top:2px" id="lossBarLabel">0% / 3%</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px;color:#8b949e">Consecutive Losses</div>
+                        <div id="consLosses" style="font-size:20px;font-weight:700">0</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px;color:#8b949e">Allowed Grade</div>
+                        <div id="allowedGrade" style="font-size:20px;font-weight:700">C+</div>
+                    </div>
+                    <div>
+                        <div style="font-size:12px;color:#8b949e">Cooldown</div>
+                        <div id="cooldownStatus" style="font-size:14px">None</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade History -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>Trade History</span>
+                <span id="histLabel" style="font-size:12px;color:#8b949e"></span>
+            </div>
+            <div class="panel-body">
+                <table>
+                    <thead><tr><th>Time</th><th>Symbol</th><th>Dir</th><th>PnL</th><th>Reason</th></tr></thead>
+                    <tbody id="histTable"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Logs -->
+        <div class="panel full-width">
+            <div class="panel-header">
+                <span>System Logs</span>
+                <span style="font-size:12px;color:#8b949e" id="logCount"></span>
+            </div>
+            <div class="panel-body" id="logPanel" style="max-height:300px;font-family:monospace">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let refreshInterval = null;
+
+        function startBot() {
+            fetch('/api/start', {method: 'POST'}).then(r => r.json()).then(d => {
+                if (!refreshInterval) {
+                    refreshInterval = setInterval(refreshStatus, 3000);
+                }
+            });
+        }
+
+        function stopBot() {
+            fetch('/api/stop', {method: 'POST'}).then(r => r.json());
+        }
+
+        function refreshStatus() {
+            fetch('/api/status').then(r => r.json()).then(d => {
+                // Status badge
+                const badge = document.getElementById('statusBadge');
+                if (d.running) {
+                    badge.textContent = d.paper_mode ? 'PAPER' : 'LIVE';
+                    badge.className = 'status-badge status-running';
+                } else {
+                    badge.textContent = 'STOPPED';
+                    badge.className = 'status-badge status-stopped';
+                }
+                document.getElementById('uptime').textContent = d.uptime || '--';
+
+                // Cards
+                const eq = d.equity || 0;
+                document.getElementById('equity').textContent = '$' + eq.toFixed(2);
+                document.getElementById('available').textContent = 'Available: $' + (d.available || 0).toFixed(2);
+
+                const pnl = d.risk?.daily_pnl || 0;
+                const pnlPct = d.risk?.daily_pnl_pct || 0;
+                const pnlEl = document.getElementById('dailyPnl');
+                pnlEl.textContent = (pnl >= 0 ? '+' : '') + '$' + pnl.toFixed(2);
+                pnlEl.className = 'value ' + (pnl >= 0 ? 'positive' : 'negative');
+                const pctEl = document.getElementById('dailyPnlPct');
+                pctEl.textContent = (pnlPct >= 0 ? '+' : '') + pnlPct.toFixed(2) + '%';
+                pctEl.className = 'sub ' + (pnlPct >= 0 ? 'positive' : 'negative');
+
+                document.getElementById('posCount').textContent = (d.risk?.positions_count || 0) + ' / 3';
+                document.getElementById('poolSize').textContent = 'Pool: ' + (d.active_pool_size || 0) + ' symbols';
+
+                document.getElementById('todayTrades').textContent = d.risk?.today_trades || 0;
+                document.getElementById('winLoss').textContent = 'W: ' + (d.risk?.today_wins || 0) + ' | L: ' + (d.risk?.today_losses || 0);
+
+                // Positions table
+                const posBody = document.getElementById('posTable');
+                posBody.innerHTML = '';
+                (d.positions || []).forEach(p => {
+                    const cls = p.pnl >= 0 ? 'positive' : 'negative';
+                    posBody.innerHTML += `<tr>
+                        <td>${p.symbol}</td>
+                        <td>${p.direction}</td>
+                        <td>${p.entry.toFixed(4)}</td>
+                        <td>${p.stop.toFixed(4)}</td>
+                        <td class="${cls}">${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(2)} (${p.pnl_pct}%)</td>
+                        <td>${p.held_min}m</td>
+                    </tr>`;
+                });
+                if (!d.positions?.length) posBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#8b949e">No positions</td></tr>';
+
+                // Pool table
+                const poolBody = document.getElementById('poolTable');
+                poolBody.innerHTML = '';
+                document.getElementById('poolLabel').textContent = (d.active_pool?.length || 0) + ' symbols';
+                (d.active_pool || []).forEach(s => {
+                    poolBody.innerHTML += `<tr>
+                        <td>${s.symbol}</td>
+                        <td>${s.score}</td>
+                        <td>${s.direction}</td>
+                        <td><span class="regime-${s.regime}">${s.regime}</span></td>
+                        <td><span class="grade-${s.grade}">${s.grade}</span></td>
+                    </tr>`;
+                });
+
+                // Risk
+                const lossUsed = Math.abs(pnlPct);
+                const lossMax = 3;
+                document.getElementById('lossBar').style.width = Math.min(100, (lossUsed / lossMax) * 100) + '%';
+                document.getElementById('lossBarLabel').textContent = lossUsed.toFixed(1) + '% / ' + lossMax + '%';
+                document.getElementById('consLosses').textContent = d.risk?.consecutive_losses || 0;
+                document.getElementById('allowedGrade').textContent = (d.risk?.allowed_grade || 'C') + '+';
+
+                const cooldowns = d.cooldowns || {};
+                const cdKeys = Object.keys(cooldowns);
+                document.getElementById('cooldownStatus').textContent = cdKeys.length ? cdKeys.map(k => k + ': ' + cooldowns[k] + 's').join(', ') : 'None';
+
+                // Trade history
+                const histBody = document.getElementById('histTable');
+                histBody.innerHTML = '';
+                document.getElementById('histLabel').textContent = (d.trade_history?.length || 0) + ' trades';
+                (d.trade_history || []).reverse().forEach(t => {
+                    const cls = t.pnl >= 0 ? 'positive' : 'negative';
+                    histBody.innerHTML += `<tr>
+                        <td>${t.closed_at}</td>
+                        <td>${t.symbol}</td>
+                        <td>${t.direction}</td>
+                        <td class="${cls}">${t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}</td>
+                        <td>${t.reason}</td>
+                    </tr>`;
+                });
+
+                // Logs
+                const logPanel = document.getElementById('logPanel');
+                logPanel.innerHTML = '';
+                document.getElementById('logCount').textContent = (d.logs?.length || 0) + ' entries';
+                (d.logs || []).slice(-80).forEach(l => {
+                    const cls = 'log-' + (l.level || 'info');
+                    logPanel.innerHTML += `<div class="log-entry ${cls}"><span class="log-ts">${l.ts}</span>${l.msg}</div>`;
+                });
+                logPanel.scrollTop = logPanel.scrollHeight;
+
+            }).catch(e => {
+                console.error('Status fetch error:', e);
+            });
+        }
+
+        // Auto-refresh
+        refreshInterval = setInterval(refreshStatus, 3000);
+        refreshStatus();
+    </script>
+</body>
+</html>

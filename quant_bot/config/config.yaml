@@ -1,0 +1,62 @@
+account:
+  initial_balance: 2000
+  leverage: 10
+  max_margin_usage_pct: 0.90
+
+market:
+  exchange: binance
+  quote: USDT
+  max_scan_symbols: 150
+  active_pool_size: 12
+
+filters:
+  min_24h_volume: 8000000
+  min_open_interest: 3000000
+  max_spread_pct: 0.04
+  min_listing_days: 14
+  max_abs_funding_rate: 0.0075
+  min_atrp_1h: 0.25
+  max_atrp_1h: 4.50
+
+trend_filter:
+  adx_min: 22
+  score_min_trade: 62
+  score_min_a_grade: 78
+
+execution:
+  risk_per_trade: 0.004
+  stop_atr_multiple: 1.2
+  tp1_r_multiple: 1.5
+  tp2_r_multiple: 2.8
+  max_positions: 3
+  max_same_direction_risk: 0.012
+  max_total_risk: 0.016
+  entry_timeout_minutes: 3
+  max_entry_drift_atr: 0.35
+  max_holding_minutes: 75
+
+risk:
+  daily_loss_limit_pct: 0.03
+  profit_guard_mode_pct: 0.025
+  daily_stop_trading_profit_pct: 0.04
+  cooldown_after_3_losses_minutes: 30
+  stop_after_5_losses: true
+
+regime:
+  enable: true
+  ranging_trade_half_risk: true
+  block_extreme_market: true
+
+correlation:
+  enable: true
+  window_bars: 72
+  max_same_dir_corr: 0.80
+
+schedule:
+  whitelist_hours: [8,9,10,11,15,16,17,18,20,21,22,23,0]
+
+monitoring:
+  telegram_alerts: true
+  telegram_chat_id: "-1003473037752"
+  save_trades_to_db: true
+  heartbeat_seconds: 60
