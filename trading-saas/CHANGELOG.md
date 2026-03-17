@@ -1,8 +1,26 @@
 # CHANGELOG — Trading SaaS + 5111 Paper Trader
 
-> 时间范围：2026-01-27 ~ 2026-03-14
+> 时间范围：2026-01-27 ~ 2026-03-17
 > 仅包含有实质代码变更的提交，跳过纯自动提交（🤖 自动提交）。
 > [SaaS] = Trading SaaS 生产系统（端口 80）| [5111] = Paper Trader 模拟系统（端口 5111）
+
+---
+
+## 2026-03-17
+
+### [SaaS-修复] agent_bot.py v6 策略执行层 6 项对齐修复
+
+- **背景**：评估发现 Agent 2（v6.0）亏损 -$242.56，根因是 v6 信号分析正确但执行层走了 v5 的代码路径，导致仓位计算、止盈止损、冷却机制全部与 Report v6 回测策略不一致
+- **改动**：
+  1. **max_positions 检查**：`_scan_once()` 循环中新增 `if len(positions) >= max_positions: break`，按用户配置限制
+  2. **仓位计算**：v6 从 `calculate_position_size_v5()`（ATR制）改回 `calculate_position_size()`（评分制），与 Report v6 对齐
+  3. **TP1/TP2 禁用**：v6 跳过分批止盈逻辑（仅 v5 生效），匹配文档 "不启用 v5_mode, 无 TP1/TP2"
+  4. **止损止盈**：v6 从 `calculate_stop_take_v5()`（ATR动态）改回 `calculate_stop_take()`（固定 ROI -10% / trailing 6%/3%）
+  5. **全局冷却**：v6 平仓后设 `_global_cooldown_until`（全币种暂停 cooldown_minutes），其他版本保持单币种冷却
+  6. **最小资金**：新增 `if available < 100: return`，可用资金 < 100U 不再开新仓
+- **代码改动**：新增 `_is_v5_strategy()` 辅助函数，拆分 v5 专用逻辑；`_is_advanced_strategy()` 保留用于 MA slope 过滤等共享逻辑
+- **文件**：`app/engine/agent_bot.py`（+47 / -17 行）
+- **部署**：已 SCP 至服务器，gunicorn reload + Agent 2 bot restart 完成
 
 ---
 

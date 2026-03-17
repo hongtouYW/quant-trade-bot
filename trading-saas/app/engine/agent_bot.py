@@ -13,7 +13,7 @@ import threading
 import traceback
 import requests
 from collections import deque
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 
 from ..extensions import db
@@ -35,8 +35,13 @@ from .risk_manager import RiskManager
 
 
 def _is_advanced_strategy(version: str) -> bool:
-    """Check if strategy version uses v5+ logic (position sizing, stops, partial TP)."""
+    """Check if strategy version uses v5+ logic (MA slope filter, etc)."""
     return version.startswith('v5') or version.startswith('v6')
+
+
+def _is_v5_strategy(version: str) -> bool:
+    """Check if strategy is v5 (uses ATR sizing, partial TP, ATR stops)."""
+    return version.startswith('v5')
 
 
 class AgentBot:
@@ -57,6 +62,8 @@ class AgentBot:
         self.positions = {}
         # Per-symbol cooldown tracking (only closed symbol gets cooldown)
         self.cooldowns = {}
+        # Global cooldown for v6 (any close blocks all opens for cooldown_minutes)
+        self._global_cooldown_until = None
         # Min hold time protection (3 hours)
         self.min_hold_minutes = 180
         # Max hold time forced close (48 hours)
@@ -411,16 +418,22 @@ class AgentBot:
             real_capital = float(self.config.get('initial_capital', 2000)) + closed_pnl - closed_fees - closed_funding
             available = real_capital - used_margin
 
+            # Minimum capital check — don't open if available < 100U
+            if available < 100:
+                self._log('info', f"Skip {symbol}: available capital ${available:.0f} < 100U")
+                return
+
             # Get risk-adjusted multiplier
             risk_multiplier = 1.0  # risk sizing disabled
 
-            if _is_advanced_strategy(self.config.get('strategy_version', '')):
+            if _is_v5_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
                 amount, leverage = calculate_position_size_v5(
                     score, available, self.config, symbol,
                     atr=atr_val, price=entry_price
                 )
             else:
+                # v6 and v4 both use score-based position sizing
                 amount, leverage = calculate_position_size(
                     score, available, self.config, symbol
                 )
@@ -433,11 +446,12 @@ class AgentBot:
                 return
 
             # Calculate stop/take
-            if _is_advanced_strategy(self.config.get('strategy_version', '')):
+            if _is_v5_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
                 stp = calculate_stop_take_v5(entry_price, direction, leverage,
                                              self.config, atr=atr_val)
             else:
+                # v6 and v4 use fixed ROI stop/trailing
                 stp = calculate_stop_take(entry_price, direction, leverage, self.config)
 
             # Execute real order on exchange
@@ -451,7 +465,7 @@ class AgentBot:
             open_fee = order.get('fee', 0)
 
             # Recalculate stop/take with actual fill price
-            if _is_advanced_strategy(self.config.get('strategy_version', '')):
+            if _is_v5_strategy(self.config.get('strategy_version', '')):
                 atr_val = analysis.get('atr')
                 stp = calculate_stop_take_v5(fill_price, direction, leverage,
                                              self.config, atr=atr_val)
@@ -581,8 +595,8 @@ class AgentBot:
                     trade.peak_roi = Decimal(str(round(current_roi, 4)))
                     db.session.commit()
 
-            # V5/V6: Partial take-profit at TP1
-            if _is_advanced_strategy(self.config.get('strategy_version', '')):
+            # V5 only: Partial take-profit at TP1 (v6 does not use partial TP)
+            if _is_v5_strategy(self.config.get('strategy_version', '')):
                 tp1_roi_thresh = float(self.config.get('tp1_roi', 10))
                 tp1_ratio = float(self.config.get('tp1_close_ratio', 0.5))
                 if current_roi >= tp1_roi_thresh and not position.get('tp1_hit'):
@@ -739,8 +753,13 @@ class AgentBot:
             # Remove from memory
             del self.positions[symbol]
 
-            # Cooldown only for the closed symbol
-            self.cooldowns[symbol] = datetime.now(timezone.utc)
+            # Cooldown: v6 uses global cooldown, others use per-symbol
+            strategy_ver = self.config.get('strategy_version', '')
+            cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
+            if strategy_ver.startswith('v6'):
+                self._global_cooldown_until = datetime.now(timezone.utc) + timedelta(minutes=cooldown_minutes)
+            else:
+                self.cooldowns[symbol] = datetime.now(timezone.utc)
 
             # Audit log
             db.session.add(AuditLog(
@@ -920,23 +939,34 @@ class AgentBot:
             min_score = int(self.config.get('min_score', 60))
             long_min_score = int(self.config.get('long_min_score', 70))
             cooldown_minutes = int(self.config.get('cooldown_minutes', 30))
+            max_positions = int(self.config.get('max_positions', 15))
+            strategy_ver = self.config.get('strategy_version', '')
             opened_this_scan = 0
 
             for symbol in DEFAULT_WATCHLIST:
+                # Max positions check (respect user config)
+                if len(self.positions) >= max_positions:
+                    break
+
                 # Skip if already in position
                 if symbol in self.positions:
                     continue
 
-                # Per-symbol cooldown check
-                if symbol in self.cooldowns:
-                    elapsed = (datetime.now(timezone.utc) - self.cooldowns[symbol]).total_seconds() / 60
-                    if elapsed < cooldown_minutes:
-                        continue
-                    else:
-                        del self.cooldowns[symbol]
+                # Cooldown check — v6 uses global cooldown, others use per-symbol
+                if strategy_ver.startswith('v6'):
+                    # Global cooldown: any recent close blocks all new opens
+                    if self._global_cooldown_until and datetime.now(timezone.utc) < self._global_cooldown_until:
+                        break
+                else:
+                    # Per-symbol cooldown
+                    if symbol in self.cooldowns:
+                        elapsed = (datetime.now(timezone.utc) - self.cooldowns[symbol]).total_seconds() / 60
+                        if elapsed < cooldown_minutes:
+                            continue
+                        else:
+                            del self.cooldowns[symbol]
 
                 # Analyze signal — route by strategy version
-                strategy_ver = self.config.get('strategy_version', '')
                 if strategy_ver.startswith('v5'):
                     score, analysis = analyze_signal_v5(symbol, self.config, exchange=self.exchange_name)
                 elif strategy_ver.startswith('v6'):
