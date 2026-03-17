@@ -8,6 +8,22 @@
 
 ## 2026-03-17
 
+### [5111-修复] auto_trader_v6.py 回测对齐 — 7项关键差异修复
+
+- **背景**：v6 策略回测年年盈利(+617K/6年)，但模拟盘 7 天亏损 -$350。分析发现实盘执行层与回测引擎存在 7 项关键差异
+- **根因**：回测是 1H K线级别低频策略，但实盘每 20 秒扫描+开仓，变成高频策略，手续费($343)吞噬全部利润
+- **改动**：
+  1. **扫描频率**：开仓扫描从每 20 秒改为**每小时整点**（整点后 0~2 分钟触发），止损检查保持每 60 秒
+  2. **仓位大小对齐回测**：85+→min(400,25%), 75+→min(300,20%), 70+→min(200,15%)（原: 90+→350/15%, 80+→280/12%）
+  3. **删除 min_hold_minutes 保护**：回测无此逻辑，ROI<=-10% 立即止损，不再延迟
+  4. **删除每轮开 3 个限制**：`opened >= 3` 检查移除，与回测对齐（有信号就开）
+  5. **止损退出价精确化**：止损/移动止盈触发时，用计算的精确 ROI 价格退出（不再用当前市价），与回测 `_check_position_bar` 对齐
+  6. **最低开仓量**：50U → 100U
+- **保留不改**：单币种冷却（用户确认正确）、max_hold_minutes=2880 安全网、风控系统
+- **预期效果**：交易频率从 ~135 笔/天降至 ~5-15 笔/天，手续费大幅减少
+- **文件**：`auto_trader_v6.py`（本地: `scripts/auto_trader_v6.py`）
+- **部署**：supervisorctl restart auto-trader-v6，PID 14213
+
 ### [SaaS-修复] agent_bot.py v6 策略执行层 6 项对齐修复
 
 - **背景**：评估发现 Agent 2（v6.0）亏损 -$242.56，根因是 v6 信号分析正确但执行层走了 v5 的代码路径，导致仓位计算、止盈止损、冷却机制全部与 Report v6 回测策略不一致
@@ -16,11 +32,11 @@
   2. **仓位计算**：v6 从 `calculate_position_size_v5()`（ATR制）改回 `calculate_position_size()`（评分制），与 Report v6 对齐
   3. **TP1/TP2 禁用**：v6 跳过分批止盈逻辑（仅 v5 生效），匹配文档 "不启用 v5_mode, 无 TP1/TP2"
   4. **止损止盈**：v6 从 `calculate_stop_take_v5()`（ATR动态）改回 `calculate_stop_take()`（固定 ROI -10% / trailing 6%/3%）
-  5. **全局冷却**：v6 平仓后设 `_global_cooldown_until`（全币种暂停 cooldown_minutes），其他版本保持单币种冷却
+  5. **单币冷却**：v6 平仓后只冷却该币（per-symbol cooldown），其他币不受影响，所有版本统一使用单币冷却
   6. **最小资金**：新增 `if available < 100: return`，可用资金 < 100U 不再开新仓
-- **代码改动**：新增 `_is_v5_strategy()` 辅助函数，拆分 v5 专用逻辑；`_is_advanced_strategy()` 保留用于 MA slope 过滤等共享逻辑
-- **文件**：`app/engine/agent_bot.py`（+47 / -17 行）
-- **部署**：已 SCP 至服务器，gunicorn reload + Agent 2 bot restart 完成
+- **代码改动**：新增 `_is_v5_strategy()` 辅助函数，拆分 v5 专用逻辑；`_is_advanced_strategy()` 保留用于 MA slope 过滤等共享逻辑；移除 `_global_cooldown_until` 全局冷却变量
+- **文件**：`app/engine/agent_bot.py`
+- **部署**：已 SCP 至服务器，Agent 2 bot restart 完成
 
 ---
 
