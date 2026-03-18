@@ -1,6 +1,6 @@
 """Position sizing based on fixed risk method"""
 import logging
-from app.config import get
+from app.config import get, get_symbol_override
 
 log = logging.getLogger(__name__)
 
@@ -11,7 +11,9 @@ class PositionSizer:
 
     def build_plan(self, signal, equity, regime='TRENDING'):
         """Build order plan from signal using fixed-risk sizing"""
-        risk_pct = self._cfg.get('risk_per_trade', 0.004)
+        # 币种特定参数覆盖 (Spec §20: symbols.yaml)
+        risk_pct = get_symbol_override(signal.symbol, 'risk_per_trade',
+                                       self._cfg.get('risk_per_trade', 0.004))
 
         # Half risk in RANGING
         if regime == 'RANGING':
@@ -47,6 +49,12 @@ class PositionSizer:
             size = notional / signal.entry_price
 
         if size <= 0:
+            return None
+
+        # 最小下单量检查 (Spec §13.4)
+        min_notional = 5.0  # Binance USDT永续最小名义值5U
+        if notional < min_notional:
+            log.info(f"仓位过小 {signal.symbol}: notional={notional:.2f} < {min_notional}")
             return None
 
         return {

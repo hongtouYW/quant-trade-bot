@@ -6,6 +6,8 @@ from src.core.enums import Direction, SignalStrategy
 from .base import BaseStrategy
 from .trend_follow import TrendFollowStrategy
 from .pullback_breakout import PullbackBreakoutStrategy
+from .mean_reversion import MeanReversionStrategy
+from .vol_breakout import VolatilityBreakoutStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,8 @@ class SignalAggregator:
         self._strategies: dict[str, BaseStrategy] = {
             'trend_follow': TrendFollowStrategy(),
             'pullback_breakout': PullbackBreakoutStrategy(),
+            'mean_reversion': MeanReversionStrategy(),
+            'volatility_breakout': VolatilityBreakoutStrategy(),
         }
 
     def register_strategy(self, strategy: BaseStrategy):

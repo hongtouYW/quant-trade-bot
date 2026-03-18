@@ -40,12 +40,12 @@ def adx(klines: List[Kline], period: int = 14) -> float:
     plus_dm = np.where((up_move > down_move) & (up_move > 0), up_move, 0.0)
     minus_dm = np.where((down_move > up_move) & (down_move > 0), down_move, 0.0)
 
-    # Wilder smoothing
+    # Wilder smoothing: EMA-like with factor (p-1)/p
     def wilder_smooth(arr, p):
         result = np.empty(len(arr))
         result[0] = np.mean(arr[:p])
         for i in range(1, len(arr)):
-            result[i] = result[i - 1] - (result[i - 1] / p) + arr[i]
+            result[i] = (result[i - 1] * (p - 1) + arr[i]) / p
         return result
 
     atr_smooth = wilder_smooth(tr, period)

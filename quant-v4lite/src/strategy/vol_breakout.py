@@ -43,7 +43,8 @@ class VolatilityBreakoutStrategy(BaseStrategy):
         current_width = widths[-1]
         percentile = sum(1 for w in widths if w <= current_width) / len(widths)
 
-        if percentile > 0.15:
+        if percentile > 0.25:
+            logger.info(f"[VB] {symbol} {direction.value} ✗ BB宽度分位={percentile:.2f} > 0.25")
             return None
 
         # 突破判断
@@ -51,13 +52,16 @@ class VolatilityBreakoutStrategy(BaseStrategy):
         curr = klines_15m[-1]
 
         if direction == Direction.LONG and curr.close <= upper:
+            logger.info(f"[VB] {symbol} LONG ✗ close={curr.close:.6f} <= BB_upper={upper:.6f}")
             return None
         if direction == Direction.SHORT and curr.close >= lower:
+            logger.info(f"[VB] {symbol} SHORT ✗ close={curr.close:.6f} >= BB_lower={lower:.6f}")
             return None
 
-        # 量比 > 2.0
-        vol_r = volume_ratio(klines_15m, recent=1, baseline=20)
+        # 量比 > 2.0 (用已完成K线)
+        vol_r = volume_ratio(klines_15m[:-1], recent=1, baseline=20)
         if vol_r < 2.0:
+            logger.info(f"[VB] {symbol} {direction.value} ✗ vol_ratio={vol_r:.2f} < 2.0")
             return None
 
         entry_price = curr.close
@@ -77,8 +81,11 @@ class VolatilityBreakoutStrategy(BaseStrategy):
             tp1 = entry_price - stop_dist * tp1_r
             tp2 = entry_price - stop_dist * tp2_r
 
-        risk_reward = tp1_r
-        if risk_reward < exec_cfg.get('min_risk_reward', 1.8):
+        # 使用加权平均盈亏比 (tp1_r*50% + tp2_r*50%)
+        risk_reward = tp1_r * 0.5 + tp2_r * 0.5
+        min_rr = exec_cfg.get('min_risk_reward', 1.8)
+        if risk_reward < min_rr:
+            logger.info(f"[VB] {symbol} {direction.value} ✗ RR={risk_reward:.2f} < {min_rr}")
             return None
 
         return Signal(

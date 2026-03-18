@@ -2,6 +2,7 @@
 import time
 import logging
 from collections import defaultdict
+from app.monitoring import notifier
 
 log = logging.getLogger(__name__)
 
@@ -31,6 +32,7 @@ class CooldownEngine:
         if self._symbol_loss_counts[key] >= 2:
             self._symbol_cooldowns[symbol] = time.time() + 60 * 60
             log.warning(f"Symbol cooldown: {symbol} direction={direction} for 60min")
+            notifier.notify_cooldown(symbol, 60, f"同方向连续2次止损")
             self._symbol_loss_counts[key] = 0
 
         # Strategy cooldown
@@ -44,6 +46,7 @@ class CooldownEngine:
         if self._fake_breakout_counts[key] >= 2:
             self._symbol_cooldowns[symbol] = time.time() + 30 * 60
             log.warning(f"Fake breakout cooldown: {symbol} for 30min")
+            notifier.notify_cooldown(symbol, 30, f"假突破连续2次")
 
     def record_win(self, symbol, direction):
         """Reset loss counts on win"""

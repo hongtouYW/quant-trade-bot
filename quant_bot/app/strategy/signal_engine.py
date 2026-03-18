@@ -6,6 +6,8 @@ from app.indicators import calc
 from app.models.market import Signal
 from app.config import get
 
+SIGNAL_EXPIRY_MINUTES = 3  # Spec §11.3: max 3 root 1m candles
+
 log = logging.getLogger(__name__)
 
 
@@ -96,6 +98,7 @@ class SignalEngine:
                 entry_price=close, stop_loss=stop_loss,
                 tp1=tp1, tp2=tp2,
                 risk_reward=get('execution', 'tp1_r_multiple', 1.5),
+                expires_at=datetime.utcnow() + timedelta(minutes=SIGNAL_EXPIRY_MINUTES),
             )
 
         elif direction == -1:  # Short pullback (mirror)
@@ -142,6 +145,7 @@ class SignalEngine:
                 entry_price=close, stop_loss=stop_loss,
                 tp1=tp1, tp2=tp2,
                 risk_reward=get('execution', 'tp1_r_multiple', 1.5),
+                expires_at=datetime.utcnow() + timedelta(minutes=SIGNAL_EXPIRY_MINUTES),
             )
 
         return None
@@ -187,6 +191,7 @@ class SignalEngine:
                 entry_price=close, stop_loss=stop_loss,
                 tp1=tp1, tp2=tp2,
                 risk_reward=get('execution', 'tp1_r_multiple', 1.5),
+                expires_at=datetime.utcnow() + timedelta(minutes=SIGNAL_EXPIRY_MINUTES),
             )
 
         elif direction == -1:  # Short breakout
@@ -210,6 +215,7 @@ class SignalEngine:
                 entry_price=close, stop_loss=stop_loss,
                 tp1=tp1, tp2=tp2,
                 risk_reward=get('execution', 'tp1_r_multiple', 1.5),
+                expires_at=datetime.utcnow() + timedelta(minutes=SIGNAL_EXPIRY_MINUTES),
             )
 
         return None
@@ -223,6 +229,11 @@ class EntryRefiner:
 
     def confirm(self, signal):
         """Confirm signal on 1m timeframe. Returns refined signal or None."""
+        # Check signal expiry (Spec §11.3)
+        if signal.expires_at and datetime.utcnow() > signal.expires_at:
+            log.info(f"信号过期: {signal.symbol} {signal.setup_type}")
+            return None
+
         df_1m = self.cache.get(signal.symbol, '1m')
         if df_1m is None or len(df_1m) < 15:
             return signal  # Can't refine, pass through

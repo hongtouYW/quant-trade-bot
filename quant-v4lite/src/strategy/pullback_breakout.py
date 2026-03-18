@@ -97,7 +97,8 @@ class PullbackBreakoutStrategy(BaseStrategy):
             tp1_price = entry_price - stop_dist * tp1_r
             tp2_price = entry_price - stop_dist * tp2_r
 
-        risk_reward = tp1_r
+        # 盈亏比检查 (加权平均: TP1*pct + TP2*pct)
+        risk_reward = tp1_r * tp1_pct + tp2_r * tp2_pct
         min_rr = exec_cfg.get('min_risk_reward', 1.8)
         if risk_reward < min_rr:
             return None

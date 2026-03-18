@@ -1,0 +1,77 @@
+{
+  "description": "经济日历事件 — 高影响事件期间可降低风险或暂停交易",
+  "events": [
+    {
+      "date": "2026-03-04",
+      "time_utc": "13:30",
+      "event": "US ISM Services PMI",
+      "impact": "high",
+      "currency": "USD",
+      "note": "服务业PMI，影响风险资产走势"
+    },
+    {
+      "date": "2026-03-07",
+      "time_utc": "13:30",
+      "event": "US Non-Farm Payrolls",
+      "impact": "high",
+      "currency": "USD",
+      "note": "非农就业数据，加密市场高波动"
+    },
+    {
+      "date": "2026-03-12",
+      "time_utc": "12:30",
+      "event": "US CPI (YoY)",
+      "impact": "high",
+      "currency": "USD",
+      "note": "消费者物价指数，影响美联储利率预期"
+    },
+    {
+      "date": "2026-03-13",
+      "time_utc": "12:30",
+      "event": "US PPI (MoM)",
+      "impact": "medium",
+      "currency": "USD",
+      "note": "生产者物价指数"
+    },
+    {
+      "date": "2026-03-19",
+      "time_utc": "18:00",
+      "event": "FOMC Interest Rate Decision",
+      "impact": "high",
+      "currency": "USD",
+      "note": "美联储利率决议，前后2小时建议暂停交易"
+    },
+    {
+      "date": "2026-03-19",
+      "time_utc": "18:30",
+      "event": "FOMC Press Conference",
+      "impact": "high",
+      "currency": "USD",
+      "note": "美联储主席新闻发布会"
+    },
+    {
+      "date": "2026-03-21",
+      "time_utc": "13:30",
+      "event": "US Initial Jobless Claims",
+      "impact": "medium",
+      "currency": "USD",
+      "note": "初请失业金人数"
+    },
+    {
+      "date": "2026-03-28",
+      "time_utc": "12:30",
+      "event": "US Core PCE Price Index",
+      "impact": "high",
+      "currency": "USD",
+      "note": "核心PCE物价指数，美联储首选通胀指标"
+    },
+    {
+      "date": "2026-03-31",
+      "time_utc": "00:00",
+      "event": "Quarter End Rebalancing",
+      "impact": "medium",
+      "currency": "USD",
+      "note": "季度末机构调仓，流动性可能异常"
+    }
+  ]
+}

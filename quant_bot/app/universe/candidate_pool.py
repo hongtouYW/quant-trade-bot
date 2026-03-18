@@ -1,7 +1,7 @@
 """候选池筛选 - 三层过滤"""
 import logging
 from datetime import datetime
-from app.config import get
+from app.config import get, get_blacklist, get_whitelist
 
 log = logging.getLogger(__name__)
 
@@ -17,8 +17,25 @@ class CandidatePool:
         symbols = self.exchange.get_usdt_perpetuals()
         log.info(f"扫描 {len(symbols)} 个USDT永续合约")
 
+        # 黑名单过滤 (Spec §20: symbols.yaml)
+        blacklist = set(get_blacklist())
+        if blacklist:
+            before = len(symbols)
+            symbols = [s for s in symbols if s not in blacklist]
+            log.info(f"黑名单过滤: {before} -> {len(symbols)} (排除 {len(blacklist)} 个)")
+
+        # 白名单优先 (确保白名单币种被扫描)
+        whitelist = get_whitelist()
+        whitelist_set = set(whitelist)
+        scan_limit = get('market', 'max_scan_symbols', 150)
+        scan_symbols = symbols[:scan_limit]
+        # 白名单中未被包含的也加入扫描
+        for ws in whitelist:
+            if ws not in scan_symbols and ws not in blacklist:
+                scan_symbols.append(ws)
+
         candidates = []
-        for sym in symbols[:get('market', 'max_scan_symbols', 150)]:
+        for sym in scan_symbols:
             snap = self._evaluate_symbol(sym)
             if snap:
                 candidates.append(snap)

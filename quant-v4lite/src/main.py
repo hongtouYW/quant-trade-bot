@@ -3,11 +3,12 @@ import signal
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+# 确保项目根目录在 Python 路径中
+ROOT = Path(__file__).parent.parent
+sys.path.insert(0, str(ROOT))
 
-# 加载 .env
-env_path = Path(__file__).parent.parent / ".env"
-load_dotenv(env_path)
+from dotenv import load_dotenv
+load_dotenv(ROOT / ".env")
 
 from src.bot.engine import TradingEngine
 

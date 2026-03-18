@@ -1,0 +1,25 @@
+# 币种独立配置 (Spec §20: symbols.yaml)
+# 可针对特定币种覆盖全局参数
+
+# 黑名单: 永远不交易的币种
+blacklist:
+  - LUNA/USDT
+  - UST/USDT
+  - FTT/USDT
+  - SRM/USDT
+
+# 白名单: 优先扫描的币种 (不在活跃池中也会被扫描)
+whitelist:
+  - BTC/USDT
+  - ETH/USDT
+
+# 币种特定参数覆盖
+# 格式: symbol -> 覆盖的参数
+overrides:
+  BTC/USDT:
+    risk_per_trade: 0.005     # BTC风险稍高
+    stop_atr_multiple: 1.5    # BTC止损更宽
+    max_holding_minutes: 120  # BTC持仓时间更长
+  ETH/USDT:
+    risk_per_trade: 0.005
+    stop_atr_multiple: 1.3

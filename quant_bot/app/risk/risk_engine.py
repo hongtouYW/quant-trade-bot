@@ -3,6 +3,7 @@ import logging
 import time
 from datetime import datetime, date
 from app.config import get
+from app.monitoring import notifier
 
 log = logging.getLogger(__name__)
 
@@ -67,6 +68,7 @@ class RiskEngine:
         """What signal grade is allowed based on current state"""
         self.reset_daily()
         if self.daily_pnl_pct >= self._risk_cfg.get('profit_guard_mode_pct', 0.025):
+            notifier.notify_profit_guard(self.daily_pnl_pct * 100)
             return 'A'  # Only A grade allowed
         return 'C'  # All grades allowed
 
@@ -76,6 +78,11 @@ class RiskEngine:
         if not can:
             return False, reason
 
+        # Same direction count check (Spec §15.3: max 3 per direction)
+        same_dir_count = sum(1 for p in self.positions if p.direction == order_plan['direction'])
+        if same_dir_count >= 3:
+            return False, "max_same_direction_positions"
+
         # Same direction risk check
         same_dir_risk = sum(
             abs(p.margin) / equity for p in self.positions
@@ -83,18 +90,24 @@ class RiskEngine:
         ) if equity > 0 else 0
 
         new_risk = order_plan['margin'] / equity if equity > 0 else 1
-        if same_dir_risk + new_risk > self._exec_cfg.get('max_same_direction_risk', 0.012) * 10:
+        if same_dir_risk + new_risk > self._exec_cfg.get('max_same_direction_risk', 0.12):
             return False, "same_direction_risk_limit"
 
         # Total risk check
         total_risk = sum(abs(p.margin) / equity for p in self.positions) if equity > 0 else 0
-        if total_risk + new_risk > self._exec_cfg.get('max_total_risk', 0.016) * 10:
+        if total_risk + new_risk > self._exec_cfg.get('max_total_risk', 0.16):
             return False, "total_risk_limit"
 
         # Max notional per trade
         max_notional = equity * 0.30
         if order_plan['notional'] > max_notional:
             return False, "max_notional_exceeded"
+
+        # Total margin usage cap (Spec §13.4: <= 90%)
+        max_margin_pct = get('account', 'max_margin_usage_pct', 0.90)
+        total_margin = sum(abs(p.margin) for p in self.positions) + order_plan['margin']
+        if total_margin > equity * max_margin_pct:
+            return False, "total_margin_90pct_exceeded"
 
         return True, "approved"
 

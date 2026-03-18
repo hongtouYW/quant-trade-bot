@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: v4lite-bot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      - ./data:/app/data
+    depends_on:
+      - redis
+      - postgres
+    command: python src/main.py
+
+  web:
+    build: .
+    container_name: v4lite-web
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "5210:5210"
+    volumes:
+      - ./data:/app/data
+    command: python src/web/app.py
+
+  redis:
+    image: redis:7-alpine
+    container_name: v4lite-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: v4lite-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: quant
+      POSTGRES_PASSWORD: quant2026
+      POSTGRES_DB: quant_trading
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

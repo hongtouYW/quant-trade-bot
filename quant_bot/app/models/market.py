@@ -65,6 +65,9 @@ class Position:
     current_pnl: float = 0.0
     current_pnl_pct: float = 0.0
     order_id: str = ''
+    entry_fee: float = 0.0          # 开仓手续费
+    funding_fees: float = 0.0       # 累计资金费
+    last_funding_ts: float = 0.0    # 上次资金费结算时间戳
 
 
 @dataclass
@@ -80,4 +83,6 @@ class TradeRecord:
     close_reason: str
     opened_at: datetime
     closed_at: datetime
-    fees: float = 0.0
+    fees: float = 0.0               # 总手续费（开仓+平仓）
+    funding_fees: float = 0.0       # 累计资金费
+    net_pnl: float = 0.0            # 净盈亏 = pnl - fees - funding_fees

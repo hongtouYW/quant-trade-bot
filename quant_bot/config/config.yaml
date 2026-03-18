@@ -53,10 +53,27 @@ correlation:
   max_same_dir_corr: 0.80
 
 schedule:
-  whitelist_hours: [8,9,10,11,15,16,17,18,20,21,22,23,0]
+  whitelist_hours: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+
+mean_reversion:
+  enable: true
+  rsi_oversold: 30
+  rsi_overbought: 70
+  adx_max: 25
+  bb_period: 20
+  bb_std: 2.0
+
+funding_arb:
+  enable: true
+  min_funding_rate: 0.0005
+  ideal_funding_rate: 0.001
+  adx_max: 30
+  max_atrp: 3.0
+  risk_pct: 0.002
+  stop_atr_mult: 2.0
 
 monitoring:
   telegram_alerts: true
   telegram_chat_id: "-1003473037752"
   save_trades_to_db: true
-  heartbeat_seconds: 60
+  heartbeat_seconds: 3600

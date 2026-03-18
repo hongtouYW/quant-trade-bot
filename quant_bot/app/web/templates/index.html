@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>QuantBot Dashboard</title>
+    <title>QuantBot 量化交易系统</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, 'Segoe UI', Roboto, monospace;
+            font-family: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', monospace;
             background: #0d1117;
             color: #c9d1d9;
             min-height: 100vh;
@@ -20,28 +20,17 @@
             justify-content: space-between;
             align-items: center;
         }
-        .header h1 {
-            font-size: 20px;
-            color: #58a6ff;
-        }
+        .header h1 { font-size: 20px; color: #58a6ff; }
         .header .status-badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
+            padding: 4px 12px; border-radius: 12px;
+            font-size: 13px; font-weight: 600;
         }
         .status-running { background: #1b4332; color: #4ade80; }
         .status-stopped { background: #3b1c1c; color: #f87171; }
         .controls { display: flex; gap: 8px; }
         .btn {
-            padding: 6px 16px;
-            border: 1px solid #30363d;
-            border-radius: 6px;
-            background: #21262d;
-            color: #c9d1d9;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.15s;
+            padding: 6px 16px; border: 1px solid #30363d; border-radius: 6px;
+            background: #21262d; color: #c9d1d9; cursor: pointer; font-size: 13px;
         }
         .btn:hover { background: #30363d; }
         .btn-green { border-color: #238636; color: #3fb950; }
@@ -51,52 +40,33 @@
 
         .dashboard {
             padding: 16px 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 12px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px;
         }
         .card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 16px;
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 8px; padding: 16px;
         }
         .card h3 {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #8b949e;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
+            font-size: 12px; text-transform: uppercase;
+            color: #8b949e; margin-bottom: 8px; letter-spacing: 0.5px;
         }
-        .card .value {
-            font-size: 28px;
-            font-weight: 700;
-        }
+        .card .value { font-size: 28px; font-weight: 700; }
         .card .sub { font-size: 12px; color: #8b949e; margin-top: 4px; }
         .positive { color: #3fb950; }
         .negative { color: #f85149; }
-        .neutral { color: #8b949e; }
 
         .main-content {
             padding: 0 24px 24px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
         }
         .panel {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            overflow: hidden;
+            background: #161b22; border: 1px solid #30363d;
+            border-radius: 8px; overflow: hidden;
         }
         .panel-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid #30363d;
-            font-size: 14px;
-            font-weight: 600;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 12px 16px; border-bottom: 1px solid #30363d;
+            font-size: 14px; font-weight: 600;
+            display: flex; justify-content: space-between; align-items: center;
         }
         .panel-body { padding: 12px 16px; max-height: 400px; overflow-y: auto; }
         .full-width { grid-column: 1 / -1; }
@@ -116,22 +86,12 @@
         .grade-B { color: #58a6ff; font-weight: 600; }
         .grade-C { color: #d29922; }
         .grade-D { color: #8b949e; }
-
         .regime-TRENDING { color: #3fb950; }
         .regime-RANGING { color: #d29922; }
         .regime-EXTREME { color: #f85149; }
 
-        .risk-bar {
-            height: 6px;
-            background: #21262d;
-            border-radius: 3px;
-            margin-top: 6px;
-        }
-        .risk-fill {
-            height: 100%;
-            border-radius: 3px;
-            transition: width 0.3s;
-        }
+        .risk-bar { height: 6px; background: #21262d; border-radius: 3px; margin-top: 6px; }
+        .risk-fill { height: 100%; border-radius: 3px; transition: width 0.3s; }
 
         @media (max-width: 900px) {
             .dashboard { grid-template-columns: 1fr 1fr; }
@@ -141,117 +101,112 @@
 </head>
 <body>
     <div class="header">
-        <h1>QuantBot <span style="font-size:12px;color:#8b949e">vFinal | Trend Pullback + Compression Breakout</span></h1>
+        <h1>QuantBot <span style="font-size:12px;color:#8b949e">趋势回踩 + 压缩突破 量化系统</span></h1>
         <div style="display:flex;align-items:center;gap:16px">
-            <span id="statusBadge" class="status-badge status-stopped">STOPPED</span>
+            <span id="statusBadge" class="status-badge status-stopped">已停止</span>
             <span style="font-size:12px;color:#8b949e" id="uptime">--:--:--</span>
             <div class="controls">
-                <button class="btn btn-green" onclick="startBot()">Start</button>
-                <button class="btn btn-red" onclick="stopBot()">Stop</button>
+                <button class="btn btn-green" onclick="startBot()">启动</button>
+                <button class="btn btn-red" onclick="stopBot()">停止</button>
+                <button class="btn" onclick="runOptimize()" title="参数调优">调优</button>
             </div>
         </div>
     </div>
 
     <div class="dashboard">
         <div class="card">
-            <h3>Account Equity</h3>
+            <h3>账户净值</h3>
             <div class="value" id="equity">$0.00</div>
-            <div class="sub" id="available">Available: --</div>
+            <div class="sub" id="available">可用: --</div>
         </div>
         <div class="card">
-            <h3>Daily PnL</h3>
+            <h3>今日盈亏</h3>
             <div class="value" id="dailyPnl">$0.00</div>
             <div class="sub" id="dailyPnlPct">0.00%</div>
         </div>
         <div class="card">
-            <h3>Positions</h3>
+            <h3>持仓数</h3>
             <div class="value" id="posCount">0 / 3</div>
-            <div class="sub" id="poolSize">Pool: 0 symbols</div>
+            <div class="sub" id="poolSize">活跃池: 0 个</div>
         </div>
         <div class="card">
-            <h3>Today's Trades</h3>
+            <h3>今日交易</h3>
             <div class="value" id="todayTrades">0</div>
-            <div class="sub" id="winLoss">W: 0 | L: 0</div>
+            <div class="sub" id="winLoss">胜: 0 | 负: 0</div>
         </div>
     </div>
 
     <div class="main-content">
-        <!-- Positions -->
         <div class="panel">
             <div class="panel-header">
-                <span>Open Positions</span>
+                <span>当前持仓</span>
                 <span id="posLabel" style="font-size:12px;color:#8b949e"></span>
             </div>
             <div class="panel-body">
                 <table>
-                    <thead><tr><th>Symbol</th><th>Dir</th><th>Entry</th><th>SL</th><th>PnL</th><th>Time</th></tr></thead>
+                    <thead><tr><th>币种</th><th>方向</th><th>入场价</th><th>保证金</th><th>名义值</th><th>止损</th><th>盈亏</th><th>持仓时间</th></tr></thead>
                     <tbody id="posTable"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Active Pool -->
         <div class="panel">
             <div class="panel-header">
-                <span>Active Pool</span>
+                <span>活跃池</span>
                 <span id="poolLabel" style="font-size:12px;color:#8b949e"></span>
             </div>
             <div class="panel-body">
                 <table>
-                    <thead><tr><th>Symbol</th><th>Score</th><th>Dir</th><th>Regime</th><th>Grade</th></tr></thead>
+                    <thead><tr><th>币种</th><th>综合分</th><th>动量</th><th>质量</th><th>方向</th><th>状态</th><th>等级</th></tr></thead>
                     <tbody id="poolTable"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Risk Status -->
         <div class="panel">
-            <div class="panel-header">Risk Status</div>
+            <div class="panel-header">风控状态</div>
             <div class="panel-body" id="riskPanel">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
                     <div>
-                        <div style="font-size:12px;color:#8b949e">Daily Loss Limit</div>
+                        <div style="font-size:12px;color:#8b949e">日亏损限额</div>
                         <div class="risk-bar"><div class="risk-fill" id="lossBar" style="width:0%;background:#f85149"></div></div>
                         <div style="font-size:11px;color:#8b949e;margin-top:2px" id="lossBarLabel">0% / 3%</div>
                     </div>
                     <div>
-                        <div style="font-size:12px;color:#8b949e">Consecutive Losses</div>
+                        <div style="font-size:12px;color:#8b949e">连续亏损</div>
                         <div id="consLosses" style="font-size:20px;font-weight:700">0</div>
                     </div>
                     <div>
-                        <div style="font-size:12px;color:#8b949e">Allowed Grade</div>
+                        <div style="font-size:12px;color:#8b949e">允许等级</div>
                         <div id="allowedGrade" style="font-size:20px;font-weight:700">C+</div>
                     </div>
                     <div>
-                        <div style="font-size:12px;color:#8b949e">Cooldown</div>
-                        <div id="cooldownStatus" style="font-size:14px">None</div>
+                        <div style="font-size:12px;color:#8b949e">冷却中</div>
+                        <div id="cooldownStatus" style="font-size:14px">无</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Trade History -->
         <div class="panel">
             <div class="panel-header">
-                <span>Trade History</span>
+                <span>交易历史</span>
                 <span id="histLabel" style="font-size:12px;color:#8b949e"></span>
             </div>
             <div class="panel-body">
                 <table>
-                    <thead><tr><th>Time</th><th>Symbol</th><th>Dir</th><th>PnL</th><th>Reason</th></tr></thead>
+                    <thead><tr><th>时间</th><th>币种</th><th>方向</th><th>策略</th><th>毛利</th><th>手续费</th><th>资金费</th><th>净盈亏</th><th>原因</th></tr></thead>
                     <tbody id="histTable"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- Logs -->
         <div class="panel full-width">
             <div class="panel-header">
-                <span>System Logs</span>
+                <span>系统日志</span>
                 <span style="font-size:12px;color:#8b949e" id="logCount"></span>
             </div>
-            <div class="panel-body" id="logPanel" style="max-height:300px;font-family:monospace">
-            </div>
+            <div class="panel-body" id="logPanel" style="max-height:300px;font-family:monospace"></div>
         </div>
     </div>
 
@@ -259,34 +214,32 @@
         let refreshInterval = null;
 
         function startBot() {
-            fetch('/api/start', {method: 'POST'}).then(r => r.json()).then(d => {
-                if (!refreshInterval) {
-                    refreshInterval = setInterval(refreshStatus, 3000);
-                }
-            });
+            fetch('/api/start', {method: 'POST'}).then(r => r.json());
         }
-
         function stopBot() {
             fetch('/api/stop', {method: 'POST'}).then(r => r.json());
+        }
+        function runOptimize() {
+            if (!confirm('启动参数调优? 会在后台用活跃池币种回测，不影响交易。')) return;
+            fetch('/api/optimize', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({metric:'sharpe'})})
+                .then(r => r.json()).then(d => alert(d.msg || d.error));
         }
 
         function refreshStatus() {
             fetch('/api/status').then(r => r.json()).then(d => {
-                // Status badge
                 const badge = document.getElementById('statusBadge');
                 if (d.running) {
-                    badge.textContent = d.paper_mode ? 'PAPER' : 'LIVE';
+                    badge.textContent = d.paper_mode ? '模拟运行' : '实盘运行';
                     badge.className = 'status-badge status-running';
                 } else {
-                    badge.textContent = 'STOPPED';
+                    badge.textContent = '已停止';
                     badge.className = 'status-badge status-stopped';
                 }
-                document.getElementById('uptime').textContent = d.uptime || '--';
+                document.getElementById('uptime').textContent = '运行: ' + (d.uptime || '--');
 
-                // Cards
                 const eq = d.equity || 0;
                 document.getElementById('equity').textContent = '$' + eq.toFixed(2);
-                document.getElementById('available').textContent = 'Available: $' + (d.available || 0).toFixed(2);
+                document.getElementById('available').textContent = '可用: $' + (d.available || 0).toFixed(2);
 
                 const pnl = d.risk?.daily_pnl || 0;
                 const pnlPct = d.risk?.daily_pnl_pct || 0;
@@ -298,84 +251,79 @@
                 pctEl.className = 'sub ' + (pnlPct >= 0 ? 'positive' : 'negative');
 
                 document.getElementById('posCount').textContent = (d.risk?.positions_count || 0) + ' / 3';
-                document.getElementById('poolSize').textContent = 'Pool: ' + (d.active_pool_size || 0) + ' symbols';
-
+                document.getElementById('poolSize').textContent = '活跃池: ' + (d.active_pool_size || 0) + ' 个';
                 document.getElementById('todayTrades').textContent = d.risk?.today_trades || 0;
-                document.getElementById('winLoss').textContent = 'W: ' + (d.risk?.today_wins || 0) + ' | L: ' + (d.risk?.today_losses || 0);
+                document.getElementById('winLoss').textContent = '胜: ' + (d.risk?.today_wins || 0) + ' | 负: ' + (d.risk?.today_losses || 0);
 
-                // Positions table
+                // 持仓表
                 const posBody = document.getElementById('posTable');
                 posBody.innerHTML = '';
                 (d.positions || []).forEach(p => {
                     const cls = p.pnl >= 0 ? 'positive' : 'negative';
                     posBody.innerHTML += `<tr>
-                        <td>${p.symbol}</td>
-                        <td>${p.direction}</td>
+                        <td>${p.symbol}</td><td>${p.direction}</td>
                         <td>${p.entry.toFixed(4)}</td>
+                        <td style="color:#58a6ff">${(p.margin || 0).toFixed(2)}U</td>
+                        <td style="color:#8b949e">${(p.notional || 0).toFixed(1)}U</td>
                         <td>${p.stop.toFixed(4)}</td>
                         <td class="${cls}">${p.pnl >= 0 ? '+' : ''}${p.pnl.toFixed(2)} (${p.pnl_pct}%)</td>
-                        <td>${p.held_min}m</td>
-                    </tr>`;
+                        <td>${p.held_min}分钟</td></tr>`;
                 });
-                if (!d.positions?.length) posBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#8b949e">No positions</td></tr>';
+                if (!d.positions?.length) posBody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#8b949e">暂无持仓</td></tr>';
 
-                // Pool table
+                // 活跃池
                 const poolBody = document.getElementById('poolTable');
                 poolBody.innerHTML = '';
-                document.getElementById('poolLabel').textContent = (d.active_pool?.length || 0) + ' symbols';
+                document.getElementById('poolLabel').textContent = (d.active_pool?.length || 0) + ' 个币种';
                 (d.active_pool || []).forEach(s => {
                     poolBody.innerHTML += `<tr>
-                        <td>${s.symbol}</td>
-                        <td>${s.score}</td>
+                        <td>${s.symbol}</td><td>${s.score}</td>
+                        <td>${s.momentum || '-'}</td><td>${s.quality || '-'}</td>
                         <td>${s.direction}</td>
                         <td><span class="regime-${s.regime}">${s.regime}</span></td>
-                        <td><span class="grade-${s.grade}">${s.grade}</span></td>
-                    </tr>`;
+                        <td><span class="grade-${s.grade}">${s.grade}</span></td></tr>`;
                 });
 
-                // Risk
+                // 风控
                 const lossUsed = Math.abs(pnlPct);
-                const lossMax = 3;
-                document.getElementById('lossBar').style.width = Math.min(100, (lossUsed / lossMax) * 100) + '%';
-                document.getElementById('lossBarLabel').textContent = lossUsed.toFixed(1) + '% / ' + lossMax + '%';
+                document.getElementById('lossBar').style.width = Math.min(100, (lossUsed / 3) * 100) + '%';
+                document.getElementById('lossBarLabel').textContent = lossUsed.toFixed(1) + '% / 3%';
                 document.getElementById('consLosses').textContent = d.risk?.consecutive_losses || 0;
                 document.getElementById('allowedGrade').textContent = (d.risk?.allowed_grade || 'C') + '+';
 
                 const cooldowns = d.cooldowns || {};
                 const cdKeys = Object.keys(cooldowns);
-                document.getElementById('cooldownStatus').textContent = cdKeys.length ? cdKeys.map(k => k + ': ' + cooldowns[k] + 's').join(', ') : 'None';
+                document.getElementById('cooldownStatus').textContent = cdKeys.length ? cdKeys.map(k => k + ': ' + cooldowns[k] + '秒').join(', ') : '无';
 
-                // Trade history
+                // 交易历史
                 const histBody = document.getElementById('histTable');
                 histBody.innerHTML = '';
-                document.getElementById('histLabel').textContent = (d.trade_history?.length || 0) + ' trades';
+                document.getElementById('histLabel').textContent = (d.trade_history?.length || 0) + ' 笔';
                 (d.trade_history || []).reverse().forEach(t => {
-                    const cls = t.pnl >= 0 ? 'positive' : 'negative';
+                    const netPnl = t.net_pnl != null ? t.net_pnl : (t.pnl - (t.fees || 0) - (t.funding_fees || 0));
+                    const cls = netPnl >= 0 ? 'positive' : 'negative';
                     histBody.innerHTML += `<tr>
-                        <td>${t.closed_at}</td>
-                        <td>${t.symbol}</td>
-                        <td>${t.direction}</td>
-                        <td class="${cls}">${t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}</td>
-                        <td>${t.reason}</td>
-                    </tr>`;
+                        <td>${t.closed_at}</td><td>${t.symbol}</td><td>${t.direction}</td>
+                        <td>${t.setup}</td>
+                        <td>${t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}</td>
+                        <td style="color:#d29922">${(t.fees || 0).toFixed(3)}</td>
+                        <td style="color:#d29922">${(t.funding_fees || 0).toFixed(3)}</td>
+                        <td class="${cls}">${netPnl >= 0 ? '+' : ''}${netPnl.toFixed(2)}</td>
+                        <td>${t.reason}</td></tr>`;
                 });
 
-                // Logs
+                // 日志
                 const logPanel = document.getElementById('logPanel');
                 logPanel.innerHTML = '';
-                document.getElementById('logCount').textContent = (d.logs?.length || 0) + ' entries';
+                document.getElementById('logCount').textContent = (d.logs?.length || 0) + ' 条';
                 (d.logs || []).slice(-80).forEach(l => {
                     const cls = 'log-' + (l.level || 'info');
                     logPanel.innerHTML += `<div class="log-entry ${cls}"><span class="log-ts">${l.ts}</span>${l.msg}</div>`;
                 });
                 logPanel.scrollTop = logPanel.scrollHeight;
-
-            }).catch(e => {
-                console.error('Status fetch error:', e);
-            });
+            }).catch(e => console.error('状态获取失败:', e));
         }
 
-        // Auto-refresh
         refreshInterval = setInterval(refreshStatus, 3000);
         refreshStatus();
     </script>

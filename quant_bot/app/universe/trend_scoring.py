@@ -159,15 +159,21 @@ class TrendScoring:
         slope = calc.ema_slope(e20_series, 3)
         hl = calc.recent_highs_lows(df_1h, 3)
 
-        # Check for EMA200 if enough data
-        e200 = calc.ema(df_1h['close'], 200).iloc[-1] if len(df_1h) >= 200 else e50
+        has_e200 = len(df_1h) >= 200
+        e200 = calc.ema(df_1h['close'], 200).iloc[-1] if has_e200 else None
 
-        # 做多: close > EMA20 > EMA50 > EMA200, ADX >= 阈值, EMA20斜率>0, 近3根高低点抬高
-        if close > e20 > e50 > e200 and curr_adx >= adx_min and slope > 0 and hl >= 0:
+        # 做多条件
+        ema_long = close > e20 > e50
+        if has_e200:
+            ema_long = ema_long and e50 > e200
+        if ema_long and curr_adx >= adx_min and slope > 0:
             return 1
 
-        # 做空: close < EMA20 < EMA50 < EMA200, ADX >= 阈值, EMA20斜率<0, 近3根高低点降低
-        if close < e20 < e50 < e200 and curr_adx >= adx_min and slope < 0 and hl <= 0:
+        # 做空条件
+        ema_short = close < e20 < e50
+        if has_e200:
+            ema_short = ema_short and e50 < e200
+        if ema_short and curr_adx >= adx_min and slope < 0:
             return -1
 
         return 0

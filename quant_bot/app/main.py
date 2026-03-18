@@ -15,6 +15,9 @@ from app.data.ohlcv_cache import OHLCVCache
 from app.universe.candidate_pool import CandidatePool
 from app.universe.trend_scoring import TrendScoring
 from app.strategy.signal_engine import SignalEngine, EntryRefiner, FakeBreakoutFilter
+from app.strategy.mean_reversion import MeanReversionEngine
+from app.strategy.funding_arb import FundingArbEngine
+from app.strategy.strategy_router import StrategyRouter
 from app.risk.risk_engine import RiskEngine
 from app.risk.position_sizer import PositionSizer
 from app.risk.cooldown_engine import CooldownEngine
@@ -22,7 +25,10 @@ from app.risk.correlation_guard import CorrelationGuard
 from app.execution.position_manager import PositionManager
 from app.execution.slippage_guard import SlippageGuard
 from app.execution.stop_manager import StopManager
+from app.data.websocket_feed import WebSocketFeed
 from app.monitoring import notifier
+from app.monitoring.daily_report import generate_daily_report
+from app.db import trade_store
 
 log = logging.getLogger(__name__)
 
@@ -42,6 +48,7 @@ class QuantBot:
         self.pool_refresh_interval = 300  # 5分钟刷新候选池
         self.last_heartbeat = 0
         self.heartbeat_interval = get('monitoring', 'heartbeat_seconds', 60)
+        self.last_daily_report_date = None
         self.cycle_count = 0
         self.start_time = None
         self.logs = []
@@ -64,6 +71,10 @@ class QuantBot:
         self.correlation = CorrelationGuard(self.cache)
         self.slippage_guard = SlippageGuard(self.exchange)
         self.stop_manager = StopManager(self.exchange)
+        self.ws_feed = WebSocketFeed(self.cache)
+        self.mean_reversion = MeanReversionEngine(self.cache) if get('mean_reversion', 'enable', False) else None
+        self.funding_arb = FundingArbEngine(self.cache, self.exchange) if get('funding_arb', 'enable', False) else None
+        self.strategy_router = StrategyRouter(self.signal_engine, self.mean_reversion, self.funding_arb)
         self.position_manager = PositionManager(
             self.exchange, self.cache, self.risk_engine, self.cooldown
         )
@@ -89,11 +100,17 @@ class QuantBot:
         mode = '模拟' if self.paper_mode else '实盘'
         self._log('info', f"QuantBot 启动 ({mode}模式)")
         notifier.send_telegram(f"🚀 QuantBot 已启动 ({mode}模式)")
+        # 先刷新一次候选池, 然后启动WebSocket
+        self._refresh_pool()
+        self.last_pool_refresh = time.time()
+        ws_symbols = [s['symbol'] for s in self.active_pool[:50]]
+        self.ws_feed.start(ws_symbols)
         thread = threading.Thread(target=self._run_loop, daemon=True)
         thread.start()
 
     def stop(self):
         self.running = False
+        self.ws_feed.stop()
         self._log('info', "QuantBot 已停止")
         notifier.send_telegram("🛑 QuantBot 已停止")
 
@@ -120,6 +137,36 @@ class QuantBot:
         if now - self.last_heartbeat > self.heartbeat_interval:
             self._send_heartbeat()
             self.last_heartbeat = now
+
+        # 每日报告 (UTC 23:55 发送)
+        utc_hour = datetime.utcnow().hour
+        utc_min = datetime.utcnow().minute
+        today = date.today()
+        if utc_hour == 23 and utc_min >= 55 and self.last_daily_report_date != today:
+            self.last_daily_report_date = today
+            try:
+                generate_daily_report(
+                    self.position_manager.trade_history,
+                    self.risk_engine,
+                    self.active_pool,
+                )
+                # 保存每日统计到数据库
+                try:
+                    bal = self.exchange.fetch_balance()
+                    eq = bal.get('equity', get('account', 'initial_balance', 2000))
+                except Exception:
+                    eq = get('account', 'initial_balance', 2000)
+                trade_store.save_daily_stat(
+                    today.strftime('%Y-%m-%d'),
+                    self.risk_engine.today_trades,
+                    self.risk_engine.today_wins,
+                    self.risk_engine.today_losses,
+                    round(self.risk_engine.daily_pnl, 2),
+                    round(self.risk_engine.daily_pnl_pct * 100, 2),
+                    eq - self.risk_engine.daily_pnl, eq,
+                )
+            except Exception as e:
+                self._log('error', f"每日报告生成失败: {e}")
 
         # 时间白名单检查
         hour = datetime.utcnow().hour
@@ -193,9 +240,12 @@ class QuantBot:
             if allowed_grade == 'A' and grade != 'A':
                 continue
 
-            # 震荡市只允许A级
-            if regime == 'RANGING' and grade != 'A':
-                continue
+            # 震荡市只允许A级，且最多1个持仓
+            if regime == 'RANGING':
+                if grade != 'A':
+                    continue
+                if len(self.position_manager.positions) >= 1:
+                    continue
 
             # 方向检查
             if direction == 0:
@@ -205,8 +255,8 @@ class QuantBot:
             if any(p.symbol == symbol for p in self.position_manager.positions):
                 continue
 
-            # 寻找入场信号
-            setup = self.signal_engine.find_setup(symbol, direction, snap)
+            # 多策略路由: 按优先级选择最佳信号 (Phase 2)
+            setup = self.strategy_router.find_best_setup(symbol, direction, snap, regime)
             if not setup:
                 continue
             setup_type = setup.setup_type
@@ -273,9 +323,13 @@ class QuantBot:
             self._log('info', f"活跃池 ({len(self.active_pool)}): {', '.join(symbols)}")
             self.correlation.clear_cache()
 
+            # 更新WebSocket订阅
+            ws_symbols = [s['symbol'] for s in self.active_pool[:50]]
+            self.ws_feed.update_subscriptions(ws_symbols)
+
         except Exception as e:
             self._log('error', f"候选池刷新失败: {e}")
-            notifier.notify_risk_event("数据异常", f"候选池刷新失败: {e}")
+            notifier.notify_data_error(f"候选池刷新失败: {e}")
 
     def _execute_entry(self, order_plan):
         symbol = order_plan['symbol']
@@ -287,20 +341,55 @@ class QuantBot:
             notifier.notify_trade_open(order_plan)
             return
 
-        # 实盘执行 - 带重试
+        # 实盘执行 - 限价单优先, 超时追市价 (Spec §17)
         try:
             self.exchange.set_leverage(symbol, get('account', 'leverage', 10))
 
-            order = None
-            for attempt in range(3):  # 最多重试2次(共3次)
+            entry_timeout = get('execution', 'entry_timeout_minutes', 3) * 60  # 秒
+            limit_price = order_plan['entry']
+
+            # 1. 先挂限价单
+            order = self.exchange.create_order(
+                symbol, order_plan['side'], order_plan['size'],
+                price=limit_price, order_type='limit',
+            )
+
+            if not order:
+                # 限价失败, 直接市价
+                self._log('warning', f"限价单失败 {symbol}, 改用市价")
                 order = self.exchange.create_order(
                     symbol, order_plan['side'], order_plan['size'],
                     order_type='market',
                 )
-                if order:
-                    break
-                self._log('warning', f"下单失败 {symbol}, 重试 {attempt+1}/2")
-                time.sleep(1)
+            else:
+                # 2. 等待成交或超时
+                order_id = order.get('id')
+                filled = False
+                start_ts = time.time()
+
+                while time.time() - start_ts < entry_timeout:
+                    time.sleep(3)
+                    try:
+                        status = self.exchange.exchange.fetch_order(order_id, f"{symbol}:USDT")
+                        if status and status.get('status') == 'closed':
+                            filled = True
+                            order = status
+                            break
+                        elif status and status.get('status') == 'canceled':
+                            order = None
+                            break
+                    except Exception:
+                        pass
+
+                if not filled and order:
+                    # 3. 超时未成交: 取消限价, 追市价
+                    self._log('info', f"限价单超时 {symbol}, 取消并追市价")
+                    self.exchange.cancel_order(order_id, symbol)
+                    time.sleep(0.5)
+                    order = self.exchange.create_order(
+                        symbol, order_plan['side'], order_plan['size'],
+                        order_type='market',
+                    )
 
             if order:
                 pos = self.position_manager.add_position(order_plan, order)
@@ -312,7 +401,7 @@ class QuantBot:
                     symbol, stop_side, order_plan['size'], order_plan['stop']
                 )
                 if not stop_result:
-                    notifier.notify_risk_event("止损挂单失败", f"{symbol} 止损 {order_plan['stop']:.4f}")
+                    notifier.notify_stop_failed(symbol, order_plan['stop'])
             else:
                 self._log('error', f"下单最终失败: {symbol}")
                 notifier.notify_risk_event("下单失败", f"{symbol} {dir_str}")
@@ -383,12 +472,16 @@ class QuantBot:
                     'direction': '做多' if t.direction == 1 else '做空',
                     'pnl': round(t.pnl, 2),
                     'pnl_pct': round(t.pnl_pct * 100, 2),
+                    'fees': round(t.fees, 4),
+                    'funding_fees': round(t.funding_fees, 4),
+                    'net_pnl': round(t.net_pnl, 2),
                     'reason': t.close_reason,
                     'setup': t.setup_type,
                     'closed_at': t.closed_at.strftime('%H:%M:%S'),
                 }
                 for t in self.position_manager.trade_history[-50:]
             ],
+            'websocket': self.ws_feed.get_status(),
             'logs': self.logs[-100:],
         }
 

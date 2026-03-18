@@ -31,9 +31,10 @@ class MeanReversionStrategy(BaseStrategy):
 
         exec_cfg = config.get('execution', {})
 
-        # 前提: 震荡市 ADX < 25
+        # 前提: 震荡市 ADX < 30 (放宽至30, 原25太严)
         adx_val = adx(klines_1h, 14)
-        if adx_val >= 25:
+        if adx_val >= 30:
+            logger.info(f"[MR] {symbol} {direction.value} ✗ ADX={adx_val:.1f} >= 30")
             return None
 
         # 15m 指标
@@ -43,11 +44,14 @@ class MeanReversionStrategy(BaseStrategy):
         curr = klines_15m[-1]
 
         if direction == Direction.LONG:
-            if rsi_val >= 30:
+            if rsi_val >= 35:
+                logger.info(f"[MR] {symbol} LONG ✗ RSI={rsi_val:.1f} >= 35 (需超卖)")
                 return None
             if prev.close >= lower:
+                logger.info(f"[MR] {symbol} LONG ✗ prev_close={prev.close} >= BB_lower={lower:.6f}")
                 return None
             if curr.close <= lower or not curr.is_bullish:
+                logger.info(f"[MR] {symbol} LONG ✗ 未回归: close={curr.close} lower={lower:.6f} bullish={curr.is_bullish}")
                 return None
             # 止盈: 布林中轨
             entry_price = curr.close
@@ -55,11 +59,14 @@ class MeanReversionStrategy(BaseStrategy):
             stop_loss = entry_price - atr_val * 0.8
             tp_price = mid
         else:
-            if rsi_val <= 70:
+            if rsi_val <= 65:
+                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 65 (需超买)")
                 return None
             if prev.close <= upper:
+                logger.info(f"[MR] {symbol} SHORT ✗ prev_close={prev.close} <= BB_upper={upper:.6f}")
                 return None
             if curr.close >= upper or curr.is_bullish:
+                logger.info(f"[MR] {symbol} SHORT ✗ 未回归: close={curr.close} upper={upper:.6f} bullish={curr.is_bullish}")
                 return None
             entry_price = curr.close
             atr_val = atr(klines_15m, 14)
@@ -69,6 +76,7 @@ class MeanReversionStrategy(BaseStrategy):
         risk_reward = abs(tp_price - entry_price) / abs(entry_price - stop_loss)
         min_rr = exec_cfg.get('min_risk_reward', 1.8)
         if risk_reward < min_rr:
+            logger.info(f"[MR] {symbol} {direction.value} ✗ RR={risk_reward:.2f} < {min_rr}")
             return None
 
         return Signal(

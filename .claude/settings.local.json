@@ -216,7 +216,20 @@
       "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(''''Versions:'''', [v for v in d.get\\(''''comparison'''',[[]]\\)[0].keys\\(\\) if v not in [''''symbol'''',''''winner'''']] if d.get\\(''''comparison''''\\) else ''''no data''''\\); print\\(''''Coins:'''', len\\(d.get\\(''''comparison'''',[]\\)\\)\\); print\\(''''Has v7:'''', ''''v7_total'''' in d\\)\")",
       "Bash(ssh trading-server \"python3 -c \"\":*)",
       "Read(//Users/hongtou/**)",
-      "Bash(rsync -avz --exclude '__pycache__' --exclude '*.pyc' --exclude '.DS_Store' /Users/hongtou/newproject/quant-v4lite/ trading-server:/opt/quant-v4lite/)"
+      "Bash(rsync -avz --exclude '__pycache__' --exclude '*.pyc' --exclude '.DS_Store' /Users/hongtou/newproject/quant-v4lite/ trading-server:/opt/quant-v4lite/)",
+      "Bash(rsync -avz --exclude '__pycache__' /Users/hongtou/newproject/quant-v4lite/src/main.py trading-server:/opt/quant-v4lite/src/main.py)",
+      "Bash(rsync -avz --exclude '__pycache__' --exclude '*.pyc' /Users/hongtou/newproject/quant-v4lite/src/bot/engine.py /Users/hongtou/newproject/quant-v4lite/config/config.yaml trading-server:/opt/quant-v4lite/src/bot/engine.py)",
+      "Read(//dev/**)",
+      "Bash(rsync -avz --delete --exclude '.env' --exclude 'data/' --exclude 'logs/' --exclude '__pycache__/' --exclude '*.pyc' --exclude '.git/' --exclude '.venv/' --exclude '.pytest_cache/' /Users/hongtou/newproject/quant-v4lite/ trading-server:/opt/quant-v4lite/)",
+      "Bash(rsync -avz --exclude '.env' --exclude 'data/' --exclude 'logs/' --exclude '__pycache__' --exclude '.git' /Users/hongtou/newproject/quant-v4lite/ trading-server:/opt/quant-v4lite/)",
+      "Bash(rsync -avz --exclude='__pycache__' --exclude='*.pyc' --exclude='.git' --exclude='data/' --exclude='logs/' --exclude='.env' . root@139.162.41.38:/opt/quant_bot/)",
+      "Bash(rsync -avz -e \"ssh -i ~/.ssh/server_key\" --exclude='__pycache__' --exclude='*.pyc' --exclude='.git' --exclude='data/' --exclude='logs/' --exclude='.env' . root@139.162.41.38:/opt/quant_bot/)",
+      "Bash(rsync -avz -e \"ssh -i ~/.ssh/server_key\" --exclude='__pycache__' --exclude='*.pyc' --exclude='.git' --exclude='data/' --exclude='logs/' --exclude='.env' app/execution/position_manager.py app/web/templates/index.html root@139.162.41.38:/opt/quant_bot/)",
+      "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/src/data/db.py trading-server:/opt/quant-v4lite/src/data/db.py)",
+      "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/docs/DEVLOG.md trading-server:/opt/quant-v4lite/docs/DEVLOG.md)",
+      "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/src/exchange/bybit_client.py /Users/hongtou/newproject/quant-v4lite/src/exchange/okx_client.py trading-server:/opt/quant-v4lite/src/exchange/)",
+      "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/config/config.dev.yaml /Users/hongtou/newproject/quant-v4lite/config/config.backtest.yaml /Users/hongtou/newproject/quant-v4lite/config/economic_calendar.json trading-server:/opt/quant-v4lite/config/)",
+      "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/README.md trading-server:/opt/quant-v4lite/)"
     ]
   }
 }

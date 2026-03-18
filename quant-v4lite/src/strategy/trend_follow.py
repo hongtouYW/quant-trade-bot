@@ -39,13 +39,18 @@ class TrendFollowStrategy(BaseStrategy):
                               trend_cfg.get('ema_slow', 200))
 
         if direction == Direction.LONG and align != 'bullish':
+            logger.debug(f"[TF] {symbol} {direction.name}: EMA align={align}, need bullish")
             return None
         if direction == Direction.SHORT and align != 'bearish':
+            logger.debug(f"[TF] {symbol} {direction.name}: EMA align={align}, need bearish")
             return None
 
         adx_val = adx(klines_1h, trend_cfg.get('adx_period', 14))
         if adx_val < trend_cfg.get('adx_strong', 25):
+            logger.debug(f"[TF] {symbol}: ADX={adx_val:.1f} < 25")
             return None
+
+        logger.info(f"[TF] {symbol} {direction.name}: EMA={align} ADX={adx_val:.1f} ✓ checking 15m...")
 
         # 15m 入场条件
         ema20_15m = ema(klines_15m, 20)
@@ -57,23 +62,28 @@ class TrendFollowStrategy(BaseStrategy):
         if direction == Direction.LONG:
             # 前一根低点接近 EMA20 (< 0.3%)
             touch_dist = abs(prev_bar.low - ema20_prev) / ema20_prev
-            if touch_dist > 0.003:
+            if touch_dist > 0.008:
+                logger.info(f"[TF] {symbol} LONG 15m ✗ pullback dist={touch_dist:.4f} > 0.008")
                 return None
-            # 当前阳线，收盘 > EMA20
-            if not curr_bar.is_bullish or curr_bar.close < ema20_curr:
+            # 收盘 > EMA20（不强制阳线，因为当前K线可能未完成）
+            if curr_bar.close < ema20_curr:
+                logger.info(f"[TF] {symbol} LONG 15m ✗ close={curr_bar.close:.4f} < EMA20={ema20_curr:.4f}")
                 return None
         else:
             # 做空镜像
             touch_dist = abs(prev_bar.high - ema20_prev) / ema20_prev
-            if touch_dist > 0.003:
+            if touch_dist > 0.008:
+                logger.info(f"[TF] {symbol} SHORT 15m ✗ pullback dist={touch_dist:.4f} > 0.008")
                 return None
-            if curr_bar.is_bullish or curr_bar.close > ema20_curr:
+            if curr_bar.close > ema20_curr:
+                logger.info(f"[TF] {symbol} SHORT 15m ✗ close={curr_bar.close:.4f} > EMA20={ema20_curr:.4f}")
                 return None
 
-        # 成交量确认
-        vol_r = volume_ratio(klines_15m, recent=1, baseline=20)
+        # 成交量确认（用已完成K线，排除当前未完成K线）
+        vol_r = volume_ratio(klines_15m[:-1], recent=1, baseline=20)
         min_vol = config.get('liquidity_filter', {}).get('min_volume_ratio', 1.2)
         if vol_r < min_vol:
+            logger.info(f"[TF] {symbol} 15m ✗ vol_ratio={vol_r:.2f} < {min_vol}")
             return None
 
         # 计算止损止盈
@@ -96,8 +106,8 @@ class TrendFollowStrategy(BaseStrategy):
             tp1_price = entry_price - stop_dist * tp1_r
             tp2_price = entry_price - stop_dist * tp2_r
 
-        # 盈亏比检查
-        risk_reward = tp1_r  # TP1 的 R 值
+        # 盈亏比检查 (加权平均: TP1*pct + TP2*pct)
+        risk_reward = tp1_r * tp1_pct + tp2_r * tp2_pct
         min_rr = exec_cfg.get('min_risk_reward', 1.8)
         if risk_reward < min_rr:
             return None
