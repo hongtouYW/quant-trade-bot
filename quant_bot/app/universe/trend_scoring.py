@@ -169,11 +169,16 @@ class TrendScoring:
         if ema_long and curr_adx >= adx_min and slope > 0:
             return 1
 
-        # 做空条件
+        # 做空条件 (标准)
         ema_short = close < e20 < e50
         if has_e200:
             ema_short = ema_short and e50 < e200
         if ema_short and curr_adx >= adx_min and slope < 0:
+            return -1
+
+        # 快速做空检测: 价格跌破EMA50 + ADX强 + 斜率下行
+        # 不等EMA20<EMA50交叉，捕捉急跌行情
+        if close < e50 and curr_adx >= 25 and slope < 0:
             return -1
 
         return 0

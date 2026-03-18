@@ -261,17 +261,29 @@ class BacktestEngine:
 
         # 方向判定
         direction = 0
-        if close > e20 > e50:
-            slope = calc.ema_slope(calc.ema(df['close'], 20), 3)
-            if slope > 0:
-                direction = 1
-        elif close < e20 < e50:
-            slope = calc.ema_slope(calc.ema(df['close'], 20), 3)
-            if slope < 0:
-                direction = -1
+        slope = calc.ema_slope(calc.ema(df['close'], 20), 3)
+        if close > e20 > e50 and slope > 0:
+            direction = 1
+        elif close < e20 < e50 and slope < 0:
+            direction = -1
+        elif close < e50 and curr_adx >= 25 and slope < 0:
+            # 快速做空: 价格跌破EMA50 + 强ADX + 下行斜率
+            direction = -1
 
         if direction == 0:
             return None
+
+        # Regime过滤 (与实盘一致)
+        if len(df) >= 20:
+            atrp_vals = calc.atrp(df, 14)
+            if len(atrp_vals) >= 20:
+                recent_atrp = atrp_vals.iloc[-3:]
+                mean_atrp = atrp_vals.iloc[-20:].mean()
+                if not np.isnan(mean_atrp) and mean_atrp > 0:
+                    if recent_atrp.max() > mean_atrp * 3:
+                        # EXTREME: 只允许做空
+                        if direction != -1:
+                            return None
 
         # 检测回踩
         setup = None
@@ -280,7 +292,7 @@ class BacktestEngine:
         tp2_mult = self.cfg.get('tp2_r_multiple', get('execution', 'tp2_r_multiple', 2.8))
 
         if direction == 1:
-            if close <= e21 * 1.005 and close >= e21 * 0.985:
+            if close <= e21 * 1.003 and close >= e21 * 0.990:
                 last = df.iloc[-1]
                 if last['close'] > last['open'] or close > e7:
                     stop = min(df['low'].iloc[-5:].min(), close - atr_val * stop_mult)
@@ -292,7 +304,7 @@ class BacktestEngine:
                             'setup': 'pullback',
                         }
         elif direction == -1:
-            if close >= e21 * 0.995 and close <= e21 * 1.015:
+            if close >= e21 * 0.997 and close <= e21 * 1.010:
                 last = df.iloc[-1]
                 if last['close'] < last['open'] or close < e7:
                     stop = max(df['high'].iloc[-5:].max(), close + atr_val * stop_mult)
@@ -424,7 +436,8 @@ class BacktestEngine:
 
         # 时间止损
         holding = (dt - pos.opened_at).total_seconds() / 60 if isinstance(pos.opened_at, datetime) else 0
-        if holding > self.cfg.get('max_holding_minutes', get('execution', 'max_holding_minutes', 75)):
+        max_hold = self.cfg.get('max_holding_minutes', get('execution', 'max_holding_minutes', 240))
+        if holding > max_hold:
             pnl_pct = (close - pos.entry_price) / pos.entry_price * pos.direction
             if abs(pnl_pct) < 0.005:
                 self._close_bt_position(pos, close, dt, '时间止损')
