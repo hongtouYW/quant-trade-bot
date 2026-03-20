@@ -112,6 +112,10 @@ def init_db():
             win_count INTEGER,
             cumulative_pnl REAL
         );
+        CREATE TABLE IF NOT EXISTS symbol_aliases (
+            alias TEXT PRIMARY KEY,
+            symbol TEXT NOT NULL
+        );
     ''')
     # Migrations
     for sql in [
@@ -122,6 +126,28 @@ def init_db():
             conn.execute(sql)
         except:
             pass
+
+    # Seed default symbol aliases
+    default_aliases = {
+        # BTC
+        '大餅': 'BTC', '大饼': 'BTC', '比特币': 'BTC', '比特幣': 'BTC', '餅': 'BTC', '饼': 'BTC',
+        # ETH
+        '以太': 'ETH', '以太坊': 'ETH', '姨太': 'ETH', 'E太': 'ETH', '二餅': 'ETH', '二饼': 'ETH',
+        # SOL
+        '索拉納': 'SOL', '索拉纳': 'SOL',
+        # DOGE
+        '狗狗幣': 'DOGE', '狗狗币': 'DOGE', '狗幣': 'DOGE', '狗币': 'DOGE', '狗子': 'DOGE',
+        # XRP
+        '瑞波': 'XRP',
+        # BNB
+        '幣安幣': 'BNB', '币安币': 'BNB',
+        # PEPE
+        '青蛙': 'PEPE',
+        # SHIB
+        '柴犬': 'SHIB',
+    }
+    for alias, symbol in default_aliases.items():
+        conn.execute('INSERT OR IGNORE INTO symbol_aliases (alias, symbol) VALUES (?, ?)', (alias, symbol))
 
     # Default config
     defaults = {
@@ -638,6 +664,68 @@ def api_update_config():
     conn.close()
     return jsonify({'ok': True})
 
+@app.route('/api/aliases', methods=['GET'])
+def api_get_aliases():
+    conn = get_db()
+    rows = conn.execute('SELECT alias, symbol FROM symbol_aliases ORDER BY symbol, alias').fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/aliases', methods=['POST'])
+def api_add_alias():
+    data = request.json
+    alias = (data.get('alias') or '').strip()
+    symbol = (data.get('symbol') or '').strip().upper()
+    if not alias or not symbol:
+        return jsonify({'error': 'alias and symbol required'}), 400
+    conn = get_db()
+    conn.execute('INSERT OR REPLACE INTO symbol_aliases (alias, symbol) VALUES (?, ?)', (alias, symbol))
+    conn.commit()
+    conn.close()
+    global _alias_cache_time
+    _alias_cache_time = 0  # invalidate cache
+    return jsonify({'ok': True, 'alias': alias, 'symbol': symbol})
+
+@app.route('/api/aliases/<alias>', methods=['DELETE'])
+def api_delete_alias(alias):
+    conn = get_db()
+    conn.execute('DELETE FROM symbol_aliases WHERE alias = ?', (alias,))
+    conn.commit()
+    conn.close()
+    global _alias_cache_time
+    _alias_cache_time = 0
+    return jsonify({'ok': True})
+
+# ===== Symbol Alias Cache =====
+
+_alias_cache = {}
+_alias_cache_time = 0
+
+def get_symbol_aliases():
+    """Load symbol aliases from DB, cached for 60s"""
+    global _alias_cache, _alias_cache_time
+    now = time.time()
+    if now - _alias_cache_time < 60 and _alias_cache:
+        return _alias_cache
+    try:
+        conn = get_db()
+        rows = conn.execute('SELECT alias, symbol FROM symbol_aliases').fetchall()
+        conn.close()
+        _alias_cache = {r['alias']: r['symbol'] for r in rows}
+        _alias_cache_time = now
+    except:
+        pass
+    return _alias_cache
+
+def resolve_symbol_alias(text):
+    """Check if text contains any known alias, return (symbol, matched_alias) or (None, None)"""
+    aliases = get_symbol_aliases()
+    # Sort by length descending so longer aliases match first (e.g. "比特币" before "币")
+    for alias in sorted(aliases.keys(), key=len, reverse=True):
+        if alias in text:
+            return aliases[alias], alias
+    return None, None
+
 # ===== Telegram Signal Parser =====
 
 def parse_signal_message(text):
@@ -653,14 +741,20 @@ def parse_signal_message(text):
         'take_profit': None, 'leverage': None, 'entry_price': None
     }
 
-    # Extract symbol: look for coin names like BTC, ETH, BTCUSDT etc
-    sym_match = re.search(r'[#\$]?([A-Z]{2,10})(USDT|/USDT)?', text.upper())
-    if sym_match:
-        sym = sym_match.group(1)
-        if sym in ('USDT', 'USD', 'THE', 'FOR', 'AND', 'NOT', 'ALL', 'BUT'):
-            sym = None
-        else:
-            result['symbol'] = sym + 'USDT' if not sym.endswith('USDT') else sym
+    # Step 1: Check aliases first (e.g. 大餅 → BTC)
+    alias_sym, matched_alias = resolve_symbol_alias(text)
+    if alias_sym:
+        result['symbol'] = alias_sym + 'USDT' if not alias_sym.endswith('USDT') else alias_sym
+
+    # Step 2: Extract symbol from English text (e.g. #BTC, ETHUSDT)
+    if not result['symbol']:
+        sym_match = re.search(r'[#\$]?([A-Z]{2,10})(USDT|/USDT)?', text.upper())
+        if sym_match:
+            sym = sym_match.group(1)
+            if sym in ('USDT', 'USD', 'THE', 'FOR', 'AND', 'NOT', 'ALL', 'BUT'):
+                sym = None
+            else:
+                result['symbol'] = sym + 'USDT' if not sym.endswith('USDT') else sym
 
     # Extract direction (简体+繁体)
     text_upper = text.upper()
