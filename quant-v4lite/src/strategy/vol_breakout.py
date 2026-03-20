@@ -43,8 +43,8 @@ class VolatilityBreakoutStrategy(BaseStrategy):
         current_width = widths[-1]
         percentile = sum(1 for w in widths if w <= current_width) / len(widths)
 
-        if percentile > 0.25:
-            logger.info(f"[VB] {symbol} {direction.value} ✗ BB宽度分位={percentile:.2f} > 0.25")
+        if percentile > 0.30:
+            logger.info(f"[VB] {symbol} {direction.value} ✗ BB宽度分位={percentile:.2f} > 0.30")
             return None
 
         # 突破判断

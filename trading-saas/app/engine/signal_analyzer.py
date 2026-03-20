@@ -1149,3 +1149,427 @@ DEFAULT_WATCHLIST = [
     'YGG/USDT', 'PIXEL/USDT', 'PORTAL/USDT', 'XAI/USDT', 'DYM/USDT',
     'MANTA/USDT', 'ZK/USDT', 'W/USDT', 'SAGA/USDT', 'RSR/USDT',
 ]  # Total: ~150 coins (matches paper_trader.py watchlist)
+
+
+# ─── V8 Strategy: ATR Dual Trailing Stop (ceyhun) ───────────
+
+def _calculate_atr_trail(candles: list, atr_period: int, atr_factor: float) -> list:
+    """Calculate ATR Trailing Stop line (PineScript ceyhun method).
+
+    Recursive formula: trail follows price, ratcheting up in uptrend
+    and ratcheting down in downtrend.
+
+    Args:
+        candles: list of {open, high, low, close, volume} dicts
+        atr_period: ATR lookback period
+        atr_factor: multiplier for ATR stop distance
+
+    Returns:
+        list of trail values, same length as candles (None for warm-up period)
+    """
+    n = len(candles)
+    if n < atr_period + 1:
+        return [None] * n
+
+    # Pre-compute ATR for each bar
+    atrs = [None] * n
+    for i in range(atr_period, n):
+        trs = []
+        for j in range(i - atr_period + 1, i + 1):
+            h = candles[j]['high']
+            l = candles[j]['low']
+            pc = candles[j - 1]['close']
+            trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+        atrs[i] = sum(trs) / atr_period
+
+    trail = [None] * n
+    # Initialize at first valid bar
+    start = atr_period
+    close_0 = candles[start]['close']
+    sl = atrs[start] * atr_factor
+    trail[start] = close_0 - sl  # assume uptrend start
+
+    for i in range(start + 1, n):
+        sc = candles[i]['close']
+        prev_sc = candles[i - 1]['close']
+        sl = atrs[i] * atr_factor
+        prev_trail = trail[i - 1]
+
+        if sc > prev_trail and prev_sc > prev_trail:
+            # Uptrend: ratchet up (never decrease)
+            trail[i] = max(prev_trail, sc - sl)
+        elif sc < prev_trail and prev_sc < prev_trail:
+            # Downtrend: ratchet down (never increase)
+            trail[i] = min(prev_trail, sc + sl)
+        elif sc > prev_trail:
+            # Flip to uptrend
+            trail[i] = sc - sl
+        else:
+            # Flip to downtrend
+            trail[i] = sc + sl
+
+    return trail
+
+
+def analyze_signal_v8(symbol: str, config: dict, exchange: str = 'binance') -> tuple:
+    """V8 signal: ATR Dual Trailing Stop crossover strategy.
+
+    Based on ceyhun's PineScript ATR Trailing Stop indicator.
+    Fast Trail (ATR5×0.5) and Slow Trail (ATR10×3.0) crossover for entries.
+
+    Zone coloring for trend strength:
+      Green: Trail1>Trail2, close>Trail2, low>Trail2  (strong bull)
+      Blue:  Trail1>Trail2, close>Trail2, low<Trail2  (weak bull)
+      Red:   Trail2>Trail1, close<Trail2, high<Trail2 (strong bear)
+      Yellow:Trail2>Trail1, close<Trail2, high>Trail2 (weak bear)
+
+    Returns: (score: int, analysis: dict | None)
+    """
+    try:
+        klines = fetch_klines(symbol, '1h', 100, exchange=exchange)
+        if not klines or len(klines) < 50:
+            return 0, None
+
+        closes = [c['close'] for c in klines]
+        highs = [c['high'] for c in klines]
+        lows = [c['low'] for c in klines]
+        volumes = [c['volume'] for c in klines]
+        current_price = closes[-1]
+
+        # ── Dual ATR Trailing Stops ──
+        fast_period = int(config.get('v8_fast_atr_period', 5))
+        fast_factor = float(config.get('v8_fast_atr_factor', 0.5))
+        slow_period = int(config.get('v8_slow_atr_period', 10))
+        slow_factor = float(config.get('v8_slow_atr_factor', 3.0))
+
+        trail1 = _calculate_atr_trail(klines, fast_period, fast_factor)  # Fast
+        trail2 = _calculate_atr_trail(klines, slow_period, slow_factor)  # Slow
+
+        # Need at least last 3 bars valid for crossover detection
+        if trail1[-1] is None or trail2[-1] is None or \
+           trail1[-2] is None or trail2[-2] is None:
+            return 0, None
+
+        t1 = trail1[-1]
+        t2 = trail2[-1]
+        t1_prev = trail1[-2]
+        t2_prev = trail2[-2]
+
+        # ── Crossover Detection ──
+        buy_cross = t1_prev <= t2_prev and t1 > t2   # Fast crosses above Slow
+        sell_cross = t1_prev >= t2_prev and t1 < t2   # Fast crosses below Slow
+
+        # ── Zone Detection (current bar) ──
+        close = closes[-1]
+        high = highs[-1]
+        low = lows[-1]
+
+        green = t1 > t2 and close > t2 and low > t2    # Strong bull
+        blue = t1 > t2 and close > t2 and low < t2     # Weak bull
+        red = t2 > t1 and close < t2 and high < t2     # Strong bear
+        yellow = t2 > t1 and close < t2 and high > t2  # Weak bear
+
+        # ── Bull/Bear State (barssince logic) ──
+        bars_since_green = None
+        bars_since_red = None
+        lookback = min(50, len(klines) - max(fast_period, slow_period) - 1)
+        for j in range(lookback):
+            idx = len(klines) - 1 - j
+            if trail1[idx] is None or trail2[idx] is None:
+                break
+            c_j = closes[idx]
+            l_j = lows[idx]
+            h_j = highs[idx]
+            t1_j = trail1[idx]
+            t2_j = trail2[idx]
+            g_j = t1_j > t2_j and c_j > t2_j and l_j > t2_j
+            r_j = t2_j > t1_j and c_j < t2_j and h_j < t2_j
+            if bars_since_green is None and g_j:
+                bars_since_green = j
+            if bars_since_red is None and r_j:
+                bars_since_red = j
+            if bars_since_green is not None and bars_since_red is not None:
+                break
+
+        # Default: if never found, treat as very far away
+        if bars_since_green is None:
+            bars_since_green = 999
+        if bars_since_red is None:
+            bars_since_red = 999
+
+        is_bull = bars_since_green < bars_since_red
+        is_bear = bars_since_red < bars_since_green
+
+        # ── Direction ──
+        if t1 > t2:
+            direction = 'LONG'
+        elif t2 > t1:
+            direction = 'SHORT'
+        else:
+            direction = 'LONG' if is_bull else 'SHORT'
+
+        # ── Scoring (0-100) ──
+        total_score = 0
+
+        # 1. Crossover recency (0-35 pts) — most important signal
+        if buy_cross or sell_cross:
+            total_score += 35  # fresh crossover = strongest signal
+        else:
+            # How many bars since last crossover?
+            bars_since_cross = 0
+            for j in range(1, min(30, len(klines) - max(fast_period, slow_period))):
+                idx = len(klines) - 1 - j
+                if trail1[idx] is None or trail2[idx] is None:
+                    break
+                prev_idx = idx - 1
+                if trail1[prev_idx] is None or trail2[prev_idx] is None:
+                    break
+                # Check for any crossover at this bar
+                t1_j = trail1[idx]
+                t2_j = trail2[idx]
+                t1_p = trail1[prev_idx]
+                t2_p = trail2[prev_idx]
+                if (t1_p <= t2_p and t1_j > t2_j) or (t1_p >= t2_p and t1_j < t2_j):
+                    bars_since_cross = j
+                    break
+            else:
+                bars_since_cross = 30
+
+            if bars_since_cross <= 3:
+                total_score += 28  # very recent
+            elif bars_since_cross <= 6:
+                total_score += 20
+            elif bars_since_cross <= 12:
+                total_score += 12
+            else:
+                total_score += 5   # trend continuation, weaker
+
+        # 2. Zone strength (0-25 pts)
+        if direction == 'LONG':
+            if green:
+                total_score += 25  # strong bull
+            elif blue:
+                total_score += 15  # weak bull (wick below support)
+            elif yellow:
+                total_score += 3   # in bear zone but testing resistance
+            else:
+                total_score += 8
+        else:
+            if red:
+                total_score += 25  # strong bear
+            elif yellow:
+                total_score += 15  # weak bear (wick above resistance)
+            elif blue:
+                total_score += 3   # in bull zone but testing support
+            else:
+                total_score += 8
+
+        # 3. Trail separation (0-15 pts) — wider = stronger trend
+        trail_sep = abs(t1 - t2) / current_price * 100 if current_price > 0 else 0
+        if trail_sep > 2.0:
+            total_score += 15
+        elif trail_sep > 1.0:
+            total_score += 12
+        elif trail_sep > 0.5:
+            total_score += 8
+        else:
+            total_score += 3
+
+        # 4. Volume confirmation (0-15 pts)
+        avg_volume = sum(volumes[-20:]) / 20
+        volume_ratio = volumes[-1] / avg_volume if avg_volume > 0 else 1
+        if volume_ratio > 1.5:
+            total_score += 15
+        elif volume_ratio > 1.2:
+            total_score += 10
+        elif volume_ratio > 1.0:
+            total_score += 7
+        else:
+            total_score += 3
+
+        # 5. Support/Resistance distance from Trail2 (0-10 pts)
+        dist_pct = abs(close - t2) / t2 * 100 if t2 > 0 else 0
+        if direction == 'LONG':
+            # Close well above Trail2 support = safe
+            if dist_pct > 2.0:
+                total_score += 10
+            elif dist_pct > 1.0:
+                total_score += 7
+            else:
+                total_score += 3  # too close to support, risky
+        else:
+            # Close well below Trail2 resistance = safe
+            if dist_pct > 2.0:
+                total_score += 10
+            elif dist_pct > 1.0:
+                total_score += 7
+            else:
+                total_score += 3
+
+        # ── Penalties ──
+        # RSI extreme counter-signal penalty
+        rsi = calculate_rsi(closes)
+        if direction == 'LONG' and rsi > 80:
+            total_score = int(total_score * 0.80)  # overbought, reduce LONG
+        elif direction == 'SHORT' and rsi < 20:
+            total_score = int(total_score * 0.80)  # oversold, reduce SHORT
+
+        # ADX trend filter (optional, default on)
+        adx = calculate_adx(klines)
+        if config.get('v8_adx_filter', True) and adx is not None:
+            if adx < 15:
+                total_score = int(total_score * 0.60)  # no trend at all
+            elif adx < 20:
+                total_score = int(total_score * 0.80)  # weak trend
+
+        # SHORT bias
+        short_bias = float(config.get('short_bias', 1.05))
+        if direction == 'SHORT':
+            total_score = int(total_score * short_bias)
+
+        # Zone label
+        if green:
+            zone = 'GREEN'
+        elif blue:
+            zone = 'BLUE'
+        elif red:
+            zone = 'RED'
+        elif yellow:
+            zone = 'YELLOW'
+        else:
+            zone = 'NEUTRAL'
+
+        # ATR for position sizing
+        atr = calculate_atr(klines)
+
+        analysis = {
+            'price': current_price,
+            'rsi': rsi,
+            'direction': direction,
+            'score': total_score,
+            'volume_ratio': volume_ratio,
+            'adx': adx,
+            'atr': atr,
+            # V8-specific fields
+            'trail1': t1,               # Fast trail value
+            'trail2': t2,               # Slow trail value
+            'trail_separation_pct': round(trail_sep, 3),
+            'zone': zone,               # GREEN/BLUE/RED/YELLOW/NEUTRAL
+            'is_bull': is_bull,
+            'is_bear': is_bear,
+            'buy_crossover': buy_cross,
+            'sell_crossover': sell_cross,
+            'support_distance_pct': round(dist_pct, 3),
+        }
+
+        return total_score, analysis
+
+    except Exception as e:
+        print(f"[SignalAnalyzer-v8] {symbol} analysis failed: {e}")
+        return 0, None
+
+
+def calculate_position_size_v8(score: int, available: float, config: dict,
+                                symbol: str = None, atr: float = None,
+                                price: float = None) -> tuple:
+    """V8 position sizing — ATR-based with trail separation awareness.
+
+    Uses ATR for volatility-adjusted sizing (like v5), with tier multipliers.
+    Returns: (size: float, leverage: int)
+    """
+    leverage = int(config.get('max_leverage', 5))
+    max_size = float(config.get('max_position_size', 300))
+    initial_capital = float(config.get('initial_capital', 2000))
+
+    # Risk per trade: 1.5% of capital (slightly higher than v5 due to
+    # better signal quality from dual-trail crossover)
+    risk_per_trade = initial_capital * 0.015
+
+    # ATR-based sizing
+    if atr and price and price > 0:
+        atr_pct = atr / price
+        # Use slow trail factor as stop reference (3.0 ATR)
+        slow_factor = float(config.get('v8_slow_atr_factor', 3.0))
+        stop_distance = atr_pct * slow_factor * leverage
+        if stop_distance > 0:
+            size = risk_per_trade / stop_distance
+        else:
+            size = 100
+    else:
+        # Fallback: score-based
+        if score >= 85:
+            size = min(200, available * 0.12)
+        elif score >= 75:
+            size = min(150, available * 0.10)
+        elif score >= 65:
+            size = min(120, available * 0.08)
+        else:
+            size = min(80, available * 0.05)
+
+    # Cap
+    size = min(size, max_size, available * 0.15)
+
+    # Tier multiplier
+    if symbol:
+        tier = COIN_TIERS.get(symbol, 'T3')
+        multiplier = TIER_MULTIPLIER.get(tier, 0.7)
+        size = size * multiplier
+
+    size = max(40, int(size))
+    return size, leverage
+
+
+def calculate_stop_take_v8(entry_price: float, direction: str,
+                            leverage: int, config: dict,
+                            atr: float = None,
+                            trail2: float = None) -> dict:
+    """V8 stop/take — Trail2 as dynamic support/resistance + ATR stop.
+
+    Uses Slow Trail (Trail2) as the primary stop reference.
+    Returns dict with stop_loss, take_profit, roi values.
+    """
+    roi_stop = float(config.get('roi_stop_loss', -10))
+    tp1_roi = float(config.get('tp1_roi', 12))
+    tp2_roi = float(config.get('tp2_roi', 25))
+    roi_trail_dist = float(config.get('roi_trailing_distance', 4))
+
+    # ATR-based dynamic stop
+    if atr and atr > 0:
+        slow_factor = float(config.get('v8_slow_atr_factor', 3.0))
+        atr_stop_pct = (atr * slow_factor) / entry_price
+        roi_stop_from_atr = -atr_stop_pct * leverage * 100
+        roi_stop = max(roi_stop_from_atr, roi_stop)
+        roi_stop = max(roi_stop, -15)
+        roi_stop = min(roi_stop, -5)
+
+    # If Trail2 available, also consider it as stop reference
+    if trail2 and trail2 > 0:
+        trail2_dist = abs(entry_price - trail2) / entry_price
+        trail2_roi = -trail2_dist * leverage * 100
+        # Use trail2 stop if tighter than ATR stop (but not too tight)
+        if trail2_roi > roi_stop and trail2_roi < -3:
+            roi_stop = trail2_roi
+
+    stop_price_pct = roi_stop / (leverage * 100)
+    tp1_price_pct = tp1_roi / (leverage * 100)
+    tp2_price_pct = tp2_roi / (leverage * 100)
+
+    if direction == 'LONG':
+        stop_loss = entry_price * (1 + stop_price_pct)
+        take_profit = entry_price * (1 + tp1_price_pct)
+        tp2_price = entry_price * (1 + tp2_price_pct)
+    else:
+        stop_loss = entry_price * (1 - stop_price_pct)
+        take_profit = entry_price * (1 - tp1_price_pct)
+        tp2_price = entry_price * (1 - tp2_price_pct)
+
+    return {
+        'stop_loss': stop_loss,
+        'take_profit': take_profit,
+        'tp2_price': tp2_price,
+        'roi_stop_loss': roi_stop,
+        'tp1_roi': tp1_roi,
+        'tp2_roi': tp2_roi,
+        'roi_trailing_start': tp2_roi,
+        'roi_trailing_distance': roi_trail_dist,
+    }

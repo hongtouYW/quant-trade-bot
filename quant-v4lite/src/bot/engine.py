@@ -15,6 +15,7 @@ from src.analysis.regime import RegimeDetector, STRATEGY_ROUTING, DEFAULT_ROUTIN
 from src.analysis.screener import SymbolScreener
 from src.analysis.orderbook_filter import OrderBookFilter
 from src.analysis.multi_exchange import MultiExchangeConsensus
+from src.analysis.economic_calendar import EconomicCalendar
 from src.strategy.aggregator import SignalAggregator
 from src.risk.position_sizer import PositionSizer
 from src.risk.stop_manager import StopManager
@@ -113,6 +114,8 @@ class TradingEngine:
         # 其他
         self._adaptive = AdaptiveEngine(cfg)
         self._telegram = TelegramNotifier(cfg)
+        self._calendar_enabled = cfg.get('economic_calendar', {}).get('enabled', True)
+        self._calendar = EconomicCalendar() if self._calendar_enabled else None
 
         # 回填 telegram 到 paper_monitor
         if self._paper:
@@ -120,6 +123,26 @@ class TradingEngine:
 
         mode = "模拟交易" if self._paper else "实盘交易"
         logger.info(f"Modules initialized, balance={balance:.2f}U, mode={mode}")
+
+    async def _restore_balance(self):
+        """从 DB 恢复累计 PnL（模拟模式）"""
+        if not self._db or not self._paper:
+            return
+        try:
+            summary = await self._db.get_trade_summary()
+            total_pnl = summary.get('total_pnl', 0) or 0
+            total_fee = summary.get('total_fee', 0) or 0
+            total_funding = summary.get('total_funding_fee', 0) or 0
+            net_pnl = total_pnl - total_fee - total_funding
+            if abs(net_pnl) > 0.01:
+                initial = self._cfg.get('account', {}).get('balance', 2000)
+                restored = initial + net_pnl
+                self._risk._current_balance = restored
+                self._risk._daily_pnl = 0  # 日内 PnL 从 0 开始
+                logger.info(f"Balance restored from DB: {initial:.2f} + {net_pnl:+.2f} = {restored:.2f}U "
+                            f"(trades PnL={total_pnl:+.2f}, fee={total_fee:.2f}, funding={total_funding:.4f})")
+        except Exception as e:
+            logger.warning(f"Failed to restore balance: {e}")
 
     async def _restore_positions(self):
         """从 DB 恢复持仓"""
@@ -166,6 +189,7 @@ class TradingEngine:
         setup_logger(self._cfg)
         await self._init_modules()
         await self._restore_positions()
+        await self._restore_balance()
         await self._market_data.start()
 
         # 后台任务
@@ -231,6 +255,16 @@ class TradingEngine:
                 logger.info(f"Regime changed: {self._last_regime.value} → {regime.value}")
             self._last_regime = regime
 
+        # 经济日历检查
+        if self._calendar:
+            cal_event = self._calendar.check_upcoming()
+            if cal_event:
+                if cal_event['action'] == 'pause':
+                    logger.info(f"📅 经济事件 {cal_event['name']} 在 {cal_event['hours_until']:.1f}h 后，暂停开新仓")
+                    return
+                elif cal_event['action'] == 'reduce':
+                    logger.info(f"📅 经济事件 {cal_event['name']} 附近，风险缩至50%")
+
         # 持仓数检查
         max_pos = routing.get('max_positions', cfg.get('risk', {}).get('max_open_positions', 4))
         if self._portfolio.count >= max_pos:
@@ -280,10 +314,23 @@ class TradingEngine:
             klines_15m = await self._market_data.get_klines(ts.symbol, '15m', 100)
             klines_1h = klines_dict.get(ts.symbol, [])
 
+            # 获取资金费率 (funding_arbitrage 需要)
+            funding_rate = 0.0
+            hours_to_funding = 99
+            if 'funding_arbitrage' in routing.get('strategies', []):
+                try:
+                    fr = await self._exchange.fetch_funding_rate(ts.symbol)
+                    funding_rate = fr['rate']
+                    hours_to_funding = fr['hours_to_funding']
+                except Exception:
+                    pass
+
             # 信号检测
             signal = self._aggregator.scan(
                 ts.symbol, klines_1h, klines_15m,
-                routing['strategies'], routing['direction_bias'], cfg)
+                routing['strategies'], routing['direction_bias'], cfg,
+                funding_rate=funding_rate,
+                hours_to_funding=hours_to_funding)
 
             if not signal:
                 continue
@@ -343,7 +390,8 @@ class TradingEngine:
                 balance = self._risk._current_balance
             else:
                 balance = await self._exchange.get_balance()
-            risk_scale = self._risk.get_risk_scale()
+            cal_scale = self._calendar.get_risk_scale() if self._calendar else 1.0
+            risk_scale = self._risk.get_risk_scale() * cal_scale
             pos_size = self._sizer.calculate(
                 balance, signal, routing, risk_scale, cfg,
                 self._risk.consecutive_losses)
@@ -449,9 +497,22 @@ class TradingEngine:
                 klines_15m = await self._market_data.get_klines(sym, '15m', 100)
                 klines_1h = klines_dict.get(sym, [])
 
+                # 获取资金费率 (funding_arbitrage 需要)
+                fr_rate = 0.0
+                fr_hours = 99
+                if 'funding_arbitrage' in ranging_strategies:
+                    try:
+                        fr = await self._exchange.fetch_funding_rate(sym)
+                        fr_rate = fr['rate']
+                        fr_hours = fr['hours_to_funding']
+                    except Exception:
+                        pass
+
                 signal = self._aggregator.scan(
                     sym, klines_1h, klines_15m,
-                    ranging_strategies, routing['direction_bias'], cfg)
+                    ranging_strategies, routing['direction_bias'], cfg,
+                    funding_rate=fr_rate,
+                    hours_to_funding=fr_hours)
 
                 if not signal:
                     continue
@@ -479,7 +540,8 @@ class TradingEngine:
                     balance = self._risk._current_balance
                 else:
                     balance = await self._exchange.get_balance()
-                risk_scale = self._risk.get_risk_scale()
+                cal_scale = self._calendar.get_risk_scale() if self._calendar else 1.0
+                risk_scale = self._risk.get_risk_scale() * cal_scale
                 pos_size = self._sizer.calculate(
                     balance, signal, routing, risk_scale, cfg,
                     self._risk.consecutive_losses)
@@ -747,9 +809,12 @@ class TradingEngine:
                         await self._cmd_trades()
                     elif text == '/pnl':
                         await self._cmd_pnl()
+                    elif text == '/calendar':
+                        await self._cmd_calendar()
                     elif text == '/help':
                         await self._telegram.notify('system',
-                            "📋 可用命令:\n/status — 当前状态\n/trades — 最近交易\n/pnl — 盈亏统计")
+                            "📋 可用命令:\n/status — 当前状态\n/trades — 最近交易\n"
+                            "/pnl — 盈亏统计\n/calendar — 经济日历")
 
             except asyncio.TimeoutError:
                 pass
@@ -836,6 +901,36 @@ class TradingEngine:
                f"  TP1: {summary.get('tp1_count', 0)} | TP2: {summary.get('tp2_count', 0)}\n"
                f"  移动止盈: {summary.get('trailing_count', 0)}\n"
                f"  时间止损: {summary.get('time_stop_count', 0)}")
+        await self._telegram.notify('system', msg)
+
+    async def _cmd_calendar(self):
+        """处理 /calendar 命令"""
+        if not self._calendar:
+            await self._telegram.notify('system', '📅 经济日历已禁用，全天交易模式')
+            return
+        now = datetime.utcnow()
+        upcoming = []
+        for event in self._calendar._events:
+            diff = (event['time'] - now).total_seconds() / 3600
+            if -1 <= diff <= 72:
+                upcoming.append(event)
+        if not upcoming:
+            await self._telegram.notify('system', '📅 72小时内无重大经济事件')
+            return
+
+        msg = "📅 <b>经济日历 (72h)</b>\n"
+        for e in upcoming[:10]:
+            diff = (e['time'] - now).total_seconds() / 3600
+            if diff < 0:
+                time_str = f"{abs(diff):.1f}h 前"
+            else:
+                time_str = f"{diff:.1f}h 后"
+            icon = "🔴" if e['impact'] == 'high' else "🟡"
+            msg += f"\n{icon} {e['name']} — {e['time'].strftime('%m-%d %H:%M')} UTC ({time_str})"
+
+        scale = self._calendar.get_risk_scale()
+        if scale < 1.0:
+            msg += f"\n\n⚠️ 当前风险缩放: {scale:.0%}"
         await self._telegram.notify('system', msg)
 
     async def _signal_log_cleanup_loop(self):

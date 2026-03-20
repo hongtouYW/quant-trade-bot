@@ -23,6 +23,8 @@ class RiskControl:
         self._consecutive_losses = 0
         self._cooldown_until: Optional[datetime] = None
         self._symbol_daily_pnl: dict = {}  # {symbol: pnl}
+        self._symbol_loss_count: dict = {}  # {symbol: consecutive_losses}
+        self._symbol_cooldown: dict = {}  # {symbol: cooldown_until}
 
         # 周统计
         self._weekly_pnl = 0.0
@@ -58,8 +60,19 @@ class RiskControl:
             self._consecutive_losses = 0
             return False, f"consecutive_loss_streak: cooldown {cooldown_min}min"
 
-        # 单币日亏损检查
+        # 单币冷却检查 (止损后冷却 30 分钟)
         if signal:
+            sym_cd = self._symbol_cooldown.get(signal.symbol)
+            if sym_cd and datetime.utcnow() < sym_cd:
+                remaining = (sym_cd - datetime.utcnow()).seconds // 60
+                return False, f"symbol_cooldown: {signal.symbol} {remaining}min remaining"
+
+            # 单币连亏上限 (同一币种最多连亏 2 次)
+            sym_losses = self._symbol_loss_count.get(signal.symbol, 0)
+            if sym_losses >= 2:
+                return False, f"symbol_loss_limit: {signal.symbol} {sym_losses} consecutive losses"
+
+            # 单币日亏损检查
             sym_pnl = self._symbol_daily_pnl.get(signal.symbol, 0)
             sym_limit = self._config.get('same_symbol_daily_loss_pct', 1.0) / 100
             if sym_pnl / self._initial_balance <= -sym_limit:
@@ -111,8 +124,13 @@ class RiskControl:
         if pnl > 0:
             self._daily_win_count += 1
             self._consecutive_losses = 0
+            self._symbol_loss_count[symbol] = 0
         else:
             self._consecutive_losses += 1
+            self._symbol_loss_count[symbol] = self._symbol_loss_count.get(symbol, 0) + 1
+            # 止损后冷却 30 分钟
+            self._symbol_cooldown[symbol] = datetime.utcnow() + timedelta(minutes=30)
+            logger.info(f"Symbol cooldown: {symbol} 30min (loss #{self._symbol_loss_count[symbol]})")
 
         self._symbol_daily_pnl[symbol] = self._symbol_daily_pnl.get(symbol, 0) + pnl
 
@@ -126,6 +144,8 @@ class RiskControl:
         self._daily_trade_count = 0
         self._daily_win_count = 0
         self._symbol_daily_pnl.clear()
+        self._symbol_loss_count.clear()
+        self._symbol_cooldown.clear()
         self._cooldown_until = None
 
     def weekly_reset(self):

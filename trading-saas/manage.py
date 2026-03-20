@@ -86,6 +86,27 @@ def seed_strategies():
                 'adx_min_threshold': 25,
             }
         },
+        'v8.0': {
+            'label': 'v8.0 ATR双轨趋势追踪',
+            'description': 'ATR双轨交叉策略/快轨ATR(5)×0.5+慢轨ATR(10)×3/5x杠杆/分步止盈/动态ATR止损',
+            'config': {
+                'min_score': 65, 'long_min_score': 75,
+                'max_leverage': 5, 'max_positions': 10,
+                'max_position_size': 300,
+                'short_bias': 1.05,
+                'enable_trend_filter': True,
+                'roi_stop_loss': -10,
+                'roi_trailing_start': 25, 'roi_trailing_distance': 4,
+                'cooldown_minutes': 60,
+                'tp1_roi': 12, 'tp1_close_ratio': 0.5, 'tp2_roi': 25,
+                # V8-specific ATR trail parameters
+                'v8_fast_atr_period': 5,
+                'v8_fast_atr_factor': 0.5,
+                'v8_slow_atr_period': 10,
+                'v8_slow_atr_factor': 3.0,
+                'v8_adx_filter': True,
+            }
+        },
     }
 
     with app.app_context():

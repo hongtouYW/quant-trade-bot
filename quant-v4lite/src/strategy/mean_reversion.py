@@ -44,8 +44,8 @@ class MeanReversionStrategy(BaseStrategy):
         curr = klines_15m[-1]
 
         if direction == Direction.LONG:
-            if rsi_val >= 35:
-                logger.info(f"[MR] {symbol} LONG ✗ RSI={rsi_val:.1f} >= 35 (需超卖)")
+            if rsi_val >= 40:
+                logger.info(f"[MR] {symbol} LONG ✗ RSI={rsi_val:.1f} >= 40 (需超卖)")
                 return None
             if prev.close >= lower:
                 logger.info(f"[MR] {symbol} LONG ✗ prev_close={prev.close} >= BB_lower={lower:.6f}")
@@ -59,8 +59,8 @@ class MeanReversionStrategy(BaseStrategy):
             stop_loss = entry_price - atr_val * 0.8
             tp_price = mid
         else:
-            if rsi_val <= 65:
-                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 65 (需超买)")
+            if rsi_val <= 60:
+                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 60 (需超买)")
                 return None
             if prev.close <= upper:
                 logger.info(f"[MR] {symbol} SHORT ✗ prev_close={prev.close} <= BB_upper={upper:.6f}")

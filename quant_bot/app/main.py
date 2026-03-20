@@ -227,12 +227,9 @@ class QuantBot:
             if self.correlation.block(symbol, direction, self.position_manager.positions):
                 continue
 
-            # 极端市场: 允许做空，禁止做多
+            # 极端市场禁止开仓 (Spec §8.3)
             if regime == 'EXTREME':
-                if not get('regime', 'extreme_allow_short', False):
-                    continue
-                if direction != -1:
-                    continue
+                continue
 
             # 最低分数检查
             min_score = get('trend_filter', 'score_min_trade', 62)

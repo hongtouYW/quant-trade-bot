@@ -13,7 +13,7 @@ account:
 
 symbols:
   universe: 150
-  scan_interval_sec: 300
+  scan_interval_sec: 120
   candidate_pool_size: 15
   min_listing_days: 7
   blacklist: []
@@ -97,7 +97,7 @@ strategies:
     enabled: true
     regimes: [ranging, weak_trend_up, weak_trend_down]
   funding_arbitrage:
-    enabled: false
+    enabled: true
     regimes: [extreme_volatile, ranging]
     min_funding_rate: 0.001
 
@@ -108,6 +108,9 @@ regime:
 adaptive:
   enabled: true
   lookback_days: 7
+
+economic_calendar:
+  enabled: false
 
 # ============================================================
 # V4 增强模块

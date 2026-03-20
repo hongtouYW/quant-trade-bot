@@ -8,6 +8,7 @@ from .trend_follow import TrendFollowStrategy
 from .pullback_breakout import PullbackBreakoutStrategy
 from .mean_reversion import MeanReversionStrategy
 from .vol_breakout import VolatilityBreakoutStrategy
+from .funding_arb import FundingArbitrageStrategy
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,7 @@ class SignalAggregator:
             'pullback_breakout': PullbackBreakoutStrategy(),
             'mean_reversion': MeanReversionStrategy(),
             'volatility_breakout': VolatilityBreakoutStrategy(),
+            'funding_arbitrage': FundingArbitrageStrategy(),
         }
 
     def register_strategy(self, strategy: BaseStrategy):
@@ -37,7 +39,9 @@ class SignalAggregator:
              klines_15m: List[Kline],
              active_strategies: List[str],
              direction_bias: str,
-             config: dict) -> Optional[Signal]:
+             config: dict,
+             funding_rate: float = 0.0,
+             hours_to_funding: float = 99) -> Optional[Signal]:
         """扫描信号"""
         signals: List[Signal] = []
 
@@ -49,12 +53,22 @@ class SignalAggregator:
             directions.append(Direction.SHORT)
 
         for strat_name in active_strategies:
+            # 检查 config 中策略是否启用
+            strat_cfg = config.get('strategies', {}).get(strat_name, {})
+            if not strat_cfg.get('enabled', True):
+                continue
             strategy = self._strategies.get(strat_name)
             if not strategy:
                 continue
             for direction in directions:
-                signal = strategy.check_signal(
-                    symbol, klines_1h, klines_15m, direction, config)
+                if strat_name == 'funding_arbitrage':
+                    signal = strategy.check_signal(
+                        symbol, klines_1h, klines_15m, direction, config,
+                        funding_rate=funding_rate,
+                        hours_to_funding=hours_to_funding)
+                else:
+                    signal = strategy.check_signal(
+                        symbol, klines_1h, klines_15m, direction, config)
                 if signal:
                     signals.append(signal)
 

@@ -1,7 +1,7 @@
 # QuantBot 开发日志 & 差异分析
 
 > 对比文档: `ultimate_quant_strategy_dev_spec.md` (vFinal)
-> 更新日期: 2026-03-18
+> 更新日期: 2026-03-19
 
 ---
 
@@ -11,12 +11,14 @@
 - [x] ccxt Binance USDT永续 REST 集成 (`exchange_client.py`)
 - [x] 多周期K线缓存 (1m/5m/15m/1h) + TTL自动刷新 (`ohlcv_cache.py`)
 - [x] WebSocket实时1m K线推送 (`websocket_feed.py`): 自动订阅活跃池, 断线重连, 实时更新cache
-- [x] 账户余额 & 持仓同步 (`fetch_balance`, `fetch_positions`)
+- [x] 账户数据流 (`account_feed.py`): 后台线程2~5秒刷新余额/持仓 (Spec §5.1/§5.3)
 - [x] 指标计算库: EMA/SMA/ATR/ATRP/RSI/ADX/BB/ROC/Volume (`calc.py`)
+- [x] 全局常量定义 (`constants.py`): 方向/状态/策略/平仓原因/风控默认值 (Spec §20)
 - [x] YAML配置加载 (`config.py` + `config.yaml`)
 - [x] Flask Web Dashboard (`dashboard.py` + `index.html`)
 - [x] 自动启动 (supervisord: `quant-bot.ini`)
 - [x] SQLite 数据库持久化 (`app/db/`)
+- [x] 日志模块 (`monitoring/logger.py`): 控制台+文件轮转+错误分流+交易日志 (Spec §20)
 
 ### 候选池过滤 (Spec §7)
 - [x] Layer 1 硬性过滤: 24h成交量>=8M, OI>=3M, 点差<=0.04%, 上市>=14天, 资金费<=0.0075
@@ -31,8 +33,9 @@
 - [x] 市场状态: TRENDING / RANGING / EXTREME
 
 ### 方向判定 (Spec §9)
-- [x] 1H EMA20>EMA50排列 + ADX>=22 + EMA20斜率
-- [x] EMA200不足200根时fallback到EMA50判定 (修复: 原来太严格导致零交易)
+- [x] 做多: close > EMA20 > EMA50 (>EMA200) + ADX>=22 + slope>0
+- [x] 做空: close < EMA20 < EMA50 (<EMA200) + ADX>=22 + slope<0
+- [x] EMA200不足200根时fallback到EMA50判定
 
 ### 入场策略 (Spec §10)
 - [x] Setup A: 趋势回踩 (15m回踩EMA21 + 反转K线 + 成交量恢复)
@@ -55,6 +58,7 @@
 - [x] RANGING市场风险减半至0.2%
 - [x] 单笔最大名义值 <= 30% equity
 - [x] 最小下单量检查: notional < 5U 放弃 (Spec §13.4)
+- [x] 总margin <= 90% (Spec §13.4)
 
 ### 止损/止盈/移动保护 (Spec §14)
 - [x] 初始止损: ATR * 1.2 或结构止损
@@ -71,10 +75,8 @@
 - [x] 连续5亏停止当日交易
 - [x] 同方向最大风险1.2%
 - [x] 总组合最大风险1.6%
-- [x] 同方向最多3笔持仓 (Spec §15.3)
-- [x] 总margin占比 <= 90% (Spec §13.4)
+- [x] 同方向最多3笔持仓
 - [x] 盈利保护: +2.5%限A级, +4%停止开仓
-- [x] RANGING模式最多1个持仓
 
 ### 冷却机制 (Spec §16)
 - [x] 同币种冷却: 60分钟
@@ -83,11 +85,13 @@
 - [x] 全局冷却: 连亏规则
 
 ### 订单执行 (Spec §17)
+- [x] 订单路由器 (`order_router.py`): 限价入场→超时追市价→重试→止损挂单
 - [x] 限价单优先入场, 超时自动追市价 (entry_timeout_minutes=3)
 - [x] 挂单超时取消 + 市价追单
 - [x] 交易所止损单 (stop_market + reduceOnly)
 - [x] 滑点检查 (>0.15%拒绝)
-- [x] 失败重试最多3次
+- [x] 失败重试最多2次 (Spec §17.3)
+- [x] 孤儿挂单清理 (Spec §17.4)
 
 ### 相关性控制 (Spec §18)
 - [x] 72根15m滚动相关性
@@ -96,36 +100,98 @@
 ### 监控告警 (Spec §26)
 - [x] Telegram通知: 开仓/平仓/风控/心跳/冷却/盈利保护/止损失败/数据异常
 - [x] 每日报告: 交易统计, 盈亏, 按币种/策略/时段分析
-- [x] 心跳间隔: 3600秒 (1小时)
-- [x] 每日报告: 按时段(4h窗口)分组表现 (Spec §26.2)
-
-### 数据持久化
-- [x] SQLite数据库: trades表, positions表, daily_stats表
-- [x] 交易记录包含: 平仓原因 (止损/止盈/时间止损/趋势下降/方向失效/反向信号/突破失败)
-- [x] 手续费计算: Binance taker 0.04% (开仓+平仓)
-- [x] 资金费追踪: 每8小时获取funding rate, 累计到持仓
-- [x] 净盈亏: net_pnl = pnl - fees - funding_fees
-- [x] 重启恢复: 从DB加载未平仓位和历史交易
-- [x] 每日统计自动保存: UTC 23:55 保存当日交易/盈亏/净值到daily_stats表
-- [x] Dashboard显示: 毛利/手续费/资金费/净盈亏列
+- [x] 心跳间隔: 60秒 (Spec §19)
+- [x] Prometheus指标暴露: `/metrics` 端点
 
 ### 回测 (Spec §23)
 - [x] 回测引擎: 手续费0.04%, 滑点0.02%, 资金费0.01%/8h
+- [x] 成交模型 (`fill_model.py`): 独立模块, 滑点/手续费/资金费/部分成交计算
+- [x] 回测报告 (`reports.py`): 文本摘要+JSON完整输出 (Spec §23.3)
 - [x] 信号生成 + TP1/TP2管理 + 时间止损
 - [x] 12项指标: 总收益, 月度, 最大回撤, 日回撤, 胜率, RR, PF, Sharpe, Sortino, 连亏, 分组统计
-- [x] 通过标准检查
+- [x] 通过标准检查: DD≤15%, WR≥38%, RR≥1.7, PF≥1.25, n≥200
 - [x] 部分成交模型: 单笔≤bar成交量10%, <30%放弃
-- [x] 回测支持均值回归策略信号
+- [x] Regime过滤: EXTREME禁止开仓 (与实盘一致)
+- [x] 参数优化器 (`optimizer.py`): 网格搜索最优参数组合
 
-### Phase 2 扩展
-- [x] Prometheus指标暴露: `/metrics` 端点, equity/positions/risk/pool/websocket全指标
-- [x] 均值回归策略: RSI(14)+BB(20,2), RANGING市场+ADX<25时启用, 配置开关`mean_reversion.enable`
-- [x] symbols.yaml独立配置: 黑白名单+币种参数覆盖
-- [x] 资金费套利策略: 极端费率(>0.05%)时反向持仓收费, ADX<30+ATRP<3%, 配置开关`funding_arb.enable`
-- [x] 多策略并行路由: `strategy_router.py`, 按市场状态自动选择趋势/均值回归/资金费套利最佳信号
+### 模拟盘 (Spec §24)
+- [x] 模拟盘执行器 (`sim/paper_runner.py`): 信号优雅退出, 日志配置
+- [x] 运行脚本 (`scripts/run_paper.py`)
 
-### Phase 3 扩展
-- [x] 参数自动调优: `optimizer.py`, 网格搜索最优risk/stop/TP参数, Dashboard调优按钮, API端点`/api/optimize`
+### 项目结构 (Spec §20) - 100%对齐
+- [x] `app/main.py`
+- [x] `app/config.py`
+- [x] `app/constants.py`
+- [x] `app/models/market.py`
+- [x] `app/data/exchange_client.py`
+- [x] `app/data/websocket_feed.py`
+- [x] `app/data/ohlcv_cache.py`
+- [x] `app/data/account_feed.py`
+- [x] `app/indicators/calc.py`
+- [x] `app/universe/candidate_pool.py`
+- [x] `app/universe/trend_scoring.py`
+- [x] `app/strategy/signal_engine.py`
+- [x] `app/risk/position_sizer.py`
+- [x] `app/risk/risk_engine.py`
+- [x] `app/risk/correlation_guard.py`
+- [x] `app/risk/cooldown_engine.py`
+- [x] `app/execution/order_router.py`
+- [x] `app/execution/slippage_guard.py`
+- [x] `app/execution/stop_manager.py`
+- [x] `app/execution/position_manager.py`
+- [x] `app/backtest/engine.py`
+- [x] `app/backtest/fill_model.py`
+- [x] `app/backtest/metrics.py`
+- [x] `app/backtest/reports.py`
+- [x] `app/sim/paper_runner.py`
+- [x] `app/monitoring/logger.py`
+- [x] `app/monitoring/notifier.py`
+- [x] `app/monitoring/metrics_exporter.py`
+- [x] `config/config.yaml`
+- [x] `config/symbols.yaml`
+- [x] `scripts/run_backtest.py`
+- [x] `scripts/run_paper.py`
+- [x] `scripts/run_live.py`
+
+### 测试 (Phase 4)
+- [x] pytest 单元测试套件 (70个测试)
+  - `test_indicators.py` (29个)
+  - `test_risk_engine.py` (17个)
+  - `test_position_sizer.py` (8个)
+  - `test_strategy_router.py` (8个)
+  - `test_models.py` (7个)
+  - `conftest.py`: 共享fixtures
+
+### Phase 2 扩展 (已完成, 第一阶段默认关闭)
+- [x] 均值回归策略: RSI(14)+BB(20,2), 配置开关 `mean_reversion.enable: false`
+- [x] 资金费套利策略: 极端费率反向持仓, 配置开关 `funding_arb.enable: false`
+- [x] 多策略并行路由: `strategy_router.py`
+
+---
+
+## 配置参数 (严格对齐 Spec §19/§28)
+
+| 参数 | Spec建议 | 当前值 | 状态 |
+|------|----------|--------|------|
+| leverage | 10x | 10 | ✅ |
+| risk_per_trade | 0.004 | 0.004 | ✅ |
+| stop_atr_multiple | 1.2 | 1.2 | ✅ |
+| tp1_r_multiple | 1.5 | 1.5 | ✅ |
+| tp2_r_multiple | 2.8 | 2.8 | ✅ |
+| max_positions | 3 | 3 | ✅ |
+| adx_min | 22 | 22 | ✅ |
+| score_min_trade | 62 | 62 | ✅ |
+| max_holding_minutes | 75 | 75 | ✅ |
+| daily_loss_limit_pct | 0.03 | 0.03 | ✅ |
+| cooldown_3_losses | 30min | 30 | ✅ |
+| stop_after_5_losses | true | true | ✅ |
+| profit_guard_pct | 0.025 | 0.025 | ✅ |
+| profit_stop_pct | 0.04 | 0.04 | ✅ |
+| block_extreme_market | true | true | ✅ |
+| heartbeat_seconds | 60 | 60 | ✅ |
+| whitelist_hours | [8-11,15-18,20-23,0] | [8-11,15-18,20-23,0] | ✅ |
+| mean_reversion | Phase 1不做 | enable: false | ✅ |
+| funding_arb | Phase 1不做 | enable: false | ✅ |
 
 ---
 
@@ -135,41 +201,16 @@
 |---------|---------|------|
 | 扫描150个合约 | 扫描全部557个 | 全量扫描后通过过滤层选出, 结果更好 |
 | 方向需要hl高低点确认 | 移除hl要求 | 大部分币种1H数据不足200根, hl检查太严格导致零交易 |
-| EMA200必须参与方向判定 | <200根数据时fallback到EMA50 | 很多币种上市时间短, 1H不够200根 |
-| 心跳60秒 | 心跳3600秒 | 60秒太频繁刷爆Telegram |
-| 白名单时段 | 全24小时 | 初期测试阶段, 需要全天候观察 |
-| risk限制0.012/0.016 | 修复为0.12/0.16 | 原有`*10`bug, 现为12%/16% margin占比限制 |
-| WebSocket实时数据 | REST+WebSocket混合 | Phase 1用REST, Phase 2已加WebSocket 1m推送 |
+| EMA200必须参与方向判定 | <200根数据时fallback到EMA50 | 很多币种上市时间短 |
+| indicators目录各指标独立文件 | 统一在calc.py中 | 代码量不大, 单文件更易维护 |
+| strategy目录分setup_pullback.py等 | 统一在signal_engine.py中 | 功能耦合度高, 分拆无收益 |
 
 ---
 
-## 待开发功能 ❌
-
-### 中优先级
-- [x] ~~回测: 部分成交模型~~ (Spec §23: partial fills) ✅ 2026-03-18
-- [x] ~~symbols.yaml独立配置~~ (Spec §20: 项目结构有此文件) ✅ 2026-03-18
-
-### Phase 2 (已完成)
-- [x] ~~均值回归策略~~ (Spec §29) ✅ 2026-03-18
-- [x] ~~metrics_exporter.py~~ (Spec §20: Prometheus) ✅ 2026-03-18
-- [x] ~~资金费套利~~ (Spec §29) ✅ 2026-03-18
-- [x] ~~多策略并行路由~~ (Spec §29) ✅ 2026-03-18
-
-### Phase 3 (已完成)
-- [x] ~~自动参数调优~~ (Spec §29) ✅ 2026-03-18
-
-### Phase 4: 测试基础设施 (已完成)
-- [x] pytest 单元测试套件 (70个测试) ✅ 2026-03-18
-  - `test_indicators.py`: EMA/SMA/ATR/ATRP/RSI/ADX/BB/ROC/VolumeRatio/EMASlope/RecentHighsLows/ShadowRatio/CompressionRange (29个)
-  - `test_risk_engine.py`: can_open检查/approve_order/record_trade/cooldown/profit_guard/grade (17个)
-  - `test_position_sizer.py`: 固定风险仓位计算/RANGING减半/最小下单量/杠杆/notional (8个)
-  - `test_strategy_router.py`: 趋势/均值回归/资金费套利路由逻辑/score排序 (8个)
-  - `test_models.py`: Signal/Position/TradeRecord/Candle/SymbolSnapshot (7个)
-  - `conftest.py`: 共享fixtures (mock config/notifier, sample OHLCV, factory functions)
-
-### 低优先级 (暂不做)
+## 低优先级 (暂不做)
 - [ ] 多交易所套利 (Spec §29)
 - [ ] AI自动调参 (Spec §29)
+- [ ] 高频超短 scalp (Spec §29)
 
 ---
 
@@ -177,33 +218,21 @@
 
 | 日期 | Bug | 修复 |
 |------|-----|------|
-| 2026-03-17 | risk_engine.py L86/L91 `*10` 使风控限制放大10倍 | 移除`*10`, 改用正确默认值0.12/0.16 |
-| 2026-03-17 | direction filter要求EMA200+hl导致零交易 | EMA200不足时fallback EMA50, 移除hl要求 |
-| 2026-03-17 | 心跳60秒刷爆Telegram | 改为3600秒 |
+| 2026-03-17 | risk_engine.py `*10` 使风控限制放大10倍 | 移除`*10`, 改用正确默认值 |
+| 2026-03-17 | direction filter要求EMA200+hl导致零交易 | fallback EMA50, 移除hl |
 | 2026-03-17 | Binance sandbox已弃用 | sandbox=False |
-| 2026-03-17 | 端口5001被web-monitor-v1占用 | systemctl disable web-monitor-v1 |
-| 2026-03-17 | /usr/bin/python3找不到yaml | supervisord改用/usr/local/bin/python3 |
-| 2026-03-17 | notify_trade_close/cooldown/profit_guard未调用 | 已接入对应业务逻辑 |
-| 2026-03-18 | risk_engine total margin无上限 | 新增90% margin占比上限检查 (Spec §13.4) |
-| 2026-03-18 | TP1部分平仓未计算手续费 | `_close_partial()`计算partial fee并累计到`pos.entry_fee` |
-| 2026-03-18 | 回测无资金费模拟 | 添加funding_rate=0.01%每8h扣费 (Spec §23) |
-| 2026-03-18 | 信号无过期机制 | 4个Signal创建点设置`expires_at`(3分钟), EntryRefiner检查过期 |
-| 2026-03-18 | Dashboard交易历史无费用列 | 前端增加毛利/手续费/资金费/净盈亏列 |
-| 2026-03-18 | 每日统计未保存到DB | main.py每日报告时调用`save_daily_stat()` |
-| 2026-03-18 | RANGING模式无仓位数限制 | 添加RANGING模式最多1个持仓限制 |
-| 2026-03-18 | 同方向无数量限制 | risk_engine新增同方向最多3笔检查 (Spec §15.3) |
-| 2026-03-18 | 无最小下单量检查 | position_sizer新增min_notional 5U检查 (Spec §13.4) |
-| 2026-03-18 | 每日报告无时段分组 | daily_report新增4小时窗口时段分组 (Spec §26.2) |
-| 2026-03-18 | 无WebSocket实时数据 | 新增`websocket_feed.py`: Binance 1m K线实时推送, 自动订阅/重连 |
-| 2026-03-18 | 只有市价单入场 | 改为限价单优先, 3分钟超时自动取消+市价追单 (Spec §17) |
-| 2026-03-18 | 回测无部分成交模拟 | 新增partial fill模型: 单笔≤bar成交量10%, <30%放弃 (Spec §23) |
-| 2026-03-18 | 无symbols.yaml独立配置 | 新增symbols.yaml: 黑白名单+币种参数覆盖, 集成到候选池+仓位管理 (Spec §20) |
-| 2026-03-18 | 回测指标无时段/资金费/平仓原因分组 | metrics新增by_period(4h窗口)/by_close_reason/total_funding_fees (Spec §23.3) |
-| 2026-03-18 | 每日报告策略对比无胜率 | setup分组增加胜率显示 (Spec §26.2) |
-| 2026-03-18 | 无Prometheus监控 | 新增`metrics_exporter.py`: /metrics端点, 暴露equity/position/risk/pool全指标 |
-| 2026-03-18 | 无均值回归策略 | 新增`mean_reversion.py`: RSI(14)+BB(20,2)超买超卖, RANGING市场ADX<25专用, 配置开关 |
-| 2026-03-18 | 无资金费套利 | 新增`funding_arb.py`: 极端费率>0.05%时反向入场, ADX<30+技术面不反对, 配置开关 |
-| 2026-03-18 | 无多策略路由 | 新增`strategy_router.py`: 统一管理趋势/均值回归/资金费三策略, 按score选最佳 |
+| 2026-03-18 | risk_engine total margin无上限 | 新增90% margin占比上限检查 |
+| 2026-03-18 | TP1部分平仓未计算手续费 | 添加partial fee计算 |
+| 2026-03-18 | 回测无资金费模拟 | 添加funding_rate=0.01%每8h |
+| 2026-03-18 | 信号无过期机制 | 设置`expires_at`(3分钟) |
+| 2026-03-18 | RANGING模式无仓位数限制 | 添加最多1个持仓限制 |
+| 2026-03-18 | 同方向无数量限制 | 新增同方向最多3笔检查 |
+| 2026-03-18 | 无最小下单量检查 | 新增min_notional 5U检查 |
+| 2026-03-18 | 回测引擎不模拟regime过滤 | 添加EXTREME过滤 (与实盘一致) |
+| 2026-03-19 | 参数偏离spec默认值 | 全部恢复到Spec §19/§28标准 |
+| 2026-03-19 | EXTREME模式被修改允许做空 | 恢复Spec §8.3: 禁止开新仓 |
+| 2026-03-19 | mean_reversion/funding_arb默认开启 | 恢复Spec §29: Phase 1关闭 |
+| 2026-03-19 | 缺失6个spec要求的模块 | 补齐account_feed/constants/order_router/fill_model/reports/logger/paper_runner |
 
 ---
 

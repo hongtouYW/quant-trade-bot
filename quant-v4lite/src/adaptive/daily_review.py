@@ -16,10 +16,18 @@ class AdaptiveEngine:
         self._enabled = config.get('adaptive', {}).get('enabled', False)
         self._lookback = config.get('adaptive', {}).get('lookback_days', 7)
 
+    # 参数边界 — 防止自适应调参过于激进
+    PARAM_BOUNDS = {
+        'ranking.min_score': (55, 70),
+        'liquidity_filter.min_volume_ratio': (0.6, 1.2),
+        'execution.tp2_r': (2.0, 3.5),
+        'execution.stop_atr_multiple': (0.8, 1.5),
+    }
+
     def review(self, trade_history: List[TradeRecord],
                config: dict) -> dict:
         """分析交易记录，返回参数调整建议"""
-        if not self._enabled or len(trade_history) < 5:
+        if not self._enabled or len(trade_history) < 10:
             return {}
 
         adjustments = {}
@@ -33,21 +41,30 @@ class AdaptiveEngine:
         total_loss = abs(sum(t.pnl for t in losses))
         profit_factor = total_win / total_loss if total_loss > 0 else 999
 
-        # 1. 胜率调整
-        if win_rate < 0.30:
-            adjustments['ranking'] = {'min_score': 70}
-            adjustments['liquidity_filter'] = {'min_volume_ratio': 1.5}
+        # 1. 胜率调整 (渐进式, 不跳到极端值)
+        current_score = config.get('ranking', {}).get('min_score', 60)
+        current_vol_ratio = config.get('liquidity_filter', {}).get('min_volume_ratio', 0.8)
+        if win_rate < 0.25:
+            new_score = min(current_score + 5, self.PARAM_BOUNDS['ranking.min_score'][1])
+            new_vol = min(current_vol_ratio + 0.1, self.PARAM_BOUNDS['liquidity_filter.min_volume_ratio'][1])
+            adjustments['ranking'] = {'min_score': new_score}
+            adjustments['liquidity_filter'] = {'min_volume_ratio': round(new_vol, 1)}
         elif win_rate > 0.45:
-            adjustments['ranking'] = {'min_score': 55}
+            new_score = max(current_score - 5, self.PARAM_BOUNDS['ranking.min_score'][0])
+            adjustments['ranking'] = {'min_score': new_score}
 
-        # 2. 盈亏比调整
-        if profit_factor < 1.5:
+        # 2. 盈亏比调整 (温和)
+        if profit_factor < 1.2:
+            current_tp2 = config.get('execution', {}).get('tp2_r', 2.5)
+            current_stop = config.get('execution', {}).get('stop_atr_multiple', 1.2)
+            new_tp2 = min(current_tp2 + 0.2, self.PARAM_BOUNDS['execution.tp2_r'][1])
+            new_stop = max(current_stop - 0.1, self.PARAM_BOUNDS['execution.stop_atr_multiple'][0])
             adjustments['execution'] = {
-                'tp2_r': 3.0,
-                'stop_atr_multiple': 1.0,
+                'tp2_r': round(new_tp2, 1),
+                'stop_atr_multiple': round(new_stop, 1),
             }
 
-        # 3. 按策略分析
+        # 3. 按策略分析 (仅供参考, 不自动降 confidence)
         strategy_pnl: Dict[str, float] = {}
         strategy_count: Dict[str, int] = {}
         for t in trade_history:
@@ -57,12 +74,13 @@ class AdaptiveEngine:
 
         confidence_adj = {}
         for strat, pnl in strategy_pnl.items():
-            if pnl < 0 and strategy_count.get(strat, 0) >= 5:
-                confidence_adj[strat] = -0.10
+            count = strategy_count.get(strat, 0)
+            if pnl < 0 and count >= 10:
+                confidence_adj[strat] = -0.05  # 温和降低, 不超过 -0.05
         if confidence_adj:
             adjustments['confidence_adjustments'] = confidence_adj
 
-        # 4. 按小时统计
+        # 4. 按小时统计 (仅分析, 不自动应用)
         hour_pnl: Dict[int, float] = {}
         for t in trade_history:
             h = t.open_time.hour

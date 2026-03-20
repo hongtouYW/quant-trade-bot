@@ -28,6 +28,7 @@ from .signal_analyzer import (
     analyze_signal, calculate_position_size, calculate_stop_take,
     analyze_signal_v5, calculate_position_size_v5, calculate_stop_take_v5,
     analyze_signal_v6,
+    analyze_signal_v8, calculate_position_size_v8, calculate_stop_take_v8,
     fetch_price, DEFAULT_WATCHLIST, COIN_TIERS, SKIP_COINS,
 )
 from .order_executor import OrderExecutor
@@ -36,12 +37,17 @@ from .risk_manager import RiskManager
 
 def _is_advanced_strategy(version: str) -> bool:
     """Check if strategy version uses v5+ logic (MA slope filter, etc)."""
-    return version.startswith('v5') or version.startswith('v6')
+    return version.startswith('v5') or version.startswith('v6') or version.startswith('v8')
 
 
 def _is_v5_strategy(version: str) -> bool:
     """Check if strategy is v5 (uses ATR sizing, partial TP, ATR stops)."""
     return version.startswith('v5')
+
+
+def _is_v8_strategy(version: str) -> bool:
+    """Check if strategy is v8 (dual ATR trail, ATR sizing, partial TP)."""
+    return version.startswith('v8')
 
 
 class AgentBot:
@@ -424,7 +430,14 @@ class AgentBot:
             # Get risk-adjusted multiplier
             risk_multiplier = 1.0  # risk sizing disabled
 
-            if _is_v5_strategy(self.config.get('strategy_version', '')):
+            strategy_ver = self.config.get('strategy_version', '')
+            if _is_v8_strategy(strategy_ver):
+                atr_val = analysis.get('atr')
+                amount, leverage = calculate_position_size_v8(
+                    score, available, self.config, symbol,
+                    atr=atr_val, price=entry_price
+                )
+            elif _is_v5_strategy(strategy_ver):
                 atr_val = analysis.get('atr')
                 amount, leverage = calculate_position_size_v5(
                     score, available, self.config, symbol,
@@ -444,7 +457,13 @@ class AgentBot:
                 return
 
             # Calculate stop/take
-            if _is_v5_strategy(self.config.get('strategy_version', '')):
+            if _is_v8_strategy(strategy_ver):
+                atr_val = analysis.get('atr')
+                trail2_val = analysis.get('trail2')
+                stp = calculate_stop_take_v8(entry_price, direction, leverage,
+                                             self.config, atr=atr_val,
+                                             trail2=trail2_val)
+            elif _is_v5_strategy(strategy_ver):
                 atr_val = analysis.get('atr')
                 stp = calculate_stop_take_v5(entry_price, direction, leverage,
                                              self.config, atr=atr_val)
@@ -463,7 +482,13 @@ class AgentBot:
             open_fee = order.get('fee', 0)
 
             # Recalculate stop/take with actual fill price
-            if _is_v5_strategy(self.config.get('strategy_version', '')):
+            if _is_v8_strategy(strategy_ver):
+                atr_val = analysis.get('atr')
+                trail2_val = analysis.get('trail2')
+                stp = calculate_stop_take_v8(fill_price, direction, leverage,
+                                             self.config, atr=atr_val,
+                                             trail2=trail2_val)
+            elif _is_v5_strategy(strategy_ver):
                 atr_val = analysis.get('atr')
                 stp = calculate_stop_take_v5(fill_price, direction, leverage,
                                              self.config, atr=atr_val)
@@ -593,8 +618,9 @@ class AgentBot:
                     trade.peak_roi = Decimal(str(round(current_roi, 4)))
                     db.session.commit()
 
-            # V5 only: Partial take-profit at TP1 (v6 does not use partial TP)
-            if _is_v5_strategy(self.config.get('strategy_version', '')):
+            # V5/V8: Partial take-profit at TP1 (v6 does not use partial TP)
+            if _is_v5_strategy(self.config.get('strategy_version', '')) or \
+               _is_v8_strategy(self.config.get('strategy_version', '')):
                 tp1_roi_thresh = float(self.config.get('tp1_roi', 10))
                 tp1_ratio = float(self.config.get('tp1_close_ratio', 0.5))
                 if current_roi >= tp1_roi_thresh and not position.get('tp1_hit'):
@@ -954,7 +980,9 @@ class AgentBot:
                         del self.cooldowns[symbol]
 
                 # Analyze signal — route by strategy version
-                if strategy_ver.startswith('v5'):
+                if strategy_ver.startswith('v8'):
+                    score, analysis = analyze_signal_v8(symbol, self.config, exchange=self.exchange_name)
+                elif strategy_ver.startswith('v5'):
                     score, analysis = analyze_signal_v5(symbol, self.config, exchange=self.exchange_name)
                 elif strategy_ver.startswith('v6'):
                     score, analysis = analyze_signal_v6(symbol, self.config, exchange=self.exchange_name)

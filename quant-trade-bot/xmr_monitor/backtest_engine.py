@@ -939,8 +939,9 @@ def run_backtest(candles_1h, config):
     dynamic_tpsl = config.get('dynamic_tpsl', False)  # v4.3 动态止盈止损(移动止盈)
     fixed_tp_mode = config.get('fixed_tp_mode', False)  # v4.3.1 固定止盈模式
     leverage_based_tpsl = config.get('leverage_based_tpsl', False)  # v4.3.1 杠杆联动止盈止损
-    # V5 模式
+    # V5/V8 模式
     v5_mode = config.get('v5_mode', False)
+    v8_mode = config.get('v8_mode', False)
     tp1_roi = config.get('tp1_roi', 10)         # TP1: +10% ROI
     tp1_close_ratio = config.get('tp1_close_ratio', 0.5)  # TP1 平50%仓位
     tp2_roi = config.get('tp2_roi', 20)          # TP2: +20% ROI 开始尾随
@@ -970,8 +971,8 @@ def run_backtest(candles_1h, config):
             bankrupt = True
             break
 
-        # === V5 TP1 部分止盈检查 ===
-        if v5_mode:
+        # === V5/V8 TP1 部分止盈检查 ===
+        if v5_mode or v8_mode:
             tp1_closes = []
             for sym, pos in positions.items():
                 if not pos.get('tp1_hit', False) and pos.get('v5_mode', False):
@@ -1096,7 +1097,9 @@ def run_backtest(candles_1h, config):
 
         v6_mode = config.get('v6_mode', False)
         v6b_mode = config.get('v6b_mode', False)
-        if v6b_mode:
+        if v8_mode:
+            score, analysis = analyze_signal_v8(lookback, config)
+        elif v6b_mode:
             score, analysis = analyze_signal_v6b(lookback, config)
         elif v6_mode:
             score, analysis = analyze_signal_v6(lookback, config)
@@ -1141,7 +1144,7 @@ def run_backtest(candles_1h, config):
         if available < 50:
             continue
 
-        if v5_mode:
+        if v8_mode or v5_mode:
             atr_val = analysis.get('atr')
             amount, leverage = calculate_position_size_v5(score, available, config, atr_val, analysis['price'])
         else:
@@ -1192,8 +1195,8 @@ def run_backtest(candles_1h, config):
         else:
             stop_loss = entry_price * (1 - stop_price_pct)  # 负值所以是加
 
-        # V5 mode: use ATR-based stop and dual TP
-        if v5_mode:
+        # V5/V8 mode: use ATR-based stop and dual TP
+        if v5_mode or v8_mode:
             atr_val = analysis.get('atr')
             if atr_val and atr_val > 0:
                 atr_stop_pct = (atr_val * 1.5 / entry_price) * leverage * 100
@@ -1221,7 +1224,7 @@ def run_backtest(candles_1h, config):
             'score': score,
             'stop_move_count': 0,
             'bar_index': i,
-            'v5_mode': v5_mode,
+            'v5_mode': v5_mode or v8_mode,
             'tp1_hit': False,
             'tp1_roi': tp1_roi,
             'tp1_close_ratio': tp1_close_ratio,
@@ -1429,3 +1432,233 @@ def _ts_to_str(ts_ms):
     """毫秒时间戳转字符串"""
     dt = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc)
     return dt.strftime('%Y-%m-%d %H:%M')
+
+
+# ─── V8: ATR Dual Trailing Stop (ceyhun) ─────────────────────
+
+def _calculate_atr_trail_bt(candles, atr_period, atr_factor):
+    """Calculate ATR Trailing Stop for backtest candle list."""
+    n = len(candles)
+    if n < atr_period + 1:
+        return [None] * n
+
+    # Pre-compute ATR
+    atrs = [None] * n
+    for i in range(atr_period, n):
+        trs = []
+        for j in range(i - atr_period + 1, i + 1):
+            h = candles[j]['high']
+            l = candles[j]['low']
+            pc = candles[j - 1]['close']
+            trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+        atrs[i] = sum(trs) / atr_period
+
+    trail = [None] * n
+    start = atr_period
+    trail[start] = candles[start]['close'] - atrs[start] * atr_factor
+
+    for i in range(start + 1, n):
+        sc = candles[i]['close']
+        prev_sc = candles[i - 1]['close']
+        sl = atrs[i] * atr_factor
+        prev_trail = trail[i - 1]
+
+        if sc > prev_trail and prev_sc > prev_trail:
+            trail[i] = max(prev_trail, sc - sl)
+        elif sc < prev_trail and prev_sc < prev_trail:
+            trail[i] = min(prev_trail, sc + sl)
+        elif sc > prev_trail:
+            trail[i] = sc - sl
+        else:
+            trail[i] = sc + sl
+
+    return trail
+
+
+def analyze_signal_v8(candles, config=None):
+    """V8信号分析 — ATR双轨交叉策略 (backtest版)
+
+    Fast Trail: ATR(5)×0.5, Slow Trail: ATR(10)×3.0
+    评分: 交叉新鲜度(35) + 区域强度(25) + 轨道间距(15) + 成交量(15) + 距离(10)
+    """
+    if len(candles) < 50:
+        return 0, None
+
+    config = config or {}
+    closes = [c['close'] for c in candles]
+    highs = [c['high'] for c in candles]
+    lows = [c['low'] for c in candles]
+    volumes = [c['volume'] for c in candles]
+    current_price = closes[-1]
+
+    fast_period = config.get('v8_fast_atr_period', 5)
+    fast_factor = config.get('v8_fast_atr_factor', 0.5)
+    slow_period = config.get('v8_slow_atr_period', 10)
+    slow_factor = config.get('v8_slow_atr_factor', 3.0)
+
+    trail1 = _calculate_atr_trail_bt(candles, fast_period, fast_factor)
+    trail2 = _calculate_atr_trail_bt(candles, slow_period, slow_factor)
+
+    if trail1[-1] is None or trail2[-1] is None or \
+       trail1[-2] is None or trail2[-2] is None:
+        return 0, None
+
+    t1, t2 = trail1[-1], trail2[-1]
+    t1_prev, t2_prev = trail1[-2], trail2[-2]
+
+    # Crossover
+    buy_cross = t1_prev <= t2_prev and t1 > t2
+    sell_cross = t1_prev >= t2_prev and t1 < t2
+
+    # Zones
+    close = closes[-1]
+    high = highs[-1]
+    low = lows[-1]
+    green = t1 > t2 and close > t2 and low > t2
+    blue = t1 > t2 and close > t2 and low < t2
+    red = t2 > t1 and close < t2 and high < t2
+    yellow = t2 > t1 and close < t2 and high > t2
+
+    # Barssince green/red
+    bars_since_green, bars_since_red = None, None
+    lookback = min(50, len(candles) - max(fast_period, slow_period) - 1)
+    for j in range(lookback):
+        idx = len(candles) - 1 - j
+        if trail1[idx] is None or trail2[idx] is None:
+            break
+        c_j, l_j, h_j = closes[idx], lows[idx], highs[idx]
+        t1_j, t2_j = trail1[idx], trail2[idx]
+        if bars_since_green is None and t1_j > t2_j and c_j > t2_j and l_j > t2_j:
+            bars_since_green = j
+        if bars_since_red is None and t2_j > t1_j and c_j < t2_j and h_j < t2_j:
+            bars_since_red = j
+        if bars_since_green is not None and bars_since_red is not None:
+            break
+    bars_since_green = bars_since_green if bars_since_green is not None else 999
+    bars_since_red = bars_since_red if bars_since_red is not None else 999
+
+    is_bull = bars_since_green < bars_since_red
+
+    # Direction
+    if t1 > t2:
+        direction = 'LONG'
+    elif t2 > t1:
+        direction = 'SHORT'
+    else:
+        direction = 'LONG' if is_bull else 'SHORT'
+
+    # Scoring
+    total_score = 0
+
+    # 1. Crossover recency (0-35)
+    if buy_cross or sell_cross:
+        total_score += 35
+    else:
+        bars_since_cross = 30
+        for j in range(1, min(30, len(candles) - max(fast_period, slow_period))):
+            idx = len(candles) - 1 - j
+            if trail1[idx] is None or trail2[idx] is None:
+                break
+            prev_idx = idx - 1
+            if trail1[prev_idx] is None or trail2[prev_idx] is None:
+                break
+            if (trail1[prev_idx] <= trail2[prev_idx] and trail1[idx] > trail2[idx]) or \
+               (trail1[prev_idx] >= trail2[prev_idx] and trail1[idx] < trail2[idx]):
+                bars_since_cross = j
+                break
+        if bars_since_cross <= 3:
+            total_score += 28
+        elif bars_since_cross <= 6:
+            total_score += 20
+        elif bars_since_cross <= 12:
+            total_score += 12
+        else:
+            total_score += 5
+
+    # 2. Zone strength (0-25)
+    if direction == 'LONG':
+        total_score += 25 if green else (15 if blue else (3 if yellow else 8))
+    else:
+        total_score += 25 if red else (15 if yellow else (3 if blue else 8))
+
+    # 3. Trail separation (0-15)
+    trail_sep = abs(t1 - t2) / current_price * 100 if current_price > 0 else 0
+    if trail_sep > 2.0:
+        total_score += 15
+    elif trail_sep > 1.0:
+        total_score += 12
+    elif trail_sep > 0.5:
+        total_score += 8
+    else:
+        total_score += 3
+
+    # 4. Volume (0-15)
+    avg_vol = sum(volumes[-20:]) / 20 if len(volumes) >= 20 else 1
+    vol_ratio = volumes[-1] / avg_vol if avg_vol > 0 else 1
+    if vol_ratio > 1.5:
+        total_score += 15
+    elif vol_ratio > 1.2:
+        total_score += 10
+    elif vol_ratio > 1.0:
+        total_score += 7
+    else:
+        total_score += 3
+
+    # 5. Distance from Trail2 (0-10)
+    dist_pct = abs(close - t2) / t2 * 100 if t2 > 0 else 0
+    if dist_pct > 2.0:
+        total_score += 10
+    elif dist_pct > 1.0:
+        total_score += 7
+    else:
+        total_score += 3
+
+    # Penalties
+    rsi = calculate_rsi(closes)
+    if direction == 'LONG' and rsi > 80:
+        total_score = int(total_score * 0.80)
+    elif direction == 'SHORT' and rsi < 20:
+        total_score = int(total_score * 0.80)
+
+    # ADX filter
+    adx = calculate_adx(candles)
+    if config.get('v8_adx_filter', True) and adx is not None:
+        if adx < 15:
+            total_score = int(total_score * 0.60)
+        elif adx < 20:
+            total_score = int(total_score * 0.80)
+
+    # SHORT bias
+    short_bias = config.get('short_bias', 1.05)
+    if direction == 'SHORT':
+        total_score = int(total_score * short_bias)
+
+    # ATR for sizing
+    atr = None
+    if len(candles) >= 15:
+        trs = []
+        for i in range(len(candles) - 14, len(candles)):
+            h = candles[i]['high']
+            l = candles[i]['low']
+            pc = candles[i - 1]['close']
+            trs.append(max(h - l, abs(h - pc), abs(l - pc)))
+        atr = sum(trs) / 14
+
+    analysis = {
+        'price': current_price,
+        'rsi': rsi,
+        'direction': direction,
+        'score': total_score,
+        'volume_ratio': vol_ratio,
+        'adx': adx,
+        'atr': atr,
+        'trail1': t1,
+        'trail2': t2,
+        'trail_separation_pct': round(trail_sep, 3),
+        'zone': 'GREEN' if green else ('BLUE' if blue else ('RED' if red else ('YELLOW' if yellow else 'NEUTRAL'))),
+        'is_bull': is_bull,
+        'buy_crossover': buy_cross,
+        'sell_crossover': sell_cross,
+    }
+
+    return total_score, analysis

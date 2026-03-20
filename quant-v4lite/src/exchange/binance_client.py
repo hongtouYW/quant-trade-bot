@@ -87,13 +87,23 @@ class BinanceClient(ExchangeClient):
             asks=[OrderBookLevel(a[0], a[1]) for a in book['asks']],
         )
 
-    async def fetch_funding_rate(self, symbol: str) -> float:
+    async def fetch_funding_rate(self, symbol: str) -> dict:
+        """返回 {rate: float, hours_to_funding: float}"""
         try:
             result = await self.exchange.fetch_funding_rate(symbol)
-            return result.get('fundingRate', 0.0)
+            rate = result.get('fundingRate', 0.0)
+            # 计算距下次结算的小时数
+            next_ts = result.get('fundingTimestamp') or result.get('nextFundingTimestamp')
+            if next_ts:
+                import time
+                hours = (next_ts / 1000 - time.time()) / 3600
+                hours = max(0, hours)
+            else:
+                hours = 99
+            return {'rate': rate, 'hours_to_funding': hours}
         except Exception as e:
             logger.warning(f"fetch_funding_rate {symbol}: {e}")
-            return 0.0
+            return {'rate': 0.0, 'hours_to_funding': 99}
 
     async def fetch_open_interest(self, symbol: str) -> float:
         try:

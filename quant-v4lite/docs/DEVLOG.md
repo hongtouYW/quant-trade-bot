@@ -561,4 +561,71 @@ Regime 启用后正确路由到 mean_reversion，等待极端超买/超卖信号
 
 ---
 
-*最后更新: 2026-03-18 02:05 UTC*
+### Batch 11: 参数优化 + Funding Arbitrage + 经济日历 (2026-03-18)
+
+**问题**: 市场 ranging 状态下，MR/VB 参数太严格导致 12+ 小时无交易
+
+**修改**:
+1. **MR 参数放宽** (`src/strategy/mean_reversion.py`)
+   - RSI LONG: `< 35` → `< 40`
+   - RSI SHORT: `> 65` → `> 60`
+   - 效果: 更多超卖/超买币种进入候选
+
+2. **VB 参数放宽** (`src/strategy/vol_breakout.py`)
+   - BB 宽度分位: `25%` → `30%`
+   - 效果: 允许更多低波动率突破信号
+
+3. **启用 Funding Arbitrage 策略**
+   - `config/config.yaml`: `funding_arbitrage.enabled: true`
+   - `src/strategy/aggregator.py`: 注册 FundingArbitrageStrategy，添加 config enabled 过滤
+   - `src/strategy/aggregator.py`: scan() 支持 funding_rate/hours_to_funding 参数
+   - `src/exchange/binance_client.py`: fetch_funding_rate() 返回 {rate, hours_to_funding}
+   - `src/bot/engine.py`: 扫描时获取资金费率并传递给 aggregator
+
+4. **扫描间隔缩短** (`config/config.yaml`)
+   - `scan_interval_sec`: `300` → `120` (模拟交易更快迭代)
+
+5. **经济日历集成** (新文件 `src/analysis/economic_calendar.py`)
+   - 2026 年 CPI/FOMC/NFP/PPI 事件表
+   - high 影响事件前 2h 暂停开仓
+   - medium 影响事件前/后缩小仓位 50%
+   - `src/bot/engine.py`: 主循环集成日历检查 + risk_scale 叠加
+   - Telegram `/calendar` 命令: 查看 72h 内事件
+
+**状态**: 已部署，bot 运行中，策略列表含 funding_arbitrage
+
+---
+
+### Batch 12: Bug 修复 — 同币种重复开仓 + 余额恢复 + 自适应边界 (2026-03-19)
+
+**问题**: 模拟交易 11 笔仅 1 胜，ZEN/USDT 同一信号重复开仓 8 次全亏
+
+**根因分析**:
+1. 缺少同币种止损冷却 → ZEN 每 5 分钟重复触发同一信号
+2. 重启后余额从 config 读 (2000U) 而非 DB 恢复 (1971U) → PnL 丢失
+3. 自适应引擎 win_rate=9% 时跳到 min_score=70, vol_ratio=1.5 → 太激进
+
+**修复**:
+1. **同币种冷却** (`src/risk/risk_control.py`)
+   - 止损后该币种冷却 30 分钟 (`_symbol_cooldown`)
+   - 同币种连亏上限 2 次 (`_symbol_loss_count`)
+   - `daily_reset()` 清理所有冷却/计数
+
+2. **余额 DB 恢复** (`src/bot/engine.py`)
+   - 新增 `_restore_balance()`: 从 trades 表 SUM(pnl)-SUM(fee) 计算净 PnL
+   - `run()` 中 `_restore_positions()` 后调用
+   - 日志: "Balance restored from DB: 2000 + -28.87 = 1971.13U"
+
+3. **自适应引擎边界保护** (`src/adaptive/daily_review.py`)
+   - `PARAM_BOUNDS` 字典限制所有可调参数范围
+   - 最低样本数 5→10 笔才触发调整
+   - 渐进式调整 (±5 分 / ±0.1) 而非跳到极端值
+   - confidence 降幅 -0.10 → -0.05
+
+4. **清空旧数据** — 清除 11 笔旧交易，从 2000U 重新开始
+
+**验证**: FOMC 经济日历生效 (3月18日 18:00 UTC)，暂停开仓 ✅
+
+---
+
+*最后更新: 2026-03-19 01:25 UTC*
