@@ -44,14 +44,15 @@ class MeanReversionStrategy(BaseStrategy):
         curr = klines_15m[-1]
 
         if direction == Direction.LONG:
-            if rsi_val >= 40:
-                logger.info(f"[MR] {symbol} LONG ✗ RSI={rsi_val:.1f} >= 40 (需超卖)")
+            if rsi_val >= 30:
+                logger.info(f"[MR] {symbol} LONG ✗ RSI={rsi_val:.1f} >= 30 (需超卖)")
                 return None
+            # 前一根收盘 < BB下轨，当前收盘 > BB下轨（回到带内）
             if prev.close >= lower:
-                logger.info(f"[MR] {symbol} LONG ✗ prev_close={prev.close} >= BB_lower={lower:.6f}")
+                logger.info(f"[MR] {symbol} LONG ✗ prev_close={prev.close:.6f} >= BB_lower={lower:.6f}")
                 return None
-            if curr.close <= lower or not curr.is_bullish:
-                logger.info(f"[MR] {symbol} LONG ✗ 未回归: close={curr.close} lower={lower:.6f} bullish={curr.is_bullish}")
+            if curr.close <= lower:
+                logger.info(f"[MR] {symbol} LONG ✗ close={curr.close:.6f} <= BB_lower={lower:.6f} (未回带内)")
                 return None
             # 止盈: 布林中轨
             entry_price = curr.close
@@ -59,14 +60,15 @@ class MeanReversionStrategy(BaseStrategy):
             stop_loss = entry_price - atr_val * 0.8
             tp_price = mid
         else:
-            if rsi_val <= 60:
-                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 60 (需超买)")
+            if rsi_val <= 55:
+                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 55 (需超买)")
                 return None
+            # 前一根收盘 > BB上轨，当前收盘 < BB上轨（回到带内）
             if prev.close <= upper:
-                logger.info(f"[MR] {symbol} SHORT ✗ prev_close={prev.close} <= BB_upper={upper:.6f}")
+                logger.info(f"[MR] {symbol} SHORT ✗ prev_close={prev.close:.6f} <= BB_upper={upper:.6f}")
                 return None
-            if curr.close >= upper or curr.is_bullish:
-                logger.info(f"[MR] {symbol} SHORT ✗ 未回归: close={curr.close} upper={upper:.6f} bullish={curr.is_bullish}")
+            if curr.close >= upper:
+                logger.info(f"[MR] {symbol} SHORT ✗ close={curr.close:.6f} >= BB_upper={upper:.6f} (未回带内)")
                 return None
             entry_price = curr.close
             atr_val = atr(klines_15m, 14)

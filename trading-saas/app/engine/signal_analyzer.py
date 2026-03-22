@@ -1573,3 +1573,174 @@ def calculate_stop_take_v8(entry_price: float, direction: str,
         'roi_trailing_start': tp2_roi,
         'roi_trailing_distance': roi_trail_dist,
     }
+
+
+# ─── V9 Signal Analysis (V6 + V8 combined + false signal filter) ───
+
+def analyze_signal_v9(symbol: str, config: dict, exchange: str = 'binance') -> tuple:
+    """V9 signal: V6 scoring (base) + V8 ATR dual trail soft confirmation.
+
+    Step 1: Call analyze_signal_v6() for base score (proven v6b-style scoring)
+    Step 2: V8 ATR trail adds soft bonus/penalty (NOT hard rejection)
+    Step 3: V6 direction is primary, V8 agreement = bonus, disagreement = penalty
+
+    Returns: (score: int, analysis: dict | None)
+    """
+    try:
+        # Step 1: Get V6 base score (the proven winner)
+        v6_score, v6_analysis = analyze_signal_v6(symbol, config, exchange=exchange)
+        if v6_score == 0 or v6_analysis is None:
+            return 0, None
+
+        direction = v6_analysis['direction']
+        current_price = v6_analysis['price']
+
+        # Step 2: V8 ATR Dual Trail (soft confirmation)
+        klines = fetch_klines(symbol, '1h', 100, exchange=exchange)
+        if not klines or len(klines) < 50:
+            return v6_score, v6_analysis  # fallback to pure V6
+
+        closes = [c['close'] for c in klines]
+        highs = [c['high'] for c in klines]
+        lows = [c['low'] for c in klines]
+
+        fast_period = int(config.get('v8_fast_atr_period', 5))
+        fast_factor = float(config.get('v8_fast_atr_factor', 0.5))
+        slow_period = int(config.get('v8_slow_atr_period', 10))
+        slow_factor = float(config.get('v8_slow_atr_factor', 3.0))
+
+        trail1 = _calculate_atr_trail(klines, fast_period, fast_factor)
+        trail2 = _calculate_atr_trail(klines, slow_period, slow_factor)
+
+        v8_bonus = 0
+        trail_sep = 0
+        bars_since_cross = 99
+        zone = 'NEUTRAL'
+        t1 = t2 = 0
+        buy_cross = sell_cross = False
+
+        if trail1[-1] is not None and trail2[-1] is not None and \
+           trail1[-2] is not None and trail2[-2] is not None:
+            t1, t2 = trail1[-1], trail2[-1]
+            t1_prev, t2_prev = trail1[-2], trail2[-2]
+
+            buy_cross = t1_prev <= t2_prev and t1 > t2
+            sell_cross = t1_prev >= t2_prev and t1 < t2
+
+            close = closes[-1]
+            high = highs[-1]
+            low = lows[-1]
+            green = t1 > t2 and close > t2 and low > t2
+            blue = t1 > t2 and close > t2 and low < t2
+            red = t2 > t1 and close < t2 and high < t2
+            yellow = t2 > t1 and close < t2 and high > t2
+
+            v8_direction = 'LONG' if t1 > t2 else ('SHORT' if t2 > t1 else direction)
+            trail_sep = abs(t1 - t2) / current_price * 100 if current_price > 0 else 0
+
+            # Bars since crossover
+            bars_since_cross = 30
+            for j in range(1, min(30, len(klines) - max(fast_period, slow_period))):
+                idx = len(klines) - 1 - j
+                if trail1[idx] is None or trail2[idx] is None:
+                    break
+                prev_idx = idx - 1
+                if trail1[prev_idx] is None or trail2[prev_idx] is None:
+                    break
+                if (trail1[prev_idx] <= trail2[prev_idx] and trail1[idx] > trail2[idx]) or \
+                   (trail1[prev_idx] >= trail2[prev_idx] and trail1[idx] < trail2[idx]):
+                    bars_since_cross = j
+                    break
+            if buy_cross or sell_cross:
+                bars_since_cross = 0
+
+            # V8 Soft Bonus/Penalty
+            if v8_direction == direction:
+                if bars_since_cross <= 3:
+                    v8_bonus += 10
+                elif bars_since_cross <= 8:
+                    v8_bonus += 5
+                if (direction == 'LONG' and green) or (direction == 'SHORT' and red):
+                    v8_bonus += 3
+            else:
+                v8_bonus -= 8
+                if (direction == 'LONG' and red) or (direction == 'SHORT' and green):
+                    v8_bonus -= 4
+
+            zone = 'GREEN' if green else ('BLUE' if blue else ('RED' if red else ('YELLOW' if yellow else 'NEUTRAL')))
+
+        total_score = v6_score + v8_bonus
+
+        # Build analysis from V6 base + V8 fields
+        analysis = dict(v6_analysis)
+        analysis.update({
+            'score': total_score,
+            'v6_score': v6_score,
+            'v8_bonus': v8_bonus,
+            'trail1': t1,
+            'trail2': t2,
+            'trail_separation_pct': round(trail_sep, 3),
+            'zone': zone,
+            'buy_crossover': buy_cross,
+            'sell_crossover': sell_cross,
+            'bars_since_cross': bars_since_cross,
+            'support_distance_pct': round(abs(closes[-1] - t2) / t2 * 100, 3) if t2 > 0 else 0,
+        })
+
+        return total_score, analysis
+
+    except Exception as e:
+        print(f"[SignalAnalyzer-v9] {symbol} analysis failed: {e}")
+        return 0, None
+
+
+def calculate_position_size_v9(score: int, available: float, config: dict,
+                                symbol: str = None, atr: float = None,
+                                price: float = None) -> tuple:
+    """V9 position sizing — same as V8 (ATR-based) but slightly more conservative.
+
+    V9 uses tighter risk (1.2% per trade vs V8's 1.5%) since V6 quality
+    filter should mean fewer but higher quality trades.
+    """
+    leverage = int(config.get('max_leverage', 5))
+    max_size = float(config.get('max_position_size', 300))
+    initial_capital = float(config.get('initial_capital', 2000))
+
+    risk_per_trade = initial_capital * 0.012
+
+    if atr and price and price > 0:
+        atr_pct = atr / price
+        slow_factor = float(config.get('v8_slow_atr_factor', 3.0))
+        stop_distance = atr_pct * slow_factor * leverage
+        if stop_distance > 0:
+            size = risk_per_trade / stop_distance
+        else:
+            size = 100
+    else:
+        if score >= 100:
+            size = min(200, available * 0.12)
+        elif score >= 85:
+            size = min(150, available * 0.10)
+        elif score >= 70:
+            size = min(120, available * 0.08)
+        else:
+            size = min(80, available * 0.05)
+
+    size = min(size, max_size, available * 0.15)
+
+    if symbol:
+        tier = COIN_TIERS.get(symbol, 'T3')
+        multiplier = TIER_MULTIPLIER.get(tier, 0.7)
+        size = size * multiplier
+
+    size = max(40, int(size))
+    return size, leverage
+
+
+def calculate_stop_take_v9(entry_price: float, direction: str,
+                            leverage: int, config: dict,
+                            atr: float = None,
+                            trail2: float = None) -> dict:
+    """V9 stop/take — same as V8 (ATR + Trail2 dynamic stop, dual TP)."""
+    return calculate_stop_take_v8(entry_price, direction, leverage, config,
+                                  atr=atr, trail2=trail2)

@@ -125,6 +125,9 @@ class RiskControl:
             self._daily_win_count += 1
             self._consecutive_losses = 0
             self._symbol_loss_count[symbol] = 0
+            # 盈利后冷却 10 分钟，防止同币种立刻重复开仓
+            self._symbol_cooldown[symbol] = datetime.utcnow() + timedelta(minutes=10)
+            logger.info(f"Symbol cooldown: {symbol} 10min after win (pnl={pnl:.2f}U)")
         else:
             self._consecutive_losses += 1
             self._symbol_loss_count[symbol] = self._symbol_loss_count.get(symbol, 0) + 1

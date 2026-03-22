@@ -43,8 +43,8 @@ class VolatilityBreakoutStrategy(BaseStrategy):
         current_width = widths[-1]
         percentile = sum(1 for w in widths if w <= current_width) / len(widths)
 
-        if percentile > 0.30:
-            logger.info(f"[VB] {symbol} {direction.value} ✗ BB宽度分位={percentile:.2f} > 0.30")
+        if percentile > 0.15:
+            logger.info(f"[VB] {symbol} {direction.value} ✗ BB宽度分位={percentile:.2f} > 0.15")
             return None
 
         # 突破判断
@@ -58,7 +58,7 @@ class VolatilityBreakoutStrategy(BaseStrategy):
             logger.info(f"[VB] {symbol} SHORT ✗ close={curr.close:.6f} >= BB_lower={lower:.6f}")
             return None
 
-        # 量比 > 2.0 (用已完成K线)
+        # 量比 > 1.5 (用已完成K线)
         vol_r = volume_ratio(klines_15m[:-1], recent=1, baseline=20)
         if vol_r < 2.0:
             logger.info(f"[VB] {symbol} {direction.value} ✗ vol_ratio={vol_r:.2f} < 2.0")

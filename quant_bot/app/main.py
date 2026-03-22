@@ -258,6 +258,9 @@ class QuantBot:
             # 多策略路由: 按优先级选择最佳信号 (Phase 2)
             setup = self.strategy_router.find_best_setup(symbol, direction, snap, regime)
             if not setup:
+                if self.cycle_count % 20 == 0:
+                    dir_str = '做多' if direction == 1 else '做空'
+                    self._log('info', f"无入场形态: {symbol}({grade}) {dir_str} score={score:.1f} regime={regime}")
                 continue
             setup_type = setup.setup_type
 
@@ -270,6 +273,7 @@ class QuantBot:
             # 1m精细确认
             refined = self.entry_refiner.confirm(setup)
             if not refined:
+                self._log('info', f"1m确认失败: {symbol} {setup_type}")
                 continue
 
             # 仓位计算

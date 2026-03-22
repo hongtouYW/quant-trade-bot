@@ -1,8 +1,33 @@
 # CHANGELOG — Trading SaaS + 5111 Paper Trader
 
-> 时间范围：2026-01-27 ~ 2026-03-19
+> 时间范围：2026-01-27 ~ 2026-03-20
 > 仅包含有实质代码变更的提交，跳过纯自动提交（🤖 自动提交）。
 > [SaaS] = Trading SaaS 生产系统（端口 80）| [5111] = Paper Trader 模拟系统（端口 5111）
+
+---
+
+## 2026-03-20
+
+### [SaaS-调参] Agent 2 v6 止盈止损调整 — TP+6% / SL-3%
+
+- **背景**：v6 原参数 SL=-10% / trailing +6%/3%，盈亏比约 1:1.7，实盘亏损
+- **改动**：
+  - `roi_stop_loss`: -10% → **-3%**（快速止损，减少单笔亏损额度）
+  - `roi_trailing_start`: 6%（不变，到价即 TP）
+  - 盈亏比：2:1（+6% / -3%），需胜率 >33% 即可盈利
+- **修改位置**：DB `agent_trading_config` + `strategy_presets v6.0`
+- **部署**：gunicorn graceful reload（kill -HUP），bot 热加载新配置
+- **预期**：单笔亏损从 ~7.5U 降到 ~2-3U，胜率可能略降但盈亏比大幅改善
+
+### [SaaS-操作] Agent 2 bot 启动
+
+- **操作**：通过 API `/api/agent/bot/start` 启动 agent 2 交易
+- **当前配置**：v6.0 | 3x杠杆 | 15仓 | min_score=70 | TP+6% / SL-3% | 最低仓位100U
+- **已生效功能**：
+  - 币安服务端止损单（STOP_MARKET，03-18部署）
+  - 仓位对齐回测 min(400,25%)（03-18部署）
+  - 最低仓位100U（03-18部署）
+- **启动后状态**：7个持仓（BCH/BNB/TRX/GRIFFAIN/TIA/WIF/DUSK），全部 ≥100U ✅
 
 ---
 

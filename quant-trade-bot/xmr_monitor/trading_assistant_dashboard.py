@@ -4696,6 +4696,29 @@ STRATEGY_PRESETS = {
             'v8_adx_filter': True,
         }
     },
+    'v9': {
+        'label': 'v9 V6+V8融合 (Combined)',
+        'description': 'V6b评分 + V8 ATR双轨软确认 | 3x杠杆 | V6移动止盈 | 假信号过滤',
+        'config': {
+            'v9_mode': True,
+            'v8_fast_atr_period': 5,
+            'v8_fast_atr_factor': 0.5,
+            'v8_slow_atr_period': 10,
+            'v8_slow_atr_factor': 3.0,
+            'short_bias': 1.05,
+            'min_score': 70,
+            'long_min_score': 85,
+            'cooldown': 1,
+            'max_leverage': 3,
+            'max_positions': 15,
+            'max_same_direction': 15,
+            'enable_trend_filter': True,
+            'long_ma_slope_threshold': 0.02,
+            'roi_stop_loss': -10,
+            'roi_trailing_start': 6,
+            'roi_trailing_distance': 3,
+        }
+    },
     'v4': {
         'label': 'v4 自定义 (Custom)',
         'description': '自由调整所有参数',
@@ -4923,7 +4946,7 @@ def get_backtest_kline(symbol):
 def get_backtest_report():
     """生成策略对比报告 — 支持 v1/v2/v3/v4.1/v4.2/v4.3/v4.3.1/v4.4/v5.0/v6/v8 按年份查询"""
     year_param = request.args.get('year', 'all')
-    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3', 'v4.3.1', 'v4.4', 'v5.0', 'v6', 'v8']
+    VERSIONS = ['v1', 'v2', 'v3', 'v4.1', 'v4.2', 'v4.3', 'v4.3.1', 'v4.4', 'v5.0', 'v6', 'v8', 'v9']
     ver_sql = ','.join(f"'{v}'" for v in VERSIONS)
     conn = sqlite3.connect(BACKTEST_DB)
     conn.row_factory = sqlite3.Row
@@ -5000,7 +5023,7 @@ def get_backtest_report():
         'v1_total': totals['v1'], 'v2_total': totals['v2'], 'v3_total': totals['v3'],
         'v4_1_total': totals['v4.1'], 'v4_2_total': totals['v4.2'], 'v4_3_total': totals['v4.3'],
         'v4_3_1_total': totals['v4.3.1'], 'v4_4_total': totals['v4.4'], 'v5_0_total': totals['v5.0'],
-        'v6_total': totals['v6'], 'v8_total': totals['v8'],
+        'v6_total': totals['v6'], 'v8_total': totals['v8'], 'v9_total': totals['v9'],
         'available_years': available_years, 'selected_year': year_param
     })
 
@@ -5119,6 +5142,13 @@ REPORT_TEMPLATE = '''
         }
         .winner-v8 { background: rgba(168,85,247,0.12); }
         .badge-v8 { background: rgba(168,85,247,0.25); color: #a855f7; }
+        .summary-card.v9 {
+            background: rgba(6,182,212,0.12);
+            box-shadow: 0 0 20px rgba(6,182,212,0.15);
+            border-left: 4px solid #06b6d4;
+        }
+        .winner-v9 { background: rgba(6,182,212,0.12); }
+        .badge-v9 { background: rgba(6,182,212,0.25); color: #06b6d4; }
         .verdict {
             margin-top: 12px; padding: 12px; border-radius: 10px;
             background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.3);
@@ -5350,6 +5380,24 @@ REPORT_TEMPLATE = '''
                     </div>
                 </div>
             </div>
+            <div class="summary-card v9" style="border-left: 4px solid #06b6d4;">
+                <h3 style="color:#06b6d4;">V9 V6+V8融合 (Combined)</h3>
+                <div style="color:#888;font-size:0.62em;margin-bottom:4px;line-height:1.3;">V6评分 + V8 ATR双轨 | 5x杠杆 | 8仓位 | 分步止盈</div>
+                <div class="stat-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="v9-pnl">-</div>
+                        <div class="stat-label">总盈亏 (U)</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v9-wincount">-</div>
+                        <div class="stat-label">盈利币种</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="v9-trades">-</div>
+                        <div class="stat-label">总交易笔数</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- 逐币对比表 -->
@@ -5383,6 +5431,8 @@ REPORT_TEMPLATE = '''
                         <th style="color:#ff5733;">WR</th>
                         <th style="color:#a855f7;border-left:2px solid rgba(168,85,247,0.3);">V8</th>
                         <th style="color:#a855f7;">WR</th>
+                        <th style="color:#06b6d4;border-left:2px solid rgba(6,182,212,0.3);">V9</th>
+                        <th style="color:#06b6d4;">WR</th>
                         <th style="border-left:2px solid rgba(255,255,255,0.08);">最佳</th>
                     </tr>
                 </thead>
@@ -5441,10 +5491,11 @@ REPORT_TEMPLATE = '''
                 const t50 = data.v5_0_total || {pnl:0,trades:0,wins:0,count:0};
                 const t60 = data.v6_total || {pnl:0,trades:0,wins:0,count:0};
                 const t80 = data.v8_total || {pnl:0,trades:0,wins:0,count:0};
+                const t90 = data.v9_total || {pnl:0,trades:0,wins:0,count:0};
                 const el = id => document.getElementById(id);
 
                 // 汇总卡片
-                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44],['v5_0',t50],['v6',t60],['v8',t80]].forEach(([v,t]) => {
+                [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44],['v5_0',t50],['v6',t60],['v8',t80],['v9',t90]].forEach(([v,t]) => {
                     el(v+'-pnl').textContent = (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(0);
                     el(v+'-pnl').className = 'stat-value ' + (t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg');
                     el(v+'-wincount').textContent = t.wins + '/' + t.count;
@@ -5460,9 +5511,9 @@ REPORT_TEMPLATE = '''
                     return `<td class="${cls}">${val >= 0 ? '+' : ''}${val.toFixed(1)}</td>`;
                 };
                 data.comparison.forEach(row => {
-                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {}, v4_3 = row.v4_3 || {}, v4_3_1 = row.v4_3_1 || {}, v4_4 = row.v4_4 || {}, v5_0 = row.v5_0 || {}, v6 = row.v6 || {}, v8 = row.v8 || {};
+                    const v1 = row.v1 || {}, v2 = row.v2 || {}, v3 = row.v3 || {}, v4_1 = row.v4_1 || {}, v4_2 = row.v4_2 || {}, v4_3 = row.v4_3 || {}, v4_3_1 = row.v4_3_1 || {}, v4_4 = row.v4_4 || {}, v5_0 = row.v5_0 || {}, v6 = row.v6 || {}, v8 = row.v8 || {}, v9 = row.v9 || {};
                     const w = row.winner || 'v2';
-                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : (w === 'v4_3' ? 'v4.3' : (w === 'v4_3_1' ? 'v4.3.1' : (w === 'v4_4' ? 'v4.4' : (w === 'v5_0' ? 'v5.0' : (w === 'v6' ? 'V6' : (w === 'v8' ? 'V8' : w)))))));
+                    const wLabel = w === 'v4_1' ? 'v4.1' : (w === 'v4_2' ? 'v4.2' : (w === 'v4_3' ? 'v4.3' : (w === 'v4_3_1' ? 'v4.3.1' : (w === 'v4_4' ? 'v4.4' : (w === 'v5_0' ? 'v5.0' : (w === 'v6' ? 'V6' : (w === 'v8' ? 'V8' : (w === 'v9' ? 'V9' : w))))))));
                     const tr = document.createElement('tr');
                     tr.className = 'winner-' + w;
                     tr.style.cursor = 'pointer';
@@ -5495,6 +5546,8 @@ REPORT_TEMPLATE = '''
                         <td>${v6.win_rate != null ? v6.win_rate + '%' : '-'}</td>
                         ${pnlHtml(v8.pnl)}
                         <td>${v8.win_rate != null ? v8.win_rate + '%' : '-'}</td>
+                        ${pnlHtml(v9.pnl)}
+                        <td>${v9.win_rate != null ? v9.win_rate + '%' : '-'}</td>
                         <td><span class="badge badge-${w}">${wLabel}</span></td>
                     `;
                     tbody.appendChild(tr);
@@ -5506,9 +5559,9 @@ REPORT_TEMPLATE = '''
                 const tfr = document.createElement('tr');
                 tfr.style.fontWeight = '700';
                 tfr.style.borderTop = '2px solid rgba(255,255,255,0.2)';
-                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44],['v5_0',t50],['v6',t60],['v8',t80]];
+                const allTotals = [['v1',t1],['v2',t2],['v3',t3],['v4_1',t41],['v4_2',t42],['v4_3',t43],['v4_3_1',t431],['v4_4',t44],['v5_0',t50],['v6',t60],['v8',t80],['v9',t90]];
                 const totalWinner = allTotals.reduce((a,b) => b[1].pnl > a[1].pnl ? b : a)[0];
-                const getLbl = v => ({v4_1:'v4.1',v4_2:'v4.2',v4_3:'v4.3',v4_3_1:'v4.3.1',v4_4:'v4.4',v5_0:'v5.0',v6:'V6',v8:'V8'}[v] || v);
+                const getLbl = v => ({v4_1:'v4.1',v4_2:'v4.2',v4_3:'v4.3',v4_3_1:'v4.3.1',v4_4:'v4.4',v5_0:'v5.0',v6:'V6',v8:'V8',v9:'V9'}[v] || v);
                 const totalWinnerLabel = getLbl(totalWinner);
                 let footHtml = `<td class="left">合计</td>`;
                 allTotals.forEach(([v,t]) => {
@@ -5859,7 +5912,8 @@ BACKTEST_TEMPLATE = '''
                 <div class="config-field">
                     <label>策略</label>
                     <select id="strategy-select" onchange="onStrategyChange()">
-                        <option value="v8" selected>v8 ATR双轨 (Dual Trail)</option>
+                        <option value="v9" selected>v9 V6+V8融合</option>
+                        <option value="v8">v8 ATR双轨 (Dual Trail)</option>
                         <option value="v6">v6 智能整合</option>
                         <option value="v5.0">v5.0 三重确认 (10x)</option>
                         <option value="v4.4">v4.4 高盈亏比</option>
@@ -7183,7 +7237,8 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="wf-strategy">
-                    <option value="v8" selected>v8 ATR双轨</option>
+                    <option value="v9" selected>v9 V6+V8融合</option>
+                    <option value="v8">v8 ATR双轨</option>
                     <option value="v6">v6 智能整合</option>
                     <option value="v5.0">v5.0 三重确认</option>
                     <option value="v4.4">v4.4 高盈亏比</option>
@@ -7230,7 +7285,8 @@ VALIDATION_TEMPLATE = '''
             <div class="config-field">
                 <label>策略</label>
                 <select id="ps-strategy">
-                    <option value="v8" selected>v8 ATR双轨</option>
+                    <option value="v9" selected>v9 V6+V8融合</option>
+                    <option value="v8">v8 ATR双轨</option>
                     <option value="v6">v6 智能整合</option>
                     <option value="v5.0">v5.0 三重确认</option>
                     <option value="v4.4">v4.4 高盈亏比</option>

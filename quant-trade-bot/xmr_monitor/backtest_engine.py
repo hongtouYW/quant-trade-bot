@@ -942,6 +942,7 @@ def run_backtest(candles_1h, config):
     # V5/V8 模式
     v5_mode = config.get('v5_mode', False)
     v8_mode = config.get('v8_mode', False)
+    v9_mode = config.get('v9_mode', False)
     tp1_roi = config.get('tp1_roi', 10)         # TP1: +10% ROI
     tp1_close_ratio = config.get('tp1_close_ratio', 0.5)  # TP1 平50%仓位
     tp2_roi = config.get('tp2_roi', 20)          # TP2: +20% ROI 开始尾随
@@ -1097,7 +1098,9 @@ def run_backtest(candles_1h, config):
 
         v6_mode = config.get('v6_mode', False)
         v6b_mode = config.get('v6b_mode', False)
-        if v8_mode:
+        if v9_mode:
+            score, analysis = analyze_signal_v9(lookback, config)
+        elif v8_mode:
             score, analysis = analyze_signal_v8(lookback, config)
         elif v6b_mode:
             score, analysis = analyze_signal_v6b(lookback, config)
@@ -1660,5 +1663,111 @@ def analyze_signal_v8(candles, config=None):
         'buy_crossover': buy_cross,
         'sell_crossover': sell_cross,
     }
+
+    return total_score, analysis
+
+
+def analyze_signal_v9(candles, config=None):
+    """V9信号分析 — V6b评分 + V8 ATR双轨软确认 + 假信号过滤 (backtest版)
+
+    核心: 调用V6b获取基础分数和方向, V8 trail作为软加分/惩罚
+    止损: 使用V6的移动止盈系统(不用V8的ATR止损)
+    """
+    # Step 1: Get V6b base score (the proven winner)
+    v6b_score, v6b_analysis = analyze_signal_v6b(candles, config)
+    if v6b_score == 0 or v6b_analysis is None:
+        return 0, None
+
+    config = config or {}
+    direction = v6b_analysis['direction']
+    current_price = v6b_analysis['price']
+    closes = [c['close'] for c in candles]
+    highs = [c['high'] for c in candles]
+    lows = [c['low'] for c in candles]
+
+    # Step 2: V8 ATR Dual Trail (soft confirmation)
+    fast_period = config.get('v8_fast_atr_period', 5)
+    fast_factor = config.get('v8_fast_atr_factor', 0.5)
+    slow_period = config.get('v8_slow_atr_period', 10)
+    slow_factor = config.get('v8_slow_atr_factor', 3.0)
+
+    trail1 = _calculate_atr_trail_bt(candles, fast_period, fast_factor)
+    trail2 = _calculate_atr_trail_bt(candles, slow_period, slow_factor)
+
+    v8_bonus = 0
+    trail_sep = 0
+    bars_since_cross = 99
+    zone = 'NEUTRAL'
+    t1 = t2 = 0
+    buy_cross = sell_cross = False
+
+    if trail1[-1] is not None and trail2[-1] is not None and \
+       trail1[-2] is not None and trail2[-2] is not None:
+        t1, t2 = trail1[-1], trail2[-1]
+        t1_prev, t2_prev = trail1[-2], trail2[-2]
+
+        buy_cross = t1_prev <= t2_prev and t1 > t2
+        sell_cross = t1_prev >= t2_prev and t1 < t2
+
+        close = closes[-1]
+        high = highs[-1]
+        low = lows[-1]
+        green = t1 > t2 and close > t2 and low > t2
+        blue = t1 > t2 and close > t2 and low < t2
+        red = t2 > t1 and close < t2 and high < t2
+        yellow = t2 > t1 and close < t2 and high > t2
+
+        v8_direction = 'LONG' if t1 > t2 else ('SHORT' if t2 > t1 else direction)
+        trail_sep = abs(t1 - t2) / current_price * 100 if current_price > 0 else 0
+
+        # Bars since crossover
+        bars_since_cross = 30
+        for j in range(1, min(30, len(candles) - max(fast_period, slow_period))):
+            idx = len(candles) - 1 - j
+            if trail1[idx] is None or trail2[idx] is None:
+                break
+            prev_idx = idx - 1
+            if trail1[prev_idx] is None or trail2[prev_idx] is None:
+                break
+            if (trail1[prev_idx] <= trail2[prev_idx] and trail1[idx] > trail2[idx]) or \
+               (trail1[prev_idx] >= trail2[prev_idx] and trail1[idx] < trail2[idx]):
+                bars_since_cross = j
+                break
+        if buy_cross or sell_cross:
+            bars_since_cross = 0
+
+        # V8 Soft Bonus/Penalty
+        if v8_direction == direction:
+            # Agreement: bonus for fresh crossover + strong zone
+            if bars_since_cross <= 3:
+                v8_bonus += 10
+            elif bars_since_cross <= 8:
+                v8_bonus += 5
+            if (direction == 'LONG' and green) or (direction == 'SHORT' and red):
+                v8_bonus += 3
+        else:
+            # Disagreement: penalty (but NOT rejection)
+            v8_bonus -= 8
+            # Strong opposite zone → extra penalty
+            if (direction == 'LONG' and red) or (direction == 'SHORT' and green):
+                v8_bonus -= 4
+
+        zone = 'GREEN' if green else ('BLUE' if blue else ('RED' if red else ('YELLOW' if yellow else 'NEUTRAL')))
+
+    total_score = v6b_score + v8_bonus
+
+    # Copy V6b analysis and add V8 fields
+    analysis = dict(v6b_analysis)
+    analysis.update({
+        'score': total_score,
+        'v6_score': v6b_score,
+        'v8_bonus': v8_bonus,
+        'trail1': t1, 'trail2': t2,
+        'trail_separation_pct': round(trail_sep, 3),
+        'zone': zone,
+        'buy_crossover': buy_cross,
+        'sell_crossover': sell_cross,
+        'bars_since_cross': bars_since_cross,
+    })
 
     return total_score, analysis

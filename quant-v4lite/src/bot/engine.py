@@ -335,9 +335,10 @@ class TradingEngine:
             if not signal:
                 continue
 
+            rr_val = signal.risk_reward or 0
             logger.info(f"Signal: {signal.direction.name} {signal.symbol} "
                         f"@{signal.entry_price:.4f} conf={signal.confidence:.2f} "
-                        f"RR={signal.risk_reward:.1f} strategy={signal.strategy.value}")
+                        f"RR={rr_val:.1f} strategy={signal.strategy.value}")
 
             # 记录信号到 DB
             if self._db:
@@ -345,7 +346,7 @@ class TradingEngine:
                     await self._db.log_signal(
                         signal.symbol, signal.direction.name, signal.strategy.value,
                         'triggered', '',
-                        f"price={signal.entry_price:.4f} RR={signal.risk_reward:.1f} conf={signal.confidence:.2f}")
+                        f"price={signal.entry_price:.4f} RR={rr_val:.1f} conf={signal.confidence:.2f}")
                 except Exception:
                     pass
 
@@ -517,16 +518,17 @@ class TradingEngine:
                 if not signal:
                     continue
 
+                rr_val = signal.risk_reward or 0
                 logger.info(f"MR Signal: {signal.direction.name} {signal.symbol} "
                             f"@{signal.entry_price:.4f} conf={signal.confidence:.2f} "
-                            f"RR={signal.risk_reward:.1f}")
+                            f"RR={rr_val:.1f}")
 
                 if self._db:
                     try:
                         await self._db.log_signal(
                             signal.symbol, signal.direction.name, signal.strategy.value,
                             'triggered', '',
-                            f"price={signal.entry_price:.4f} RR={signal.risk_reward:.1f} conf={signal.confidence:.2f}")
+                            f"price={signal.entry_price:.4f} RR={rr_val:.1f} conf={signal.confidence:.2f}")
                     except Exception:
                         pass
 

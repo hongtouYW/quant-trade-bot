@@ -130,6 +130,67 @@ def api_db_stats():
     return jsonify({'total_trades': total, 'daily_stats': daily, 'fee_summary': fee_summary})
 
 
+@app.route('/calendar')
+def calendar_page():
+    return render_template('calendar.html')
+
+
+@app.route('/api/calendar')
+def api_calendar():
+    """按日期汇总交易记录"""
+    month = request.args.get('month')  # format: 2026-03
+    trades = trade_store.load_trade_history(1000)
+    # Also include in-memory trades from bot
+    bot = get_bot()
+    if bot:
+        for t in bot.position_manager.trade_history:
+            # Avoid duplicates by checking if already in DB trades
+            dup = any(
+                tr.symbol == t.symbol and tr.opened_at == t.opened_at
+                for tr in trades
+            )
+            if not dup:
+                trades.append(t)
+
+    from collections import defaultdict
+    daily = defaultdict(lambda: {'trades': [], 'pnl': 0, 'net_pnl': 0, 'wins': 0, 'losses': 0, 'count': 0})
+    for t in trades:
+        day = t.closed_at.strftime('%Y-%m-%d')
+        if month and not day.startswith(month):
+            continue
+        daily[day]['count'] += 1
+        daily[day]['pnl'] += t.pnl
+        daily[day]['net_pnl'] += t.net_pnl
+        if t.net_pnl >= 0:
+            daily[day]['wins'] += 1
+        else:
+            daily[day]['losses'] += 1
+        daily[day]['trades'].append({
+            'symbol': t.symbol,
+            'direction': 'LONG' if t.direction == 1 else 'SHORT',
+            'entry': t.entry_price,
+            'exit': t.exit_price,
+            'pnl': round(t.pnl, 2),
+            'net_pnl': round(t.net_pnl, 2),
+            'pnl_pct': round(t.pnl_pct * 100, 2),
+            'fees': round(t.fees, 4),
+            'funding_fees': round(t.funding_fees, 4),
+            'setup': t.setup_type,
+            'reason': t.close_reason,
+            'opened': t.opened_at.strftime('%H:%M'),
+            'closed': t.closed_at.strftime('%H:%M'),
+        })
+
+    # Round summaries
+    result = {}
+    for day, info in daily.items():
+        info['pnl'] = round(info['pnl'], 2)
+        info['net_pnl'] = round(info['net_pnl'], 2)
+        result[day] = info
+
+    return jsonify(result)
+
+
 @app.route('/api/logs')
 def api_logs():
     bot = get_bot()

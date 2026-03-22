@@ -80,6 +80,7 @@ NAV_TEMPLATE = """
     <a href="/" class="{{ 'active' if page == 'monitor' else '' }}">实时监控</a>
     <a href="/trades" class="{{ 'active' if page == 'trades' else '' }}">交易历史</a>
     <a href="/daily" class="{{ 'active' if page == 'daily' else '' }}">日统计</a>
+    <a href="/equity" class="{{ 'active' if page == 'equity' else '' }}">资金曲线</a>
     <a href="/signals" class="{{ 'active' if page == 'signals' else '' }}">信号日志</a>
 </div>
 """
@@ -530,6 +531,212 @@ DAILY_TEMPLATE = """
 </html>
 """
 
+# ── 资金曲线页面 ──
+
+EQUITY_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>资金曲线 - V4-Lite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="refresh" content="120">
+    <style>""" + SHARED_CSS + """
+        .chart-box { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+        .chart-box h2 { color: #8b949e; font-size: 14px; margin-bottom: 12px; }
+        .card .big { font-size: 28px; font-weight: 700; }
+        .card .sub { color: #8b949e; font-size: 12px; margin-top: 4px; }
+        tr:hover { background: #1c2128; }
+    </style>
+</head>
+<body>
+    <h1>资金曲线</h1>
+
+    """ + NAV_TEMPLATE + """
+
+    <!-- 概览卡片 -->
+    <div class="grid">
+        <div class="card">
+            <h2>当前余额</h2>
+            <div class="big {{ 'positive' if summary.net_pnl >= 0 else 'negative' }}">{{ '%.2f'|format(summary.balance) }}U</div>
+            <div class="sub">初始: {{ '%.2f'|format(summary.initial) }}U | 净盈亏: {{ '%+.2f'|format(summary.net_pnl) }}U ({{ '%+.1f'|format(summary.net_pnl_pct) }}%)</div>
+        </div>
+        <div class="card">
+            <h2>最大回撤</h2>
+            <div class="big negative">{{ '%.2f'|format(summary.max_dd) }}U</div>
+            <div class="sub">{{ '%.1f'|format(summary.max_dd_pct) }}% | 峰值: {{ '%.2f'|format(summary.peak) }}U</div>
+        </div>
+        <div class="card">
+            <h2>交易统计</h2>
+            <div class="big">{{ summary.total_trades }}笔</div>
+            <div class="sub">胜率: {{ '%.0f'|format(summary.win_rate) }}% | PF: {{ '%.2f'|format(summary.profit_factor) }} | 平均: {{ '%+.2f'|format(summary.avg_pnl) }}U</div>
+        </div>
+    </div>
+
+    {% if equity_data %}
+    <!-- 资金曲线图 -->
+    <div class="chart-box">
+        <h2>余额曲线 (逐笔)</h2>
+        <canvas id="equityChart" height="280"></canvas>
+    </div>
+
+    <!-- 回撤曲线图 -->
+    <div class="chart-box">
+        <h2>回撤曲线</h2>
+        <canvas id="ddChart" height="160"></canvas>
+    </div>
+
+    <!-- 逐笔明细 -->
+    <div style="overflow-x: auto;">
+    <table>
+        <tr><th>#</th><th>时间</th><th>交易对</th><th>方向</th><th>策略</th><th>PnL</th><th>手续费</th><th>净PnL</th><th>余额</th><th>回撤</th></tr>
+        {% for e in equity_data %}
+        <tr>
+            <td>{{ loop.index }}</td>
+            <td style="white-space:nowrap;">{{ e.time }}</td>
+            <td>{{ e.symbol }}</td>
+            <td><span class="badge {{ 'badge-long' if e.direction == 'LONG' else 'badge-short' }}">{{ e.direction }}</span></td>
+            <td>{{ e.strategy }}</td>
+            <td class="{{ 'positive' if e.pnl > 0 else 'negative' }}">{{ '%+.2f'|format(e.pnl) }}U</td>
+            <td>{{ '%.2f'|format(e.fee) }}U</td>
+            <td class="{{ 'positive' if e.net > 0 else 'negative' }}">{{ '%+.2f'|format(e.net) }}U</td>
+            <td>{{ '%.2f'|format(e.balance) }}U</td>
+            <td class="negative">{{ '%.1f'|format(e.dd_pct) }}%</td>
+        </tr>
+        {% endfor %}
+    </table>
+    </div>
+    {% else %}
+    <div style="text-align:center;padding:40px;color:#484f58;">暂无交易数据</div>
+    {% endif %}
+
+    <p style="margin-top: 16px; color: #484f58; font-size: 12px;">更新时间: {{ now }} | 自动刷新: 120秒</p>
+
+    {% if equity_data %}
+    <script>
+    (function(){
+        var data = {{ equity_json|tojson }};
+        if (!data.length) return;
+
+        // ── 余额曲线 ──
+        var canvas = document.getElementById('equityChart');
+        var ctx = canvas.getContext('2d');
+        var W = canvas.width = canvas.parentElement.clientWidth - 32;
+        var H = canvas.height = 280;
+        var padL = 60, padR = 20, padT = 20, padB = 40;
+        var cW = W - padL - padR, cH = H - padT - padB;
+
+        var balances = data.map(function(d){return d.balance;});
+        var initial = {{ summary.initial }};
+        balances.unshift(initial);
+        var minB = Math.min.apply(null, balances) * 0.998;
+        var maxB = Math.max.apply(null, balances) * 1.002;
+        var rangeB = maxB - minB || 1;
+
+        function bx(i){ return padL + (i / (balances.length - 1)) * cW; }
+        function by(v){ return padT + (1 - (v - minB) / rangeB) * cH; }
+
+        // 网格
+        ctx.strokeStyle = '#21262d';
+        ctx.lineWidth = 0.5;
+        for(var g = 0; g < 5; g++){
+            var gy = padT + g * cH / 4;
+            ctx.beginPath(); ctx.moveTo(padL, gy); ctx.lineTo(W - padR, gy); ctx.stroke();
+            var gv = maxB - g * rangeB / 4;
+            ctx.fillStyle = '#484f58'; ctx.font = '11px monospace'; ctx.textAlign = 'right';
+            ctx.fillText(gv.toFixed(1), padL - 6, gy + 4);
+        }
+
+        // 初始线
+        ctx.strokeStyle = '#30363d';
+        ctx.setLineDash([4,4]);
+        ctx.beginPath(); ctx.moveTo(padL, by(initial)); ctx.lineTo(W - padR, by(initial)); ctx.stroke();
+        ctx.setLineDash([]);
+
+        // 曲线
+        ctx.strokeStyle = '#58a6ff';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(bx(0), by(balances[0]));
+        for(var i = 1; i < balances.length; i++){
+            ctx.lineTo(bx(i), by(balances[i]));
+        }
+        ctx.stroke();
+
+        // 填充
+        ctx.lineTo(bx(balances.length-1), padT + cH);
+        ctx.lineTo(bx(0), padT + cH);
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(88,166,255,0.08)';
+        ctx.fill();
+
+        // 点
+        for(var i = 1; i < balances.length; i++){
+            var pnl = data[i-1].net;
+            ctx.fillStyle = pnl >= 0 ? '#3fb950' : '#f85149';
+            ctx.beginPath();
+            ctx.arc(bx(i), by(balances[i]), 3, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        // X 轴标签 (每隔几个点)
+        var step = Math.max(1, Math.floor(data.length / 10));
+        ctx.fillStyle = '#484f58'; ctx.font = '10px monospace'; ctx.textAlign = 'center';
+        for(var i = 0; i < data.length; i += step){
+            ctx.fillText(data[i].time.slice(5, 11), bx(i+1), H - 8);
+        }
+
+        // ── 回撤曲线 ──
+        var canvas2 = document.getElementById('ddChart');
+        var ctx2 = canvas2.getContext('2d');
+        var W2 = canvas2.width = canvas2.parentElement.clientWidth - 32;
+        var H2 = canvas2.height = 160;
+        var cW2 = W2 - padL - padR, cH2 = H2 - padT - 30;
+
+        var dds = data.map(function(d){return d.dd_pct;});
+        var maxDD = Math.max.apply(null, dds.map(Math.abs)) || 1;
+
+        function dx(i){ return padL + (i / Math.max(1, dds.length - 1)) * cW2; }
+        function dy(v){ return padT + (Math.abs(v) / maxDD) * cH2; }
+
+        // 零线
+        ctx2.strokeStyle = '#30363d'; ctx2.lineWidth = 1;
+        ctx2.beginPath(); ctx2.moveTo(padL, padT); ctx2.lineTo(W2-padR, padT); ctx2.stroke();
+
+        // 填充
+        ctx2.fillStyle = 'rgba(248,81,73,0.15)';
+        ctx2.beginPath();
+        ctx2.moveTo(dx(0), padT);
+        for(var i = 0; i < dds.length; i++){
+            ctx2.lineTo(dx(i), dy(dds[i]));
+        }
+        ctx2.lineTo(dx(dds.length-1), padT);
+        ctx2.closePath();
+        ctx2.fill();
+
+        // 线
+        ctx2.strokeStyle = '#f85149'; ctx2.lineWidth = 1.5;
+        ctx2.beginPath();
+        ctx2.moveTo(dx(0), dy(dds[0]));
+        for(var i = 1; i < dds.length; i++){
+            ctx2.lineTo(dx(i), dy(dds[i]));
+        }
+        ctx2.stroke();
+
+        // Y 轴
+        ctx2.fillStyle = '#484f58'; ctx2.font = '11px monospace'; ctx2.textAlign = 'right';
+        for(var g = 0; g <= 4; g++){
+            var ddv = maxDD * g / 4;
+            var ddy = padT + g * cH2 / 4;
+            ctx2.fillText('-' + ddv.toFixed(1) + '%', padL - 6, ddy + 4);
+        }
+    })();
+    </script>
+    {% endif %}
+</body>
+</html>
+"""
+
 # ── 信号日志页面 ──
 
 SIGNALS_TEMPLATE = """
@@ -833,6 +1040,65 @@ def calc_daily_stats(trades):
     return result
 
 
+def calc_equity_curve(trades):
+    """计算逐笔资金曲线"""
+    initial = 2000
+    sorted_trades = sorted(trades, key=lambda t: t.get('close_time') or datetime.min)
+    equity = []
+    balance = initial
+    peak = initial
+
+    for t in sorted_trades:
+        ct = t.get('close_time')
+        if not ct:
+            continue
+        pnl = t.get('pnl') or 0
+        fee = t.get('fee') or 0
+        funding = t.get('funding_fee') or 0
+        net = pnl - fee - funding
+        balance += net
+        peak = max(peak, balance)
+        dd = balance - peak
+        dd_pct = (dd / peak * 100) if peak > 0 else 0
+
+        equity.append({
+            'time': ct.strftime('%m-%d %H:%M'),
+            'symbol': (t.get('symbol') or '').split(':')[0],
+            'direction': t.get('direction', ''),
+            'strategy': t.get('strategy', ''),
+            'pnl': round(pnl, 2),
+            'fee': round(fee, 2),
+            'net': round(net, 2),
+            'balance': round(balance, 2),
+            'dd_pct': round(dd_pct, 1),
+        })
+
+    # 汇总
+    total_trades = len(equity)
+    wins = sum(1 for e in equity if e['net'] > 0)
+    total_net = balance - initial
+    max_dd = min((e['dd_pct'] for e in equity), default=0)
+    max_dd_val = min((e['balance'] - peak for e in equity), default=0) if equity else 0
+    total_win_pnl = sum(e['net'] for e in equity if e['net'] > 0)
+    total_loss_pnl = abs(sum(e['net'] for e in equity if e['net'] <= 0))
+
+    summary = {
+        'initial': initial,
+        'balance': round(balance, 2),
+        'net_pnl': round(total_net, 2),
+        'net_pnl_pct': round(total_net / initial * 100, 1) if initial else 0,
+        'peak': round(peak, 2),
+        'max_dd': round(abs(max_dd_val), 2),
+        'max_dd_pct': round(abs(max_dd), 1),
+        'total_trades': total_trades,
+        'win_rate': round(wins / total_trades * 100, 0) if total_trades else 0,
+        'avg_pnl': round(total_net / total_trades, 2) if total_trades else 0,
+        'profit_factor': round(total_win_pnl / total_loss_pnl, 2) if total_loss_pnl > 0 else 999,
+    }
+
+    return equity, summary
+
+
 # ── 路由 ──
 
 @app.route('/')
@@ -930,6 +1196,19 @@ def daily_page():
     return render_template_string(
         DAILY_TEMPLATE, daily_data=daily_data, daily_chart=daily_chart,
         now=now, page='daily',
+    )
+
+
+@app.route('/equity')
+def equity_page():
+    all_trades = load_trades()
+    equity_data, summary = calc_equity_curve(all_trades)
+    equity_json = [{'balance': e['balance'], 'net': e['net'], 'time': e['time'],
+                    'dd_pct': e['dd_pct']} for e in equity_data]
+    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')
+    return render_template_string(
+        EQUITY_TEMPLATE, equity_data=equity_data, equity_json=equity_json,
+        summary=summary, now=now, page='equity',
     )
 
 

@@ -83,23 +83,24 @@ class RiskEngine:
         if same_dir_count >= 3:
             return False, "max_same_direction_positions"
 
-        # Same direction risk check
-        same_dir_risk = sum(
-            abs(p.margin) / equity for p in self.positions
-            if p.direction == order_plan['direction']
-        ) if equity > 0 else 0
-
-        new_risk = order_plan['margin'] / equity if equity > 0 else 1
-        if same_dir_risk + new_risk > self._exec_cfg.get('max_same_direction_risk', 0.12):
+        # Same direction risk check (Spec §3.3: 同方向总风险1.2% = 同方向总risk_amount/equity)
+        risk_per_trade = self._exec_cfg.get('risk_per_trade', 0.004)
+        same_dir_risk_count = sum(1 for p in self.positions if p.direction == order_plan['direction'])
+        same_dir_risk_pct = same_dir_risk_count * risk_per_trade + risk_per_trade  # 新单的风险
+        max_same_dir = self._exec_cfg.get('max_same_direction_risk', 0.012)
+        if same_dir_risk_pct > max_same_dir:
             return False, "same_direction_risk_limit"
 
-        # Total risk check
-        total_risk = sum(abs(p.margin) / equity for p in self.positions) if equity > 0 else 0
-        if total_risk + new_risk > self._exec_cfg.get('max_total_risk', 0.16):
+        # Total risk check (Spec §3.3: 总风险1.6%)
+        total_risk_count = len(self.positions)
+        total_risk_pct = total_risk_count * risk_per_trade + risk_per_trade
+        max_total = self._exec_cfg.get('max_total_risk', 0.016)
+        if total_risk_pct > max_total:
             return False, "total_risk_limit"
 
-        # Max notional per trade
-        max_notional = equity * 0.30
+        # Max notional per trade (30% equity as margin → notional = margin × leverage)
+        leverage = self._exec_cfg.get('leverage', get('account', 'leverage', 10))
+        max_notional = equity * 0.30 * leverage
         if order_plan['notional'] > max_notional:
             return False, "max_notional_exceeded"
 

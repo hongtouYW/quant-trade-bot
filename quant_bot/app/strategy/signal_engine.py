@@ -28,6 +28,7 @@ class SignalEngine:
 
         setups = [s for s in [setup_a, setup_b] if s is not None]
         if not setups:
+            log.debug(f"无信号: {symbol} dir={direction} pullback={'fail' if setup_a is None else 'ok'} breakout={'fail' if setup_b is None else 'ok'}")
             return None
 
         best = max(setups, key=lambda s: s.score)
@@ -47,19 +48,18 @@ class SignalEngine:
             return None
 
         if direction == 1:  # Long pullback
-            # Price should have pulled back to EMA21 area
-            if not (close <= e21 * 1.005 and close >= e21 * 0.985):
-                # Not near EMA21
-                if not (close <= e7 * 1.002 and close >= e21 * 0.99):
+            # Price should have pulled back near EMA7-EMA21 zone (widened ±2%)
+            if not (close <= e21 * 1.02 and close >= e21 * 0.975):
+                if not (close <= e7 * 1.01 and close >= e21 * 0.975):
                     return None
 
-            # Volume should decrease during pullback
+            # Volume should not spike excessively during pullback
             recent_vol = df_15m['volume'].iloc[-5:]
             prior_vol = df_15m['volume'].iloc[-10:-5]
-            if prior_vol.mean() > 0 and recent_vol.mean() > prior_vol.mean() * 1.1:
-                return None  # Volume increasing during pullback = not a healthy pullback
+            if prior_vol.mean() > 0 and recent_vol.mean() > prior_vol.mean() * 1.5:
+                return None
 
-            # Check for reversal candle
+            # Check for reversal candle (relaxed)
             last = df_15m.iloc[-1]
             prev = df_15m.iloc[-2]
             reversal = False
@@ -70,17 +70,20 @@ class SignalEngine:
             # Long lower shadow
             body = abs(last['close'] - last['open'])
             lower_shadow = min(last['open'], last['close']) - last['low']
-            if body > 0 and lower_shadow > body * 1.5:
+            if body > 0 and lower_shadow > body * 1.2:
                 reversal = True
             # Close back above EMA7
             if close > e7:
+                reversal = True
+            # Bullish candle near support
+            if last['close'] > last['open']:
                 reversal = True
 
             if not reversal:
                 return None
 
-            # Volume recovery
-            if last['volume'] < df_15m['volume'].iloc[-5:].mean() * 0.8:
+            # Volume recovery (relaxed)
+            if last['volume'] < df_15m['volume'].iloc[-5:].mean() * 0.5:
                 return None
 
             stop_loss = min(df_15m['low'].iloc[-5:].min(), close - atr_val * get('execution', 'stop_atr_multiple', 1.2))
@@ -101,14 +104,14 @@ class SignalEngine:
                 expires_at=datetime.utcnow() + timedelta(minutes=SIGNAL_EXPIRY_MINUTES),
             )
 
-        elif direction == -1:  # Short pullback (mirror)
-            if not (close >= e21 * 0.995 and close <= e21 * 1.015):
-                if not (close >= e7 * 0.998 and close <= e21 * 1.01):
+        elif direction == -1:  # Short pullback (mirror, widened zone)
+            if not (close >= e21 * 0.975 and close <= e21 * 1.025):
+                if not (close >= e7 * 0.99 and close <= e21 * 1.025):
                     return None
 
             recent_vol = df_15m['volume'].iloc[-5:]
             prior_vol = df_15m['volume'].iloc[-10:-5]
-            if prior_vol.mean() > 0 and recent_vol.mean() > prior_vol.mean() * 1.1:
+            if prior_vol.mean() > 0 and recent_vol.mean() > prior_vol.mean() * 1.5:
                 return None
 
             last = df_15m.iloc[-1]
@@ -119,15 +122,18 @@ class SignalEngine:
                 reversal = True
             body = abs(last['close'] - last['open'])
             upper_shadow = last['high'] - max(last['open'], last['close'])
-            if body > 0 and upper_shadow > body * 1.5:
+            if body > 0 and upper_shadow > body * 1.2:
                 reversal = True
             if close < e7:
+                reversal = True
+            # Bearish candle near resistance
+            if last['close'] < last['open']:
                 reversal = True
 
             if not reversal:
                 return None
 
-            if last['volume'] < df_15m['volume'].iloc[-5:].mean() * 0.8:
+            if last['volume'] < df_15m['volume'].iloc[-5:].mean() * 0.5:
                 return None
 
             stop_loss = max(df_15m['high'].iloc[-5:].max(), close + atr_val * get('execution', 'stop_atr_multiple', 1.2))
@@ -161,7 +167,7 @@ class SignalEngine:
             return None
 
         comp = calc.compression_range(df_15m, 20)
-        if comp > 3.0:
+        if comp > 4.0:
             return None  # Not compressed enough
 
         recent_20 = df_15m.iloc[-20:]
@@ -173,7 +179,7 @@ class SignalEngine:
         if direction == 1:  # Long breakout
             if close <= high_20 * 0.999:
                 return None  # Not breaking out
-            if curr_vol < avg_vol * 1.3:
+            if curr_vol < avg_vol * 1.0:
                 return None  # Not enough volume
 
             stop_loss = max(low_20, close - atr_val * get('execution', 'stop_atr_multiple', 1.2))
@@ -197,7 +203,7 @@ class SignalEngine:
         elif direction == -1:  # Short breakout
             if close >= low_20 * 1.001:
                 return None
-            if curr_vol < avg_vol * 1.3:
+            if curr_vol < avg_vol * 1.0:
                 return None
 
             stop_loss = min(high_20, close + atr_val * get('execution', 'stop_atr_multiple', 1.2))
@@ -274,7 +280,7 @@ class EntryRefiner:
                 if highs.iloc[-1] < highs.iloc[-3]:
                     confirmed_count += 1
 
-        if confirmed_count < 2:
+        if confirmed_count < 1:
             return None  # Not confirmed
 
         # Check drift
@@ -371,5 +377,5 @@ class FakeBreakoutFilter:
                 if not np.isnan(avg) and avg > 0 and curr > avg * 2.5:
                     reject_count += 1
 
-        # 命中2项以上就判定为假突破
-        return reject_count >= 2
+        # 命中3项以上就判定为假突破
+        return reject_count >= 3

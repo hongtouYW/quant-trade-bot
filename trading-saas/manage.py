@@ -107,6 +107,25 @@ def seed_strategies():
                 'v8_adx_filter': True,
             }
         },
+        'v9.0': {
+            'label': 'v9.0 V6+V8融合策略',
+            'description': 'V6评分质量门控+V8 ATR双轨入场时机+假信号过滤/5x杠杆/分步止盈/方向双重确认',
+            'config': {
+                'min_score': 70, 'long_min_score': 80,
+                'max_leverage': 5, 'max_positions': 8,
+                'max_position_size': 300,
+                'short_bias': 1.05,
+                'enable_trend_filter': True,
+                'roi_stop_loss': -10,
+                'roi_trailing_start': 25, 'roi_trailing_distance': 4,
+                'cooldown_minutes': 60,
+                'tp1_roi': 12, 'tp1_close_ratio': 0.5, 'tp2_roi': 25,
+                'v8_fast_atr_period': 5,
+                'v8_fast_atr_factor': 0.5,
+                'v8_slow_atr_period': 10,
+                'v8_slow_atr_factor': 3.0,
+            }
+        },
     }
 
     with app.app_context():
