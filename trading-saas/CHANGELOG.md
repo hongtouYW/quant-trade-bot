@@ -1,8 +1,56 @@
 # CHANGELOG — Trading SaaS + 5111 Paper Trader
 
-> 时间范围：2026-01-27 ~ 2026-03-20
+> 时间范围：2026-01-27 ~ 2026-03-24
 > 仅包含有实质代码变更的提交，跳过纯自动提交（🤖 自动提交）。
 > [SaaS] = Trading SaaS 生产系统（端口 80）| [5111] = Paper Trader 模拟系统（端口 5111）
+
+---
+
+## 2026-03-24
+
+### [SaaS-修复] BCH/USDT 幽灵持仓同步 — DB 与交易所状态不一致
+
+- **问题**：BCH/USDT LONG (id=311, 03-18 开仓) 在币安已于 03-20 13:40 平仓（+13.40U, ROI+10.71%），但 DB 状态仍为 OPEN
+- **根因**：bot 重启时 BCH 内存持仓丢失，交易所端已平仓但 DB 未同步
+- **修复**：通过 Binance `fapiPrivateGetUserTrades` 查到实际平仓记录，手动修正 DB
+- **待改进**：bot 启动时应检查 DB 中 OPEN 持仓是否仍在交易所存在，自动同步关闭幽灵持仓
+
+---
+
+## 2026-03-23
+
+### [SaaS-优化] 币安服务端止损单 + 仓位对齐回测
+
+- **背景**：v6 实盘亏损 -180U，诊断发现两大根因：① 仓位计算与回测不一致（线上远小于回测）② 60秒轮询导致止损/止盈滑点（止损平均多亏1%，止盈平均少赚1.2%）
+- **改动1 — 仓位对齐回测** (`signal_analyzer.py`):
+  - score≥85: min(150,8%) → **min(400,25%)**
+  - score≥80 档合并到≥75
+  - score≥75: min(350,22%) → **min(300,20%)**
+  - score≥70: min(250,15%) → **min(200,15%)**
+  - 移除 COIN_TIERS 缩减（回测无此逻辑）
+  - 最小仓位: 50U → **100U**
+- **改动2 — 币安服务端止损单** (`order_executor.py` + `agent_bot.py`):
+  - 开仓后自动挂 **STOP_MARKET** 单（`workingType: MARK_PRICE`），由交易所执行止损
+  - 平仓前先 `cancel_all_orders` 取消挂单，防止双重平仓
+  - Trailing stop 阶段：peak ROI 每上升 0.5%+，更新服务端止损价到 `peak - trail_distance`
+  - 新增方法：`place_stop_order()`, `cancel_open_orders()`, `update_stop_order()`
+- **改动3 — 最小仓位检查** (`agent_bot.py`):
+  - `if amount < 50` → `if amount < 100`
+- **部署**：3个文件已部署到 /opt/trading-saas/，supervisorctl restart auto-trader-v6 + gunicorn reload
+- **预期**：止损精度从 -11%→-10%（精确），止盈滑点从 -1.2% 减少到接近 0
+
+### [SaaS-诊断] Agent 2 v6 实盘亏损根因分析
+
+- **数据**：239笔交易，142赢/97亏，总 PnL -180U，费用 21U+7U funding
+- **核心问题**：
+  1. **盈亏比失衡**：赢 +3.9U/笔 vs 亏 -7.6U/笔（亏是赢的2倍）
+  2. **SHORT 重度亏损**：197笔 SHORT 亏 -206U，42笔 LONG 赚 +25U
+  3. **90+分单反亏最多**：-84U（short_bias=1.05 推高假信号）
+  4. **止损滑点**：设定 -10% 但实际平均 -11%，最差 -19%
+  5. **同一币反复止损**：NEAR 4次亏-31U，INIT 3次亏-29U
+  6. **特定时段亏损**：UTC 02:00 (-57U), 11:00 (-47U)
+- **已修复**：仓位对齐 + 服务端止损（本次部署）
+- **待观察**：short_bias / 冷却时间 / SHORT占比限制（用户决定先跑几天看效果）
 
 ---
 

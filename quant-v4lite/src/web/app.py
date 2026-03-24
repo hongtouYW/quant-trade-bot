@@ -82,6 +82,7 @@ NAV_TEMPLATE = """
     <a href="/daily" class="{{ 'active' if page == 'daily' else '' }}">日统计</a>
     <a href="/equity" class="{{ 'active' if page == 'equity' else '' }}">资金曲线</a>
     <a href="/signals" class="{{ 'active' if page == 'signals' else '' }}">信号日志</a>
+    <a href="/calendar" class="{{ 'active' if page == 'calendar' else '' }}">交易日历</a>
 </div>
 """
 
@@ -1267,6 +1268,304 @@ def api_status():
 @app.route('/health')
 def health():
     return jsonify({'status': 'ok', 'time': datetime.utcnow().isoformat()})
+
+
+# ── 交易日历页面 ──
+
+CALENDAR_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>交易日历 - V4-Lite</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        """ + SHARED_CSS + """
+        .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .cal-header h1 { margin-bottom: 0; }
+        .cal-nav { display: flex; gap: 10px; align-items: center; }
+        .cal-nav a { color: #58a6ff; text-decoration: none; font-size: 20px; padding: 4px 12px; border: 1px solid #30363d; border-radius: 6px; }
+        .cal-nav a:hover { background: #161b22; }
+        .cal-nav span { color: #c9d1d9; font-size: 18px; font-weight: 600; min-width: 160px; text-align: center; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 24px; }
+        .cal-weekday { text-align: center; color: #8b949e; font-size: 12px; padding: 8px 0; font-weight: 600; }
+        .cal-day { background: #161b22; border: 1px solid #30363d; border-radius: 6px; min-height: 90px; padding: 8px; cursor: pointer; transition: border-color 0.2s; }
+        .cal-day:hover { border-color: #58a6ff; }
+        .cal-day.empty { background: transparent; border-color: transparent; cursor: default; }
+        .cal-day.empty:hover { border-color: transparent; }
+        .cal-day.today { border-color: #58a6ff; border-width: 2px; }
+        .cal-day .day-num { font-size: 13px; color: #8b949e; margin-bottom: 4px; }
+        .cal-day.today .day-num { color: #58a6ff; font-weight: 700; }
+        .cal-day .day-trades { font-size: 11px; color: #8b949e; }
+        .cal-day .day-pnl { font-size: 16px; font-weight: 700; margin: 4px 0; }
+        .cal-day .day-pnl.positive { color: #3fb950; }
+        .cal-day .day-pnl.negative { color: #f85149; }
+        .cal-day .day-pnl.zero { color: #8b949e; }
+        .cal-day .day-wr { font-size: 11px; }
+        .month-summary { margin-bottom: 24px; }
+        .summary-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .s-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 14px; text-align: center; }
+        .s-card .s-label { color: #8b949e; font-size: 12px; margin-bottom: 6px; }
+        .s-card .s-value { font-size: 20px; font-weight: 700; }
+        .day-detail { display: none; background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+        .day-detail.active { display: block; }
+        .day-detail h2 { color: #58a6ff; font-size: 16px; margin-bottom: 12px; }
+        .day-detail table { font-size: 12px; }
+        .close-detail { float: right; color: #8b949e; cursor: pointer; font-size: 18px; }
+        .close-detail:hover { color: #f85149; }
+    </style>
+</head>
+<body>
+    """ + NAV_TEMPLATE + """
+    <div class="cal-header">
+        <h1>交易日历</h1>
+        <div class="cal-nav">
+            <a href="/calendar?year={{ prev_year }}&month={{ prev_month }}">&laquo;</a>
+            <span>{{ year }}年{{ month }}月</span>
+            <a href="/calendar?year={{ next_year }}&month={{ next_month }}">&raquo;</a>
+        </div>
+    </div>
+
+    <!-- 月度汇总 -->
+    <div class="month-summary">
+        <div class="summary-cards">
+            <div class="s-card">
+                <div class="s-label">月交易笔数</div>
+                <div class="s-value">{{ month_stats.total_trades }}</div>
+            </div>
+            <div class="s-card">
+                <div class="s-label">月盈亏</div>
+                <div class="s-value {{ 'positive' if month_stats.total_pnl > 0 else 'negative' if month_stats.total_pnl < 0 else '' }}">
+                    {{ '%+.2f' | format(month_stats.total_pnl) }}U
+                </div>
+            </div>
+            <div class="s-card">
+                <div class="s-label">月胜率</div>
+                <div class="s-value">{{ '%.0f' | format(month_stats.win_rate) }}%</div>
+            </div>
+            <div class="s-card">
+                <div class="s-label">盈利天数</div>
+                <div class="s-value positive">{{ month_stats.profit_days }}</div>
+            </div>
+            <div class="s-card">
+                <div class="s-label">亏损天数</div>
+                <div class="s-value negative">{{ month_stats.loss_days }}</div>
+            </div>
+            <div class="s-card">
+                <div class="s-label">最大日盈利</div>
+                <div class="s-value positive">{{ '%+.2f' | format(month_stats.best_day) }}U</div>
+            </div>
+            <div class="s-card">
+                <div class="s-label">最大日亏损</div>
+                <div class="s-value negative">{{ '%+.2f' | format(month_stats.worst_day) }}U</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 日历网格 -->
+    <div class="cal-grid">
+        <div class="cal-weekday">一</div>
+        <div class="cal-weekday">二</div>
+        <div class="cal-weekday">三</div>
+        <div class="cal-weekday">四</div>
+        <div class="cal-weekday">五</div>
+        <div class="cal-weekday">六</div>
+        <div class="cal-weekday">日</div>
+        {% for cell in cal_cells %}
+        {% if cell.empty %}
+        <div class="cal-day empty"></div>
+        {% else %}
+        <div class="cal-day {{ 'today' if cell.is_today else '' }}" onclick="showDetail('{{ cell.date }}')">
+            <div class="day-num">{{ cell.day }}</div>
+            {% if cell.trades > 0 %}
+            <div class="day-pnl {{ 'positive' if cell.pnl > 0 else 'negative' if cell.pnl < 0 else 'zero' }}">
+                {{ '%+.1f' | format(cell.pnl) }}U
+            </div>
+            <div class="day-trades">{{ cell.trades }}笔 | 胜率{{ '%.0f' | format(cell.win_rate) }}%</div>
+            {% endif %}
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- 日详情面板 -->
+    <div id="day-detail" class="day-detail">
+        <span class="close-detail" onclick="hideDetail()">&times;</span>
+        <h2 id="detail-title"></h2>
+        <div id="detail-content"></div>
+    </div>
+
+    <script>
+    var tradesByDay = {{ trades_by_day_json | safe }};
+
+    function showDetail(dateStr) {
+        var trades = tradesByDay[dateStr];
+        if (!trades || trades.length === 0) return;
+        var el = document.getElementById('day-detail');
+        document.getElementById('detail-title').textContent = dateStr + ' 交易记录 (' + trades.length + '笔)';
+        var html = '<table><tr><th>时间</th><th>币种</th><th>方向</th><th>策略</th><th>入场价</th><th>出场价</th><th>数量</th><th>PnL</th><th>原因</th></tr>';
+        trades.forEach(function(t) {
+            var cls = t.pnl > 0 ? 'positive' : (t.pnl < 0 ? 'negative' : '');
+            html += '<tr>'
+                + '<td>' + t.time + '</td>'
+                + '<td>' + t.symbol + '</td>'
+                + '<td><span class="badge badge-' + t.direction.toLowerCase() + '">' + t.direction + '</span></td>'
+                + '<td>' + t.strategy + '</td>'
+                + '<td>' + t.entry_price + '</td>'
+                + '<td>' + (t.exit_price || '-') + '</td>'
+                + '<td>' + t.quantity + '</td>'
+                + '<td class="' + cls + '">' + (t.pnl > 0 ? '+' : '') + t.pnl.toFixed(2) + 'U</td>'
+                + '<td>' + (t.close_reason || '-') + '</td>'
+                + '</tr>';
+        });
+        html += '</table>';
+        document.getElementById('detail-content').innerHTML = html;
+        el.classList.add('active');
+        el.scrollIntoView({behavior: 'smooth'});
+    }
+
+    function hideDetail() {
+        document.getElementById('day-detail').classList.remove('active');
+    }
+    </script>
+</body>
+</html>
+"""
+
+
+def load_calendar_data(year, month):
+    """加载指定月份的交易数据，构建日历"""
+    import calendar as cal_mod
+    conn = get_db()
+    if not conn:
+        return [], {}, {}
+
+    try:
+        cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+
+        # 查询该月所有已平仓交易 (UTC+8)
+        cur.execute("""
+            SELECT id, symbol, direction, strategy, entry_price, exit_price,
+                   quantity, pnl, fee, close_reason,
+                   open_time AT TIME ZONE 'Asia/Shanghai' as open_time_local,
+                   close_time AT TIME ZONE 'Asia/Shanghai' as close_time_local
+            FROM trades
+            WHERE close_time IS NOT NULL
+              AND EXTRACT(YEAR FROM close_time AT TIME ZONE 'Asia/Shanghai') = %s
+              AND EXTRACT(MONTH FROM close_time AT TIME ZONE 'Asia/Shanghai') = %s
+            ORDER BY close_time
+        """, (year, month))
+        trades = cur.fetchall()
+
+        # 按日分组
+        trades_by_day = {}
+        day_stats = {}
+        for t in trades:
+            day_str = t['close_time_local'].strftime('%Y-%m-%d')
+            if day_str not in trades_by_day:
+                trades_by_day[day_str] = []
+                day_stats[day_str] = {'trades': 0, 'wins': 0, 'pnl': 0.0}
+
+            pnl = float(t['pnl'] or 0)
+            trades_by_day[day_str].append({
+                'time': t['close_time_local'].strftime('%H:%M'),
+                'symbol': t['symbol'].replace(':USDT', ''),
+                'direction': t['direction'].upper(),
+                'strategy': t['strategy'],
+                'entry_price': f"{float(t['entry_price'] or 0):.4f}",
+                'exit_price': f"{float(t['exit_price'] or 0):.4f}" if t['exit_price'] else '',
+                'quantity': f"{float(t['quantity'] or 0):.4f}",
+                'pnl': pnl,
+                'close_reason': t['close_reason'] or '',
+            })
+            day_stats[day_str]['trades'] += 1
+            day_stats[day_str]['pnl'] += pnl
+            if pnl > 0:
+                day_stats[day_str]['wins'] += 1
+
+        # 构建日历格子
+        first_weekday, num_days = cal_mod.monthrange(year, month)
+        # Python: Monday=0, calendar.monthrange returns weekday of first day
+        cal_cells = []
+        # 填充前面空白
+        for _ in range(first_weekday):
+            cal_cells.append({'empty': True})
+
+        from datetime import date
+        today = date.today()
+        for d in range(1, num_days + 1):
+            day_date = date(year, month, d)
+            day_str = day_date.strftime('%Y-%m-%d')
+            st = day_stats.get(day_str, {})
+            t_count = st.get('trades', 0)
+            wins = st.get('wins', 0)
+            pnl = st.get('pnl', 0.0)
+            wr = (wins / t_count * 100) if t_count > 0 else 0
+            cal_cells.append({
+                'empty': False,
+                'day': d,
+                'date': day_str,
+                'is_today': day_date == today,
+                'trades': t_count,
+                'pnl': pnl,
+                'win_rate': wr,
+            })
+
+        # 月度汇总
+        total_trades = sum(s['trades'] for s in day_stats.values())
+        total_wins = sum(s['wins'] for s in day_stats.values())
+        total_pnl = sum(s['pnl'] for s in day_stats.values())
+        pnl_values = [s['pnl'] for s in day_stats.values()] if day_stats else [0]
+        profit_days = sum(1 for s in day_stats.values() if s['pnl'] > 0)
+        loss_days = sum(1 for s in day_stats.values() if s['pnl'] < 0)
+
+        month_stats = {
+            'total_trades': total_trades,
+            'total_pnl': total_pnl,
+            'win_rate': (total_wins / total_trades * 100) if total_trades > 0 else 0,
+            'profit_days': profit_days,
+            'loss_days': loss_days,
+            'best_day': max(pnl_values),
+            'worst_day': min(pnl_values),
+        }
+
+        cur.close()
+        conn.close()
+        return cal_cells, month_stats, trades_by_day
+    except Exception as e:
+        conn.close()
+        return [], {'total_trades': 0, 'total_pnl': 0, 'win_rate': 0,
+                     'profit_days': 0, 'loss_days': 0, 'best_day': 0, 'worst_day': 0}, {}
+
+
+@app.route('/calendar')
+def calendar_page():
+    from datetime import date
+    today = date.today()
+    year = request.args.get('year', today.year, type=int)
+    month = request.args.get('month', today.month, type=int)
+
+    cal_cells, month_stats, trades_by_day = load_calendar_data(year, month)
+
+    # 上/下月
+    if month == 1:
+        prev_year, prev_month = year - 1, 12
+    else:
+        prev_year, prev_month = year, month - 1
+    if month == 12:
+        next_year, next_month = year + 1, 1
+    else:
+        next_year, next_month = year, month + 1
+
+    return render_template_string(
+        CALENDAR_TEMPLATE,
+        page='calendar',
+        year=year, month=month,
+        prev_year=prev_year, prev_month=prev_month,
+        next_year=next_year, next_month=next_month,
+        cal_cells=cal_cells, month_stats=month_stats,
+        trades_by_day_json=json.dumps(trades_by_day, ensure_ascii=False),
+    )
 
 
 if __name__ == '__main__':

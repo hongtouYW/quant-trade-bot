@@ -30,7 +30,8 @@ MEXC_API_SECRET = os.environ.get('MEXC_API_SECRET', 'b309f4ef0c47466e90dddb7e0f9
 TG_API_ID = 37356394
 TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
 TG_GROUP = 'kokoworld886'
-TG_SESSION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session')
+TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
 
 # ===== Telegram Bot Config (发送通知到群) =====
 TG_BOT_TOKEN = '8777086789:AAHea8llTZaoXOQS95QyB4_JldSl4QoFrl0'
@@ -818,13 +819,22 @@ def is_vip_signal(text):
 
 def start_telegram_listener():
     """Start Telethon client on the persistent event loop"""
+    print("[Telegram] Starting listener...")
     loop = get_tg_loop()
-    asyncio.run_coroutine_threadsafe(_run_telegram_listener(), loop)
+    future = asyncio.run_coroutine_threadsafe(_run_telegram_listener(), loop)
+    # Log if future fails
+    def _on_done(f):
+        try:
+            f.result()
+        except Exception as e:
+            print(f"[Telegram] Listener crashed: {e}")
+    future.add_done_callback(_on_done)
 
 async def _run_telegram_listener():
     global tg_client, tg_status
     from telethon import TelegramClient, events
     try:
+        print("[Telegram] Connecting...")
         tg_client = TelegramClient(TG_SESSION_PATH, TG_API_ID, TG_API_HASH)
         await tg_client.connect()
 

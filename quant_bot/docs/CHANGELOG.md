@@ -1,7 +1,7 @@
 # QuantBot 开发日志 & 差异分析
 
 > 对比文档: `ultimate_quant_strategy_dev_spec.md` (vFinal)
-> 更新日期: 2026-03-19
+> 更新日期: 2026-03-22
 
 ---
 
@@ -16,6 +16,7 @@
 - [x] 全局常量定义 (`constants.py`): 方向/状态/策略/平仓原因/风控默认值 (Spec §20)
 - [x] YAML配置加载 (`config.py` + `config.yaml`)
 - [x] Flask Web Dashboard (`dashboard.py` + `index.html`)
+- [x] 交易日历页面 (`calendar.html`): 月度日历网格, 每日盈亏/胜负, 点击展开交易明细
 - [x] 自动启动 (supervisord: `quant-bot.ini`)
 - [x] SQLite 数据库持久化 (`app/db/`)
 - [x] 日志模块 (`monitoring/logger.py`): 控制台+文件轮转+错误分流+交易日志 (Spec §20)
@@ -188,8 +189,12 @@
 | profit_guard_pct | 0.025 | 0.025 | ✅ |
 | profit_stop_pct | 0.04 | 0.04 | ✅ |
 | block_extreme_market | true | true | ✅ |
-| heartbeat_seconds | 60 | 60 | ✅ |
-| whitelist_hours | [8-11,15-18,20-23,0] | [8-11,15-18,20-23,0] | ✅ |
+| heartbeat_seconds | 60 | 3600 | ⚠️ 用户要求减少TG频率 |
+| whitelist_hours | [8-11,15-18,20-23,0] | [0-23] | ⚠️ 用户要求全天交易 |
+| max_scan_symbols | 150 | 300 | ⚠️ 用户要求扫更多币 |
+| min_24h_volume | 8M | 5M | ⚠️ 用户要求降低门槛 |
+| min_open_interest | 3M | 2M | ⚠️ 用户要求降低门槛 |
+| max_spread_pct | 0.04 | 0.08 | ⚠️ 用户要求降低门槛 |
 | mean_reversion | Phase 1不做 | enable: false | ✅ |
 | funding_arb | Phase 1不做 | enable: false | ✅ |
 
@@ -233,6 +238,8 @@
 | 2026-03-19 | EXTREME模式被修改允许做空 | 恢复Spec §8.3: 禁止开新仓 |
 | 2026-03-19 | mean_reversion/funding_arb默认开启 | 恢复Spec §29: Phase 1关闭 |
 | 2026-03-19 | 缺失6个spec要求的模块 | 补齐account_feed/constants/order_router/fill_model/reports/logger/paper_runner |
+| 2026-03-20 | same_direction_risk_limit: margin/equity算法错误 | 改用 risk_per_trade × position_count 计算, 0.4%/笔允许3笔同方向 |
+| 2026-03-22 | 无每日交易日历视图 | 新增 `/calendar` 页面 + `/api/calendar` API |
 
 ---
 
@@ -241,7 +248,21 @@
 - **本地代码**: `/Users/hongtou/newproject/quant_bot/`
 - **服务器代码**: `/opt/quant_bot/` (root@139.162.41.38)
 - **Dashboard**: http://139.162.41.38:5001/
+- **交易日历**: http://139.162.41.38:5001/calendar
 - **进程管理**: supervisord (`quant-bot`)
 - **数据库**: `/opt/quant_bot/data/quant_bot.db` (SQLite)
 - **日志**: `/opt/quant_bot/logs/quant_bot.log`
 - **模式**: 模拟盘 (paper_mode=True)
+
+---
+
+## 运行统计 (截至 2026-03-22)
+
+| 日期 | 交易笔数 | 净盈亏 | 胜 | 负 |
+|------|----------|--------|----|----|
+| 2026-03-18 | 1 | -$0.08 | 0 | 1 |
+| 2026-03-20 | 16 | -$13.99 | 5 | 11 |
+| 2026-03-21 | 61 | -$36.34 | 21 | 40 |
+| **合计** | **78** | **-$50.41** | **26** | **52** |
+
+> 胜率 33.3%, 仍需优化策略参数。当前3个持仓运行中。
