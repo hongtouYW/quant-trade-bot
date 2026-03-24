@@ -29,7 +29,7 @@ MEXC_API_SECRET = os.environ.get('MEXC_API_SECRET', 'b309f4ef0c47466e90dddb7e0f9
 # ===== Telegram Listener Config (Telethon user client) =====
 TG_API_ID = 37356394
 TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
-TG_GROUP = 'kokoworld886'
+TG_GROUP = 'vip點位策略'
 TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
 
