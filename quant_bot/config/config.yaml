@@ -33,6 +33,8 @@ execution:
   max_total_risk: 0.016
   entry_timeout_minutes: 3
   max_entry_drift_atr: 0.35
+  min_margin: 100
+  min_notional: 5
   max_holding_minutes: 75
 
 risk:

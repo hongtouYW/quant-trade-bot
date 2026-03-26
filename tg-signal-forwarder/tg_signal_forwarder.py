@@ -108,6 +108,8 @@ def init_db():
             symbol TEXT NOT NULL,
             direction TEXT NOT NULL,
             entry_price REAL,
+            entry_low REAL,
+            entry_high REAL,
             stop_loss REAL,
             take_profit REAL,
             leverage INTEGER DEFAULT 10,
@@ -183,6 +185,16 @@ def init_db():
     }
     for alias, symbol in default_aliases.items():
         conn.execute('INSERT OR IGNORE INTO symbol_aliases (alias, symbol) VALUES (?, ?)', (alias, symbol))
+
+    # Migrations
+    for sql in [
+        "ALTER TABLE signals ADD COLUMN entry_low REAL",
+        "ALTER TABLE signals ADD COLUMN entry_high REAL",
+    ]:
+        try:
+            conn.execute(sql)
+        except:
+            pass
 
     conn.commit()
     conn.close()
@@ -270,7 +282,8 @@ def parse_signal_message(text):
 
     result = {
         'symbol': None, 'direction': None, 'stop_loss': None,
-        'take_profit': None, 'leverage': None, 'entry_price': None
+        'take_profit': None, 'leverage': None, 'entry_price': None,
+        'entry_low': None, 'entry_high': None,
     }
 
     # Step 1: 别名 (以太币 → ETH)
@@ -297,8 +310,8 @@ def parse_signal_message(text):
          (re.search(r'(?<![做開开加輕轻])空(?!多)', text) and '做多' not in text):
         result['direction'] = 'SHORT'
 
-    # 止损
-    sl_match = re.search(r'(?:止損|止损|SL|stop.?loss|防守|停損|停损)[:\s：]*(\d+\.?\d*)', text, re.IGNORECASE)
+    # 止损 — 支持 "止损：小时级别站稳75000" 这种中间有文字的格式
+    sl_match = re.search(r'(?:止損|止损|SL|stop.?loss|防守|停損|停损)[:\s：]*(?:.*?)(\d+\.?\d*)', text, re.IGNORECASE)
     if sl_match:
         result['stop_loss'] = float(sl_match.group(1))
 
@@ -312,32 +325,50 @@ def parse_signal_message(text):
         if tp_range:
             result['take_profit'] = float(tp_range.group(1))
 
-    # 入场价 - 支持范围
+    # 入场价 - 支持范围，保留 entry_low/entry_high 用于限价等待
+    def _set_entry(p1, p2=None):
+        if p2 is not None:
+            lo, hi = min(p1, p2), max(p1, p2)
+            result['entry_price'] = round((lo + hi) / 2, 6)
+            result['entry_low'] = lo
+            result['entry_high'] = hi
+        else:
+            result['entry_price'] = p1
+
+    # 关键词 + 范围: "委托 2063附近" / "入场 73350-74000"
     entry_match = re.search(r'(?:入場|入场|entry|開倉|开仓|價格|价格|price|進場|进场|市價|市价|委托|委託)[:\s：-]*(\d+\.?\d*)\s*[-~]\s*(\d+\.?\d*)', text, re.IGNORECASE)
     if entry_match:
-        p1, p2 = float(entry_match.group(1)), float(entry_match.group(2))
-        result['entry_price'] = round((p1 + p2) / 2, 6)
+        _set_entry(float(entry_match.group(1)), float(entry_match.group(2)))
     else:
         entry_match = re.search(r'(?:入場|入场|entry|開倉|开仓|價格|价格|price|進場|进场|市價|市价|委托|委託)[:\s：-]*(\d+\.?\d*)', text, re.IGNORECASE)
         if entry_match:
-            result['entry_price'] = float(entry_match.group(1))
+            _set_entry(float(entry_match.group(1)))
 
     # "附近" pattern
     if not result['entry_price']:
         nearby_range = re.search(r'(\d+\.?\d*)\s*[-~]\s*(\d+\.?\d*)\s*附近', text)
         if nearby_range:
-            p1, p2 = float(nearby_range.group(1)), float(nearby_range.group(2))
-            result['entry_price'] = round((p1 + p2) / 2, 6)
+            _set_entry(float(nearby_range.group(1)), float(nearby_range.group(2)))
         else:
             nearby_single = re.search(r'(\d+\.?\d*)\s*附近', text)
             if nearby_single:
-                result['entry_price'] = float(nearby_single.group(1))
+                _set_entry(float(nearby_single.group(1)))
 
     # "委托 XXXX附近" — special for 所长 format
     if not result['entry_price']:
         delegate = re.search(r'委[托託]\s*(\d+\.?\d*)', text)
         if delegate:
-            result['entry_price'] = float(delegate.group(1))
+            _set_entry(float(delegate.group(1)))
+
+    # 所长格式: "比特币 73350-74000 空" — 币种后直接跟价格范围+方向
+    if not result['entry_price'] and result['symbol']:
+        # 在原文中找: 数字-数字 (不在止损/止盈行)
+        price_range = re.search(r'(\d{3,}\.?\d*)\s*[-~]\s*(\d{3,}\.?\d*)', text)
+        if price_range:
+            p1, p2 = float(price_range.group(1)), float(price_range.group(2))
+            # 排除已被 sl/tp 匹配的数字
+            if result['stop_loss'] != p1 and result['take_profit'] != p1:
+                _set_entry(p1, p2)
 
     # 杠杆
     lev_match = re.search(r'(\d+)\s*[-~]\s*(\d+)\s*[xX倍]', text)
@@ -375,7 +406,7 @@ def get_capital():
 
 
 def auto_open_trade(signal_id):
-    """自动开仓模拟交易"""
+    """自动开仓模拟交易 — 有入场区间时设为waiting等价格触发，没有则直接市价开仓"""
     try:
         conn = get_db()
         signal = conn.execute('SELECT * FROM signals WHERE id=?', (signal_id,)).fetchone()
@@ -393,17 +424,46 @@ def auto_open_trade(signal_id):
             conn.close()
             return False
 
-        # 获取价格
+        # 获取当前价格
         price = get_binance_price(signal['symbol'])
         if price is None:
             logger.error(f"Cannot get price for {signal['symbol']}")
             conn.close()
             return False
 
-        entry_price = signal['entry_price'] if signal['entry_price'] else price
         leverage = signal['leverage'] or int(config.get('default_leverage', '10'))
+        entry_low = signal['entry_low']
+        entry_high = signal['entry_high']
+        entry_price = signal['entry_price']
 
-        # 仓位大小
+        # 有入场区间 → 检查当前价格是否已在区间内
+        if entry_low and entry_high:
+            if entry_low <= price <= entry_high:
+                # 当前价格已在区间内，直接用市价开仓
+                logger.info(f"[Trade] Price {price} in entry zone [{entry_low}-{entry_high}], opening now")
+            else:
+                # 价格不在区间，设为 waiting 等待触发
+                conn.execute("UPDATE signals SET status='waiting' WHERE id=?", (signal_id,))
+                conn.commit()
+                conn.close()
+                logger.info(f"[Trade] WAITING {signal['symbol']} {signal['direction']} for price to reach [{entry_low}-{entry_high}] (current: {price})")
+                send_waiting_notification(signal, price)
+                return True
+        elif entry_price:
+            # 单一入场价 — 检查价格是否接近（5%容差）
+            diff_pct = abs(price - entry_price) / entry_price * 100
+            if diff_pct > 5:
+                # 价格差距太大，等待
+                conn.execute("UPDATE signals SET status='waiting' WHERE id=?", (signal_id,))
+                conn.commit()
+                conn.close()
+                logger.info(f"[Trade] WAITING {signal['symbol']} {signal['direction']} for price ~{entry_price} (current: {price}, diff: {diff_pct:.1f}%)")
+                send_waiting_notification(signal, price)
+                return True
+
+        # 开仓 — 用市价
+        actual_entry = price
+
         pct = float(config.get('position_pct', '10'))
         position_size = min(cap['available'] * (pct / 100), cap['available'] * 0.5)
         if position_size < 10:
@@ -416,15 +476,14 @@ def auto_open_trade(signal_id):
         conn.execute('''
             INSERT INTO trades (signal_id, opened_at, symbol, direction, entry_price, leverage, position_size, status)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
-        ''', (signal_id, now, signal['symbol'], signal['direction'], entry_price, leverage, round(position_size, 2)))
-        conn.execute('UPDATE signals SET status=?, entry_price=? WHERE id=?', ('active', entry_price, signal_id))
+        ''', (signal_id, now, signal['symbol'], signal['direction'], actual_entry, leverage, round(position_size, 2)))
+        conn.execute('UPDATE signals SET status=?, entry_price=? WHERE id=?', ('active', actual_entry, signal_id))
         conn.commit()
         conn.close()
 
-        logger.info(f"[Trade] OPEN {signal['symbol']} {signal['direction']} @ {entry_price:.6g}, size={position_size:.0f}U, lev={leverage}x")
+        logger.info(f"[Trade] OPEN {signal['symbol']} {signal['direction']} @ {actual_entry:.6g}, size={position_size:.0f}U, lev={leverage}x")
 
-        # 通知
-        send_trade_notification(signal, entry_price, position_size, leverage)
+        send_trade_notification(signal, actual_entry, position_size, leverage)
         return True
     except Exception as e:
         logger.error(f"Auto open error: {e}")
@@ -433,6 +492,35 @@ def auto_open_trade(signal_id):
         except:
             pass
         return False
+
+
+def _try_activate_waiting(signal, price):
+    """尝试激活一个waiting状态的信号"""
+    config = get_all_config()
+    cap = get_capital()
+    max_pos = int(config.get('max_positions', '5'))
+    if cap['open_count'] >= max_pos:
+        return False
+
+    leverage = signal['leverage'] or int(config.get('default_leverage', '10'))
+    pct = float(config.get('position_pct', '10'))
+    position_size = min(cap['available'] * (pct / 100), cap['available'] * 0.5)
+    if position_size < 10:
+        return False
+
+    now = datetime.now(timezone.utc).isoformat()
+    conn = get_db()
+    conn.execute('''
+        INSERT INTO trades (signal_id, opened_at, symbol, direction, entry_price, leverage, position_size, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 'open')
+    ''', (signal['id'], now, signal['symbol'], signal['direction'], price, leverage, round(position_size, 2)))
+    conn.execute('UPDATE signals SET status=?, entry_price=? WHERE id=?', ('active', price, signal['id']))
+    conn.commit()
+    conn.close()
+
+    logger.info(f"[Trade] OPEN (triggered) {signal['symbol']} {signal['direction']} @ {price:.6g}, size={position_size:.0f}U, lev={leverage}x")
+    send_trade_notification(signal, price, position_size, leverage)
+    return True
 
 
 def close_trade(trade_id, exit_price, reason):
@@ -517,6 +605,47 @@ def position_monitor():
     while True:
         try:
             conn = get_db()
+
+            # 1. 检查 waiting 信号 — 价格到入场区间则开仓
+            waiting_signals = conn.execute(
+                "SELECT * FROM signals WHERE status='waiting'"
+            ).fetchall()
+
+            for signal in waiting_signals:
+                price = get_binance_price(signal['symbol'])
+                if price is None:
+                    continue
+
+                entry_low = signal['entry_low']
+                entry_high = signal['entry_high']
+                entry_price = signal['entry_price']
+                should_open = False
+
+                if entry_low and entry_high:
+                    if entry_low <= price <= entry_high:
+                        should_open = True
+                        logger.info(f"[Monitor] {signal['symbol']} price {price} reached entry zone [{entry_low}-{entry_high}]")
+                elif entry_price:
+                    diff_pct = abs(price - entry_price) / entry_price * 100
+                    if diff_pct <= 1:  # 1%容差
+                        should_open = True
+                        logger.info(f"[Monitor] {signal['symbol']} price {price} near entry {entry_price}")
+
+                # 超时检查: waiting 超过24小时自动取消
+                if not should_open:
+                    try:
+                        created = datetime.fromisoformat(signal['created_at'])
+                        if (datetime.now() - created).total_seconds() > 86400:
+                            conn.execute("UPDATE signals SET status='cancelled', notes='timeout 24h' WHERE id=?", (signal['id'],))
+                            conn.commit()
+                            logger.info(f"[Monitor] {signal['symbol']} waiting timeout, cancelled")
+                    except:
+                        pass
+                    continue
+
+                _try_activate_waiting(dict(signal), price)
+
+            # 2. 检查持仓 SL/TP
             open_trades = conn.execute('''
                 SELECT t.*, s.stop_loss, s.take_profit
                 FROM trades t JOIN signals s ON t.signal_id = s.id
@@ -571,6 +700,36 @@ def send_bot_message(text, chat_id=None):
         return False, data.get('description', 'unknown')
     except Exception as e:
         return False, str(e)
+
+
+def send_waiting_notification(signal, current_price):
+    """通知: 信号已收到，等待价格到入场区间"""
+    try:
+        sym = signal['symbol'].replace('USDT', '/USDT')
+        dir_emoji = '🟢 做多 LONG' if signal['direction'] == 'LONG' else '🔴 做空 SHORT'
+        now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
+
+        entry_low = signal['entry_low']
+        entry_high = signal['entry_high']
+        entry_str = f"{entry_low}-{entry_high}" if entry_low and entry_high else str(signal['entry_price'])
+
+        text = f"⏳ <b>所长VIP · 等待入场</b>\n"
+        text += f"━━━━━━━━━━━━━━━\n"
+        text += f"💰 货币: <b>{sym}</b>\n"
+        text += f"📊 方向: <b>{dir_emoji}</b>\n"
+        text += f"🎯 入场区间: <code>{entry_str}</code>\n"
+        text += f"📈 当前价格: <code>{current_price}</code>\n"
+        if signal['stop_loss']:
+            text += f"🛑 止损: <code>{signal['stop_loss']}</code>\n"
+        if signal['take_profit']:
+            text += f"✅ 止盈: <code>{signal['take_profit']}</code>\n"
+        text += f"🕐 时间: <code>{now_str}</code>\n"
+        text += f"━━━━━━━━━━━━━━━\n"
+        text += f"💡 价格到达入场区间后自动开仓"
+
+        send_bot_message(text)
+    except Exception as e:
+        logger.error(f"Waiting notification error: {e}")
 
 
 def send_trade_notification(signal, entry_price, size, leverage):
@@ -668,9 +827,10 @@ def forward_message(source_group, sender_name, message_text):
         leverage = parsed['leverage'] or int(get_config_value('default_leverage', '10'))
 
         conn.execute('''
-            INSERT INTO signals (symbol, direction, entry_price, stop_loss, take_profit, leverage, status, raw_message)
-            VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)
+            INSERT INTO signals (symbol, direction, entry_price, entry_low, entry_high, stop_loss, take_profit, leverage, status, raw_message)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
         ''', (parsed['symbol'], parsed['direction'], parsed['entry_price'],
+              parsed.get('entry_low'), parsed.get('entry_high'),
               parsed['stop_loss'], parsed['take_profit'], leverage, message_text))
         signal_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
         conn.commit()

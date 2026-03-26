@@ -1,0 +1,35 @@
+# GitHub 监控配置
+github:
+  # GitHub Personal Access Token (可选，无token限制60次/小时，有token限制5000次/小时)
+  token: "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"
+
+  # 监控的仓库列表
+  repos:
+    - owner: "yelangawei"
+      repo: "aijav_seo"
+      deploy_server: ""
+      # 代码评估推送到 "AI JAV - 开发" 群
+      review_chat_id: "-1002579255890"
+
+  # 监控的用户 (留空则监控所有贡献者)
+  watch_users:
+    - "hogntouyw"
+    - "yelangawei"
+
+telegram:
+  bot_token: "8236947907:AAEggS0-zwz0yZgHrMV5YrM8kS5x0uosWd8"
+  chat_id: "-5184003915"
+
+# 调度配置
+schedule:
+  # 每周汇总: 周几发送 (0=周一, 6=周日)
+  weekly_day: 6  # 周日
+  weekly_hour: 20  # 晚上8点
+  # 代码评估: 周几发送 (0=周一, 4=周五)
+  review_day: 4  # 周五
+  review_hour: 20  # 晚上8点
+  # 时区
+  timezone: "Asia/Shanghai"
+
+# 数据存储
+data_dir: "data"

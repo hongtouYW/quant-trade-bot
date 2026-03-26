@@ -1,0 +1,5 @@
+flask>=3.0
+anthropic>=0.80
+yt-dlp>=2025.0
+openai-whisper>=20240930
+markdown>=3.5

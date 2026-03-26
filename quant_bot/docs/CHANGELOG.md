@@ -1,7 +1,7 @@
 # QuantBot 开发日志 & 差异分析
 
 > 对比文档: `ultimate_quant_strategy_dev_spec.md` (vFinal)
-> 更新日期: 2026-03-22
+> 更新日期: 2026-03-25
 
 ---
 
@@ -240,6 +240,8 @@
 | 2026-03-19 | 缺失6个spec要求的模块 | 补齐account_feed/constants/order_router/fill_model/reports/logger/paper_runner |
 | 2026-03-20 | same_direction_risk_limit: margin/equity算法错误 | 改用 risk_per_trade × position_count 计算, 0.4%/笔允许3笔同方向 |
 | 2026-03-22 | 无每日交易日历视图 | 新增 `/calendar` 页面 + `/api/calendar` API |
+| 2026-03-25 | consecutive_losses跨天不重置, 导致永久停止交易 | reset_daily()中同时重置consecutive_losses和cooldown_until |
+| 2026-03-25 | min_notional硬编码5U太小 | 改为从config读取, 默认100U, 过滤掉小仓位交易 |
 
 ---
 

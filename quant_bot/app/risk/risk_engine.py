@@ -30,8 +30,10 @@ class RiskEngine:
             self.today_trades = 0
             self.today_wins = 0
             self.today_losses = 0
+            self.consecutive_losses = 0
+            self.cooldown_until = 0
             self.current_date = today
-            log.info("Daily risk counters reset")
+            log.info("Daily risk counters reset (including consecutive_losses)")
 
     def can_open_new_positions(self, equity):
         """Check all portfolio-level conditions"""

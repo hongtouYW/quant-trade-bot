@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-MEXC Signal Trader - 抓取飞机群 vip點位策略 信号，自动在 MEXC 开单
+Signal Trader - 抓取飞机群 vip點位策略 信号，自动在 Bitget 合约开单
 Port: 5113
 """
 
@@ -16,15 +16,21 @@ import re
 import asyncio
 import ccxt
 import traceback
+import hmac
+import hashlib
 from datetime import datetime, timedelta, timezone
 
 app = Flask(__name__)
 
 DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'mexc_signals.db')
 
-# ===== MEXC Config =====
-MEXC_API_KEY = os.environ.get('MEXC_API_KEY', 'mx0vglC6HmoMd7bHEd')
-MEXC_API_SECRET = os.environ.get('MEXC_API_SECRET', 'b309f4ef0c47466e90dddb7e0f9ebd88')
+# ===== Bitget Config =====
+EXCHANGE_API_KEY = os.environ.get('EXCHANGE_API_KEY', 'bg_1d2f0f0c862ab0bc2a1bce9e0f910c22')
+EXCHANGE_API_SECRET = os.environ.get('EXCHANGE_API_SECRET', '7e2f272689659ebca18fda1ab054b3b9bd89594b7c61ff163a9ac02315b742a8')
+EXCHANGE_PASSWORD = os.environ.get('EXCHANGE_PASSWORD', 'qweqweqweqwe')
+EXCHANGE_NAME = 'bitget'
+MAX_LEVERAGE = 100
+MIN_LEVERAGE = 20
 
 # ===== Telegram Listener Config (Telethon user client) =====
 TG_API_ID = 37356394
@@ -49,7 +55,7 @@ tg_status = {'connected': False, 'listening': False, 'last_message': None, 'erro
 _tg_loop = None
 _tg_loop_thread = None
 
-exchange = None  # ccxt MEXC instance
+exchange = None  # ccxt Binance futures instance
 
 # ===== Persistent Telethon Event Loop =====
 
@@ -65,226 +71,189 @@ def get_tg_loop():
         _tg_loop_thread.start()
     return _tg_loop
 
-# ===== MEXC Exchange =====
+# ===== Binance Exchange =====
 
 def init_exchange():
-    """Initialize MEXC exchange via ccxt"""
+    """Initialize Bitget futures connection via ccxt"""
     global exchange
-    if not MEXC_API_KEY or not MEXC_API_SECRET:
-        print("[MEXC] WARNING: API keys not set! Set MEXC_API_KEY and MEXC_API_SECRET env vars.")
+    if not EXCHANGE_API_KEY or not EXCHANGE_API_SECRET:
+        print("[Bitget] WARNING: API keys not set!", flush=True)
         return False
     try:
-        exchange = ccxt.mexc({
-            'apiKey': MEXC_API_KEY,
-            'secret': MEXC_API_SECRET,
-            'options': {
-                'defaultType': 'swap',  # USDT-M futures
-            },
+        exchange = ccxt.bitget({
+            'apiKey': EXCHANGE_API_KEY,
+            'secret': EXCHANGE_API_SECRET,
+            'password': EXCHANGE_PASSWORD,
+            'options': {'defaultType': 'swap'},
             'enableRateLimit': True,
         })
         exchange.load_markets()
-        balance = exchange.fetch_balance()
-        usdt = balance.get('USDT', {})
-        print(f"[MEXC] Connected! USDT Balance: {usdt.get('total', 0)}")
+        bal = exchange.fetch_balance()
+        usdt = bal.get('USDT', {})
+        total = usdt.get('total', 0)
+        free = usdt.get('free', 0)
+        print(f"[Bitget] Connected! USDT: total={total} free={free}", flush=True)
         return True
     except Exception as e:
-        print(f"[MEXC] Init failed: {e}")
+        print(f"[Bitget] Init failed: {e}", flush=True)
         exchange = None
         return False
 
-def get_mexc_price(symbol):
-    """Get current price from MEXC"""
-    global exchange
+def get_exchange_price(symbol):
+    """Get current price via ccxt or Binance fallback"""
     try:
-        if exchange is None:
-            return None
-        # Normalize symbol: BTCUSDT -> BTC/USDT:USDT
-        sym = symbol.upper().replace('USDT', '')
-        ccxt_symbol = f"{sym}/USDT:USDT"
-        ticker = exchange.fetch_ticker(ccxt_symbol)
-        return float(ticker['last'])
+        sym = symbol.upper().replace('/','').replace(':','').replace('_','')
+        if not sym.endswith('USDT'):
+            sym = sym + 'USDT'
+        base = sym.replace('USDT', '')
+        if exchange:
+            ticker = exchange.fetch_ticker(f'{base}/USDT:USDT')
+            return float(ticker['last'])
+        # Fallback
+        resp = requests.get(f'https://api.binance.com/api/v3/ticker/price', params={'symbol': sym}, timeout=5)
+        return float(resp.json()['price'])
     except Exception as e:
-        # Fallback to Binance API for price
-        try:
-            sym = symbol.upper()
-            if not sym.endswith('USDT'):
-                sym = sym + 'USDT'
-            resp = requests.get(f'https://fapi.binance.com/fapi/v1/ticker/price',
-                              params={'symbol': sym}, timeout=5)
-            data = resp.json()
-            return float(data['price'])
-        except:
-            print(f"[Price Error] {symbol}: {e}")
-            return None
-
-def get_mexc_balance():
-    """Get MEXC account balance"""
-    global exchange
-    if exchange is None:
-        return {'total': 0, 'free': 0, 'used': 0}
-    try:
-        balance = exchange.fetch_balance()
-        usdt = balance.get('USDT', {})
-        return {
-            'total': float(usdt.get('total', 0)),
-            'free': float(usdt.get('free', 0)),
-            'used': float(usdt.get('used', 0))
-        }
-    except Exception as e:
-        print(f"[MEXC Balance Error] {e}")
-        return {'total': 0, 'free': 0, 'used': 0}
-
-def mexc_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None):
-    """Open a real order on MEXC
-    Returns dict with order details or None on failure"""
-    global exchange
-    if exchange is None:
-        print("[MEXC] Exchange not initialized!")
+        print(f"[Price Error] {symbol}: {e}")
         return None
 
+def get_exchange_balance():
+    """Get Binance futures USDT balance"""
     try:
-        # Normalize symbol
-        sym = symbol.upper().replace('USDT', '')
-        ccxt_symbol = f"{sym}/USDT:USDT"
+        if not exchange:
+            return {'total': 0, 'free': 0, 'used': 0}
+        bal = exchange.fetch_balance()
+        usdt = bal.get('USDT', {})
+        return {
+            'total': round(float(usdt.get('total', 0)), 2),
+            'free': round(float(usdt.get('free', 0)), 2),
+            'used': round(float(usdt.get('used', 0)), 2),
+        }
+    except Exception as e:
+        print(f"[Balance Error] {e}")
+        return {'total': 0, 'free': 0, 'used': 0}
 
-        # Set leverage
+def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None):
+    """Open a futures position on Bitget via ccxt. Max leverage 20x."""
+    try:
+        # Normalize symbol to ccxt format: BTC/USDT:USDT
+        sym = symbol.upper().replace('/','').replace(':','').replace('_','')
+        if not sym.endswith('USDT'):
+            sym = sym + 'USDT'
+        base = sym.replace('USDT', '')
+        ccxt_symbol = f'{base}/USDT:USDT'
+
+        # Cap leverage
+        lev = min(int(leverage), MAX_LEVERAGE)
+
+        # Set leverage for both sides
         try:
-            exchange.set_leverage(leverage, ccxt_symbol)
+            exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': 'long'})
+            exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': 'short'})
         except Exception as e:
-            print(f"[MEXC] Set leverage warning: {e}")
+            print(f"[Bitget] Set leverage warning: {e}", flush=True)
 
-        # Set margin mode to cross
-        try:
-            exchange.set_margin_mode('cross', ccxt_symbol)
-        except Exception as e:
-            print(f"[MEXC] Set margin mode warning: {e}")
-
-        # Get current price for amount calculation
+        # Get current price
         ticker = exchange.fetch_ticker(ccxt_symbol)
         current_price = float(ticker['last'])
 
-        # Calculate amount (in base currency)
-        # position_size_usdt is the margin, notional = margin * leverage
-        notional_usdt = position_size_usdt * leverage
-        amount = notional_usdt / current_price
+        # Calculate quantity: notional = position_size * leverage, qty = notional / price
+        notional = position_size_usdt * lev
+        qty = notional / current_price
 
-        # Round amount to market precision
-        market = exchange.market(ccxt_symbol)
-        amount = exchange.amount_to_precision(ccxt_symbol, amount)
-        amount = float(amount)
+        # Round to market precision
+        qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
 
-        if amount <= 0:
-            print(f"[MEXC] Amount too small for {symbol}")
-            return None
-
-        # Place market order
+        # Open position
         side = 'buy' if direction == 'LONG' else 'sell'
-        order = exchange.create_order(
-            symbol=ccxt_symbol,
-            type='market',
-            side=side,
-            amount=amount,
-        )
 
-        entry_price = float(order.get('average') or order.get('price') or current_price)
-        filled = float(order.get('filled') or amount)
+        print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price}", flush=True)
+        order = exchange.create_order(ccxt_symbol, 'market', side, qty, params={
+            'marginCoin': 'USDT',
+            'tradeSide': 'open',
+        })
 
-        result = {
-            'order_id': order.get('id'),
-            'symbol': ccxt_symbol,
+        entry_price = float(order.get('average') or current_price)
+        filled_qty = float(order.get('filled') or qty)
+
+        ret = {
+            'order_id': str(order['id']),
+            'symbol': sym,
             'direction': direction,
             'entry_price': entry_price,
-            'amount': filled,
-            'leverage': leverage,
+            'amount': filled_qty,
+            'leverage': lev,
             'position_size_usdt': position_size_usdt,
-            'notional_usdt': round(filled * entry_price, 2),
+            'notional_usdt': round(filled_qty * entry_price, 2),
         }
 
-        print(f"[MEXC] Opened {direction} {symbol} @ {entry_price}, amount={filled}, leverage={leverage}x")
+        print(f"[Bitget] Opened {direction} {base} @ {entry_price}, qty={filled_qty}, lev={lev}x, margin={position_size_usdt}U", flush=True)
 
-        # Set stop loss and take profit if provided
-        if stop_loss:
+        # Set stop loss
+        if stop_loss and stop_loss > 0:
             try:
-                sl_side = 'sell' if direction == 'LONG' else 'buy'
-                sl_params = {'stopPrice': stop_loss, 'reduceOnly': True}
-                exchange.create_order(
-                    symbol=ccxt_symbol,
-                    type='stop_market',
-                    side=sl_side,
-                    amount=filled,
-                    params=sl_params,
-                )
-                result['sl_set'] = True
-                print(f"[MEXC] SL set @ {stop_loss}")
+                exchange.set_stop_loss(ccxt_symbol, stop_loss, params={'marginCoin': 'USDT', 'holdSide': direction.lower()})
+                ret['sl_set'] = True
+                print(f"[Bitget] SL set @ {stop_loss}", flush=True)
             except Exception as e:
-                print(f"[MEXC] SL failed: {e}")
-                result['sl_set'] = False
+                print(f"[Bitget] SL failed: {e}", flush=True)
 
-        if take_profit:
+        # Set take profit
+        if take_profit and take_profit > 0:
             try:
-                tp_side = 'sell' if direction == 'LONG' else 'buy'
-                tp_params = {'stopPrice': take_profit, 'reduceOnly': True}
-                exchange.create_order(
-                    symbol=ccxt_symbol,
-                    type='take_profit_market',
-                    side=tp_side,
-                    amount=filled,
-                    params=tp_params,
-                )
-                result['tp_set'] = True
-                print(f"[MEXC] TP set @ {take_profit}")
+                exchange.set_take_profit(ccxt_symbol, take_profit, params={'marginCoin': 'USDT', 'holdSide': direction.lower()})
+                ret['tp_set'] = True
+                print(f"[Bitget] TP set @ {take_profit}", flush=True)
             except Exception as e:
-                print(f"[MEXC] TP failed: {e}")
-                result['tp_set'] = False
+                print(f"[Bitget] TP failed: {e}", flush=True)
 
-        return result
+        return ret
 
     except Exception as e:
-        print(f"[MEXC] Order failed: {e}")
+        print(f"[Bitget] Order failed: {e}", flush=True)
         traceback.print_exc()
         return None
 
-def mexc_close_position(symbol, direction, amount=None):
-    """Close a position on MEXC"""
-    global exchange
-    if exchange is None:
-        return None
-
+def exchange_close_position(symbol, direction, amount=None, vol=None):
+    """Close a futures position on Bitget"""
     try:
-        sym = symbol.upper().replace('USDT', '').split('/')[0].split(':')[0]
-        ccxt_symbol = f"{sym}/USDT:USDT"
+        sym = symbol.upper().replace('/','').replace(':','').replace('_','')
+        if not sym.endswith('USDT'):
+            sym = sym + 'USDT'
+        base = sym.replace('USDT', '')
+        ccxt_symbol = f'{base}/USDT:USDT'
 
-        # If amount not specified, close entire position
+        # Get position amount if not provided
         if not amount:
             positions = exchange.fetch_positions([ccxt_symbol])
-            for pos in positions:
-                if float(pos.get('contracts', 0)) > 0:
-                    amount = float(pos['contracts'])
+            for p in positions:
+                p_side = p.get('side', '')
+                if (direction == 'LONG' and p_side == 'long') or (direction == 'SHORT' and p_side == 'short'):
+                    amount = abs(float(p.get('contracts', 0)))
                     break
-            if not amount:
-                print(f"[MEXC] No open position for {symbol}")
+            if not amount or amount <= 0:
+                print(f"[Bitget] No open position for {base} {direction}", flush=True)
                 return None
 
-        # Close by placing opposite order
+        # Close position
         side = 'sell' if direction == 'LONG' else 'buy'
-        order = exchange.create_order(
-            symbol=ccxt_symbol,
-            type='market',
-            side=side,
-            amount=amount,
-            params={'reduceOnly': True},
-        )
 
-        exit_price = float(order.get('average') or order.get('price') or 0)
-        print(f"[MEXC] Closed {direction} {symbol} @ {exit_price}")
+        print(f"[Bitget] Closing {direction} {base} qty={amount}", flush=True)
+        order = exchange.create_order(ccxt_symbol, 'market', side, amount, params={
+            'marginCoin': 'USDT',
+            'tradeSide': 'close',
+        })
+
+        exit_price = float(order.get('average', 0))
+        print(f"[Bitget] Closed {direction} {base} @ {exit_price}", flush=True)
+
         return {
-            'order_id': order.get('id'),
+            'order_id': str(order['id']),
             'exit_price': exit_price,
-            'filled': float(order.get('filled') or amount),
+            'filled': float(order.get('filled', amount)),
         }
 
     except Exception as e:
-        print(f"[MEXC] Close failed: {e}")
+        print(f"[Bitget] Close failed: {e}", flush=True)
         traceback.print_exc()
         return None
 
@@ -435,25 +404,28 @@ def parse_vip_signal(text):
     if alias_sym:
         result['symbol'] = alias_sym + 'USDT' if not alias_sym.endswith('USDT') else alias_sym
 
-    # Step 2: Extract symbol from English text (e.g. #BTC, ETHUSDT, $SOL)
+    # Step 2: Extract symbol from English text (e.g. BTC/USDT, #BTC, ETHUSDT, $SOL)
     if not result['symbol']:
-        sym_match = re.search(r'[#\$]?([A-Z]{2,10})(USDT|/USDT)?', text.upper())
-        if sym_match:
-            sym = sym_match.group(1)
-            if sym in ('USDT', 'USD', 'THE', 'FOR', 'AND', 'NOT', 'ALL', 'BUT', 'VIP'):
-                sym = None
-            else:
-                result['symbol'] = sym + 'USDT' if not sym.endswith('USDT') else sym
+        # First try "XXX/USDT" format (most common in this group)
+        slash_match = re.search(r'([A-Z]{2,10})/USDT', text.upper())
+        if slash_match:
+            result['symbol'] = slash_match.group(1) + 'USDT'
+        else:
+            sym_match = re.search(r'[#\$]?([A-Z]{2,10})(USDT)?', text.upper())
+            if sym_match:
+                sym = sym_match.group(1)
+                skip = ('USDT', 'USD', 'THE', 'FOR', 'AND', 'NOT', 'ALL', 'BUT', 'VIP',
+                        'ENTRY', 'SL', 'TP', 'LONG', 'SHORT', 'BUY', 'SELL')
+                if sym not in skip:
+                    result['symbol'] = sym + 'USDT' if not sym.endswith('USDT') else sym
 
-    # Extract direction
+    # Extract direction — 🚀 = LONG, 👇 = SHORT in this group
     text_upper = text.upper()
-    if any(w in text for w in ['做多', '輕倉多', '轻仓多', '加多', '開多', '开多', '進多', '进多']) or \
-       any(w in text_upper for w in ['LONG', 'BUY']) or \
-       (re.search(r'(?<![做開开加輕轻進进])多(?!空)', text) and '做空' not in text):
+    if any(w in text for w in ['做多', '輕倉多', '轻仓多', '加多', '開多', '开多', '進多', '进多', '🚀']) or \
+       any(w in text_upper for w in ['LONG', 'BUY']):
         result['direction'] = 'LONG'
-    elif any(w in text for w in ['做空', '輕倉空', '轻仓空', '加空', '開空', '开空', '進空', '进空']) or \
-         any(w in text_upper for w in ['SHORT', 'SELL']) or \
-         (re.search(r'(?<![做開开加輕轻進进])空(?!多)', text) and '做多' not in text):
+    elif any(w in text for w in ['做空', '輕倉空', '轻仓空', '加空', '開空', '开空', '進空', '进空', '👇']) or \
+         any(w in text_upper for w in ['SHORT', 'SELL']):
         result['direction'] = 'SHORT'
 
     # Stop loss
@@ -508,6 +480,94 @@ def parse_vip_signal(text):
 
     return None
 
+# ===== Group TP Signal Detection =====
+
+def check_group_tp_signal(msg_text, msg_photo):
+    """Check if group owner posted a TP/profit message and close matching positions.
+    Triggers on: tp1/tp2/tp3, 止盈, 翻倍, X倍拿下, 止損 + matching coin name."""
+    text = msg_text.lower() if msg_text else ''
+
+    # TP keywords
+    tp_keywords = ['tp1', 'tp2', 'tp3', '止盈', '翻倍', '倍拿下', '拿下', '到了']
+    # SL keywords (group owner says stop loss)
+    sl_keywords = ['止損', '止损', '遺憾止損']
+
+    is_tp = any(k in text for k in tp_keywords)
+    is_sl = any(k in text for k in sl_keywords)
+
+    if not is_tp and not is_sl:
+        return
+
+    reason = 'group_tp' if is_tp else 'group_sl'
+    action = '止盈' if is_tp else '止损'
+
+    # Get open trades
+    conn = get_db()
+    open_trades = conn.execute('''
+        SELECT t.*, s.symbol as sig_symbol
+        FROM trades t JOIN signals s ON t.signal_id = s.id
+        WHERE t.status = 'open'
+    ''').fetchall()
+    conn.close()
+
+    if not open_trades:
+        return
+
+    # Try to match coin from message text
+    matched_trades = []
+    text_upper = (msg_text or '').upper()
+
+    for trade in open_trades:
+        symbol = trade['symbol'].upper().replace('USDT', '').replace('/', '').replace('_', '')
+        # Check if coin name appears in the message
+        if symbol in text_upper:
+            matched_trades.append(trade)
+
+    # If message has photo but no coin name in text, and only 1 open trade
+    # → likely about that trade (group owner often posts screenshot without coin name)
+    if not matched_trades and msg_photo and len(open_trades) == 1:
+        matched_trades = [open_trades[0]]
+        print(f"[Group TP] Photo with '{text[:30]}', matching only open trade: {open_trades[0]['symbol']}", flush=True)
+
+    # If message has coin-like text (e.g. #CFG, $BTC)
+    if not matched_trades:
+        for trade in open_trades:
+            symbol = trade['symbol'].upper().replace('USDT', '').replace('/', '').replace('_', '')
+            if f'#{symbol}' in text_upper or f'${symbol}' in text_upper:
+                matched_trades.append(trade)
+
+    for trade in matched_trades:
+        print(f"[Group TP] Group owner {action}! Closing {trade['symbol']} {trade['direction']}", flush=True)
+        price = get_exchange_price(trade['symbol'])
+        if price:
+            close_trade(trade['id'], price, reason)
+            add_log(f"群主{action}: {trade['symbol']} {trade['direction']} → 自动平仓")
+
+            # Send TG notification
+            try:
+                entry = trade['entry_price']
+                lev = trade['leverage'] or 20
+                direction = trade['direction']
+                if direction == 'LONG':
+                    pnl_pct = ((price - entry) / entry) * lev * 100
+                else:
+                    pnl_pct = ((entry - price) / entry) * lev * 100
+                pnl = trade['position_size'] * (pnl_pct / 100)
+
+                emoji = '🎯' if is_tp else '🛑'
+                msg = f"""{emoji} 群主{action} - 自动平仓
+━━━━━━━━━━━━━━━
+💰 {trade['symbol']} {direction}
+📍 入场: {entry}
+📍 平仓: {price}
+📊 ROI: {pnl_pct:+.1f}%
+💵 盈亏: {pnl:+.2f} USDT
+🔧 杠杆: {lev}x
+📝 群消息: {(msg_text or '')[:50]}"""
+                send_tg_notification(msg)
+            except Exception as e:
+                print(f"[Group TP] Notification error: {e}", flush=True)
+
 # ===== Auto Trade Logic =====
 
 def auto_open_trade(signal_id):
@@ -537,10 +597,34 @@ def auto_open_trade(signal_id):
             return False
 
         position_size = float(config.get('position_size_usdt', 200))
-        leverage = signal['leverage'] or int(config.get('default_leverage', 10))
+
+        # Dynamic leverage based on SL distance (like the group owner's strategy)
+        # SL < 1% → 100x, SL 1-2% → 75x, SL 2-3% → 50x, SL 3-5% → 30x, SL > 5% → 20x
+        entry_price = signal['entry_price']
+        sl_price = signal['stop_loss']
+        if entry_price and sl_price and entry_price > 0:
+            sl_dist_pct = abs(entry_price - sl_price) / entry_price * 100
+            if sl_dist_pct < 1:
+                leverage = 100
+            elif sl_dist_pct < 2:
+                leverage = 75
+            elif sl_dist_pct < 3:
+                leverage = 50
+            elif sl_dist_pct < 5:
+                leverage = 30
+            else:
+                leverage = 20
+            # Ensure -20% ROI hard stop won't liquidate: leverage * sl_dist < 50%
+            max_safe_lev = int(50 / sl_dist_pct) if sl_dist_pct > 0 else 100
+            leverage = min(leverage, max_safe_lev, MAX_LEVERAGE)
+            leverage = max(leverage, MIN_LEVERAGE)
+            print(f"[Auto-Trade] Dynamic leverage: SL dist={sl_dist_pct:.2f}% → {leverage}x", flush=True)
+        else:
+            leverage = signal['leverage'] or int(config.get('default_leverage', 20))
+            leverage = max(min(leverage, MAX_LEVERAGE), MIN_LEVERAGE)
 
         # Open on MEXC
-        order_result = mexc_open_order(
+        order_result = exchange_open_order(
             symbol=signal['symbol'],
             direction=signal['direction'],
             leverage=leverage,
@@ -605,16 +689,28 @@ def position_monitor():
 
             for trade in open_trades:
                 symbol = trade['symbol']
-                price = get_mexc_price(symbol)
+                price = get_exchange_price(symbol)
                 if price is None:
                     continue
 
                 direction = trade['direction']
                 sl = trade['stop_loss']
                 tp = trade['take_profit']
+                entry = trade['entry_price']
+                leverage = trade['leverage'] or 20
                 close_reason = None
 
-                if sl and direction == 'LONG' and price <= sl:
+                # Calculate current ROI %
+                if direction == 'LONG':
+                    roi_pct = ((price - entry) / entry) * leverage * 100
+                else:
+                    roi_pct = ((entry - price) / entry) * leverage * 100
+
+                # Hard stop: -20% ROI
+                if roi_pct <= -20:
+                    close_reason = 'hard_sl_-20%'
+                    print(f"[Monitor] {symbol} {direction} ROI={roi_pct:.1f}% <= -20%, hard stop!", flush=True)
+                elif sl and direction == 'LONG' and price <= sl:
                     close_reason = 'sl'
                 elif sl and direction == 'SHORT' and price >= sl:
                     close_reason = 'sl'
@@ -640,7 +736,7 @@ def close_trade(trade_id, exit_price, reason):
         return None
 
     # Close on MEXC
-    close_result = mexc_close_position(trade['symbol'], trade['direction'], trade['amount'])
+    close_result = exchange_close_position(trade['symbol'], trade['direction'], trade['amount'])
 
     if close_result:
         exit_price = close_result['exit_price'] or exit_price
@@ -712,7 +808,7 @@ def send_tg_notification(signal, raw_message=None, trade_info=None):
         sym = signal['symbol'].replace('USDT', '/USDT')
         now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
-        price = get_mexc_price(signal['symbol'])
+        price = get_exchange_price(signal['symbol'])
         price_str = f"<code>{price}</code>" if price else "获取失败"
 
         entry = signal.get('entry_price')
@@ -812,14 +908,16 @@ def is_vip_signal(text):
                 '做多', '做空', 'LONG', 'SHORT', '開多', '開空', '开多', '开空']
     text_lower = text.lower()
     # Must contain at least direction + some price info to be a signal
-    has_direction = any(w in text for w in ['做多', '做空', '開多', '開空', '开多', '开空']) or \
+    # 🚀 = LONG, 👇 = SHORT in this group's format
+    has_direction = any(w in text for w in ['做多', '做空', '開多', '開空', '开多', '开空', '🚀', '👇']) or \
                    any(w in text.upper() for w in ['LONG', 'SHORT'])
     has_price = bool(re.search(r'\d+\.?\d*', text))
-    return has_direction and has_price
+    has_entry = 'ENTRY' in text.upper() or '入場' in text or '入场' in text or '市價' in text or '市价' in text
+    return has_direction and has_price and has_entry
 
 def start_telegram_listener():
     """Start Telethon client on the persistent event loop"""
-    print("[Telegram] Starting listener...")
+    print("[Telegram] Starting listener...", flush=True)
     loop = get_tg_loop()
     future = asyncio.run_coroutine_threadsafe(_run_telegram_listener(), loop)
     # Log if future fails
@@ -827,26 +925,34 @@ def start_telegram_listener():
         try:
             f.result()
         except Exception as e:
-            print(f"[Telegram] Listener crashed: {e}")
+            import traceback
+            print(f"[Telegram] Listener crashed: {e}", flush=True)
+            traceback.print_exc()
     future.add_done_callback(_on_done)
+    # Wait briefly to catch immediate errors
+    import time
+    time.sleep(2)
+    print(f"[Telegram] Listener future state: {future.done()}, tg_status={tg_status}", flush=True)
 
 async def _run_telegram_listener():
     global tg_client, tg_status
     from telethon import TelegramClient, events
+    import sys
     try:
-        print("[Telegram] Connecting...")
+        print("[Telegram] Connecting...", flush=True)
         tg_client = TelegramClient(TG_SESSION_PATH, TG_API_ID, TG_API_HASH)
         await tg_client.connect()
 
         if not await tg_client.is_user_authorized():
             tg_status['error'] = 'Not authenticated. Use /api/telegram/auth to login.'
             tg_status['connected'] = False
+            print("[Telegram] Not authorized!", flush=True)
             return
 
         me = await tg_client.get_me()
         tg_status['connected'] = True
         tg_status['error'] = None
-        print(f"[Telegram] Connected as {me.first_name} ({me.phone})")
+        print(f"[Telegram] Connected as {me.first_name} ({me.phone})", flush=True)
 
         # Find the group
         target = None
@@ -860,20 +966,25 @@ async def _run_telegram_listener():
                 target = await tg_client.get_entity(TG_GROUP)
             except:
                 tg_status['error'] = f'Cannot find group: {TG_GROUP}'
-                print(f"[Telegram] Cannot find group: {TG_GROUP}")
+                print(f"[Telegram] Cannot find group: {TG_GROUP}", flush=True)
 
         if target:
             tg_status['listening'] = True
             tg_status['group_name'] = getattr(target, 'title', TG_GROUP)
-            print(f"[Telegram] Listening to: {tg_status['group_name']} (filtering: {SIGNAL_CATEGORY})")
+            print(f"[Telegram] Listening to: {tg_status['group_name']}", flush=True)
 
             @tg_client.on(events.NewMessage(chats=target))
             async def handler(event):
-                msg_text = event.message.text
+                msg_text = event.message.text or ''
+                tg_status['last_message'] = msg_text[:100] if msg_text else '(photo)'
+                if msg_text:
+                    print(f"[TG Message] {msg_text[:80]}", flush=True)
+
+                # Check if this is a TP/close signal from group owner
+                check_group_tp_signal(msg_text, event.message.photo)
+
                 if not msg_text:
                     return
-                tg_status['last_message'] = msg_text[:100]
-                print(f"[TG Message] {msg_text[:80]}")
 
                 # Filter: only process messages that look like trading signals
                 if not is_vip_signal(msg_text):
@@ -881,7 +992,7 @@ async def _run_telegram_listener():
 
                 signal = parse_vip_signal(msg_text)
                 if signal:
-                    print(f"[VIP Signal] Parsed: {signal['symbol']} {signal['direction']}")
+                    print(f"[VIP Signal] Parsed: {signal['symbol']} {signal['direction']}", flush=True)
                     msg_time = event.message.date.strftime('%Y-%m-%d %H:%M:%S') if event.message.date else None
 
                     conn = get_db()
@@ -912,7 +1023,7 @@ async def _run_telegram_listener():
                             trade_info = {'size': round(t['position_size'], 2)}
                         c2.close()
                     else:
-                        print(f"[VIP Signal] Auto-trade failed for {signal['symbol']}, stays pending")
+                        print(f"[VIP Signal] Auto-trade failed for {signal['symbol']}, stays pending", flush=True)
 
                     # Telegram notification
                     threading.Thread(target=send_tg_notification, args=(signal, msg_text, trade_info), daemon=True).start()
@@ -922,7 +1033,9 @@ async def _run_telegram_listener():
     except Exception as e:
         tg_status['error'] = str(e)
         tg_status['connected'] = False
-        print(f"[Telegram Error] {e}")
+        import traceback
+        print(f"[Telegram Error] {e}", flush=True)
+        traceback.print_exc()
 
 # ===== Telegram Auth API =====
 
@@ -996,7 +1109,7 @@ def api_tg_verify_code():
 
 @app.route('/api/stats')
 def api_stats():
-    bal = get_mexc_balance()
+    bal = get_exchange_balance()
     conn = get_db()
     closed = conn.execute('SELECT COUNT(*) as cnt, COALESCE(SUM(pnl),0) as total_pnl, COALESCE(SUM(fees),0) as total_fees FROM trades WHERE status=?', ('closed',)).fetchone()
     wins = conn.execute('SELECT COUNT(*) as cnt FROM trades WHERE status=? AND pnl > 0', ('closed',)).fetchone()
@@ -1086,7 +1199,7 @@ def api_close_signal(sid):
         conn.close()
         return jsonify({'error': 'No open trade for this signal'}), 404
     conn.close()
-    price = get_mexc_price(trade['symbol'])
+    price = get_exchange_price(trade['symbol'])
     if price is None:
         return jsonify({'error': 'Cannot get price'}), 500
     result = close_trade(trade['id'], price, 'manual')
@@ -1131,7 +1244,7 @@ def api_positions():
     result = []
     for t in trades:
         td = dict(t)
-        price = get_mexc_price(t['symbol'])
+        price = get_exchange_price(t['symbol'])
         if price:
             entry = t['entry_price']
             direction = t['direction']
@@ -1176,11 +1289,11 @@ def api_logs():
 
 @app.route('/api/exchange/status')
 def api_exchange_status():
-    bal = get_mexc_balance()
+    bal = get_exchange_balance()
     return jsonify({
         'connected': exchange is not None,
         'balance': bal,
-        'api_key_set': bool(MEXC_API_KEY),
+        'api_key_set': bool(EXCHANGE_API_KEY),
     })
 
 @app.route('/api/aliases', methods=['GET'])
@@ -1222,7 +1335,7 @@ PAGE_HTML = r'''<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MEXC Signal Trader</title>
+<title>Signal Trader (Bitget)</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -1337,9 +1450,9 @@ tr:hover { background: rgba(245,158,11,0.04); }
 <body>
 <div class="container">
     <div class="header">
-        <h1>MEXC Signal Trader</h1>
+        <h1>Signal Trader (Bitget)</h1>
         <div class="header-right">
-            <div id="exchangeBadge" class="exchange-badge disconnected">MEXC: 未连接</div>
+            <div id="exchangeBadge" class="exchange-badge disconnected">Bitget: 未连接</div>
             <div id="tgBadge" class="exchange-badge disconnected">TG: 未连接</div>
         </div>
     </div>
@@ -1461,8 +1574,8 @@ async function loadStats() {
     document.getElementById('statPositionsSub').textContent = '待处理: ' + s.pending_signals;
 
     const eb = document.getElementById('exchangeBadge');
-    if (s.exchange_connected) { eb.className='exchange-badge connected'; eb.textContent='MEXC: 已连接'; }
-    else { eb.className='exchange-badge disconnected'; eb.textContent='MEXC: 未连接'; }
+    if (s.exchange_connected) { eb.className='exchange-badge connected'; eb.textContent='Bitget: 已连接'; }
+    else { eb.className='exchange-badge disconnected'; eb.textContent='Bitget: 未连接'; }
 }
 
 async function loadPositions() {
@@ -1651,7 +1764,7 @@ setInterval(loadPnlChart, 60000);
 
 if __name__ == '__main__':
     print("=" * 50)
-    print("  MEXC Signal Trader - vip點位策略")
+    print("  Signal Trader (Bitget) - vip點位策略")
     print("=" * 50)
 
     init_db()
@@ -1661,7 +1774,7 @@ if __name__ == '__main__':
     if init_exchange():
         print("[MEXC] Exchange ready")
     else:
-        print("[MEXC] Exchange not connected - set MEXC_API_KEY and MEXC_API_SECRET env vars")
+        print("[Bitget] Exchange not connected - set EXCHANGE_API_KEY and EXCHANGE_API_SECRET env vars")
 
     # Start position monitor
     monitor_thread = threading.Thread(target=position_monitor, daemon=True)

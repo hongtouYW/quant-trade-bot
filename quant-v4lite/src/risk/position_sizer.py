@@ -56,16 +56,21 @@ class PositionSizer:
 
         # 上限检查
         max_single = risk_cfg.get('max_single_margin_pct', 5.0) / 100
-        min_margin_pct = 0.01  # 最低 1% 本金
+        min_margin = risk_cfg.get('min_margin', 100.0)  # 最低保证金
 
         if margin > balance * max_single:
             margin = balance * max_single
             notional = margin * leverage
             quantity = notional / signal.entry_price
 
-        if margin < balance * min_margin_pct:
-            logger.debug(f"Margin too small: {margin:.2f} < {balance * min_margin_pct:.2f}")
-            return None
+        # 保证金不足则提升到最低值
+        if margin < min_margin:
+            if min_margin > balance * max_single:
+                logger.debug(f"Min margin {min_margin:.0f}U > max allowed {balance * max_single:.0f}U, skip")
+                return None
+            margin = min_margin
+            notional = margin * leverage
+            quantity = notional / signal.entry_price
 
         return PositionSize(
             margin=margin,

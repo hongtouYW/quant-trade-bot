@@ -32,27 +32,35 @@ class PositionSizer:
         # Size in base currency
         size = notional / signal.entry_price
 
-        # Checks
+        # 最小保证金检查: 不足则放大到最小值
+        min_margin = self._cfg.get('min_margin', 100)
+        if margin < min_margin:
+            ratio = min_margin / margin
+            notional *= ratio
+            margin *= ratio
+            size *= ratio
+            log.info(f"保证金放大到{min_margin}U: {signal.symbol} ratio={ratio:.2f}")
+
+        # Max notional cap (30% equity)
         max_margin_pct = get('account', 'max_margin_usage_pct', 0.90)
+        if notional > equity * 0.30 * leverage:
+            notional = equity * 0.30 * leverage
+            margin = notional / leverage
+            size = notional / signal.entry_price
+
+        # Scale down if single position margin too large
         if margin > equity * max_margin_pct * 0.3:
-            # Scale down
             ratio = (equity * max_margin_pct * 0.3) / margin
             notional *= ratio
             margin *= ratio
             size *= ratio
             log.info(f"Position scaled down by {ratio:.2f} for {signal.symbol}")
 
-        # Max notional check
-        if notional > equity * 0.30 * leverage:
-            notional = equity * 0.30 * leverage
-            margin = notional / leverage
-            size = notional / signal.entry_price
-
         if size <= 0:
             return None
 
-        # 最小下单量检查 (Spec §13.4)
-        min_notional = 5.0  # Binance USDT永续最小名义值5U
+        # 最小名义值检查
+        min_notional = self._cfg.get('min_notional', 5)
         if notional < min_notional:
             log.info(f"仓位过小 {signal.symbol}: notional={notional:.2f} < {min_notional}")
             return None

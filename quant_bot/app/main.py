@@ -53,6 +53,7 @@ class QuantBot:
         self.start_time = None
         self.logs = []
         self._max_logs = 500
+        self._notified_reasons = set()  # 已通知的风控原因，避免重复发TG
 
         # 初始化组件
         api_key = os.environ.get('BINANCE_API_KEY', '')
@@ -138,6 +139,10 @@ class QuantBot:
             self._send_heartbeat()
             self.last_heartbeat = now
 
+        # 跨天重置通知标记
+        if date.today() != self.risk_engine.current_date:
+            self._notified_reasons.clear()
+
         # 每日报告 (UTC 23:55 发送)
         utc_hour = datetime.utcnow().hour
         utc_min = datetime.utcnow().minute
@@ -197,8 +202,13 @@ class QuantBot:
         if not can_open:
             if self.cycle_count % 20 == 0:
                 self._log('info', f"禁止开仓: {reason}")
-            if 'daily_loss' in reason:
-                notifier.notify_risk_event("日亏损限制触发", f"原因: {reason}")
+            # 风控事件只通知一次，不重复发TG
+            if reason not in self._notified_reasons:
+                self._notified_reasons.add(reason)
+                if 'daily_loss' in reason:
+                    notifier.notify_risk_event("日亏损限制触发", f"原因: {reason}")
+                elif '5_consecutive' in reason:
+                    notifier.notify_risk_event("连续5亏停止交易", f"原因: {reason}")
             return
 
         if not in_schedule:
