@@ -214,7 +214,7 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         return None
 
 def exchange_close_position(symbol, direction, amount=None, vol=None):
-    """Close a futures position on Bitget"""
+    """Close a futures position on Bitget using flash close API"""
     try:
         sym = symbol.upper().replace('/','').replace(':','').replace('_','')
         if not sym.endswith('USDT'):
@@ -222,35 +222,33 @@ def exchange_close_position(symbol, direction, amount=None, vol=None):
         base = sym.replace('USDT', '')
         ccxt_symbol = f'{base}/USDT:USDT'
 
-        # Get position amount if not provided
-        if not amount:
-            positions = exchange.fetch_positions([ccxt_symbol])
-            for p in positions:
-                p_side = p.get('side', '')
-                if (direction == 'LONG' and p_side == 'long') or (direction == 'SHORT' and p_side == 'short'):
-                    amount = abs(float(p.get('contracts', 0)))
-                    break
-            if not amount or amount <= 0:
-                print(f"[Bitget] No open position for {base} {direction}", flush=True)
-                return None
+        hold_side = 'long' if direction == 'LONG' else 'short'
 
-        # Close position
-        side = 'sell' if direction == 'LONG' else 'buy'
+        # Get current price before close
+        ticker = exchange.fetch_ticker(ccxt_symbol)
+        current_price = float(ticker['last'])
 
-        print(f"[Bitget] Closing {direction} {base} qty={amount}", flush=True)
-        order = exchange.create_order(ccxt_symbol, 'market', side, amount, params={
-            'marginCoin': 'USDT',
-            'tradeSide': 'close',
+        print(f"[Bitget] Flash closing {direction} {base} @ ~{current_price}", flush=True)
+
+        # Use Bitget flash close API (works reliably)
+        result = exchange.private_mix_post_v2_mix_order_close_positions({
+            'symbol': sym,
+            'productType': 'USDT-FUTURES',
+            'holdSide': hold_side,
         })
 
-        exit_price = float(order.get('average', 0))
-        print(f"[Bitget] Closed {direction} {base} @ {exit_price}", flush=True)
-
-        return {
-            'order_id': str(order['id']),
-            'exit_price': exit_price,
-            'filled': float(order.get('filled', amount)),
-        }
+        if result.get('code') == '00000':
+            success = result.get('data', {}).get('successList', [])
+            order_id = success[0].get('orderId', '') if success else ''
+            print(f"[Bitget] Closed {direction} {base} @ ~{current_price}", flush=True)
+            return {
+                'order_id': str(order_id),
+                'exit_price': current_price,
+                'filled': amount or 0,
+            }
+        else:
+            print(f"[Bitget] Flash close failed: {result}", flush=True)
+            return None
 
     except Exception as e:
         print(f"[Bitget] Close failed: {e}", flush=True)
@@ -406,12 +404,12 @@ def parse_vip_signal(text):
 
     # Step 2: Extract symbol from English text (e.g. BTC/USDT, #BTC, ETHUSDT, $SOL)
     if not result['symbol']:
-        # First try "XXX/USDT" format (most common in this group)
-        slash_match = re.search(r'([A-Z]{2,10})/USDT', text.upper())
+        # First try "XXX/USDT" format, including numeric prefixes like 1000RATS/USDT
+        slash_match = re.search(r'(\d*[A-Z]{2,10})/USDT', text.upper())
         if slash_match:
             result['symbol'] = slash_match.group(1) + 'USDT'
         else:
-            sym_match = re.search(r'[#\$]?([A-Z]{2,10})(USDT)?', text.upper())
+            sym_match = re.search(r'[#\$]?(\d*[A-Z]{2,10})(USDT)?', text.upper())
             if sym_match:
                 sym = sym_match.group(1)
                 skip = ('USDT', 'USD', 'THE', 'FOR', 'AND', 'NOT', 'ALL', 'BUT', 'VIP',
@@ -488,7 +486,7 @@ def check_group_tp_signal(msg_text, msg_photo):
     text = msg_text.lower() if msg_text else ''
 
     # TP keywords
-    tp_keywords = ['tp1', 'tp2', 'tp3', '止盈', '翻倍', '倍拿下', '拿下', '到了']
+    tp_keywords = ['tp1', 'tp2', 'tp3', '止盈', '翻倍', '倍拿下', '拿下', '到了', '減倉', '减仓', '套保']
     # SL keywords (group owner says stop loss)
     sl_keywords = ['止損', '止损', '遺憾止損']
 
@@ -725,7 +723,7 @@ def position_monitor():
         except Exception as e:
             print(f"[Monitor Error] {e}")
 
-        time.sleep(30)
+        time.sleep(5)
 
 def close_trade(trade_id, exit_price, reason):
     """Close a trade and record PnL"""
@@ -735,11 +733,17 @@ def close_trade(trade_id, exit_price, reason):
         conn.close()
         return None
 
-    # Close on MEXC
+    # Close on exchange
     close_result = exchange_close_position(trade['symbol'], trade['direction'], trade['amount'])
 
-    if close_result:
-        exit_price = close_result['exit_price'] or exit_price
+    if not close_result:
+        print(f"[Close] Exchange close failed for {trade['symbol']}, trade stays open", flush=True)
+        add_log(f"平仓失败: {trade['symbol']} {trade['direction']} (reason={reason})", 'ERROR')
+        conn.close()
+        return None
+
+    if close_result.get('exit_price'):
+        exit_price = close_result['exit_price']
 
     now = datetime.now(timezone.utc).isoformat()
     entry = trade['entry_price']
@@ -814,7 +818,7 @@ def send_tg_notification(signal, raw_message=None, trade_info=None):
         entry = signal.get('entry_price')
         entry_str = f"<code>{entry}</code>" if entry else price_str
 
-        text = f"📡 <b>MEXC · 新信号开仓</b>\n"
+        text = f"📡 <b>vip點位策略 · 新信号开仓</b>\n"
         text += f"━━━━━━━━━━━━━━━\n"
         text += f"💰 货币: <b>{sym}</b>\n"
         text += f"📊 方向: <b>{direction_emoji}</b>\n"
@@ -824,14 +828,14 @@ def send_tg_notification(signal, raw_message=None, trade_info=None):
             text += f"🛑 止损: <code>{signal['stop_loss']}</code>\n"
         if signal.get('take_profit'):
             text += f"✅ 止盈: <code>{signal['take_profit']}</code>\n"
-        text += f"⚡ 杠杆: <code>{signal.get('leverage') or 10}x</code>\n"
+        text += f"⚡ 杠杆: <code>{signal.get('leverage') or 20}x</code>\n"
         text += f"🕐 时间: <code>{now_str}</code>\n"
 
         if trade_info:
             text += f"💵 保证金: <code>{trade_info.get('size', '—')} USDT</code>\n"
 
         text += f"━━━━━━━━━━━━━━━\n"
-        text += f"🏦 交易所: <b>MEXC (实盘)</b>\n"
+        text += f"🏦 交易所: <b>Bitget (实盘)</b>\n"
 
         if raw_message:
             raw_short = raw_message[:300].replace('<', '&lt;').replace('>', '&gt;')
@@ -858,11 +862,11 @@ def send_tg_close_notification(trade, reason, pnl_info):
         now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
         if reason == 'tp':
-            header = '✅ <b>MEXC · 止盈平仓</b>'
+            header = '✅ <b>vip點位策略 · 止盈平仓</b>'
         elif reason == 'sl':
-            header = '🛑 <b>MEXC · 止损平仓</b>'
+            header = '🛑 <b>vip點位策略 · 止损平仓</b>'
         else:
-            header = '📤 <b>MEXC · 手动平仓</b>'
+            header = '📤 <b>vip點位策略 · 手动平仓</b>'
 
         pnl = pnl_info.get('pnl', 0)
         pnl_pct = pnl_info.get('pnl_pct', 0)
@@ -881,7 +885,7 @@ def send_tg_close_notification(trade, reason, pnl_info):
         text += f"{pnl_emoji} 盈亏: <code>{pnl:+.2f} USDT ({pnl_pct:+.2f}%)</code>\n"
         text += f"💸 手续费: <code>{fees:.2f} USDT</code>\n"
         text += f"🕐 时间: <code>{now_str}</code>\n"
-        text += f"🏦 交易所: <b>MEXC (实盘)</b>\n"
+        text += f"🏦 交易所: <b>Bitget (实盘)</b>\n"
 
         url = f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage'
         resp = requests.post(url, json={

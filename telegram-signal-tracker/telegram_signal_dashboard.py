@@ -888,6 +888,8 @@ def send_tg_close_notification(trade, reason, pnl_info):
             header = '✅ <b>止盈平仓</b>'
         elif reason == 'sl':
             header = '🛑 <b>止损平仓</b>'
+        elif reason == 'signal_close':
+            header = '📡 <b>信号平仓</b>'
         else:
             header = '📤 <b>手动平仓</b>'
 
@@ -974,6 +976,54 @@ async def _run_telegram_listener():
                     return
                 tg_status['last_message'] = msg_text[:100]
                 print(f"[TG Message] {msg_text[:80]}")
+
+                # Check for close/reduce position keywords
+                close_keywords = ['減倉', '减仓', '平倉', '平仓', '止盈出', '全平', '清倉', '清仓', '出場', '出场', '跑了', '收手', '離場', '离场']
+                is_close_msg = any(kw in msg_text for kw in close_keywords)
+                if is_close_msg:
+                    # Try to find which symbol to close
+                    symbol_from_alias, _ = resolve_symbol_alias(msg_text)
+                    symbol_from_regex = None
+                    sym_match = re.search(r'[#\$]?([A-Z]{2,10})(USDT|/USDT)?', msg_text.upper())
+                    if sym_match:
+                        s = sym_match.group(1)
+                        if s not in ('USDT', 'USD', 'THE', 'FOR', 'AND', 'NOT', 'ALL', 'BUT'):
+                            symbol_from_regex = s + 'USDT' if not s.endswith('USDT') else s
+
+                    target_symbol = (symbol_from_alias + 'USDT' if symbol_from_alias and not symbol_from_alias.endswith('USDT') else symbol_from_alias) or symbol_from_regex
+
+                    conn = get_db()
+                    if target_symbol:
+                        # Close specific symbol
+                        open_trades = conn.execute('SELECT t.*, s.raw_message FROM trades t JOIN signals s ON t.signal_id=s.id WHERE t.symbol=? AND t.status=?', (target_symbol, 'open')).fetchall()
+                    else:
+                        # No symbol found — close all open trades
+                        open_trades = conn.execute('SELECT t.*, s.raw_message FROM trades t JOIN signals s ON t.signal_id=s.id WHERE t.status=?', ('open',)).fetchall()
+                    conn.close()
+
+                    closed_count = 0
+                    for ot in open_trades:
+                        price = get_binance_price(ot['symbol'])
+                        if price:
+                            result = close_trade(ot['id'], price, 'signal_close')
+                            if result:
+                                closed_count += 1
+                                print(f"[TG Close] Auto-closed {ot['symbol']} {ot['direction']} via signal, PnL: {result['pnl']:.2f}U")
+                    if closed_count > 0:
+                        # Send close summary to group
+                        sym_display = target_symbol.replace('USDT', '/USDT') if target_symbol else '全部持仓'
+                        close_text = f"📤 <b>信号平仓</b>\n━━━━━━━━━━━━━━━\n"
+                        close_text += f"💬 触发词: <code>{msg_text[:100]}</code>\n"
+                        close_text += f"📊 平仓: <b>{sym_display}</b> x{closed_count}笔\n"
+                        threading.Thread(target=lambda: requests.post(
+                            f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage',
+                            json={'chat_id': TG_CHAT_ID, 'text': close_text, 'parse_mode': 'HTML'}, timeout=10
+                        ), daemon=True).start()
+                    elif open_trades:
+                        print(f"[TG Close] Found {len(open_trades)} trades but failed to close")
+                    else:
+                        print(f"[TG Close] No open trades to close for: {msg_text[:50]}")
+                    return
 
                 signal = parse_signal_message(msg_text)
                 if signal:

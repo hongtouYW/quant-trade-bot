@@ -11,6 +11,48 @@ github:
       # 代码评估推送到 "AI JAV - 开发" 群
       review_chat_id: "-1002579255890"
 
+    - owner: "yelangawei"
+      repo: "newav-frontend"
+      deploy_server: ""
+      review_chat_id: "-1002579255890"
+
+    - owner: "yelangawei"
+      repo: "newav-api"
+      deploy_server: ""
+      review_chat_id: "-1002579255890"
+
+    - owner: "yelangawei"
+      repo: "newav-backend"
+      deploy_server: ""
+      review_chat_id: "-1002579255890"
+
+    # INS-AV 项目 → INS-AV（运营）群
+    - owner: "yelangawei"
+      repo: "grab_back"
+      deploy_server: ""
+      review_chat_id: "-1001879651844"
+
+    - owner: "yelangawei"
+      repo: "ins-api"
+      deploy_server: ""
+      review_chat_id: "-1001879651844"
+
+    - owner: "yelangawei"
+      repo: "ins_front"
+      deploy_server: ""
+      review_chat_id: "-1001879651844"
+
+    # 禁漫18项目 → ins-禁漫18群
+    - owner: "yelangawei"
+      repo: "18toon"
+      deploy_server: ""
+      review_chat_id: "-1002029132916"
+
+    - owner: "yelangawei"
+      repo: "multilang-comic-front"
+      deploy_server: ""
+      review_chat_id: "-1002029132916"
+
   # 监控的用户 (留空则监控所有贡献者)
   watch_users:
     - "hogntouyw"
