@@ -193,7 +193,7 @@ logging:
 
 alerts:
   telegram:
-    enabled: true
+    enabled: false
     bot_token: "${TELEGRAM_BOT_TOKEN}"
     chat_id: "${TELEGRAM_CHAT_ID}"
     notify_on: [trade_open, trade_close, daily_report, risk_alert, error]

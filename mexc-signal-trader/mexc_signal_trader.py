@@ -163,6 +163,34 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         # Round to market precision
         qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
 
+        # Check max position size from exchange
+        try:
+            market = exchange.market(ccxt_symbol)
+            max_amt = market.get('limits', {}).get('amount', {}).get('max')
+            if max_amt and qty > max_amt:
+                print(f"[Bitget] qty {qty} > max {max_amt}, capping", flush=True)
+                qty = float(exchange.amount_to_precision(ccxt_symbol, max_amt * 0.95))
+        except:
+            pass
+
+        # Check contract maxPositionNum, reduce size if needed
+        try:
+            sym_clean = sym.replace('/', '').replace(':','')
+            info = requests.get(f'https://api.bitget.com/api/v2/mix/market/contracts?productType=USDT-FUTURES&symbol={sym_clean}', timeout=5).json()
+            if info.get('data'):
+                max_pos = float(info['data'][0].get('maxPositionNum', 999999))
+                if qty > max_pos:
+                    # Reduce to 100U margin for small coins
+                    small_size = 100
+                    qty = (small_size * lev) / current_price
+                    qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
+                    if qty > max_pos:
+                        qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos * 0.9))
+                    position_size_usdt = small_size
+                    print(f"[Bitget] Small coin, reduced to {small_size}U margin, qty={qty}", flush=True)
+        except:
+            pass
+
         # Open position
         side = 'buy' if direction == 'LONG' else 'sell'
 

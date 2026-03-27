@@ -111,8 +111,7 @@ def notify_cooldown(symbol, minutes, reason):
 
 
 def notify_profit_guard(pnl_pct):
-    msg = f"<b>🛡️ 盈利保护</b>\n当日收益达 {pnl_pct:.2f}%\n已限制开仓等级为A级"
-    send_telegram(msg)
+    pass  # 不发盈利保护通知
 
 
 def notify_stop_failed(symbol, stop_price):

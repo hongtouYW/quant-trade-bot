@@ -49,9 +49,7 @@ class RiskControl:
         if self._daily_pnl / self._initial_balance <= -daily_loss_limit:
             return False, f"daily_loss_limit: {self._daily_pnl:.2f}U"
 
-        daily_profit_hard = self._config.get('daily_profit_hard_stop_pct', 8.0) / 100
-        if self._daily_pnl / self._initial_balance >= daily_profit_hard:
-            return False, f"daily_profit_hard_stop: {self._daily_pnl:.2f}U"
+        # 日盈利保护: 不停机，通过 get_risk_scale() 降频
 
         max_consecutive = self._config.get('max_consecutive_losses', 5)
         if self._consecutive_losses >= max_consecutive:
@@ -103,9 +101,7 @@ class RiskControl:
         if daily_pct <= -0.01:
             return 0.5
 
-        daily_profit_target = self._config.get('daily_profit_target_pct', 5.0) / 100
-        if daily_pct >= daily_profit_target:
-            return 0.5
+        # 盈利不降频，全天满仓交易
 
         # 周亏损减仓
         weekly_pct = self._weekly_pnl / self._initial_balance

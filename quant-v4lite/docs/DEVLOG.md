@@ -4,6 +4,28 @@
 
 ---
 
+## 2026-03-27
+
+### 调整: 最低保证金 100U
+- `src/risk/position_sizer.py` 最低保证金从 `balance*1%=20U` 改为固定 100U
+- 不足 100U 自动提升，超过 max_single_margin_pct 则跳过
+
+### 调整: 移除盈利保护停机
+- `src/risk/risk_control.py` 移除 `daily_profit_hard_stop` 停机逻辑
+- 移除 `daily_profit_target` 降频逻辑，全天满仓不限制
+
+### 调整: 关闭 Telegram 通知
+- `config/config.yaml` telegram enabled: false
+
+### 分析: 策略评估
+- 缓存修复后41笔交易，胜率36.6%，净亏-58.45U
+- 主要问题：止损太快(入场后几分钟触发)、手续费占利润比过高
+- funding_arbitrage 6笔仅赢2笔(-17.85U)，volatility_breakout 3笔全亏(-15.46U)
+- mean_reversion 毛利+0.60U 但手续费-25.74U
+- 所有交易 confidence=0，信号质量过滤形同虚设
+
+---
+
 ## 2026-03-25
 
 ### 修复: K线缓存无过期 (严重bug)
