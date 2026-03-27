@@ -890,9 +890,15 @@ def send_tg_close_notification(trade, reason, pnl_info):
         now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
         if reason == 'tp':
-            header = '✅ <b>vip點位策略 · 止盈平仓</b>'
+            header = '✅ <b>vip點位策略 · 自动止盈</b>'
         elif reason == 'sl':
-            header = '🛑 <b>vip點位策略 · 止损平仓</b>'
+            header = '🛑 <b>vip點位策略 · 自动止损</b>'
+        elif reason == 'hard_sl_-20%':
+            header = '🛑 <b>vip點位策略 · 硬止损 -20% ROI</b>'
+        elif reason == 'group_tp':
+            header = '🎯 <b>vip點位策略 · 群主止盈</b>'
+        elif reason == 'group_sl':
+            header = '🛑 <b>vip點位策略 · 群主止损</b>'
         else:
             header = '📤 <b>vip點位策略 · 手动平仓</b>'
 
