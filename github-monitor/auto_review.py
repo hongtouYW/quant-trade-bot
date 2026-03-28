@@ -381,7 +381,8 @@ def send_telegram(bot_token, chat_id, text):
 
 def run_review(config, repo_cfg, chat_id=None):
     """对单个仓库执行评估"""
-    token = config["github"]["token"]
+    # 支持 per-repo token，fallback 到全局 token
+    token = repo_cfg.get("token") or config["github"]["token"]
     bot_token = config["telegram"]["bot_token"]
     if not chat_id:
         chat_id = str(config["telegram"]["chat_id"])
@@ -428,6 +429,7 @@ def main():
     parser.add_argument("--now", action="store_true", help="立即执行评估")
     parser.add_argument("--repo", help="指定仓库 owner/repo")
     parser.add_argument("--chat-id", help="指定推送的 chat_id")
+    parser.add_argument("--token", help="指定 GitHub token")
     args = parser.parse_args()
 
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -437,6 +439,8 @@ def main():
         if args.repo:
             parts = args.repo.split("/")
             repo_cfg = {"owner": parts[0], "repo": parts[1]}
+            if args.token:
+                repo_cfg["token"] = args.token
             run_review(config, repo_cfg, args.chat_id)
         else:
             # 评估所有配置的仓库

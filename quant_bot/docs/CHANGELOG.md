@@ -1,7 +1,15 @@
 # QuantBot 开发日志 & 差异分析
 
 > 对比文档: `ultimate_quant_strategy_dev_spec.md` (vFinal)
-> 更新日期: 2026-03-25
+> 更新日期: 2026-03-27
+
+---
+
+## 2026-03-27
+
+### 调整: 关闭盈利保护 Telegram 通知
+- `app/monitoring/notifier.py` 的 `notify_profit_guard()` 改为 pass，不再发送"🛡️ 盈利保护"消息
+- quant-bot 其他通知功能不受影响
 
 ---
 
