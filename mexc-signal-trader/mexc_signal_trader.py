@@ -35,7 +35,10 @@ MIN_LEVERAGE = 20
 # ===== Telegram Listener Config (Telethon user client) =====
 TG_API_ID = 37356394
 TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
-TG_GROUP = 'vip點位策略'
+TG_GROUPS = {
+    'vip點位策略': {'priority': 1, 'parser': 'vip'},      # Primary
+    'Sias加密起飛': {'priority': 2, 'parser': 'sias'},     # Secondary
+}
 TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
 
@@ -202,6 +205,18 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
 
         entry_price = float(order.get('average') or current_price)
         filled_qty = float(order.get('filled') or qty)
+
+        # Verify position actually exists on exchange
+        import time as _t
+        _t.sleep(1)
+        try:
+            positions = exchange.fetch_positions([ccxt_symbol])
+            has_pos = any(float(p.get('contracts', 0)) > 0 for p in positions)
+            if not has_pos:
+                print(f"[Bitget] WARNING: Order placed but no position found! Order may have failed.", flush=True)
+                return None
+        except:
+            pass
 
         ret = {
             'order_id': str(order['id']),
@@ -411,6 +426,70 @@ def resolve_symbol_alias(text):
         if row['alias'] in text:
             return row['symbol'], row['alias']
     return None, None
+
+def parse_sias_signal(text):
+    """Parse Sias加密起飛 signal format.
+    Examples:
+        #NOM 0.00282-285附近短空
+        #B3 0.000425附近追多
+        #ETH 2070-55附近多
+        #1000RATS 0.0516 附近空單
+    """
+    if not text or '#' not in text:
+        return None
+
+    # Extract #SYMBOL
+    sym_match = re.search(r'#(\d*[A-Za-z]{1,10})', text)
+    if not sym_match:
+        return None
+    symbol = sym_match.group(1).upper() + 'USDT'
+
+    # Direction: 多/追多 = LONG, 空/短空/空單 = SHORT
+    direction = None
+    if any(w in text for w in ['空', '短空', '空單', '空单']):
+        direction = 'SHORT'
+    elif any(w in text for w in ['多', '追多', '做多']):
+        direction = 'LONG'
+
+    if not direction:
+        return None
+
+    # Entry price - first number after symbol
+    price_match = re.search(r'(\d+\.?\d*)', text[sym_match.end():])
+    entry_price = float(price_match.group(1)) if price_match else None
+
+    # No explicit SL/TP in Sias format, use defaults
+    # SL: 3% for major, 5% for others
+    sl = None
+    tp = None
+    if entry_price:
+        major = symbol.replace('USDT','') in ['BTC','ETH','SOL','XRP','BNB']
+        sl_pct = 0.03 if major else 0.05
+        tp_pct = 0.06 if major else 0.10
+        if direction == 'LONG':
+            sl = round(entry_price * (1 - sl_pct), 6)
+            tp = round(entry_price * (1 + tp_pct), 6)
+        else:
+            sl = round(entry_price * (1 + sl_pct), 6)
+            tp = round(entry_price * (1 - tp_pct), 6)
+
+    return {
+        'symbol': symbol,
+        'direction': direction,
+        'entry_price': entry_price,
+        'stop_loss': sl,
+        'take_profit': tp,
+        'leverage': None,
+    }
+
+def is_sias_signal(text):
+    """Check if message is a Sias trading signal"""
+    if not text or '#' not in text:
+        return False
+    has_symbol = bool(re.search(r'#\d*[A-Za-z]{1,10}', text))
+    has_direction = any(w in text for w in ['多', '空', '追多', '短空', '空單', '空单'])
+    has_price = bool(re.search(r'\d+\.?\d*', text))
+    return has_symbol and has_direction and has_price
 
 def parse_vip_signal(text):
     """Parse vip點位策略 signal format.
@@ -746,7 +825,21 @@ def position_monitor():
                     close_reason = 'tp'
 
                 if close_reason:
-                    close_trade(trade['id'], price, close_reason)
+                    result = close_trade(trade['id'], price, close_reason)
+                    # If close failed 3+ times, mark as closed to stop retry spam
+                    if result is None:
+                        conn2 = get_db()
+                        fail_count = conn2.execute(
+                            "SELECT COUNT(*) as c FROM trade_log WHERE message LIKE ? AND message LIKE '%失败%'",
+                            (f'%{symbol}%',)
+                        ).fetchone()['c']
+                        conn2.close()
+                        if fail_count >= 3:
+                            print(f"[Monitor] {symbol} close failed 3+ times, marking closed (no_position)", flush=True)
+                            conn3 = get_db()
+                            conn3.execute("UPDATE trades SET status='closed', close_reason='no_position' WHERE id=?", (trade['id'],))
+                            conn3.commit()
+                            conn3.close()
 
         except Exception as e:
             print(f"[Monitor Error] {e}")
@@ -846,7 +939,8 @@ def send_tg_notification(signal, raw_message=None, trade_info=None):
         entry = signal.get('entry_price')
         entry_str = f"<code>{entry}</code>" if entry else price_str
 
-        text = f"📡 <b>vip點位策略 · 新信号开仓</b>\n"
+        group_name = signal.get('_group', 'vip點位策略')
+        text = f"📡 <b>{group_name} · 新信号开仓</b>\n"
         text += f"━━━━━━━━━━━━━━━\n"
         text += f"💰 货币: <b>{sym}</b>\n"
         text += f"📊 方向: <b>{direction_emoji}</b>\n"
@@ -992,48 +1086,77 @@ async def _run_telegram_listener():
         tg_status['error'] = None
         print(f"[Telegram] Connected as {me.first_name} ({me.phone})", flush=True)
 
-        # Find the group
-        target = None
+        # Find all configured groups
+        targets = {}
         async for dialog in tg_client.iter_dialogs():
-            if TG_GROUP.lower() in (dialog.name or '').lower():
-                target = dialog.entity
-                break
+            for group_name, group_cfg in TG_GROUPS.items():
+                if group_name.lower() in (dialog.name or '').lower():
+                    targets[group_name] = {'entity': dialog.entity, **group_cfg}
+                    print(f"[Telegram] Found group: {dialog.name} (parser={group_cfg['parser']})", flush=True)
 
-        if not target:
-            try:
-                target = await tg_client.get_entity(TG_GROUP)
-            except:
-                tg_status['error'] = f'Cannot find group: {TG_GROUP}'
-                print(f"[Telegram] Cannot find group: {TG_GROUP}", flush=True)
+        if not targets:
+            tg_status['error'] = f'Cannot find any groups'
+            print(f"[Telegram] Cannot find any configured groups!", flush=True)
 
-        if target:
+        if targets:
             tg_status['listening'] = True
-            tg_status['group_name'] = getattr(target, 'title', TG_GROUP)
+            group_names = [getattr(t['entity'], 'title', n) for n, t in targets.items()]
+            tg_status['group_name'] = ' + '.join(group_names)
             print(f"[Telegram] Listening to: {tg_status['group_name']}", flush=True)
 
-            @tg_client.on(events.NewMessage(chats=target))
+            # Map entity IDs to group config
+            entity_to_group = {}
+            for name, cfg in targets.items():
+                eid = cfg['entity'].id
+                entity_to_group[eid] = {'name': name, **cfg}
+
+            chat_entities = [cfg['entity'] for cfg in targets.values()]
+
+            @tg_client.on(events.NewMessage(chats=chat_entities))
             async def handler(event):
                 msg_text = event.message.text or ''
+                chat_id = event.message.peer_id.channel_id if hasattr(event.message.peer_id, 'channel_id') else 0
+                group_info = entity_to_group.get(chat_id, {})
+                group_name = group_info.get('name', 'unknown')
+                parser_type = group_info.get('parser', 'vip')
+                priority = group_info.get('priority', 99)
+
                 tg_status['last_message'] = msg_text[:100] if msg_text else '(photo)'
                 if msg_text:
-                    print(f"[TG Message] {msg_text[:80]}", flush=True)
+                    print(f"[TG:{group_name}] {msg_text[:80]}", flush=True)
 
-                # Check if this is a TP/close signal from group owner
-                check_group_tp_signal(msg_text, event.message.photo)
+                # Check if this is a TP/close signal from group owner (vip group only)
+                if parser_type == 'vip':
+                    check_group_tp_signal(msg_text, event.message.photo)
 
                 if not msg_text:
                     return
 
-                # Filter: only process messages that look like trading signals
-                if not is_vip_signal(msg_text):
-                    return
+                # Parse signal based on group type
+                signal = None
+                category = group_name
 
-                signal = parse_vip_signal(msg_text)
+                if parser_type == 'vip' and is_vip_signal(msg_text):
+                    signal = parse_vip_signal(msg_text)
+                elif parser_type == 'sias' and is_sias_signal(msg_text):
+                    signal = parse_sias_signal(msg_text)
+
                 if signal:
-                    print(f"[VIP Signal] Parsed: {signal['symbol']} {signal['direction']}", flush=True)
+                    # Check for duplicate: same symbol already open from higher priority group
+                    conn = get_db()
+                    existing = conn.execute('''
+                        SELECT t.id, s.category FROM trades t JOIN signals s ON t.signal_id = s.id
+                        WHERE t.symbol = ? AND t.status = 'open'
+                    ''', (signal['symbol'],)).fetchone()
+
+                    if existing:
+                        print(f"[{group_name}] {signal['symbol']} already open from {existing['category']}, skip", flush=True)
+                        conn.close()
+                        return
+
+                    print(f"[{group_name} Signal] Parsed: {signal['symbol']} {signal['direction']}", flush=True)
                     msg_time = event.message.date.strftime('%Y-%m-%d %H:%M:%S') if event.message.date else None
 
-                    conn = get_db()
                     conn.execute('''
                         INSERT INTO signals (symbol, direction, entry_price, stop_loss, take_profit,
                                            leverage, raw_message, source, status, category, signal_time)
@@ -1041,18 +1164,18 @@ async def _run_telegram_listener():
                     ''', (
                         signal['symbol'], signal['direction'], signal.get('entry_price'),
                         signal.get('stop_loss') or 0, signal.get('take_profit') or 0,
-                        signal.get('leverage') or int(get_config().get('default_leverage', 10)),
+                        signal.get('leverage') or int(get_config().get('default_leverage', 20)),
                         msg_text,
-                        SIGNAL_CATEGORY,
+                        category,
                         msg_time
                     ))
                     conn.commit()
                     signal_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
                     conn.close()
 
-                    add_log(f"新信号: {signal['symbol']} {signal['direction']} (from TG)")
+                    add_log(f"新信号: {signal['symbol']} {signal['direction']} (from {group_name})")
 
-                    # Auto-open trade on MEXC
+                    # Auto-open trade
                     trade_info = None
                     if auto_open_trade(signal_id):
                         c2 = get_db()
@@ -1061,9 +1184,10 @@ async def _run_telegram_listener():
                             trade_info = {'size': round(t['position_size'], 2)}
                         c2.close()
                     else:
-                        print(f"[VIP Signal] Auto-trade failed for {signal['symbol']}, stays pending", flush=True)
+                        print(f"[{group_name}] Auto-trade failed for {signal['symbol']}, stays pending", flush=True)
 
                     # Telegram notification
+                    signal['_group'] = group_name
                     threading.Thread(target=send_tg_notification, args=(signal, msg_text, trade_info), daemon=True).start()
 
         await tg_client.run_until_disconnected()
