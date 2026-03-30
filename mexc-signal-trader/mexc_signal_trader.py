@@ -176,28 +176,47 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         except:
             pass
 
-        # Check contract maxPositionNum, reduce size if needed
+        # Check contract maxPositionNum, adjust if needed
         try:
             sym_clean = sym.replace('/', '').replace(':','')
             info = requests.get(f'https://api.bitget.com/api/v2/mix/market/contracts?productType=USDT-FUTURES&symbol={sym_clean}', timeout=5).json()
             if info.get('data'):
                 max_pos = float(info['data'][0].get('maxPositionNum', 999999))
                 if qty > max_pos:
-                    # Reduce to 100U margin for small coins
-                    small_size = 100
-                    qty = (small_size * lev) / current_price
-                    qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
-                    if qty > max_pos:
-                        qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos * 0.9))
-                    position_size_usdt = small_size
-                    print(f"[Bitget] Small coin, reduced to {small_size}U margin, qty={qty}", flush=True)
+                    # First try: reduce leverage to fit 300U within maxPositionNum
+                    needed_lev = int((max_pos * current_price) / position_size_usdt)
+                    if needed_lev >= MIN_LEVERAGE:
+                        lev = needed_lev
+                        qty = (position_size_usdt * lev) / current_price
+                        qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
+                        print(f"[Bitget] Reduced leverage to {lev}x to fit maxPos={max_pos}", flush=True)
+                        # Re-set leverage
+                        try:
+                            hold = 'long' if direction == 'LONG' else 'short'
+                            exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': hold})
+                        except:
+                            pass
+                    else:
+                        # Still too big, reduce to 100U margin
+                        position_size_usdt = 100
+                        qty = (position_size_usdt * lev) / current_price
+                        qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
+                        if qty > max_pos:
+                            qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos * 0.9))
+                        print(f"[Bitget] Small coin, reduced to {position_size_usdt}U margin, qty={qty}", flush=True)
         except:
             pass
+
+        # Check minimum notional (Bitget requires >= 5 USDT)
+        notional_value = qty * current_price
+        if notional_value < 5:
+            print(f"[Bitget] Notional {notional_value:.2f}U < 5U min, {base} too small to trade, skip", flush=True)
+            return None
 
         # Open position
         side = 'buy' if direction == 'LONG' else 'sell'
 
-        print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price}", flush=True)
+        print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price} notional={notional_value:.1f}U", flush=True)
         order = exchange.create_order(ccxt_symbol, 'market', side, qty, params={
             'marginCoin': 'USDT',
             'tradeSide': 'open',
@@ -983,18 +1002,21 @@ def send_tg_close_notification(trade, reason, pnl_info):
         direction = trade['direction']
         now_str = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')
 
-        if reason == 'tp':
-            header = '✅ <b>vip點位策略 · 自动止盈</b>'
-        elif reason == 'sl':
-            header = '🛑 <b>vip點位策略 · 自动止损</b>'
-        elif reason == 'hard_sl_-20%':
-            header = '🛑 <b>vip點位策略 · 硬止损 -20% ROI</b>'
-        elif reason == 'group_tp':
-            header = '🎯 <b>vip點位策略 · 群主止盈</b>'
-        elif reason == 'group_sl':
-            header = '🛑 <b>vip點位策略 · 群主止损</b>'
-        else:
-            header = '📤 <b>vip點位策略 · 手动平仓</b>'
+        # Get group name from signal category
+        conn = get_db()
+        sig = conn.execute('SELECT category FROM signals WHERE id=?', (trade.get('signal_id'),)).fetchone()
+        conn.close()
+        group_name = sig['category'] if sig and sig['category'] else 'Signal Trader'
+
+        reason_labels = {
+            'tp': ('✅', '自动止盈'),
+            'sl': ('🛑', '自动止损'),
+            'hard_sl_-20%': ('🛑', '硬止损 -20% ROI'),
+            'group_tp': ('🎯', '群主止盈'),
+            'group_sl': ('🛑', '群主止损'),
+        }
+        emoji, label = reason_labels.get(reason, ('📤', '手动平仓'))
+        header = f'{emoji} <b>{group_name} · {label}</b>'
 
         pnl = pnl_info.get('pnl', 0)
         pnl_pct = pnl_info.get('pnl_pct', 0)
