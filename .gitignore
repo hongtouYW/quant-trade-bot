@@ -68,3 +68,4 @@ htmlcov/
 # config.json.example (示例文件应该被包含)
 deploy_simple.sh
 view_trading_status.sh
+github-monitor/config.yaml
