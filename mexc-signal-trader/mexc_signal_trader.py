@@ -38,6 +38,7 @@ TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
 TG_GROUPS = {
     'vip點位策略': {'priority': 1, 'parser': 'vip'},      # Primary
     'Sias加密起飛': {'priority': 2, 'parser': 'sias'},     # Secondary
+    'LUKE加密集中营策略群': {'priority': 3, 'parser': 'vip', 'notify_chat_id': '-5294992522'},  # luke-sias 群
 }
 TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
@@ -183,29 +184,34 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
             if info.get('data'):
                 max_pos = float(info['data'][0].get('maxPositionNum', 999999))
                 if qty > max_pos:
-                    # First try: reduce leverage to fit 300U within maxPositionNum
-                    needed_lev = int((max_pos * current_price) / position_size_usdt)
-                    if needed_lev >= MIN_LEVERAGE:
-                        lev = needed_lev
-                        qty = (position_size_usdt * lev) / current_price
-                        qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
-                        print(f"[Bitget] Reduced leverage to {lev}x to fit maxPos={max_pos}", flush=True)
-                        # Re-set leverage
-                        try:
-                            hold = 'long' if direction == 'LONG' else 'short'
-                            exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': hold})
-                        except:
-                            pass
-                    else:
-                        # Still too big, reduce to 100U margin
-                        position_size_usdt = 100
-                        qty = (position_size_usdt * lev) / current_price
-                        qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
-                        if qty > max_pos:
-                            qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos * 0.9))
-                        print(f"[Bitget] Small coin, reduced to {position_size_usdt}U margin, qty={qty}", flush=True)
+                    # Cap qty to max, then calculate what margin/leverage combo works
+                    qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos * 0.9))
+                    max_notional = qty * current_price
+                    # Try to keep 300U margin by adjusting leverage
+                    new_lev = max(int(max_notional / position_size_usdt), MIN_LEVERAGE)
+                    new_lev = min(new_lev, MAX_LEVERAGE)
+                    # Recalculate: actual margin = notional / leverage
+                    actual_margin = round(max_notional / new_lev, 2)
+                    if actual_margin < 100:
+                        print(f"[Bitget] {base} margin would be {actual_margin}U < 100U, skip", flush=True)
+                        return None
+                    lev = new_lev
+                    position_size_usdt = actual_margin
+                    # Re-set leverage
+                    try:
+                        hold = 'long' if direction == 'LONG' else 'short'
+                        exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': hold})
+                    except:
+                        pass
+                    print(f"[Bitget] MaxPos cap: qty={qty}, lev={lev}x, margin={position_size_usdt}U, notional={max_notional:.1f}U", flush=True)
         except:
             pass
+
+        # Check minimum margin (< 100U not worth trading due to fees)
+        actual_margin = (qty * current_price) / lev
+        if actual_margin < 100:
+            print(f"[Bitget] {base} margin={actual_margin:.1f}U < 100U, skip", flush=True)
+            return None
 
         # Check minimum notional (Bitget requires >= 5 USDT)
         notional_value = qty * current_price
@@ -945,6 +951,14 @@ def close_trade(trade_id, exit_price, reason):
 
 # ===== Telegram Bot Notification =====
 
+def get_notify_chat_id(group_name):
+    """Get the notification chat_id for a group (per-group or default)"""
+    group_cfg = TG_GROUPS.get(group_name, {})
+    custom_id = group_cfg.get('notify_chat_id')
+    if custom_id:
+        return custom_id
+    return TG_CHAT_ID
+
 def send_tg_notification(signal, raw_message=None, trade_info=None):
     """Send new signal + trade notification to Telegram group"""
     try:
@@ -982,14 +996,15 @@ def send_tg_notification(signal, raw_message=None, trade_info=None):
             raw_short = raw_message[:300].replace('<', '&lt;').replace('>', '&gt;')
             text += f"💬 原始信息:\n<blockquote>{raw_short}</blockquote>"
 
+        chat_id = get_notify_chat_id(group_name)
         url = f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage'
         resp = requests.post(url, json={
-            'chat_id': TG_CHAT_ID,
+            'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML',
         }, timeout=10)
         if resp.status_code == 200:
-            print(f"[TG Bot] Open notification sent: {signal['symbol']} {signal['direction']}")
+            print(f"[TG Bot] Open notification sent: {signal['symbol']} {signal['direction']} -> chat {chat_id}")
         else:
             print(f"[TG Bot] Send failed: {resp.status_code} {resp.text}")
     except Exception as e:
@@ -1037,14 +1052,15 @@ def send_tg_close_notification(trade, reason, pnl_info):
         text += f"🕐 时间: <code>{now_str}</code>\n"
         text += f"🏦 交易所: <b>Bitget (实盘)</b>\n"
 
+        chat_id = get_notify_chat_id(group_name)
         url = f'https://api.telegram.org/bot{TG_BOT_TOKEN}/sendMessage'
         resp = requests.post(url, json={
-            'chat_id': TG_CHAT_ID,
+            'chat_id': chat_id,
             'text': text,
             'parse_mode': 'HTML',
         }, timeout=10)
         if resp.status_code == 200:
-            print(f"[TG Bot] Close notification sent: {sym} {reason} PnL={pnl:+.2f}")
+            print(f"[TG Bot] Close notification sent: {sym} {reason} PnL={pnl:+.2f} -> chat {chat_id}")
         else:
             print(f"[TG Bot] Close send failed: {resp.status_code} {resp.text}")
     except Exception as e:
