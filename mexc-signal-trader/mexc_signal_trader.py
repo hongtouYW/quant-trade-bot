@@ -38,7 +38,7 @@ TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
 TG_GROUPS = {
     'vip點位策略': {'priority': 1, 'parser': 'vip'},      # Primary
     'Sias加密起飛': {'priority': 2, 'parser': 'sias'},     # Secondary
-    'LUKE加密集中营策略群': {'priority': 3, 'parser': 'vip', 'notify_chat_id': '-5294992522'},  # luke-sias 群
+    'LUKE加密集中营策略群': {'priority': 3, 'parser': 'luke', 'notify_chat_id': '-5294992522'},  # luke-sias 群
 }
 TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
@@ -507,6 +507,50 @@ def parse_sias_signal(text):
         'leverage': None,
     }
 
+def parse_luke_signal(text):
+    """Parse LUKE加密集中营 signal format.
+    標的：ETH / 方向：合約空单 / 進場：2080附近 / 止损：2121 / 止盈：2051-25-2000
+    """
+    if not text:
+        return None
+    sym_match = re.search(r'標的[：:]\s*(\d*[A-Za-z]{2,10})', text)
+    if not sym_match:
+        return None
+    symbol = sym_match.group(1).upper() + 'USDT'
+
+    direction = None
+    if any(w in text for w in ['空单', '空單', '做空', '開空', '开空']):
+        direction = 'SHORT'
+    elif any(w in text for w in ['多单', '多單', '做多', '開多', '开多']):
+        direction = 'LONG'
+    if not direction:
+        return None
+
+    entry = None
+    entry_match = re.search(r'(?:進場|进场|入場|入场)[：:]\s*(\d+\.?\d*)', text)
+    if entry_match:
+        entry = float(entry_match.group(1))
+
+    sl = None
+    sl_match = re.search(r'(?:止[损損])[：:]\s*(\d+\.?\d*)', text)
+    if sl_match:
+        sl = float(sl_match.group(1))
+
+    tp = None
+    tp_match = re.search(r'(?:止盈)[：:]\s*(\d+\.?\d*)', text)
+    if tp_match:
+        tp = float(tp_match.group(1))
+
+    return {
+        'symbol': symbol, 'direction': direction, 'entry_price': entry,
+        'stop_loss': sl, 'take_profit': tp, 'leverage': None,
+    }
+
+def is_luke_signal(text):
+    if not text:
+        return False
+    return '標的' in text and ('方向' in text or '進場' in text or '进场' in text)
+
 def is_sias_signal(text):
     """Check if message is a Sias trading signal"""
     if not text or '#' not in text:
@@ -727,6 +771,22 @@ def auto_open_trade(signal_id):
             return False
 
         position_size = float(config.get('position_size_usdt', 200))
+
+        # Strict mode: check if current price is near entry price (±1.5%)
+        entry_price_check = signal['entry_price']
+        if entry_price_check and entry_price_check > 0:
+            current = get_exchange_price(signal['symbol'])
+            if current:
+                diff_pct = abs(current - entry_price_check) / entry_price_check * 100
+                direction = signal['direction']
+                # For LONG: price should be at or below entry; for SHORT: at or above entry
+                wrong_side = (direction == 'LONG' and current > entry_price_check * 1.015) or \
+                             (direction == 'SHORT' and current < entry_price_check * 0.985)
+                if wrong_side:
+                    print(f"[Auto-Trade] Price {current} too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
+                    add_log(f"跳过 {signal['symbol']}: 价格{current}偏离入场价{entry_price_check} ({diff_pct:.1f}%)", 'WARN')
+                    conn.close()
+                    return False
 
         # Dynamic leverage based on SL distance (like the group owner's strategy)
         # SL < 1% → 100x, SL 1-2% → 75x, SL 2-3% → 50x, SL 3-5% → 30x, SL > 5% → 20x
@@ -1178,6 +1238,8 @@ async def _run_telegram_listener():
                     signal = parse_vip_signal(msg_text)
                 elif parser_type == 'sias' and is_sias_signal(msg_text):
                     signal = parse_sias_signal(msg_text)
+                elif parser_type == 'luke' and is_luke_signal(msg_text):
+                    signal = parse_luke_signal(msg_text)
 
                 if signal:
                     # Check for duplicate: same symbol already open from higher priority group
