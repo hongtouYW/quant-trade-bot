@@ -177,64 +177,16 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         except:
             pass
 
-        # Check contract maxPositionNum, adjust if needed
+        # Check ccxt market max amount limit
         try:
-            sym_clean = sym.replace('/', '').replace(':','')
-            info = requests.get(f'https://api.bitget.com/api/v2/mix/market/contracts?productType=USDT-FUTURES&symbol={sym_clean}', timeout=5).json()
-            if info.get('data'):
-                max_pos = float(info['data'][0].get('maxPositionNum', 999999))
-                if qty > max_pos:
-                    # Cap qty to max, then calculate what margin/leverage combo works
-                    qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos * 0.9))
-                    max_notional = qty * current_price
-                    # Try to keep 300U margin by adjusting leverage
-                    new_lev = max(int(max_notional / position_size_usdt), MIN_LEVERAGE)
-                    new_lev = min(new_lev, MAX_LEVERAGE)
-                    # Recalculate: actual margin = notional / leverage
-                    actual_margin = round(max_notional / new_lev, 2)
-                    if actual_margin < 100:
-                        print(f"[Bitget] {base} margin would be {actual_margin}U < 100U, skip", flush=True)
-                        return None
-                    lev = new_lev
-                    position_size_usdt = actual_margin
-                    # Re-set leverage
-                    try:
-                        hold = 'long' if direction == 'LONG' else 'short'
-                        exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': hold})
-                    except:
-                        pass
-                    print(f"[Bitget] MaxPos cap: qty={qty}, lev={lev}x, margin={position_size_usdt}U, notional={max_notional:.1f}U", flush=True)
+            market = exchange.market(ccxt_symbol)
+            max_amt = market.get('limits', {}).get('amount', {}).get('max')
+            if max_amt and qty > max_amt:
+                qty = float(exchange.amount_to_precision(ccxt_symbol, max_amt * 0.9))
+                position_size_usdt = round((qty * current_price) / lev, 2)
+                print(f"[Bitget] Capped qty to max={max_amt}, margin={position_size_usdt}U", flush=True)
         except:
             pass
-
-        # If margin too small, try 100U with 10x for small coins
-        actual_margin = (qty * current_price) / lev
-        if actual_margin < 100:
-            lev = 10
-            position_size_usdt = 100
-            qty = (position_size_usdt * lev) / current_price
-            qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
-            try:
-                hold = 'long' if direction == 'LONG' else 'short'
-                exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': hold})
-            except:
-                pass
-            # Re-check if still over max position
-            try:
-                sym_clean = sym.replace('/', '').replace(':','')
-                info2 = requests.get(f'https://api.bitget.com/api/v2/mix/market/contracts?productType=USDT-FUTURES&symbol={sym_clean}', timeout=5).json()
-                if info2.get('data'):
-                    max_pos2 = float(info2['data'][0].get('maxPositionNum', 999999))
-                    if qty > max_pos2:
-                        qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos2 * 0.9))
-                        actual_margin2 = (qty * current_price) / lev
-                        if actual_margin2 < 5:
-                            print(f"[Bitget] {base} still too small even at 100U/10x, skip", flush=True)
-                            return None
-                        position_size_usdt = round(actual_margin2, 2)
-            except:
-                pass
-            print(f"[Bitget] Small coin fallback: {position_size_usdt}U margin, {lev}x, qty={qty}", flush=True)
 
         # Check minimum notional (Bitget requires >= 5 USDT)
         notional_value = qty * current_price
