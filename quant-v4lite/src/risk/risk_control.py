@@ -41,7 +41,7 @@ class RiskControl:
 
         # 冷却期
         if self._cooldown_until and datetime.utcnow() < self._cooldown_until:
-            remaining = (self._cooldown_until - datetime.utcnow()).seconds // 60
+            remaining = int((self._cooldown_until - datetime.utcnow()).total_seconds()) // 60
             return False, f"cooldown: {remaining}min remaining"
 
         # Layer 2: 日级别
@@ -62,7 +62,7 @@ class RiskControl:
         if signal:
             sym_cd = self._symbol_cooldown.get(signal.symbol)
             if sym_cd and datetime.utcnow() < sym_cd:
-                remaining = (sym_cd - datetime.utcnow()).seconds // 60
+                remaining = int((sym_cd - datetime.utcnow()).total_seconds()) // 60
                 return False, f"symbol_cooldown: {signal.symbol} {remaining}min remaining"
 
             # 单币连亏上限 (同一币种最多连亏 2 次)

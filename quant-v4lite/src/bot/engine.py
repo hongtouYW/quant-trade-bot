@@ -188,9 +188,15 @@ class TradingEngine:
         """主循环"""
         setup_logger(self._cfg)
         await self._init_modules()
-        await self._restore_positions()
         await self._restore_balance()
+        await self._restore_positions()
         await self._market_data.start()
+
+        # 启动时重置日统计（防止跨天累积）
+        self._risk.daily_reset()
+        if datetime.utcnow().weekday() == 0:
+            self._risk.weekly_reset()
+        logger.info("Risk counters reset on startup")
 
         # 后台任务
         if self._paper:
@@ -761,6 +767,15 @@ class TradingEngine:
                     await self._telegram.notify('daily_report', detail)
 
                 logger.info(f"Daily report sent: {date_str} trades={total_trades} pnl={total_pnl:+.2f}U")
+
+                # 日统计重置
+                self._risk.daily_reset()
+                logger.info("Daily risk counters reset (UTC 00:05)")
+
+                # 周一重置周统计
+                if datetime.utcnow().weekday() == 0:
+                    self._risk.weekly_reset()
+                    logger.info("Weekly risk counters reset (Monday)")
 
             except Exception as e:
                 logger.warning(f"Daily report error: {e}")

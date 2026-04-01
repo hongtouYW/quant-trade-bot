@@ -1,8 +1,37 @@
 # CHANGELOG — Trading SaaS + 5111 Paper Trader
 
-> 时间范围：2026-01-27 ~ 2026-03-24
+> 时间范围：2026-01-27 ~ 2026-04-01
 > 仅包含有实质代码变更的提交，跳过纯自动提交（🤖 自动提交）。
 > [SaaS] = Trading SaaS 生产系统（端口 80）| [5111] = Paper Trader 模拟系统（端口 5111）
+
+---
+
+## 2026-04-01
+
+### [SaaS-重构] 引擎全面对齐 5111 Paper Trader — 单一 v6 策略
+
+- **背景**：SaaS 引擎存在 v1~v7 多策略路由，参数、币种筛选、扫描频率、风控逻辑均与 5111 回测/模拟不一致，导致实盘表现偏差
+- **目标**：删除所有旧策略，100% 对齐 5111 auto_trader_v6.py
+- **改动 — signal_analyzer.py**：
+  1. 删除 `analyze_signal()` (v4)、`analyze_signal_v5()`、`calculate_position_size_v5()`、`calculate_stop_take_v5()`、`get_btc_trend()`
+  2. 删除 `COIN_TIERS` / `TIER_MULTIPLIER`（5111 无此逻辑）
+  3. `DEFAULT_WATCHLIST`: 150 → **133 币**（对齐 5111）
+  4. `SKIP_COINS`: 10 → **22 币**（对齐 5111，实际活跃 118 币）
+  5. `SYMBOL_1000` 新增 NEIRO
+  6. LONG min_score=85 过滤 + MA slope 趋势过滤 移入 `analyze_signal_v6()` 内部
+  7. `calculate_position_size()` 简化：去掉 config/symbol 参数，加 `risk_multiplier`，对齐 5111 5 档仓位
+- **改动 — agent_bot.py**：
+  1. 删除 `_is_v5_strategy()`、`_is_advanced_strategy()`、`_partial_close()`
+  2. 删除所有 v4/v5/v6 策略路由分支，统一调用 `analyze_signal_v6()`
+  3. 扫描频率：每 60 秒止损检查 + **仅 1H 整点扫描新信号**（`_is_candle_close()`）
+  4. 风控替换：移除 `RiskManager` 类，用 `_check_risk_v6()` 对齐 5111（连亏/回撤/日亏）
+  5. 删除 Telegram 通知中的 COIN_TIERS 引用
+- **改动 — DB**：
+  1. `strategy_presets` 表清空（v1~v7 全删）
+  2. `agent_trading_config` agent=2 更新：SL=-10%, trailing +6%/3%, 3x, 15仓, min_score=70, cooldown=60min
+- **保留**：币安服务端止损单、Telegram 通知、WebSocket、AuditLog、ghost position 检测
+- **文件**：`signal_analyzer.py`、`agent_bot.py`（备份 .bak.20260401）
+- **部署**：gunicorn reload + bot start，6 个持仓正常恢复
 
 ---
 

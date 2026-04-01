@@ -112,7 +112,7 @@ class PaperPositionMonitor:
                         tp2_hit = True
 
                     if tp2_hit:
-                        pnl = self._calc_pnl(pos, current_price)
+                        pnl = self._calc_pnl(pos, current_price)  # 已按 remaining_pct 计算
                         self._close_paper_position(pos, current_price, pnl, "tp2")
                         continue
 

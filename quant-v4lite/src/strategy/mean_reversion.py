@@ -31,10 +31,10 @@ class MeanReversionStrategy(BaseStrategy):
 
         exec_cfg = config.get('execution', {})
 
-        # 前提: 震荡市 ADX < 30 (放宽至30, 原25太严)
+        # 前提: 震荡市 ADX < 25 (spec)
         adx_val = adx(klines_1h, 14)
-        if adx_val >= 30:
-            logger.info(f"[MR] {symbol} {direction.value} ✗ ADX={adx_val:.1f} >= 30")
+        if adx_val >= 25:
+            logger.info(f"[MR] {symbol} {direction.value} ✗ ADX={adx_val:.1f} >= 25")
             return None
 
         # 15m 指标
@@ -54,14 +54,18 @@ class MeanReversionStrategy(BaseStrategy):
             if curr.close <= lower:
                 logger.info(f"[MR] {symbol} LONG ✗ close={curr.close:.6f} <= BB_lower={lower:.6f} (未回带内)")
                 return None
+            # 当前为阳线 (spec)
+            if curr.close <= curr.open:
+                logger.info(f"[MR] {symbol} LONG ✗ 非阳线 open={curr.open:.6f} close={curr.close:.6f}")
+                return None
             # 止盈: 布林中轨
             entry_price = curr.close
             atr_val = atr(klines_15m, 14)
             stop_loss = entry_price - atr_val * 0.8
             tp_price = mid
         else:
-            if rsi_val <= 55:
-                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 55 (需超买)")
+            if rsi_val <= 70:
+                logger.info(f"[MR] {symbol} SHORT ✗ RSI={rsi_val:.1f} <= 70 (需超买)")
                 return None
             # 前一根收盘 > BB上轨，当前收盘 < BB上轨（回到带内）
             if prev.close <= upper:

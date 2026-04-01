@@ -36,9 +36,9 @@ MIN_LEVERAGE = 20
 TG_API_ID = 37356394
 TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
 TG_GROUPS = {
-    'vip點位策略': {'priority': 1, 'parser': 'vip'},      # Primary
-    'Sias加密起飛': {'priority': 2, 'parser': 'sias'},     # Secondary
-    'LUKE加密集中营策略群': {'priority': 3, 'parser': 'luke', 'notify_chat_id': '-5294992522'},  # luke-sias 群
+    'LUKE加密集中营策略群': {'priority': 1, 'parser': 'luke', 'notify_chat_id': '-5294992522'},  # Primary
+    'vip點位策略': {'priority': 2, 'parser': 'vip'},
+    'Sias加密起飛': {'priority': 3, 'parser': 'sias'},
 }
 TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
@@ -136,7 +136,7 @@ def get_exchange_balance():
         print(f"[Balance Error] {e}")
         return {'total': 0, 'free': 0, 'used': 0}
 
-def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None):
+def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None, limit_price=None):
     """Open a futures position on Bitget via ccxt. Max leverage 20x."""
     try:
         # Normalize symbol to ccxt format: BTC/USDT:USDT
@@ -207,11 +207,34 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         except:
             pass
 
-        # Check minimum margin (< 100U not worth trading due to fees)
+        # If margin too small, try 100U with 10x for small coins
         actual_margin = (qty * current_price) / lev
         if actual_margin < 100:
-            print(f"[Bitget] {base} margin={actual_margin:.1f}U < 100U, skip", flush=True)
-            return None
+            lev = 10
+            position_size_usdt = 100
+            qty = (position_size_usdt * lev) / current_price
+            qty = float(exchange.amount_to_precision(ccxt_symbol, qty))
+            try:
+                hold = 'long' if direction == 'LONG' else 'short'
+                exchange.set_leverage(lev, ccxt_symbol, params={'marginCoin': 'USDT', 'holdSide': hold})
+            except:
+                pass
+            # Re-check if still over max position
+            try:
+                sym_clean = sym.replace('/', '').replace(':','')
+                info2 = requests.get(f'https://api.bitget.com/api/v2/mix/market/contracts?productType=USDT-FUTURES&symbol={sym_clean}', timeout=5).json()
+                if info2.get('data'):
+                    max_pos2 = float(info2['data'][0].get('maxPositionNum', 999999))
+                    if qty > max_pos2:
+                        qty = float(exchange.amount_to_precision(ccxt_symbol, max_pos2 * 0.9))
+                        actual_margin2 = (qty * current_price) / lev
+                        if actual_margin2 < 5:
+                            print(f"[Bitget] {base} still too small even at 100U/10x, skip", flush=True)
+                            return None
+                        position_size_usdt = round(actual_margin2, 2)
+            except:
+                pass
+            print(f"[Bitget] Small coin fallback: {position_size_usdt}U margin, {lev}x, qty={qty}", flush=True)
 
         # Check minimum notional (Bitget requires >= 5 USDT)
         notional_value = qty * current_price
@@ -222,11 +245,21 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         # Open position
         side = 'buy' if direction == 'LONG' else 'sell'
 
-        print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price} notional={notional_value:.1f}U", flush=True)
-        order = exchange.create_order(ccxt_symbol, 'market', side, qty, params={
-            'marginCoin': 'USDT',
-            'tradeSide': 'open',
-        })
+        if limit_price:
+            # Limit order at signal entry price
+            order_type = 'limit'
+            print(f"[Bitget] Limit {direction} {base} qty={qty} lev={lev}x @ {limit_price} (current={current_price})", flush=True)
+            order = exchange.create_order(ccxt_symbol, 'limit', side, qty, limit_price, params={
+                'marginCoin': 'USDT',
+                'tradeSide': 'open',
+            })
+        else:
+            order_type = 'market'
+            print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price} notional={notional_value:.1f}U", flush=True)
+            order = exchange.create_order(ccxt_symbol, 'market', side, qty, params={
+                'marginCoin': 'USDT',
+                'tradeSide': 'open',
+            })
 
         entry_price = float(order.get('average') or current_price)
         filled_qty = float(order.get('filled') or qty)
@@ -772,21 +805,27 @@ def auto_open_trade(signal_id):
 
         position_size = float(config.get('position_size_usdt', 200))
 
-        # Strict mode: check if current price is near entry price (±1.5%)
+        # Strict mode: check if current price is near entry price
+        # If price deviated, place limit order at entry price instead of market order
+        use_limit_order = False
         entry_price_check = signal['entry_price']
         if entry_price_check and entry_price_check > 0:
             current = get_exchange_price(signal['symbol'])
             if current:
-                diff_pct = abs(current - entry_price_check) / entry_price_check * 100
                 direction = signal['direction']
                 # For LONG: price should be at or below entry; for SHORT: at or above entry
                 wrong_side = (direction == 'LONG' and current > entry_price_check * 1.015) or \
                              (direction == 'SHORT' and current < entry_price_check * 0.985)
                 if wrong_side:
-                    print(f"[Auto-Trade] Price {current} too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
-                    add_log(f"跳过 {signal['symbol']}: 价格{current}偏离入场价{entry_price_check} ({diff_pct:.1f}%)", 'WARN')
-                    conn.close()
-                    return False
+                    diff_pct = abs(current - entry_price_check) / entry_price_check * 100
+                    if diff_pct > 10:
+                        # Too far, skip entirely
+                        print(f"[Auto-Trade] Price {current} way too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
+                        add_log(f"跳过 {signal['symbol']}: 价格偏离 {diff_pct:.1f}% > 10%", 'WARN')
+                        conn.close()
+                        return False
+                    use_limit_order = True
+                    print(f"[Auto-Trade] Price {current} deviated from entry {entry_price_check} ({diff_pct:.1f}%), using limit order", flush=True)
 
         # Dynamic leverage based on SL distance (like the group owner's strategy)
         # SL < 1% → 100x, SL 1-2% → 75x, SL 2-3% → 50x, SL 3-5% → 30x, SL > 5% → 20x
@@ -821,6 +860,7 @@ def auto_open_trade(signal_id):
             position_size_usdt=position_size,
             stop_loss=signal['stop_loss'],
             take_profit=signal['take_profit'],
+            limit_price=entry_price_check if use_limit_order else None,
         )
 
         if order_result is None:
@@ -897,9 +937,9 @@ def position_monitor():
                     roi_pct = ((entry - price) / entry) * leverage * 100
 
                 # Hard stop: -20% ROI
-                if roi_pct <= -20:
-                    close_reason = 'hard_sl_-20%'
-                    print(f"[Monitor] {symbol} {direction} ROI={roi_pct:.1f}% <= -20%, hard stop!", flush=True)
+                if roi_pct <= -50:
+                    close_reason = 'hard_sl_-50%'
+                    print(f"[Monitor] {symbol} {direction} ROI={roi_pct:.1f}% <= -50%, hard stop!", flush=True)
                 elif sl and direction == 'LONG' and price <= sl:
                     close_reason = 'sl'
                 elif sl and direction == 'SHORT' and price >= sl:
@@ -1086,7 +1126,7 @@ def send_tg_close_notification(trade, reason, pnl_info):
         reason_labels = {
             'tp': ('✅', '自动止盈'),
             'sl': ('🛑', '自动止损'),
-            'hard_sl_-20%': ('🛑', '硬止损 -20% ROI'),
+            'hard_sl_-50%': ('🛑', '硬止损 -50% ROI'),
             'group_tp': ('🎯', '群主止盈'),
             'group_sl': ('🛑', '群主止损'),
         }
@@ -1242,21 +1282,11 @@ async def _run_telegram_listener():
                     signal = parse_luke_signal(msg_text)
 
                 if signal:
-                    # Check for duplicate: same symbol already open from higher priority group
-                    conn = get_db()
-                    existing = conn.execute('''
-                        SELECT t.id, s.category FROM trades t JOIN signals s ON t.signal_id = s.id
-                        WHERE t.symbol = ? AND t.status = 'open'
-                    ''', (signal['symbol'],)).fetchone()
-
-                    if existing:
-                        print(f"[{group_name}] {signal['symbol']} already open from {existing['category']}, skip", flush=True)
-                        conn.close()
-                        return
-
                     print(f"[{group_name} Signal] Parsed: {signal['symbol']} {signal['direction']}", flush=True)
                     msg_time = event.message.date.strftime('%Y-%m-%d %H:%M:%S') if event.message.date else None
 
+                    # Always save signal to DB for analysis
+                    conn = get_db()
                     conn.execute('''
                         INSERT INTO signals (symbol, direction, entry_price, stop_loss, take_profit,
                                            leverage, raw_message, source, status, category, signal_time)
@@ -1271,6 +1301,19 @@ async def _run_telegram_listener():
                     ))
                     conn.commit()
                     signal_id = conn.execute('SELECT last_insert_rowid()').fetchone()[0]
+
+                    # Check for duplicate: same symbol already open
+                    existing = conn.execute('''
+                        SELECT t.id, s.category FROM trades t JOIN signals s ON t.signal_id = s.id
+                        WHERE t.symbol = ? AND t.status = 'open'
+                    ''', (signal['symbol'],)).fetchone()
+
+                    if existing:
+                        print(f"[{group_name}] {signal['symbol']} already open from {existing['category']}, skip trade", flush=True)
+                        conn.execute("UPDATE signals SET status='skipped' WHERE id=?", (signal_id,))
+                        conn.commit()
+                        conn.close()
+                        return
                     conn.close()
 
                     add_log(f"新信号: {signal['symbol']} {signal['direction']} (from {group_name})")

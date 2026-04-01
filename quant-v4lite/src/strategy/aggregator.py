@@ -75,10 +75,11 @@ class SignalAggregator:
         if not signals:
             return None
 
-        # 同方向多策略确认 → 置信度加成
+        # 同方向多策略确认 → 置信度加成（需全部同向才算确认）
         best = max(signals, key=lambda s: s.confidence)
         same_dir_count = sum(1 for s in signals if s.direction == best.direction)
-        if same_dir_count > 1:
+        opposite_count = len(signals) - same_dir_count
+        if same_dir_count > 1 and opposite_count == 0:
             best.confidence = min(best.confidence + 0.10, 0.95)
             best.multi_confirm = True
 
