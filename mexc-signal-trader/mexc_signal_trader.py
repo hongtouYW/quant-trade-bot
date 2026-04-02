@@ -136,7 +136,7 @@ def get_exchange_balance():
         print(f"[Balance Error] {e}")
         return {'total': 0, 'free': 0, 'used': 0}
 
-def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None, limit_price=None):
+def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None):
     """Open a futures position on Bitget via ccxt. Max leverage 20x."""
     try:
         # Normalize symbol to ccxt format: BTC/USDT:USDT
@@ -177,14 +177,40 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         except:
             pass
 
-        # Check ccxt market max amount limit
+        # Check position level limit from Bitget API
+        try:
+            sym_clean = sym.replace('/', '').replace(':','')
+            lever_info = requests.get(f'https://api.bitget.com/api/v2/mix/market/query-position-lever?symbol={sym_clean}&productType=USDT-FUTURES&marginCoin=USDT', timeout=5).json()
+            if lever_info.get('data'):
+                # Find the tier for our leverage
+                max_qty_for_lev = None
+                for tier in lever_info['data']:
+                    if int(tier.get('leverage', 0)) >= lev:
+                        max_qty_for_lev = float(tier['endUnit'])
+                        break
+                if not max_qty_for_lev:
+                    # Use lowest tier
+                    max_qty_for_lev = float(lever_info['data'][0]['endUnit'])
+
+                if qty > max_qty_for_lev:
+                    old_qty = qty
+                    qty = float(exchange.amount_to_precision(ccxt_symbol, max_qty_for_lev * 0.9))
+                    position_size_usdt = round((qty * current_price) / lev, 2)
+                    if position_size_usdt < 5:
+                        print(f"[Bitget] {base} positionLevel max={max_qty_for_lev} at {lev}x, margin={position_size_usdt}U too small, skip", flush=True)
+                        return None
+                    print(f"[Bitget] Capped qty {old_qty}→{qty} (positionLevel max={max_qty_for_lev} at {lev}x), margin={position_size_usdt}U", flush=True)
+        except Exception as e:
+            print(f"[Bitget] Position level check warning: {e}", flush=True)
+
+        # Also check ccxt market max amount
         try:
             market = exchange.market(ccxt_symbol)
             max_amt = market.get('limits', {}).get('amount', {}).get('max')
             if max_amt and qty > max_amt:
                 qty = float(exchange.amount_to_precision(ccxt_symbol, max_amt * 0.9))
                 position_size_usdt = round((qty * current_price) / lev, 2)
-                print(f"[Bitget] Capped qty to max={max_amt}, margin={position_size_usdt}U", flush=True)
+                print(f"[Bitget] Capped qty to market max={max_amt}, margin={position_size_usdt}U", flush=True)
         except:
             pass
 
@@ -197,21 +223,11 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         # Open position
         side = 'buy' if direction == 'LONG' else 'sell'
 
-        if limit_price:
-            # Limit order at signal entry price
-            order_type = 'limit'
-            print(f"[Bitget] Limit {direction} {base} qty={qty} lev={lev}x @ {limit_price} (current={current_price})", flush=True)
-            order = exchange.create_order(ccxt_symbol, 'limit', side, qty, limit_price, params={
-                'marginCoin': 'USDT',
-                'tradeSide': 'open',
-            })
-        else:
-            order_type = 'market'
-            print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price} notional={notional_value:.1f}U", flush=True)
-            order = exchange.create_order(ccxt_symbol, 'market', side, qty, params={
-                'marginCoin': 'USDT',
-                'tradeSide': 'open',
-            })
+        print(f"[Bitget] Opening {direction} {base} qty={qty} lev={lev}x @ ~{current_price} notional={notional_value:.1f}U", flush=True)
+        order = exchange.create_order(ccxt_symbol, 'market', side, qty, params={
+            'marginCoin': 'USDT',
+            'tradeSide': 'open',
+        })
 
         entry_price = float(order.get('average') or current_price)
         filled_qty = float(order.get('filled') or qty)
@@ -641,6 +657,42 @@ def parse_vip_signal(text):
 
 # ===== Group TP Signal Detection =====
 
+def ocr_extract_symbol(photo_obj):
+    """Download photo and OCR to extract coin symbol (e.g. BTCUSDT → BTC)"""
+    try:
+        import pytesseract
+        from PIL import Image
+        import tempfile
+
+        if not tg_client or not photo_obj:
+            return None
+
+        # Download photo to temp file
+        loop = get_tg_loop()
+        import asyncio
+        tmp_path = tempfile.mktemp(suffix='.jpg')
+        future = asyncio.run_coroutine_threadsafe(
+            tg_client.download_media(photo_obj, tmp_path), loop
+        )
+        future.result(timeout=10)
+
+        # OCR
+        img = Image.open(tmp_path)
+        text = pytesseract.image_to_string(img)
+
+        # Clean up
+        import os
+        os.remove(tmp_path)
+
+        # Find XXXUSDT pattern
+        symbols = re.findall(r'(\d*[A-Z]{2,10})USDT', text)
+        if symbols:
+            return symbols[0]
+        return None
+    except Exception as e:
+        print(f"[OCR] Error: {e}", flush=True)
+        return None
+
 def check_group_tp_signal(msg_text, msg_photo):
     """Check if group owner posted a TP/profit message and close matching positions.
     Triggers on: tp1/tp2/tp3, 止盈, 翻倍, X倍拿下, 止損 + matching coin name."""
@@ -682,18 +734,25 @@ def check_group_tp_signal(msg_text, msg_photo):
         if symbol in text_upper:
             matched_trades.append(trade)
 
-    # If message has photo but no coin name in text, and only 1 open trade
-    # → likely about that trade (group owner often posts screenshot without coin name)
-    if not matched_trades and msg_photo and len(open_trades) == 1:
-        matched_trades = [open_trades[0]]
-        print(f"[Group TP] Photo with '{text[:30]}', matching only open trade: {open_trades[0]['symbol']}", flush=True)
-
     # If message has coin-like text (e.g. #CFG, $BTC)
     if not matched_trades:
         for trade in open_trades:
             symbol = trade['symbol'].upper().replace('USDT', '').replace('/', '').replace('_', '')
             if f'#{symbol}' in text_upper or f'${symbol}' in text_upper:
                 matched_trades.append(trade)
+
+    # If still no match and has photo, try OCR to detect coin from screenshot
+    if not matched_trades and msg_photo and open_trades:
+        try:
+            ocr_symbol = ocr_extract_symbol(msg_photo)
+            if ocr_symbol:
+                for trade in open_trades:
+                    trade_sym = trade['symbol'].upper().replace('USDT', '').replace('/', '').replace('_', '')
+                    if trade_sym == ocr_symbol:
+                        matched_trades.append(trade)
+                        print(f"[Group TP] OCR matched: {ocr_symbol} → {trade['symbol']}", flush=True)
+        except Exception as e:
+            print(f"[Group TP] OCR failed: {e}", flush=True)
 
     for trade in matched_trades:
         print(f"[Group TP] Group owner {action}! Closing {trade['symbol']} {trade['direction']}", flush=True)
@@ -757,27 +816,17 @@ def auto_open_trade(signal_id):
 
         position_size = float(config.get('position_size_usdt', 200))
 
-        # Strict mode: check if current price is near entry price
-        # If price deviated, place limit order at entry price instead of market order
-        use_limit_order = False
+        # Skip if price deviated too far (>10%), otherwise market order
         entry_price_check = signal['entry_price']
         if entry_price_check and entry_price_check > 0:
             current = get_exchange_price(signal['symbol'])
             if current:
-                direction = signal['direction']
-                # For LONG: price should be at or below entry; for SHORT: at or above entry
-                wrong_side = (direction == 'LONG' and current > entry_price_check * 1.015) or \
-                             (direction == 'SHORT' and current < entry_price_check * 0.985)
-                if wrong_side:
-                    diff_pct = abs(current - entry_price_check) / entry_price_check * 100
-                    if diff_pct > 10:
-                        # Too far, skip entirely
-                        print(f"[Auto-Trade] Price {current} way too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
-                        add_log(f"跳过 {signal['symbol']}: 价格偏离 {diff_pct:.1f}% > 10%", 'WARN')
-                        conn.close()
-                        return False
-                    use_limit_order = True
-                    print(f"[Auto-Trade] Price {current} deviated from entry {entry_price_check} ({diff_pct:.1f}%), using limit order", flush=True)
+                diff_pct = abs(current - entry_price_check) / entry_price_check * 100
+                if diff_pct > 10:
+                    print(f"[Auto-Trade] Price {current} too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
+                    add_log(f"跳过 {signal['symbol']}: 价格偏离 {diff_pct:.1f}% > 10%", 'WARN')
+                    conn.close()
+                    return False
 
         # Dynamic leverage based on SL distance (like the group owner's strategy)
         # SL < 1% → 100x, SL 1-2% → 75x, SL 2-3% → 50x, SL 3-5% → 30x, SL > 5% → 20x
@@ -812,7 +861,6 @@ def auto_open_trade(signal_id):
             position_size_usdt=position_size,
             stop_loss=signal['stop_loss'],
             take_profit=signal['take_profit'],
-            limit_price=entry_price_check if use_limit_order else None,
         )
 
         if order_result is None:
