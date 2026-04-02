@@ -818,15 +818,30 @@ def auto_open_trade(signal_id):
 
         # Skip if price deviated too far (>10%), otherwise market order
         entry_price_check = signal['entry_price']
-        if entry_price_check and entry_price_check > 0:
-            current = get_exchange_price(signal['symbol'])
-            if current:
-                diff_pct = abs(current - entry_price_check) / entry_price_check * 100
-                if diff_pct > 10:
-                    print(f"[Auto-Trade] Price {current} too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
-                    add_log(f"跳过 {signal['symbol']}: 价格偏离 {diff_pct:.1f}% > 10%", 'WARN')
-                    conn.close()
-                    return False
+        current_price_check = get_exchange_price(signal['symbol'])
+        if entry_price_check and entry_price_check > 0 and current_price_check:
+            diff_pct = abs(current_price_check - entry_price_check) / entry_price_check * 100
+            if diff_pct > 10:
+                print(f"[Auto-Trade] Price {current_price_check} too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
+                add_log(f"跳过 {signal['symbol']}: 价格偏离 {diff_pct:.1f}% > 10%", 'WARN')
+                conn.close()
+                return False
+
+        # Skip if current price already past TP (too close or already hit)
+        tp_check = signal['take_profit']
+        if tp_check and tp_check > 0 and current_price_check:
+            direction = signal['direction']
+            # Only skip if price already PAST TP (not just near)
+            if direction == 'LONG' and current_price_check >= tp_check:
+                print(f"[Auto-Trade] Price {current_price_check} already past TP {tp_check}, skip", flush=True)
+                add_log(f"跳过 {signal['symbol']}: 价格已超过止盈 {tp_check}", 'WARN')
+                conn.close()
+                return False
+            elif direction == 'SHORT' and current_price_check <= tp_check:
+                print(f"[Auto-Trade] Price {current_price_check} already past TP {tp_check}, skip", flush=True)
+                add_log(f"跳过 {signal['symbol']}: 价格已超过止盈 {tp_check}", 'WARN')
+                conn.close()
+                return False
 
         # Dynamic leverage based on SL distance (like the group owner's strategy)
         # SL < 1% → 100x, SL 1-2% → 75x, SL 2-3% → 50x, SL 3-5% → 30x, SL > 5% → 20x
