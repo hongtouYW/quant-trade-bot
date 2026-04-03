@@ -60,7 +60,7 @@ def plot_save(xyDataList, save_path):  # [{ "legend":legend, "xData":xData,"yDat
     # 设置matplotlib正常显示中文和负号
     markers = ["*", ".", "x"]
     font = FontProperties(
-        fname="/usr/local/python3/lib/python3.9/site-packages/matplotlib/mpl-data/fonts/ttf/SimHei.ttf")
+        fname="/usr/local/lib/python3.10/dist-packages/matplotlib/mpl-data/fonts/ttf/SimHei.ttf")
 
     matplotlib.rcParams['font.sans-serif'] = ['SimHei']  # 用黑体显示中文
     matplotlib.rcParams['axes.unicode_minus'] = False  # 正常显示负号

@@ -1,9 +1,13 @@
 # 量化交易系统 - 更新日志
 
-## 2026-04-01
+## 2026-04-03
 
-### 百度统计 Token 更新
-- 更新 `baidu_tongji/` 下全部 10 个脚本的 `baidu_accessToken`（旧 token 已过期）
+### 百度统计迁移至新服务器
+- 新服务器: `139.162.31.86:26026` (Ubuntu 22)
+- 部署路径: `/opt/baidu_tongji/`（10个脚本）
+- 安装依赖: pymysql, requests, beautifulsoup4, matplotlib, telepot
+- 定时任务: 当天数据每小时`:11`跑，昨天数据每天凌晨`1:10`跑
+- 更新全部 10 个脚本的 `baidu_accessToken`（旧 token 已过期）
 
 ## v0.3 - 2026-01-28
 
