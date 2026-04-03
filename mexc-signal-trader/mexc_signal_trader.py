@@ -32,6 +32,10 @@ EXCHANGE_NAME = 'bitget'
 MAX_LEVERAGE = 100
 MIN_LEVERAGE = 20
 
+# ===== Paper Trading Mode =====
+PAPER_TRADING = True
+PAPER_INITIAL_CAPITAL = 10000
+
 # ===== Telegram Listener Config (Telethon user client) =====
 TG_API_ID = 37356394
 TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
@@ -78,8 +82,12 @@ def get_tg_loop():
 # ===== Binance Exchange =====
 
 def init_exchange():
-    """Initialize Bitget futures connection via ccxt"""
+    """Initialize exchange. Paper mode: skip API connection."""
     global exchange
+    if PAPER_TRADING:
+        exchange = True
+        print(f"[Paper] Paper trading mode! Virtual capital: {PAPER_INITIAL_CAPITAL}U", flush=True)
+        return True
     if not EXCHANGE_API_KEY or not EXCHANGE_API_SECRET:
         print("[Bitget] WARNING: API keys not set!", flush=True)
         return False
@@ -121,8 +129,17 @@ def get_exchange_price(symbol):
         return None
 
 def get_exchange_balance():
-    """Get Binance futures USDT balance"""
+    """Get balance. Paper mode: calculate from initial capital + PnL."""
     try:
+        if PAPER_TRADING:
+            conn = get_db()
+            total_pnl = conn.execute('SELECT COALESCE(SUM(pnl), 0) FROM trades WHERE status="closed"').fetchone()[0]
+            open_margin = conn.execute('SELECT COALESCE(SUM(position_size), 0) FROM trades WHERE status="open"').fetchone()[0]
+            conn.close()
+            total = round(PAPER_INITIAL_CAPITAL + total_pnl, 2)
+            used = round(open_margin, 2)
+            free = round(total - used, 2)
+            return {'total': total, 'free': free, 'used': used}
         if not exchange:
             return {'total': 0, 'free': 0, 'used': 0}
         bal = exchange.fetch_balance()
@@ -137,14 +154,38 @@ def get_exchange_balance():
         return {'total': 0, 'free': 0, 'used': 0}
 
 def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_loss=None, take_profit=None):
-    """Open a futures position on Bitget via ccxt. Max leverage 20x."""
+    """Open a futures position. Paper mode: simulate; Live mode: Bitget via ccxt."""
     try:
-        # Normalize symbol to ccxt format: BTC/USDT:USDT
+        # Normalize symbol
         sym = symbol.upper().replace('/','').replace(':','').replace('_','')
         if not sym.endswith('USDT'):
             sym = sym + 'USDT'
         base = sym.replace('USDT', '')
         ccxt_symbol = f'{base}/USDT:USDT'
+
+        if PAPER_TRADING:
+            # Paper trading: get price and simulate
+            current_price = get_exchange_price(sym)
+            if not current_price:
+                print(f"[Paper] Cannot get price for {sym}, skip", flush=True)
+                return None
+
+            lev = min(int(leverage), MAX_LEVERAGE)
+            lev = max(lev, MIN_LEVERAGE)
+            notional = position_size_usdt * lev
+            qty = notional / current_price
+
+            print(f"[Paper] Opened {direction} {base} qty={qty:.4f} lev={lev}x @ {current_price} margin={position_size_usdt}U", flush=True)
+            return {
+                'order_id': f'paper_{int(time.time())}',
+                'symbol': sym,
+                'direction': direction,
+                'entry_price': current_price,
+                'amount': qty,
+                'leverage': lev,
+                'position_size_usdt': position_size_usdt,
+                'notional_usdt': round(qty * current_price, 2),
+            }
 
         # Cap leverage
         lev = min(int(leverage), MAX_LEVERAGE)
@@ -283,13 +324,24 @@ def exchange_open_order(symbol, direction, leverage, position_size_usdt, stop_lo
         return None
 
 def exchange_close_position(symbol, direction, amount=None, vol=None):
-    """Close a futures position on Bitget using flash close API"""
+    """Close a futures position. Paper mode: simulate; Live mode: Bitget flash close."""
     try:
         sym = symbol.upper().replace('/','').replace(':','').replace('_','')
         if not sym.endswith('USDT'):
             sym = sym + 'USDT'
         base = sym.replace('USDT', '')
         ccxt_symbol = f'{base}/USDT:USDT'
+
+        if PAPER_TRADING:
+            current_price = get_exchange_price(sym)
+            if not current_price:
+                return None
+            print(f"[Paper] Closed {direction} {base} @ {current_price}", flush=True)
+            return {
+                'order_id': f'paper_close_{int(time.time())}',
+                'exit_price': current_price,
+                'filled': amount or 0,
+            }
 
         hold_side = 'long' if direction == 'LONG' else 'short'
 
