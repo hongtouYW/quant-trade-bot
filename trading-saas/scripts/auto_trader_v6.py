@@ -18,8 +18,8 @@ from datetime import datetime, date
 class AutoTraderV6:
     def __init__(self):
         # === v6 核心参数 ===
-        self.initial_capital = 2000
-        self.current_capital = 2000
+        self.initial_capital = 10000
+        self.current_capital = 10000
         self.fee_rate = 0.0005
         self.min_score = 70
         self.long_min_score = 85
