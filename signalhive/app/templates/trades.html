@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Trades - SignalHive{% endblock %}
+
+{% block content %}
+<h2 style="margin-bottom: 20px;">Trade History</h2>
+
+<!-- Stats -->
+<div class="grid grid-4" style="margin-bottom: 24px;">
+    <div class="stat-card">
+        <div class="stat-value stat-blue">{{ total }}</div>
+        <div class="stat-label">Total Closed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value stat-green">{{ wins }}</div>
+        <div class="stat-label">Wins</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value stat-red">{{ losses }}</div>
+        <div class="stat-label">Losses</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value {% if total_pnl >= 0 %}stat-green{% else %}stat-red{% endif %}">
+            {{ "%.2f"|format(total_pnl) }}
+        </div>
+        <div class="stat-label">Total PnL (USDT)</div>
+    </div>
+</div>
+
+<div class="grid grid-2" style="margin-bottom: 24px;">
+    <div class="stat-card">
+        <div class="stat-value stat-green">{{ winrate }}%</div>
+        <div class="stat-label">Win Rate</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value stat-blue">{{ "%.2f%%"|format(avg_roi * 100) }}</div>
+        <div class="stat-label">Avg ROI</div>
+    </div>
+</div>
+
+{% if trades %}
+<div class="card">
+    <div class="card-title">All Trades</div>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Coin</th>
+                    <th>Direction</th>
+                    <th>Entry</th>
+                    <th>Exit</th>
+                    <th>Qty</th>
+                    <th>Lev</th>
+                    <th>PnL</th>
+                    <th>ROI</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Opened</th>
+                    <th>Closed</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in trades %}
+                <tr>
+                    <td>#{{ t.id }}</td>
+                    <td><strong>{{ t.coin }}</strong></td>
+                    <td><span class="badge badge-{{ t.direction|lower }}">{{ t.direction }}</span></td>
+                    <td>{{ "%.2f"|format(t.entry_price|float) if t.entry_price else '-' }}</td>
+                    <td>{{ "%.2f"|format(t.exit_price|float) if t.exit_price else '-' }}</td>
+                    <td>{{ "%.4f"|format(t.quantity|float) if t.quantity else '-' }}</td>
+                    <td>{{ t.leverage }}x</td>
+                    <td class="{% if t.pnl and t.pnl|float >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">
+                        {{ "%.2f"|format(t.pnl|float) if t.pnl else '-' }}
+                    </td>
+                    <td class="{% if t.roi and t.roi|float >= 0 %}pnl-positive{% else %}pnl-negative{% endif %}">
+                        {{ "%.2f%%"|format(t.roi|float * 100) if t.roi else '-' }}
+                    </td>
+                    <td>{% if t.is_paper %}<span class="badge badge-paper">Paper</span>{% else %}<span class="badge badge-active">Live</span>{% endif %}</td>
+                    <td><span class="badge badge-{{ t.status }}">{{ t.status }}</span></td>
+                    <td>{{ t.opened_at.strftime('%m-%d %H:%M') if t.opened_at else '-' }}</td>
+                    <td>{{ t.closed_at.strftime('%m-%d %H:%M') if t.closed_at else '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <h3>No Trades Yet</h3>
+        <p>Trades will be created automatically when signals match your strategies.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
