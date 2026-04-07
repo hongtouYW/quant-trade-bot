@@ -36,7 +36,8 @@
       "Bash(python -c \"from app.engine.signal_analyzer import get_btc_trend; print\\(''signal_analyzer OK''\\)\")",
       "Bash(python -c \"from app.config import Config; print\\(''config OK, JWT refresh:'', Config.JWT_REFRESH_TOKEN_EXPIRES\\)\")",
       "Bash(git stash:*)",
-      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/github_rsa\" git push origin main)"
+      "Bash(GIT_SSH_COMMAND=\"ssh -i ~/.ssh/github_rsa\" git push origin main)",
+      "Bash(ssh-add -l)"
     ],
     "additionalDirectories": [
       "/tmp",
