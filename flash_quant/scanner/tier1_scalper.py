@@ -14,6 +14,7 @@ from filters.cvd_filter import cvd_filter
 from filters.funding_filter import funding_filter
 from filters.blacklist_filter import is_tradable
 from risk.risk_manager import risk_manager
+from models.db_ops import save_signal
 from core.constants import (
     TIER1_SCAN_INTERVAL, TIER1_VOLUME_RATIO_MIN,
     TIER1_PRICE_CHANGE_MIN, TIER1_OI_CHANGE_MIN,
@@ -47,10 +48,17 @@ class Tier1Scalper(ScannerBase):
                     await asyncio.sleep(TIER1_SCAN_INTERVAL)
                     continue
 
-                signals = await self.scan()
+                scan_signals = await self.scan()
                 self._scan_count += 1
 
-                for sig in signals:
+                for sig in scan_signals:
+                    # 保存信号到 DB
+                    try:
+                        sig_id = save_signal(sig)
+                    except Exception as e:
+                        logger.error("tier1.save_signal_error", error=str(e))
+                        sig_id = None
+
                     if sig['final_decision'] == 'executed' and self.executor:
                         result = risk_manager.check(sig)
                         if result.approved:
@@ -61,10 +69,15 @@ class Tier1Scalper(ScannerBase):
                                 margin=result.position_size,
                                 leverage=result.leverage,
                                 stop_loss_roi=result.stop_loss_roi,
+                                signal_id=sig_id,
                             )
                         else:
                             sig['final_decision'] = 'blocked'
                             sig['filter_reason'] = result.reason
+                            try:
+                                save_signal(sig)
+                            except Exception:
+                                pass
 
             except Exception as e:
                 logger.error("tier1.scan_error", error=str(e))

@@ -18,6 +18,7 @@ from data.market_data import market_data
 from scanner.tier1_scalper import Tier1Scalper
 from executor.paper_executor import PaperExecutor
 from risk.risk_manager import risk_manager
+from models.db_ops import count_open_trades, get_open_symbols
 
 logger = get_logger('engine')
 
@@ -43,16 +44,11 @@ async def position_monitor(executor: PaperExecutor, interval: int = 30):
         try:
             await executor.check_positions()
 
-            # 更新 risk_manager 的持仓状态
+            # 更新 risk_manager 的持仓状态 (从 DB 读)
             risk_manager.update_positions(
-                executor.get_open_count(),
-                executor.get_open_symbols(),
+                count_open_trades(),
+                get_open_symbols(),
             )
-
-            # 每 10 分钟打印统计
-            stats = executor.get_stats()
-            if stats['total'] > 0 and stats['total'] % 5 == 0:
-                logger.info("stats", **stats)
 
         except Exception as e:
             logger.error("position_monitor.error", error=str(e))

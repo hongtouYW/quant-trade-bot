@@ -74,7 +74,10 @@ class BinanceWebSocket:
                 wait = min(2 ** retry, 60)
                 logger.warning("binance_ws.disconnected",
                               code=e.code, retry=retry, wait=wait)
-                await asyncio.sleep(wait)
+                try:
+                    await asyncio.sleep(wait)
+                except RuntimeError:
+                    import time; time.sleep(wait)
 
             except Exception as e:
                 self._connected = False
@@ -82,7 +85,10 @@ class BinanceWebSocket:
                 wait = min(2 ** retry, 60)
                 logger.error("binance_ws.error",
                             error=str(e), retry=retry, wait=wait)
-                await asyncio.sleep(wait)
+                try:
+                    await asyncio.sleep(wait)
+                except RuntimeError:
+                    import time; time.sleep(wait)
 
         logger.error("binance_ws.max_retries_reached", max_retry=max_retry)
 

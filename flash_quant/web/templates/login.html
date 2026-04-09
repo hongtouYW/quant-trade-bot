@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <title>Flash Quant - Login</title>
+    <title>Flash Quant - 登录</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, monospace;
@@ -25,14 +25,14 @@
 <body>
     <div class="login-box">
         <h1>Flash<span>Quant</span></h1>
-        <p>Burst Signal Trading System</p>
+        <p>爆发性信号量化交易系统</p>
         {% if error %}<div class="error">{{ error }}</div>{% endif %}
         <form method="POST">
-            <label>Username</label>
+            <label>用户名</label>
             <input type="text" name="username" autofocus>
-            <label>Password</label>
+            <label>密码</label>
             <input type="password" name="password">
-            <button type="submit">Login</button>
+            <button type="submit">登录</button>
         </form>
     </div>
 </body>

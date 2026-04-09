@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+{% block title_suffix %} - 交易历史{% endblock %}
+{% block content %}
+
+<div class="cards">
+    <div class="card">
+        <div class="label">总交易</div>
+        <div class="value">{{ stats.total }}</div>
+    </div>
+    <div class="card">
+        <div class="label">总净利</div>
+        <div class="value {{ 'green' if stats.total_pnl >= 0 else 'red' }}">{{ "%+.2f"|format(stats.total_pnl) }} U</div>
+    </div>
+    <div class="card">
+        <div class="label">总手续费</div>
+        <div class="value red">{{ "{:,.2f}".format(stats.total_fee) }} U</div>
+    </div>
+    <div class="card">
+        <div class="label">总隔夜费</div>
+        <div class="value red">{{ "{:,.2f}".format(stats.total_funding) }} U</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>日历视图 (点击日期查看交易)</h2>
+    <div id="calendarGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:24px">
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">一</div>
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">二</div>
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">三</div>
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">四</div>
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">五</div>
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">六</div>
+        <div style="color:#8b949e;text-align:center;font-size:12px;padding:8px">日</div>
+    </div>
+</div>
+
+<div id="dayDetail" style="display:none" class="section">
+    <h2 id="dayTitle"></h2>
+    <div id="dayTrades"></div>
+</div>
+
+<!-- 交易图表弹窗 -->
+<div id="chartModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center">
+    <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;width:90%;max-width:800px;max-height:85vh;overflow-y:auto">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+            <h3 id="chartTitle" style="color:#e6edf3"></h3>
+            <a href="#" onclick="closeChart();return false" style="color:#8b949e;font-size:24px;text-decoration:none">&times;</a>
+        </div>
+        <canvas id="priceChart" height="300"></canvas>
+        <div id="chartInfo" style="margin-top:16px;font-size:13px"></div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const calendarData = {{ calendar|tojson }};
+const allTrades = {{ trades|tojson }};
+
+// 生成日历
+(function() {
+    const grid = document.getElementById('calendarGrid');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+
+    // 当月第一天
+    const first = new Date(year, month, 1);
+    // 周一=0 调整
+    let startDay = first.getDay() - 1;
+    if (startDay < 0) startDay = 6;
+
+    // 空白填充
+    for (let i = 0; i < startDay; i++) {
+        grid.innerHTML += '<div></div>';
+    }
+
+    // 过去14天+未来到月末
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const data = calendarData[dateStr];
+        const isToday = d === now.getDate();
+
+        let bg = '#161b22';
+        let border = '#30363d';
+        let content = `<div style="font-size:14px;font-weight:bold">${d}</div>`;
+
+        if (data) {
+            bg = data.pnl >= 0 ? '#0d421a' : '#3d1014';
+            border = data.pnl >= 0 ? '#3fb95040' : '#f8514940';
+            const pnlColor = data.pnl >= 0 ? '#3fb950' : '#f85149';
+            content += `<div style="font-size:11px;color:${pnlColor};font-weight:bold">${data.pnl > 0 ? '+' : ''}${data.pnl}U</div>`;
+            content += `<div style="font-size:10px;color:#8b949e">${data.trades}笔 ${data.wins}胜${data.losses}负</div>`;
+        }
+
+        if (isToday) border = '#58a6ff';
+
+        const cursor = data ? 'pointer' : 'default';
+        const click = data ? `onclick="showDay('${dateStr}')"` : '';
+
+        grid.innerHTML += `<div style="background:${bg};border:1px solid ${border};border-radius:6px;padding:8px;min-height:70px;cursor:${cursor}" ${click}>${content}</div>`;
+    }
+})();
+
+function showDay(dateStr) {
+    const detail = document.getElementById('dayDetail');
+    detail.style.display = 'block';
+    document.getElementById('dayTitle').textContent = dateStr + ' 交易记录';
+
+    const dayTrades = allTrades.filter(t => t.date === dateStr);
+    const container = document.getElementById('dayTrades');
+
+    if (!dayTrades.length) {
+        container.innerHTML = '<p style="color:#8b949e">该日无交易</p>';
+        return;
+    }
+
+    let html = `<table><thead><tr>
+        <th>时间</th><th>币种</th><th>方向</th><th>杠杆</th><th>保证金</th>
+        <th>入场</th><th>出场</th><th>止盈</th><th>止损</th>
+        <th>费用</th><th>净利</th><th>ROI</th><th>图表</th>
+    </tr></thead><tbody>`;
+
+    for (const t of dayTrades) {
+        const c = t.net_pnl > 0 ? '#3fb950' : '#f85149';
+        const dir = t.direction === 'long' ? '多' : '空';
+        const reason = {'take_profit':'止盈','stop_loss':'止损','timeout':'超时','trailing':'追踪'}[t.close_reason] || t.close_reason;
+        html += `<tr>
+            <td>${t.time.split(' ')[1]}</td>
+            <td><strong>${t.symbol}</strong></td>
+            <td><span class="badge ${t.direction}">${dir}</span></td>
+            <td>${t.leverage}x</td>
+            <td>${t.margin}U</td>
+            <td>${t.entry_price}</td>
+            <td>${t.exit_price}</td>
+            <td style="color:#3fb950">${t.take_profit}</td>
+            <td style="color:#f85149">${t.stop_loss}</td>
+            <td style="color:#d29922">${t.total_fee}</td>
+            <td style="color:${c};font-weight:bold">${t.net_pnl > 0 ? '+' : ''}${t.net_pnl}U</td>
+            <td style="color:${c}">${(t.pnl_pct * 100).toFixed(1)}%</td>
+            <td><a href="#" onclick="showChart(${t.id});return false" style="color:#58a6ff">查看</a></td>
+        </tr>`;
+    }
+    html += '</tbody></table>';
+
+    // 日汇总
+    const pnl = dayTrades.reduce((s, t) => s + t.net_pnl, 0);
+    const fee = dayTrades.reduce((s, t) => s + t.total_fee, 0);
+    const pc = pnl >= 0 ? '#3fb950' : '#f85149';
+    html += `<div style="margin-top:12px;padding:12px;background:#0d1117;border-radius:6px;font-size:13px">
+        日汇总: ${dayTrades.length}笔 | 净利: <strong style="color:${pc}">${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}U</strong> | 手续费: <span style="color:#d29922">${fee.toFixed(2)}U</span>
+    </div>`;
+
+    container.innerHTML = html;
+    detail.scrollIntoView({ behavior: 'smooth' });
+}
+
+function showChart(tradeId) {
+    fetch('/api/trade/' + tradeId)
+        .then(r => r.json())
+        .then(t => {
+            const modal = document.getElementById('chartModal');
+            modal.style.display = 'flex';
+            document.getElementById('chartTitle').textContent =
+                t.symbol + ' ' + (t.direction === 'long' ? '多' : '空') + ' ' + t.leverage + 'x — ' + t.time;
+
+            const color = t.net_pnl > 0 ? '#3fb950' : '#f85149';
+            const reason = {'take_profit':'止盈','stop_loss':'止损','timeout':'超时','trailing':'追踪'}[t.close_reason] || t.close_reason;
+            document.getElementById('chartInfo').innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;font-size:13px">
+                    <div>入场: <strong style="color:#58a6ff">${t.entry_price}</strong></div>
+                    <div>出场: <strong style="color:${color}">${t.exit_price}</strong></div>
+                    <div style="color:#3fb950">止盈: ${t.take_profit}</div>
+                    <div style="color:#f85149">止损: ${t.stop_loss}</div>
+                    <div>保证金: ${t.margin}U × ${t.leverage}x</div>
+                    <div>持仓: ${t.hold_hours}h</div>
+                    <div>手续费: <span style="color:#d29922">${t.total_fee}U</span></div>
+                    <div>隔夜费: <span style="color:#d29922">${t.funding_fee}U</span></div>
+                    <div>毛利: ${t.raw_pnl > 0 ? '+' : ''}${t.raw_pnl}U</div>
+                    <div>净利: <strong style="color:${color}">${t.net_pnl > 0 ? '+' : ''}${t.net_pnl}U</strong></div>
+                    <div>ROI: <span style="color:${color}">${(t.pnl_pct*100).toFixed(1)}%</span></div>
+                    <div>平仓: ${reason}</div>
+                </div>
+            `;
+            drawChart(t.chart_data, t);
+        });
+}
+
+function closeChart() {
+    document.getElementById('chartModal').style.display = 'none';
+}
+document.getElementById('chartModal').addEventListener('click', function(e) {
+    if (e.target === this) closeChart();
+});
+
+function drawChart(cd, trade) {
+    const canvas = document.getElementById('priceChart');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width = canvas.parentElement.clientWidth - 48;
+    const H = canvas.height = 300;
+    ctx.clearRect(0, 0, W, H);
+
+    const prices = cd.prices;
+    const all = [...prices, cd.entry, cd.exit, cd.stop_loss, cd.take_profit];
+    const minP = Math.min(...all) * 0.9995;
+    const maxP = Math.max(...all) * 1.0005;
+    const range = maxP - minP || 1;
+    const px = (i) => 60 + (i / (prices.length - 1)) * (W - 80);
+    const py = (p) => H - 30 - ((p - minP) / range) * (H - 50);
+    const fmt = (p) => p < 1 ? p.toFixed(6) : p < 100 ? p.toFixed(4) : p.toFixed(2);
+
+    // 网格
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < 5; i++) {
+        const y = 20 + i * (H - 50) / 4;
+        ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(W-20, y); ctx.stroke();
+        ctx.fillStyle = '#8b949e'; ctx.font = '10px monospace';
+        ctx.fillText(fmt(maxP - (i/4) * range), 2, y + 3);
+    }
+
+    // 止盈线
+    ctx.setLineDash([5,5]);
+    ctx.strokeStyle = '#3fb95080'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(60, py(cd.take_profit)); ctx.lineTo(W-20, py(cd.take_profit)); ctx.stroke();
+    ctx.fillStyle = '#3fb950'; ctx.font = '11px monospace';
+    ctx.fillText('止盈 ' + fmt(cd.take_profit), W - 120, py(cd.take_profit) - 5);
+
+    // 止损线
+    ctx.strokeStyle = '#f8514980';
+    ctx.beginPath(); ctx.moveTo(60, py(cd.stop_loss)); ctx.lineTo(W-20, py(cd.stop_loss)); ctx.stroke();
+    ctx.fillStyle = '#f85149';
+    ctx.fillText('止损 ' + fmt(cd.stop_loss), W - 120, py(cd.stop_loss) - 5);
+
+    // 入场线
+    ctx.strokeStyle = '#58a6ff80';
+    ctx.beginPath(); ctx.moveTo(60, py(cd.entry)); ctx.lineTo(W-20, py(cd.entry)); ctx.stroke();
+    ctx.fillStyle = '#58a6ff';
+    ctx.fillText('入场 ' + fmt(cd.entry), W - 120, py(cd.entry) - 5);
+
+    // 出场线
+    const exitColor = trade.net_pnl > 0 ? '#3fb95080' : '#f8514980';
+    ctx.strokeStyle = exitColor;
+    ctx.beginPath(); ctx.moveTo(60, py(cd.exit)); ctx.lineTo(W-20, py(cd.exit)); ctx.stroke();
+    ctx.fillStyle = trade.net_pnl > 0 ? '#3fb950' : '#f85149';
+    ctx.fillText('平仓 ' + fmt(cd.exit), W - 120, py(cd.exit) + 12);
+
+    ctx.setLineDash([]);
+
+    // 价格曲线
+    ctx.strokeStyle = trade.net_pnl > 0 ? '#3fb950' : '#f85149';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < prices.length; i++) {
+        if (i === 0) ctx.moveTo(px(i), py(prices[i]));
+        else ctx.lineTo(px(i), py(prices[i]));
+    }
+    ctx.stroke();
+
+    // 渐变
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, trade.net_pnl > 0 ? '#3fb95015' : '#f8514915');
+    grad.addColorStop(1, '#0d111700');
+    ctx.fillStyle = grad;
+    ctx.lineTo(px(prices.length-1), H-30); ctx.lineTo(px(0), H-30);
+    ctx.closePath(); ctx.fill();
+
+    // 入场点
+    ctx.fillStyle = '#58a6ff';
+    ctx.beginPath(); ctx.arc(px(0), py(cd.entry), 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 11px monospace';
+    ctx.fillText('买', px(0) - 5, py(cd.entry) - 10);
+
+    // 出场点
+    ctx.fillStyle = trade.net_pnl > 0 ? '#3fb950' : '#f85149';
+    ctx.beginPath(); ctx.arc(px(prices.length-1), py(cd.exit), 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.fillText('卖', px(prices.length-1) - 5, py(cd.exit) - 10);
+}
+</script>
+{% endblock %}

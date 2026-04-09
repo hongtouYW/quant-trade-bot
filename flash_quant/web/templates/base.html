@@ -37,10 +37,10 @@
             color: #c9d1d9;
             background: #21262d;
         }
-        nav .right { margin-left: auto; font-size: 12px; }
+        nav .right { margin-left: auto; font-size: 12px; display: flex; align-items: center; gap: 12px; }
         .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
 
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .card {
             background: #161b22;
             border: 1px solid #30363d;
@@ -53,6 +53,7 @@
         .card .value.red { color: #f85149; }
         .card .value.blue { color: #58a6ff; }
         .card .value.yellow { color: #d29922; }
+        .card .sub { font-size: 11px; color: #8b949e; margin-top: 4px; }
 
         table { width: 100%; border-collapse: collapse; font-size: 13px; }
         th { text-align: left; padding: 8px 12px; color: #8b949e; border-bottom: 1px solid #30363d; font-weight: 500; }
@@ -70,7 +71,7 @@
         .badge.tier1 { background: #2d1a00; color: #f0883e; }
         .badge.tier2 { background: #0d2240; color: #58a6ff; }
         .badge.tier3 { background: #1a1a2e; color: #bc8cff; }
-        .badge.passed { background: #0d421a; color: #3fb950; }
+        .badge.passed, .badge.executed { background: #0d421a; color: #3fb950; }
         .badge.filtered { background: #3d3100; color: #d29922; }
         .badge.blocked { background: #3d1014; color: #f85149; }
 
@@ -95,21 +96,24 @@
 <body>
     <nav>
         <div class="logo">Flash<span>Quant</span></div>
-        <a href="/" class="{% if request.path == '/' %}active{% endif %}">Dashboard</a>
-        <a href="/signals" class="{% if request.path == '/signals' %}active{% endif %}">Signals</a>
-        <a href="/trades" class="{% if request.path == '/trades' %}active{% endif %}">Trades</a>
-        <a href="/risk" class="{% if request.path == '/risk' %}active{% endif %}">Risk</a>
+        <a href="/" class="{% if request.path == '/' %}active{% endif %}">仪表盘</a>
+        <a href="/signals" class="{% if request.path == '/signals' %}active{% endif %}">信号</a>
+        <a href="/trades" class="{% if request.path == '/trades' %}active{% endif %}">交易</a>
+        <a href="/history" class="{% if request.path == '/history' %}active{% endif %}">历史</a>
+        <a href="/risk" class="{% if request.path == '/risk' %}active{% endif %}">风控</a>
         <div class="right">
-            <span class="status-dot green"></span>Phase {{ config.get('PHASE', 1) }} | {{ config.get('TRADING_MODE', 'paper').upper() }}
-            &nbsp; <a href="/logout" class="btn" style="font-size:11px">Logout</a>
+            <span class="status-dot green"></span>
+            阶段 {{ config.get('PHASE', 1) }} |
+            {{ '模拟盘' if config.get('TRADING_MODE') == 'paper' else '实盘' }}
+            <a href="javascript:location.reload()" class="btn" style="font-size:11px">刷新</a>
+            <a href="/logout" class="btn" style="font-size:11px">退出</a>
         </div>
     </nav>
     <div class="container">
         {% block content %}{% endblock %}
     </div>
     <script>
-        // 5s 自动刷新
-        setTimeout(() => location.reload(), 5000);
+        // 不自动刷新, 手动点刷新按钮
     </script>
     {% block scripts %}{% endblock %}
 </body>
