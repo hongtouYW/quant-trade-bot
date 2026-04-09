@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title_suffix %} - Signals{% endblock %}
+{% block content %}
+<div class="section">
+    <h2>All Signals</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th><th>Symbol</th><th>Dir</th><th>Tier</th>
+                <th>VolR</th><th>Chg%</th><th>Body%</th><th>CVD</th><th>Fund</th>
+                <th>Decision</th><th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if signals %}
+                {% for s in signals %}
+                <tr>
+                    <td>{{ s.timestamp }}</td>
+                    <td><strong>{{ s.symbol }}</strong></td>
+                    <td><span class="badge {{ s.direction }}">{{ s.direction|upper }}</span></td>
+                    <td><span class="badge {{ s.tier }}">{{ s.tier }}</span></td>
+                    <td>{{ s.volume_ratio }}x</td>
+                    <td style="color:{{ '#3fb950' if s.price_change_pct > 0 else '#f85149' }}">{{ s.price_change_pct }}%</td>
+                    <td>{{ "%.0f"|format(s.body_ratio * 100) }}%</td>
+                    <td>{{ '✅' if s.cvd_aligned else '❌' }}</td>
+                    <td>{{ '✅' if s.funding_passed else '❌' }}</td>
+                    <td><span class="badge {{ s.final_decision }}">{{ s.final_decision }}</span></td>
+                    <td style="color:#8b949e;font-size:11px">{{ s.filter_reason }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="11" style="color:#8b949e;text-align:center;padding:24px">Waiting for engine...</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

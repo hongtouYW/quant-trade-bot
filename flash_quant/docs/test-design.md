@@ -123,8 +123,12 @@
 **单笔风控 (FR-030)**:
 | TC-RISK-001 | 仓位 = 300U | ✅ 通过 |
 | TC-RISK-002 | 仓位 = 301U | ❌ 拒绝 (BR-005) |
-| TC-RISK-003 | 杠杆 = 20x | ✅ 通过 |
-| TC-RISK-004 | 杠杆 = 21x | ❌ 拒绝 (BR-001) |
+| TC-RISK-003 | BTC 杠杆 = 50x | ✅ 通过 (Tier A Major) |
+| TC-RISK-004 | BTC 杠杆 = 51x | ❌ 拒绝 (BR-001) |
+| TC-RISK-003a | SOL 杠杆 = 30x | ✅ 通过 (Tier A Large) |
+| TC-RISK-003b | SOL 杠杆 = 31x | ❌ 拒绝 (BR-001) |
+| TC-RISK-003c | 中盘币 杠杆 = 20x | ✅ 通过 (Tier B) |
+| TC-RISK-003d | 山寨币 杠杆 = 15x | ✅ 通过 (Tier C) |
 | TC-RISK-005 | 同时持仓 5 笔 | ❌ 第 6 笔拒绝 |
 | TC-RISK-006 | 止损单未挂 | ❌ 5s 后强平 (BR-006) |
 

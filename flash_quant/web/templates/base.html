@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flash Quant{% block title_suffix %}{% endblock %}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, monospace;
+            background: #0d1117;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+        nav {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+        nav .logo {
+            font-size: 18px;
+            font-weight: bold;
+            color: #58a6ff;
+        }
+        nav .logo span { color: #f0883e; }
+        nav a {
+            color: #8b949e;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+        nav a:hover, nav a.active {
+            color: #c9d1d9;
+            background: #21262d;
+        }
+        nav .right { margin-left: auto; font-size: 12px; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 16px;
+        }
+        .card .label { font-size: 12px; color: #8b949e; margin-bottom: 4px; }
+        .card .value { font-size: 24px; font-weight: bold; }
+        .card .value.green { color: #3fb950; }
+        .card .value.red { color: #f85149; }
+        .card .value.blue { color: #58a6ff; }
+        .card .value.yellow { color: #d29922; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 8px 12px; color: #8b949e; border-bottom: 1px solid #30363d; font-weight: 500; }
+        td { padding: 8px 12px; border-bottom: 1px solid #21262d; }
+        tr:hover { background: #161b22; }
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .badge.long { background: #0d421a; color: #3fb950; }
+        .badge.short { background: #3d1014; color: #f85149; }
+        .badge.tier1 { background: #2d1a00; color: #f0883e; }
+        .badge.tier2 { background: #0d2240; color: #58a6ff; }
+        .badge.tier3 { background: #1a1a2e; color: #bc8cff; }
+        .badge.passed { background: #0d421a; color: #3fb950; }
+        .badge.filtered { background: #3d3100; color: #d29922; }
+        .badge.blocked { background: #3d1014; color: #f85149; }
+
+        .section { margin-bottom: 32px; }
+        .section h2 { font-size: 16px; margin-bottom: 12px; color: #e6edf3; }
+
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+        .status-dot.green { background: #3fb950; }
+        .status-dot.red { background: #f85149; }
+        .status-dot.yellow { background: #d29922; }
+
+        .btn {
+            display: inline-block; padding: 6px 16px; border-radius: 6px;
+            font-size: 13px; cursor: pointer; border: 1px solid #30363d;
+            background: #21262d; color: #c9d1d9; text-decoration: none;
+        }
+        .btn:hover { background: #30363d; }
+        .btn.danger { border-color: #f85149; color: #f85149; }
+        .btn.danger:hover { background: #3d1014; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="logo">Flash<span>Quant</span></div>
+        <a href="/" class="{% if request.path == '/' %}active{% endif %}">Dashboard</a>
+        <a href="/signals" class="{% if request.path == '/signals' %}active{% endif %}">Signals</a>
+        <a href="/trades" class="{% if request.path == '/trades' %}active{% endif %}">Trades</a>
+        <a href="/risk" class="{% if request.path == '/risk' %}active{% endif %}">Risk</a>
+        <div class="right">
+            <span class="status-dot green"></span>Phase {{ config.get('PHASE', 1) }} | {{ config.get('TRADING_MODE', 'paper').upper() }}
+            &nbsp; <a href="/logout" class="btn" style="font-size:11px">Logout</a>
+        </div>
+    </nav>
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+    <script>
+        // 5s 自动刷新
+        setTimeout(() => location.reload(), 5000);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

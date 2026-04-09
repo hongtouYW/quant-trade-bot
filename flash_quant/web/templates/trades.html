@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title_suffix %} - Trades{% endblock %}
+{% block content %}
+<div class="section">
+    <h2>Trade History</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th><th>Symbol</th><th>Dir</th><th>Tier</th><th>Lev</th>
+                <th>Entry</th><th>Exit</th><th>P&L</th><th>ROI</th><th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if trades %}
+                {% for t in trades %}
+                <tr>
+                    <td>{{ t.time }}</td>
+                    <td><strong>{{ t.symbol }}</strong></td>
+                    <td><span class="badge {{ t.direction }}">{{ t.direction|upper }}</span></td>
+                    <td><span class="badge {{ t.tier }}">{{ t.tier }}</span></td>
+                    <td>{{ t.leverage }}x</td>
+                    <td>{{ t.entry_price }}</td>
+                    <td>{{ t.exit_price }}</td>
+                    <td style="color:{{ '#3fb950' if t.pnl > 0 else '#f85149' }}">${{ "%.2f"|format(t.pnl) }}</td>
+                    <td style="color:{{ '#3fb950' if t.pnl_pct > 0 else '#f85149' }}">{{ "%.1f"|format(t.pnl_pct * 100) }}%</td>
+                    <td style="color:#8b949e">{{ t.close_reason }}</td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr><td colspan="10" style="color:#8b949e;text-align:center;padding:24px">No trades yet</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

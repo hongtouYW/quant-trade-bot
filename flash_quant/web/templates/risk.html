@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title_suffix %} - Risk{% endblock %}
+{% block content %}
+<div class="cards">
+    <div class="card">
+        <div class="label">Circuit Breaker</div>
+        <div class="value green">INACTIVE</div>
+    </div>
+    <div class="card">
+        <div class="label">Black Swan Monitor</div>
+        <div class="value green">NORMAL</div>
+    </div>
+    <div class="card">
+        <div class="label">Consecutive Losses</div>
+        <div class="value">0</div>
+    </div>
+    <div class="card">
+        <div class="label">Daily P&L</div>
+        <div class="value green">$0.00</div>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Risk Controls</h2>
+    <table>
+        <thead><tr><th>Rule</th><th>Threshold</th><th>Current</th><th>Status</th></tr></thead>
+        <tbody>
+            <tr><td>Consecutive Loss Pause</td><td>5 losses</td><td>0</td><td><span class="badge passed">OK</span></td></tr>
+            <tr><td>Daily Loss Limit</td><td>-3%</td><td>0%</td><td><span class="badge passed">OK</span></td></tr>
+            <tr><td>Weekly Loss Limit</td><td>-8%</td><td>0%</td><td><span class="badge passed">OK</span></td></tr>
+            <tr><td>Monthly Loss Limit</td><td>-15%</td><td>0%</td><td><span class="badge passed">OK</span></td></tr>
+            <tr><td>Black Swan (5min >5%)</td><td>5%</td><td>Normal</td><td><span class="badge passed">OK</span></td></tr>
+            <tr><td>Max Positions</td><td>5</td><td>0</td><td><span class="badge passed">OK</span></td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Emergency Actions</h2>
+    <p style="margin-bottom:12px;color:#8b949e">These actions require server-side engine running</p>
+    <a href="#" class="btn danger" onclick="alert('Requires server engine')">Close All Positions</a>
+    <a href="#" class="btn" onclick="alert('Requires server engine')">Pause Trading</a>
+    <a href="#" class="btn" onclick="alert('Requires server engine')">Resume Trading</a>
+</div>
+{% endblock %}

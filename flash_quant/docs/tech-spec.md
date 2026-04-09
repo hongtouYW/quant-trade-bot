@@ -117,8 +117,14 @@ TG_CHAT_ID=
 """
 from enum import IntEnum
 
-# === BR-001: 杠杆上限 ===
-MAX_LEVERAGE = 20
+# === BR-001: 分级杠杆上限 ===
+LEVERAGE_TIERS = {
+    'tier_a_major': {'symbols': ['BTC', 'ETH'], 'max_leverage': 50, 'stop_loss_roi': -0.05},
+    'tier_a_large': {'symbols': ['SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX'], 'max_leverage': 30, 'stop_loss_roi': -0.08},
+    'tier_b': {'max_leverage': 20, 'stop_loss_roi': -0.10},
+    'tier_c': {'max_leverage': 15, 'stop_loss_roi': -0.10},
+}
+MAX_LEVERAGE = 50  # 绝对上限 (Tier A Major)
 
 # === BR-002: Tier D 黑名单 ===
 TIER_D_VOLUME_THRESHOLD = 10_000_000  # USD, 24h volume
@@ -163,13 +169,10 @@ BLACK_SWAN_VOLATILITY_THRESHOLD = 0.05  # 5%
 BLACK_SWAN_PAUSE_MINUTES = 30
 
 # === Tier 参数 ===
-TIER1_LEVERAGE = 20
-TIER2_LEVERAGE = 15
-TIER3_LEVERAGE = 10
-
-TIER1_STOP_LOSS_ROI = -0.10  # -10% ROI
-TIER2_STOP_LOSS_ROI = -0.10
-TIER3_STOP_LOSS_ROI = -0.10
+# Tier 参数 (杠杆由 LEVERAGE_TIERS 决定, 这里只定义扫描策略参数)
+TIER1_MAX_HOLD_HOURS = 2    # Tier A Major: 30min-1h, A Large: 1-4h
+TIER2_MAX_HOLD_HOURS = 8
+TIER3_MAX_HOLD_HOURS = 20
 
 TIER1_TAKE_PROFIT_LADDER = [
     (0.15, 0.30),  # +15% ROI 平 30%

@@ -652,7 +652,7 @@ supervisorctl status
 
 | BR | 文件 | 函数 |
 |---|---|---|
-| BR-001 (杠杆 ≤ 20x) | `core/constants.py` | `MAX_LEVERAGE = 20` |
+| BR-001 (分级杠杆) | `core/constants.py` | `LEVERAGE_TIERS = {...}` |
 | BR-002 (Tier D 黑名单) | `filters/blacklist_filter.py` | `is_tier_d()` |
 | BR-003 (新币黑名单) | `filters/blacklist_filter.py` | `is_new_listing()` |
 | BR-004 (渐进式资金) | `core/constants.py` | `PHASE_CAPITAL_LIMITS` (枚举) |
