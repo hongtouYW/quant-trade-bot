@@ -15,6 +15,7 @@ from scanner.tier3_direction import Tier3DirectionScanner
 from executor.paper_executor import PaperExecutor
 from risk.risk_manager import risk_manager
 from models.db_ops import count_open_trades, get_open_symbols
+from data.daily_stats_updater import daily_stats_updater
 
 logger = get_logger('engine')
 
@@ -106,8 +107,12 @@ async def main():
     # 1. 执行器
     if settings.TRADING_MODE == 'paper':
         executor = PaperExecutor()
+    elif settings.TRADING_MODE == 'live':
+        from executor.binance_executor import BinanceExecutor
+        executor = BinanceExecutor()
+        logger.info("engine.live_mode", warning="REAL MONEY!")
     else:
-        raise NotImplementedError("Live executor not implemented yet")
+        raise ValueError(f"Unknown TRADING_MODE: {settings.TRADING_MODE}")
 
     # 2. Warmup K线 (5m + 15m + 1h)
     await warmup_klines(DEFAULT_SYMBOLS)
@@ -132,6 +137,7 @@ async def main():
         tier2.run(),
         tier3.run(),
         position_monitor(executor, interval=30),
+        daily_stats_updater(interval=300),  # 每5分钟更新日统计
     )
 
 

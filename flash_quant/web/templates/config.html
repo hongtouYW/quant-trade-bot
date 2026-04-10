@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title_suffix %} - 配置{% endblock %}
+{% block content %}
+
+<div class="section">
+    <h2>系统配置</h2>
+    <table>
+        <thead><tr><th>配置项</th><th>当前值</th><th>说明</th></tr></thead>
+        <tbody>
+            <tr><td>交易模式</td><td><strong style="color:{{ '#d29922' if config.TRADING_MODE == 'paper' else '#f85149' }}">{{ config.TRADING_MODE|upper }}</strong></td><td>paper=模拟盘 / live=实盘</td></tr>
+            <tr><td>阶段</td><td><strong>Phase {{ config.PHASE }}</strong></td><td>1=模拟 / 2=500U / 3=2000U / 4=10000U</td></tr>
+            <tr><td>Binance API</td><td>{{ '✅ 已配置' if config.HAS_API_KEY else '❌ 未配置' }}</td><td>实盘需要</td></tr>
+            <tr><td>监控币种</td><td><strong>{{ config.SYMBOL_COUNT }}</strong></td><td>Tier A+B</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>杠杆分级 (BR-001)</h2>
+    <table>
+        <thead><tr><th>分级</th><th>币种</th><th>杠杆</th><th>止损ROI</th></tr></thead>
+        <tbody>
+            {% for name, tier in leverage_tiers.items() %}
+            <tr>
+                <td>{{ name }}</td>
+                <td>{{ tier.get('symbols', ['其他'])|join(', ') }}</td>
+                <td><strong>{{ tier.max_leverage }}x</strong></td>
+                <td style="color:#f85149">{{ "%.0f"|format(tier.stop_loss_roi * 100) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>扫描参数</h2>
+    <table>
+        <thead><tr><th>参数</th><th>Tier 1</th><th>Tier 2</th><th>Tier 3</th></tr></thead>
+        <tbody>
+            <tr><td>扫描周期</td><td>30s</td><td>60s</td><td>1H</td></tr>
+            <tr><td>K线周期</td><td>5min</td><td>15min</td><td>1H</td></tr>
+            <tr><td>量比阈值</td><td>≥ 5x</td><td>-</td><td>-</td></tr>
+            <tr><td>涨跌幅</td><td>≥ 2%</td><td>-</td><td>-</td></tr>
+            <tr><td>MACD</td><td>-</td><td>柱状图转色</td><td>加分项</td></tr>
+            <tr><td>RSI</td><td>-</td><td>≥65/≤35</td><td>评分项</td></tr>
+            <tr><td>EMA</td><td>-</td><td>9/21穿越</td><td>-</td></tr>
+            <tr><td>评分门槛</td><td>-</td><td>-</td><td>≥ 75</td></tr>
+            <tr><td>时段</td><td>UTC 8-22</td><td>全天</td><td>全天</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>风控参数</h2>
+    <table>
+        <thead><tr><th>参数</th><th>值</th></tr></thead>
+        <tbody>
+            <tr><td>单笔保证金上限</td><td>300 U (BR-005)</td></tr>
+            <tr><td>最大持仓数</td><td>5</td></tr>
+            <tr><td>连亏减仓</td><td>3笔 → 仓位减半</td></tr>
+            <tr><td>连亏暂停</td><td>5笔 → 4h / 8笔 → 24h</td></tr>
+            <tr><td>日亏限额</td><td>-3% → 暂停当日</td></tr>
+            <tr><td>周亏限额</td><td>-8% → 暂停24h</td></tr>
+            <tr><td>月亏限额</td><td>-15% → 暂停72h</td></tr>
+            <tr><td>黑天鹅熔断</td><td>5min波幅>5% → 暂停30min</td></tr>
+            <tr><td>同币冷却</td><td>平仓后2h</td></tr>
+            <tr><td>周末减仓</td><td>×50%</td></tr>
+            <tr><td>Wick过滤</td><td>实体≥55%</td></tr>
+            <tr><td>CVD过滤</td><td>tolerance 10%</td></tr>
+            <tr><td>Funding过滤</td><td>|费率|<0.08%</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="section">
+    <h2>Phase 验收标准</h2>
+    <table>
+        <thead><tr><th>Gate</th><th>指标</th><th>通过线</th></tr></thead>
+        <tbody>
+            <tr><td>Phase 1→2</td><td>过滤器有效性</td><td>胜率提升≥30%</td></tr>
+            <tr><td></td><td>信号数量</td><td>日均10-20</td></tr>
+            <tr><td></td><td>胜率</td><td>≥55%</td></tr>
+            <tr><td></td><td>盈亏比</td><td>≥1.5</td></tr>
+            <tr><td></td><td>延迟P99</td><td><500ms</td></tr>
+            <tr><td>Phase 2→3</td><td>净盈亏</td><td>≥0</td></tr>
+            <tr><td></td><td>滑点</td><td><0.1%</td></tr>
+            <tr><td>Phase 3→4</td><td>月化</td><td>≥10%</td></tr>
+            <tr><td></td><td>最大回撤</td><td><15%</td></tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

@@ -181,7 +181,7 @@ class Tier1Scalper(ScannerBase):
         if len(cvd_series) >= 20:
             cvd_passed, cvd_reason = cvd_filter(price_series, cvd_series, direction)
         else:
-            cvd_passed, cvd_reason = True, "cvd_skip_phase1"
+            cvd_passed, cvd_reason = True, "cvd_warmup"
 
         # 9. Funding 过滤
         funding_rate = market_data.get_funding_rate(symbol)

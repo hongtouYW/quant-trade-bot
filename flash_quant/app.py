@@ -4,7 +4,7 @@ Flash Quant - Flask Web 入口
 """
 import json
 from datetime import datetime, timezone, timedelta
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, Response
 from functools import wraps
 from config.settings import settings
 from core.logger import setup_logging
@@ -205,6 +205,17 @@ def create_app():
     def risk_page():
         return render_template('risk.html')
 
+    @app.route('/config')
+    @login_required
+    def config_page():
+        from core.constants import LEVERAGE_TIERS
+        return render_template('config.html', leverage_tiers=LEVERAGE_TIERS, config={
+            'TRADING_MODE': settings.TRADING_MODE,
+            'PHASE': settings.PHASE,
+            'HAS_API_KEY': bool(settings.BINANCE_API_KEY),
+            'SYMBOL_COUNT': 50,
+        })
+
     @app.route('/api/trade/<int:trade_id>')
     @login_required
     def api_trade_detail(trade_id):
@@ -223,6 +234,31 @@ def create_app():
     def api_stats():
         from models.db_ops import get_dashboard_stats
         return jsonify(get_dashboard_stats())
+
+    @app.route('/api/stream')
+    @login_required
+    def api_stream():
+        """SSE 实时推送 (FR-041)"""
+        def generate():
+            import time as _time
+            from models.db_ops import get_open_positions, get_dashboard_stats, query_signals
+            while True:
+                try:
+                    positions = get_open_positions()
+                    stats = get_dashboard_stats()
+                    recent = query_signals(limit=5)
+                    data = json.dumps({
+                        'positions': len(positions),
+                        'total_trades': stats['total'],
+                        'total_pnl': stats['total_pnl'],
+                        'win_rate': stats['win_rate'],
+                        'recent_signals': len(recent),
+                    }, default=str)
+                    yield f"data: {data}\n\n"
+                except Exception:
+                    pass
+                _time.sleep(5)
+        return Response(generate(), mimetype='text/event-stream')
 
     @app.route('/health')
     def health():

@@ -37,7 +37,9 @@ class BinanceWebSocket:
         for sym in self.symbols:
             for interval in self.intervals:
                 streams.append(f"{sym}@kline_{interval}")
-            # aggTrade 只订阅前 20 个 (限制流数)
+        # aggTrade: 前 20 个主流币 (CVD 计算)
+        for sym in self.symbols[:20]:
+            streams.append(f"{sym}@aggTrade")
         # Binance 单连接最多 200 streams
         if len(streams) > 200:
             streams = streams[:200]
