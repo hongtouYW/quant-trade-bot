@@ -182,8 +182,11 @@ class PaperExecutor(ExecutorBase):
                 await self.close_position(trade_id, 'stop_loss')
                 continue
 
-            # 超时
+            # 超时 (处理 naive/aware datetime 兼容)
             max_hold = pos.get('max_hold_until')
+            if max_hold:
+                if max_hold.tzinfo is None:
+                    max_hold = max_hold.replace(tzinfo=MYT)
             if max_hold and now >= max_hold:
                 await self.close_position(trade_id, 'timeout')
                 continue

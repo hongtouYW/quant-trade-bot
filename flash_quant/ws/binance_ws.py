@@ -55,9 +55,10 @@ class BinanceWebSocket:
         while self._running and retry < max_retry:
             try:
                 url = self._build_url()
+                total_streams = len(self.symbols) * len(self.intervals) + min(len(self.symbols), 20)
                 logger.info("binance_ws.connecting",
                            symbols=len(self.symbols),
-                           streams=len(self.symbols) * len(self.intervals))
+                           streams=total_streams)
 
                 async with websockets.connect(
                     url, ping_interval=20, ping_timeout=10,
