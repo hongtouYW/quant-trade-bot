@@ -11,7 +11,7 @@
     <div class="card">
         <div class="label">当前余额</div>
         <div class="value {{ 'green' if stats.total_pnl >= 0 else 'red' }}">{{ "{:,.2f}".format(10000 + stats.total_pnl) }} U</div>
-        <div class="sub">{{ '盈利' if stats.total_pnl >= 0 else '亏损' }} {{ "{:,.2f}".format(stats.total_pnl) }} U</div>
+        <div class="sub">{{ '盈利' if stats.total_pnl >= 0 else '亏损' }} {{ "{:+,.2f}".format(stats.total_pnl) }} U</div>
     </div>
     <div class="card">
         <div class="label">当前持仓</div>
@@ -20,17 +20,23 @@
     <div class="card">
         <div class="label">胜率</div>
         <div class="value yellow">{{ "%.0f"|format(stats.win_rate * 100) }}%</div>
-        <div class="sub">{{ stats.wins }}胜 {{ stats.losses }}负</div>
+        <div class="sub">{{ stats.wins }}胜 {{ stats.losses }}负 (共{{ stats.total }}笔)</div>
     </div>
     <div class="card">
         <div class="label">总手续费</div>
         <div class="value red">{{ "{:,.2f}".format(stats.total_fee) }} U</div>
     </div>
     <div class="card">
-        <div class="label">总交易</div>
-        <div class="value">{{ stats.total }}</div>
-        <div class="sub">目标 200 笔</div>
+        <div class="label">今日信号</div>
+        <div class="value">{{ stats.signals_today or 0 }}</div>
+        <div class="sub">T1: {{ stats.tier1_today or 0 }} T2: {{ stats.tier2_today or 0 }} T3: {{ stats.tier3_today or 0 }}</div>
     </div>
+</div>
+
+<!-- 资金曲线图 -->
+<div class="section">
+    <h2>资金曲线 (近30天)</h2>
+    <canvas id="equityChart" height="200" style="width:100%;background:#161b22;border-radius:8px;border:1px solid #30363d;padding:16px"></canvas>
 </div>
 
 <div class="section">
@@ -39,7 +45,7 @@
     <table>
         <thead>
             <tr>
-                <th>币种</th><th>方向</th><th>杠杆</th><th>持仓量</th><th>保证金</th>
+                <th>币种</th><th>方向</th><th>层级</th><th>杠杆</th><th>持仓量</th><th>保证金</th>
                 <th>MMR</th><th>均价</th><th>标记价</th><th>强平价</th>
                 <th>止盈</th><th>止损</th><th>未实现盈亏</th><th>ROI</th><th>开仓</th>
             </tr>
@@ -47,22 +53,19 @@
         <tbody>
             {% if positions %}
                 {% for p in positions %}
-                {% set entry = p.entry_price or 0 %}
-                {% set current = p.current_price or entry %}
-                {% set lev = p.leverage or 20 %}
-                {% set margin = p.margin or 300 %}
-                {% set direction = p.direction or 'long' %}
                 {% set upnl = p.unrealized_pnl or 0 %}
+                {% set margin = p.margin or 300 %}
                 {% set roi = upnl / margin if margin > 0 else 0 %}
                 <tr>
                     <td><strong>{{ p.symbol }}</strong></td>
-                    <td><span class="badge {{ direction }}">{{ '多' if direction == 'long' else '空' }}</span></td>
-                    <td>{{ lev }}x</td>
+                    <td><span class="badge {{ p.direction }}">{{ '多' if p.direction == 'long' else '空' }}</span></td>
+                    <td><span class="badge {{ p.tier or 'tier1' }}">{{ p.tier or 'T1' }}</span></td>
+                    <td>{{ p.leverage }}x</td>
                     <td>{{ "%.4f"|format(p.quantity or 0) }}</td>
                     <td>{{ margin }} U</td>
                     <td>{{ p.mmr }}%</td>
-                    <td>{{ entry }}</td>
-                    <td>{{ p.mark_price or current }}</td>
+                    <td>{{ p.entry_price }}</td>
+                    <td>{{ p.mark_price }}</td>
                     <td style="color:#f85149">{{ p.liq_price }}</td>
                     <td style="color:#3fb950">{{ p.take_profit or '-' }}</td>
                     <td style="color:#f85149">{{ p.stop_loss_price }}</td>
@@ -72,7 +75,7 @@
                 </tr>
                 {% endfor %}
             {% else %}
-                <tr><td colspan="14" style="color:#8b949e;text-align:center;padding:24px">暂无持仓 — 等待信号...</td></tr>
+                <tr><td colspan="15" style="color:#8b949e;text-align:center;padding:24px">暂无持仓 — 等待信号...</td></tr>
             {% endif %}
         </tbody>
     </table>
@@ -80,9 +83,17 @@
 </div>
 
 <div class="section">
-    <h2>最近信号 (20条)</h2>
+    <h2>最近信号 (20条)
+        <span style="font-size:12px;color:#8b949e;font-weight:normal;margin-left:12px">
+            {% if signals %}
+            执行:{{ signals|selectattr('final_decision','equalto','executed')|list|length }}
+            过滤:{{ signals|selectattr('final_decision','equalto','filtered')|list|length }}
+            拦截:{{ signals|selectattr('final_decision','equalto','blocked')|list|length }}
+            {% endif %}
+        </span>
+    </h2>
     <table>
-        <thead><tr><th>时间</th><th>币种</th><th>方向</th><th>层级</th><th>量比</th><th>涨跌</th><th>实体%</th><th>CVD</th><th>决策</th><th>原因</th></tr></thead>
+        <thead><tr><th>时间</th><th>币种</th><th>方向</th><th>层级</th><th>量比</th><th>涨跌</th><th>评分</th><th>实体%</th><th>CVD</th><th>决策</th><th>原因</th></tr></thead>
         <tbody>
             {% if signals %}
                 {% for s in signals %}
@@ -92,7 +103,8 @@
                     <td><span class="badge {{ s.direction }}">{{ '多' if s.direction == 'long' else '空' }}</span></td>
                     <td><span class="badge {{ s.tier }}">{{ s.tier }}</span></td>
                     <td>{{ "%.1f"|format(s.volume_ratio or 0) }}x</td>
-                    <td style="color:{{ '#3fb950' if (s.price_change_pct or 0) > 0 else '#f85149' }}">{{ "%+.2f"|format(s.price_change_pct or 0) }}%</td>
+                    <td style="color:{{ '#3fb950' if (s.price_change_pct or 0) > 0 else '#f85149' }}">{{ "%+.2f"|format((s.price_change_pct or 0) * 100) }}%</td>
+                    <td>{{ "%.0f"|format(s.score or 0) }}</td>
                     <td>{{ "%.0f"|format((s.body_ratio or 0) * 100) }}%</td>
                     <td>{{ '✅' if s.cvd_aligned else '❌' }}</td>
                     <td><span class="badge {{ s.final_decision }}">{{ {'executed':'执行','filtered':'过滤','blocked':'拦截'}.get(s.final_decision, s.final_decision or '-') }}</span></td>
@@ -100,10 +112,68 @@
                 </tr>
                 {% endfor %}
             {% else %}
-                <tr><td colspan="10" style="color:#8b949e;text-align:center;padding:24px">暂无信号 — 引擎扫描中, K线缓存预热需要约5分钟...</td></tr>
+                <tr><td colspan="11" style="color:#8b949e;text-align:center;padding:24px">暂无信号 — 引擎启动中...</td></tr>
             {% endif %}
         </tbody>
     </table>
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script>
+// 资金曲线图
+const equityData = {{ equity_curve | tojson }};
+(function() {
+    const canvas = document.getElementById('equityChart');
+    if (!equityData || equityData.length === 0) {
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#8b949e';
+        ctx.font = '14px monospace';
+        ctx.fillText('暂无数据 — 交易后显示资金曲线', 20, 100);
+        return;
+    }
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width = canvas.parentElement.clientWidth - 32;
+    const H = 200;
+    const values = equityData.map(d => d.balance);
+    const labels = equityData.map(d => d.date);
+    const minV = Math.min(...values) * 0.999;
+    const maxV = Math.max(...values) * 1.001;
+    const range = maxV - minV || 1;
+    const px = (i) => 50 + (i / (values.length - 1)) * (W - 70);
+    const py = (v) => H - 20 - ((v - minV) / range) * (H - 40);
+
+    // 网格
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 0.5;
+    for (let i = 0; i < 4; i++) {
+        const y = 10 + i * (H - 30) / 3;
+        ctx.beginPath(); ctx.moveTo(50, y); ctx.lineTo(W - 10, y); ctx.stroke();
+        ctx.fillStyle = '#8b949e'; ctx.font = '10px monospace';
+        ctx.fillText((maxV - (i / 3) * range).toFixed(0), 2, y + 3);
+    }
+
+    // 曲线
+    const lastV = values[values.length - 1];
+    ctx.strokeStyle = lastV >= 10000 ? '#3fb950' : '#f85149';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    values.forEach((v, i) => i === 0 ? ctx.moveTo(px(i), py(v)) : ctx.lineTo(px(i), py(v)));
+    ctx.stroke();
+
+    // 渐变
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, lastV >= 10000 ? '#3fb95015' : '#f8514915');
+    grad.addColorStop(1, '#0d111700');
+    ctx.fillStyle = grad;
+    ctx.lineTo(px(values.length - 1), H - 20);
+    ctx.lineTo(px(0), H - 20);
+    ctx.closePath();
+    ctx.fill();
+
+    // 10000 基准线
+    ctx.strokeStyle = '#58a6ff40'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(50, py(10000)); ctx.lineTo(W - 10, py(10000)); ctx.stroke();
+    ctx.setLineDash([]);
+})();
+</script>
 {% endblock %}

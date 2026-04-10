@@ -127,7 +127,7 @@ function showDay(dateStr) {
         const dir = t.direction === 'long' ? '多' : '空';
         const reason = {'take_profit':'止盈','stop_loss':'止损','timeout':'超时','trailing':'追踪'}[t.close_reason] || t.close_reason;
         html += `<tr>
-            <td>${t.time.split(' ')[1]}</td>
+            <td>${(t.time_str || t.time || '').split(' ').pop()}</td>
             <td><strong>${t.symbol}</strong></td>
             <td><span class="badge ${t.direction}">${dir}</span></td>
             <td>${t.leverage}x</td>
@@ -163,7 +163,7 @@ function showChart(tradeId) {
             const modal = document.getElementById('chartModal');
             modal.style.display = 'flex';
             document.getElementById('chartTitle').textContent =
-                t.symbol + ' ' + (t.direction === 'long' ? '多' : '空') + ' ' + t.leverage + 'x — ' + t.time;
+                t.symbol + ' ' + (t.direction === 'long' ? '多' : '空') + ' ' + t.leverage + 'x — ' + (t.time_str || t.time || '');
 
             const color = t.net_pnl > 0 ? '#3fb950' : '#f85149';
             const reason = {'take_profit':'止盈','stop_loss':'止损','timeout':'超时','trailing':'追踪'}[t.close_reason] || t.close_reason;
@@ -174,10 +174,7 @@ function showChart(tradeId) {
                     <div style="color:#3fb950">止盈: ${t.take_profit}</div>
                     <div style="color:#f85149">止损: ${t.stop_loss}</div>
                     <div>保证金: ${t.margin}U × ${t.leverage}x</div>
-                    <div>持仓: ${t.hold_hours}h</div>
-                    <div>手续费: <span style="color:#d29922">${t.total_fee}U</span></div>
-                    <div>隔夜费: <span style="color:#d29922">${t.funding_fee}U</span></div>
-                    <div>毛利: ${t.raw_pnl > 0 ? '+' : ''}${t.raw_pnl}U</div>
+                    <div>手续费: <span style="color:#d29922">${(t.fee || t.total_fee || 0).toFixed(2)}U</span></div>
                     <div>净利: <strong style="color:${color}">${t.net_pnl > 0 ? '+' : ''}${t.net_pnl}U</strong></div>
                     <div>ROI: <span style="color:${color}">${(t.pnl_pct*100).toFixed(1)}%</span></div>
                     <div>平仓: ${reason}</div>

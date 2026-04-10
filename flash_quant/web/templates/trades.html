@@ -7,174 +7,40 @@
     <table>
         <thead>
             <tr>
-                <th>时间</th><th>币种</th><th>方向</th><th>杠杆</th>
-                <th>保证金</th><th>持仓量</th><th>入场</th><th>出场</th>
-                <th>止盈</th><th>止损</th><th>持仓时长</th>
-                <th>开仓费</th><th>平仓费</th><th>隔夜费</th><th>总费用</th>
-                <th>毛利</th><th>净利</th><th>ROI</th><th>平仓原因</th>
+                <th>时间</th><th>币种</th><th>方向</th><th>层级</th><th>杠杆</th>
+                <th>保证金</th><th>入场</th><th>出场</th>
+                <th>止盈</th><th>止损</th>
+                <th>手续费</th><th>盈亏</th><th>ROI</th><th>平仓原因</th>
             </tr>
         </thead>
         <tbody>
             {% if trades %}
                 {% for t in trades %}
-                <tr style="cursor:pointer" onclick="showChart({{ t.id }})">
-                    <td>{{ t.time }}</td>
+                {% set pnl = t.pnl or t.net_pnl or 0 %}
+                {% set pnl_pct = t.pnl_pct or 0 %}
+                {% set fee = t.fee or t.total_fee or 0 %}
+                <tr>
+                    <td>{{ t.time_str or t.time or '' }}</td>
                     <td><strong>{{ t.symbol }}</strong></td>
                     <td><span class="badge {{ t.direction }}">{{ '多' if t.direction == 'long' else '空' }}</span></td>
+                    <td><span class="badge {{ t.tier }}">{{ t.tier }}</span></td>
                     <td>{{ t.leverage }}x</td>
-                    <td>{{ t.margin }} U</td>
-                    <td>{{ "%.4f"|format(t.quantity) }}</td>
+                    <td>{{ t.margin or 300 }} U</td>
                     <td>{{ t.entry_price }}</td>
-                    <td>{{ t.exit_price }}</td>
-                    <td style="color:#3fb950">{{ t.take_profit }}</td>
-                    <td style="color:#f85149">{{ t.stop_loss }}</td>
-                    <td>{{ t.hold_hours }}h</td>
-                    <td style="color:#d29922">{{ t.open_fee }}</td>
-                    <td style="color:#d29922">{{ t.close_fee }}</td>
-                    <td style="color:#d29922">{{ t.funding_fee }}</td>
-                    <td style="color:#d29922;font-weight:bold">{{ t.total_fee }}</td>
-                    <td style="color:{{ '#3fb950' if t.raw_pnl > 0 else '#f85149' }}">{{ "%+.2f"|format(t.raw_pnl) }}</td>
-                    <td style="color:{{ '#3fb950' if t.net_pnl > 0 else '#f85149' }};font-weight:bold">{{ "%+.2f"|format(t.net_pnl) }} U</td>
-                    <td style="color:{{ '#3fb950' if t.pnl_pct > 0 else '#f85149' }}">{{ "%+.1f"|format(t.pnl_pct * 100) }}%</td>
-                    <td style="color:#8b949e">{{ {'take_profit':'止盈','stop_loss':'止损','timeout':'超时','trailing':'追踪'}.get(t.close_reason, t.close_reason) }}</td>
+                    <td>{{ t.exit_price or '-' }}</td>
+                    <td style="color:#3fb950">{{ t.take_profit or '-' }}</td>
+                    <td style="color:#f85149">{{ t.stop_loss or '-' }}</td>
+                    <td style="color:#d29922">{{ "%.2f"|format(fee) }} U</td>
+                    <td style="color:{{ '#3fb950' if pnl > 0 else '#f85149' }};font-weight:bold">{{ "%+.2f"|format(pnl) }} U</td>
+                    <td style="color:{{ '#3fb950' if pnl_pct > 0 else '#f85149' }}">{{ "%+.1f"|format(pnl_pct * 100) }}%</td>
+                    <td style="color:#8b949e">{{ {'take_profit':'止盈','stop_loss':'止损','timeout':'超时','trailing':'追踪'}.get(t.close_reason or '', t.close_reason or '-') }}</td>
                 </tr>
                 {% endfor %}
             {% else %}
-                <tr><td colspan="19" style="color:#8b949e;text-align:center;padding:24px">暂无交易</td></tr>
+                <tr><td colspan="14" style="color:#8b949e;text-align:center;padding:24px">暂无交易 — 等待信号触发开仓...</td></tr>
             {% endif %}
         </tbody>
     </table>
     </div>
-    <p style="color:#8b949e;font-size:11px;margin-top:8px">点击任意行查看价格图表</p>
 </div>
-
-<!-- 图表弹窗 -->
-<div id="chartModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;align-items:center;justify-content:center">
-    <div style="background:#161b22;border:1px solid #30363d;border-radius:12px;padding:24px;width:90%;max-width:800px;max-height:80vh;overflow-y:auto">
-        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
-            <h3 id="chartTitle" style="color:#e6edf3"></h3>
-            <a href="#" onclick="closeChart();return false" style="color:#8b949e;font-size:20px;text-decoration:none">&times;</a>
-        </div>
-        <canvas id="priceChart" height="300"></canvas>
-        <div id="chartInfo" style="margin-top:16px;font-size:13px"></div>
-    </div>
-</div>
-
-{% endblock %}
-{% block scripts %}
-<script>
-function showChart(tradeId) {
-    fetch('/api/trade/' + tradeId)
-        .then(r => r.json())
-        .then(t => {
-            const modal = document.getElementById('chartModal');
-            modal.style.display = 'flex';
-            document.getElementById('chartTitle').textContent =
-                t.symbol + ' ' + (t.direction === 'long' ? '多' : '空') + ' ' + t.leverage + 'x — ' + t.time;
-
-            // 图表信息
-            const info = document.getElementById('chartInfo');
-            const color = t.net_pnl > 0 ? '#3fb950' : '#f85149';
-            info.innerHTML = `
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px">
-                    <div>入场: <strong>${t.entry_price}</strong></div>
-                    <div>出场: <strong style="color:${color}">${t.exit_price}</strong></div>
-                    <div style="color:#3fb950">止盈: ${t.take_profit}</div>
-                    <div style="color:#f85149">止损: ${t.stop_loss}</div>
-                    <div>净利: <strong style="color:${color}">${t.net_pnl > 0 ? '+' : ''}${t.net_pnl} U</strong></div>
-                    <div>费用: <span style="color:#d29922">${t.total_fee} U</span></div>
-                </div>
-            `;
-
-            // 画图
-            drawChart(t.chart_data, t);
-        });
-}
-
-function closeChart() {
-    document.getElementById('chartModal').style.display = 'none';
-}
-
-document.getElementById('chartModal').addEventListener('click', function(e) {
-    if (e.target === this) closeChart();
-});
-
-function drawChart(cd, trade) {
-    const canvas = document.getElementById('priceChart');
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width = canvas.parentElement.clientWidth - 48;
-    const H = canvas.height = 300;
-    ctx.clearRect(0, 0, W, H);
-
-    const prices = cd.prices;
-    const allPrices = [...prices, cd.entry, cd.exit, cd.stop_loss, cd.take_profit];
-    const minP = Math.min(...allPrices) * 0.9995;
-    const maxP = Math.max(...allPrices) * 1.0005;
-    const range = maxP - minP || 1;
-
-    const px = (i) => 60 + (i / (prices.length - 1)) * (W - 80);
-    const py = (p) => H - 30 - ((p - minP) / range) * (H - 50);
-
-    // 背景网格
-    ctx.strokeStyle = '#21262d';
-    ctx.lineWidth = 0.5;
-    for (let i = 0; i < 5; i++) {
-        const y = 20 + i * (H - 50) / 4;
-        ctx.beginPath(); ctx.moveTo(60, y); ctx.lineTo(W - 20, y); ctx.stroke();
-        const price = maxP - (i / 4) * range;
-        ctx.fillStyle = '#8b949e'; ctx.font = '10px monospace';
-        ctx.fillText(price.toFixed(price < 1 ? 6 : 2), 2, y + 3);
-    }
-
-    // 止盈线
-    ctx.strokeStyle = '#3fb95080'; ctx.lineWidth = 1; ctx.setLineDash([5,5]);
-    ctx.beginPath(); ctx.moveTo(60, py(cd.take_profit)); ctx.lineTo(W-20, py(cd.take_profit)); ctx.stroke();
-    ctx.fillStyle = '#3fb950'; ctx.font = '11px monospace';
-    ctx.fillText('TP ' + cd.take_profit, W - 100, py(cd.take_profit) - 5);
-
-    // 止损线
-    ctx.strokeStyle = '#f8514980';
-    ctx.beginPath(); ctx.moveTo(60, py(cd.stop_loss)); ctx.lineTo(W-20, py(cd.stop_loss)); ctx.stroke();
-    ctx.fillStyle = '#f85149';
-    ctx.fillText('SL ' + cd.stop_loss, W - 100, py(cd.stop_loss) - 5);
-
-    // 入场线
-    ctx.strokeStyle = '#58a6ff80';
-    ctx.beginPath(); ctx.moveTo(60, py(cd.entry)); ctx.lineTo(W-20, py(cd.entry)); ctx.stroke();
-    ctx.fillStyle = '#58a6ff';
-    ctx.fillText('入场 ' + cd.entry, W - 110, py(cd.entry) - 5);
-
-    ctx.setLineDash([]);
-
-    // 价格曲线
-    ctx.strokeStyle = trade.net_pnl > 0 ? '#3fb950' : '#f85149';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i < prices.length; i++) {
-        if (i === 0) ctx.moveTo(px(i), py(prices[i]));
-        else ctx.lineTo(px(i), py(prices[i]));
-    }
-    ctx.stroke();
-
-    // 渐变填充
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, trade.net_pnl > 0 ? '#3fb95020' : '#f8514920');
-    grad.addColorStop(1, '#0d111700');
-    ctx.fillStyle = grad;
-    ctx.lineTo(px(prices.length-1), H-30);
-    ctx.lineTo(px(0), H-30);
-    ctx.closePath();
-    ctx.fill();
-
-    // 入场点
-    ctx.fillStyle = '#58a6ff';
-    ctx.beginPath(); ctx.arc(px(0), py(cd.entry), 5, 0, Math.PI*2); ctx.fill();
-    ctx.fillText('买入', px(0) - 10, py(cd.entry) - 10);
-
-    // 出场点
-    ctx.fillStyle = trade.net_pnl > 0 ? '#3fb950' : '#f85149';
-    ctx.beginPath(); ctx.arc(px(prices.length-1), py(cd.exit), 5, 0, Math.PI*2); ctx.fill();
-    ctx.fillText('平仓', px(prices.length-1) - 10, py(cd.exit) - 10);
-}
-</script>
 {% endblock %}

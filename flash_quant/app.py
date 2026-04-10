@@ -54,11 +54,34 @@ def create_app():
     @login_required
     def home():
         from models.db_ops import (
-            get_open_positions, query_signals, get_dashboard_stats
+            get_open_positions, query_signals, get_dashboard_stats,
+            get_daily_stats, count_signals_today,
         )
         positions = get_open_positions()
         signals = query_signals(limit=20)
         stats = get_dashboard_stats()
+
+        # 今日信号统计
+        stats['signals_today'] = count_signals_today()
+        # 按 tier 分
+        today_signals = [s for s in query_signals(limit=200)
+                         if s.get('timestamp') and hasattr(s['timestamp'], 'date')
+                         and s['timestamp'].date() == datetime.now(MYT).date()]
+        stats['tier1_today'] = len([s for s in today_signals if s.get('tier') == 'tier1'])
+        stats['tier2_today'] = len([s for s in today_signals if s.get('tier') == 'tier2'])
+        stats['tier3_today'] = len([s for s in today_signals if s.get('tier') == 'tier3'])
+
+        # 资金曲线
+        daily = get_daily_stats(days=30)
+        equity_curve = []
+        if daily:
+            for d in reversed(daily):
+                equity_curve.append({
+                    'date': d['date'].isoformat() if hasattr(d['date'], 'isoformat') else str(d['date']),
+                    'balance': d.get('ending_balance') or 10000,
+                })
+        if not equity_curve:
+            equity_curve = [{'date': datetime.now(MYT).strftime('%Y-%m-%d'), 'balance': 10000 + stats['total_pnl']}]
 
         # 丰富 position 数据
         for p in positions:
@@ -108,7 +131,8 @@ def create_app():
                 s['timestamp_str'] = str(ts)[:16] if ts else ''
 
         return render_template('home.html',
-                             positions=positions, signals=signals, stats=stats)
+                             positions=positions, signals=signals,
+                             stats=stats, equity_curve=equity_curve)
 
     @app.route('/signals')
     @login_required

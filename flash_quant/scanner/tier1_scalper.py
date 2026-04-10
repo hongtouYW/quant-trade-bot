@@ -33,6 +33,8 @@ class Tier1Scalper(ScannerBase):
         self.executor = executor
         self._scan_count = 0
         self._signal_count = 0
+        # 去重: symbol -> last_kline_timestamp (已处理过的 K线)
+        self._last_signal_ts = {}
 
     def _is_trading_hours(self) -> bool:
         """BR-007: Tier 1 仅在 UTC 8-22"""
@@ -52,6 +54,13 @@ class Tier1Scalper(ScannerBase):
                 self._scan_count += 1
 
                 for sig in scan_signals:
+                    # 去重: 同一 symbol + 同一根 K线只处理一次
+                    sym = sig['symbol']
+                    kline_ts = sig.get('kline_timestamp', 0)
+                    if self._last_signal_ts.get(sym) == kline_ts:
+                        continue  # 已处理过这根 K线的信号
+                    self._last_signal_ts[sym] = kline_ts
+
                     # 保存信号到 DB
                     try:
                         sig_id = save_signal(sig)
@@ -59,11 +68,12 @@ class Tier1Scalper(ScannerBase):
                         logger.error("tier1.save_signal_error", error=str(e))
                         sig_id = None
 
+                    # 通过过滤器的信号,尝试开仓
                     if sig['final_decision'] == 'executed' and self.executor:
                         result = risk_manager.check(sig)
                         if result.approved:
                             await self.executor.open_position(
-                                symbol=sig['symbol'],
+                                symbol=sym,
                                 direction=sig['direction'],
                                 tier='tier1',
                                 margin=result.position_size,
@@ -71,13 +81,26 @@ class Tier1Scalper(ScannerBase):
                                 stop_loss_roi=result.stop_loss_roi,
                                 signal_id=sig_id,
                             )
+                            logger.info("tier1.trade_opened",
+                                       symbol=sym, direction=sig['direction'],
+                                       vol_ratio=sig['volume_ratio'])
                         else:
-                            sig['final_decision'] = 'blocked'
-                            sig['filter_reason'] = result.reason
-                            try:
-                                save_signal(sig)
-                            except Exception:
-                                pass
+                            # 更新信号为 blocked (不新建一条)
+                            if sig_id:
+                                try:
+                                    from models.db_ops import _exec
+                                    from models.signal import signals as sig_table
+                                    from sqlalchemy import update
+                                    _exec(update(sig_table).where(
+                                        sig_table.c.id == sig_id
+                                    ).values(
+                                        final_decision='blocked',
+                                        filter_reason=result.reason
+                                    ))
+                                except Exception:
+                                    pass
+                            logger.info("tier1.trade_blocked",
+                                       symbol=sym, reason=result.reason)
 
             except Exception as e:
                 logger.error("tier1.scan_error", error=str(e))
@@ -96,7 +119,7 @@ class Tier1Scalper(ScannerBase):
 
         elapsed = (time.time() - t0) * 1000
 
-        # 调试: 打印缓存详情
+        # 调试日志
         cached_syms = kline_cache.symbols()
         check = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']
         closed_counts = {s: len(kline_cache.get(s, '5m', 5)) for s in check}
@@ -112,7 +135,6 @@ class Tier1Scalper(ScannerBase):
         """扫描单个 symbol"""
         # 1. 黑名单检查
         vol_24h = market_data.get_volume_24h(symbol)
-        # vol_24h=0 表示还没拉取数据, 不过滤 (传 None 跳过黑名单)
         tradable, reason = is_tradable(symbol, vol_24h if vol_24h > 0 else None)
         if not tradable:
             return None
@@ -159,7 +181,6 @@ class Tier1Scalper(ScannerBase):
         if len(cvd_series) >= 20:
             cvd_passed, cvd_reason = cvd_filter(price_series, cvd_series, direction)
         else:
-            # Phase 1: CVD 数据不足时默认通过, 不阻塞信号
             cvd_passed, cvd_reason = True, "cvd_skip_phase1"
 
         # 9. Funding 过滤
@@ -181,6 +202,7 @@ class Tier1Scalper(ScannerBase):
             'cvd_aligned': cvd_passed,
             'funding_passed': funding_passed,
             'timestamp': datetime.now(timezone.utc),
+            'kline_timestamp': latest.timestamp,  # 用于去重
         }
 
         # 过滤判定

@@ -1,59 +1,97 @@
 """
 Flash Quant - 扫描器引擎主入口
-由 Supervisord 管理, 独立进程
-
-启动流程:
-1. 加载配置
-2. 初始化 WebSocket 数据采集
-3. Warmup K线缓存
-4. 启动三层扫描器
-5. 启动持仓监控循环
+三层扫描 + REST 数据补充 + 持仓监控
 """
 import asyncio
 import signal as sig
 from config.settings import settings
 from core.logger import setup_logging, get_logger
 from ws.binance_ws import BinanceWebSocket
+from data.rest_poller import RestPoller
 from data.market_data import market_data
 from scanner.tier1_scalper import Tier1Scalper
+from scanner.tier2_trend import Tier2TrendScanner
+from scanner.tier3_direction import Tier3DirectionScanner
 from executor.paper_executor import PaperExecutor
 from risk.risk_manager import risk_manager
 from models.db_ops import count_open_trades, get_open_symbols
 
 logger = get_logger('engine')
 
-# Phase 1 默认监控的 Tier A + B 币种
+# 监控的 50 个币
 DEFAULT_SYMBOLS = [
     'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT',
     'DOGEUSDT', 'ADAUSDT', 'AVAXUSDT', 'LINKUSDT', 'DOTUSDT',
-    'NEARUSDT', 'APTUSDT', 'ATOMUSDT', 'TRXUSDT', 'SUIUSDT',
-    'PEPEUSDT', 'ARBUSDT', 'OPUSDT', 'WIFUSDT', 'SEIUSDT',
-    'MATICUSDT', 'FILUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT',
+    'MATICUSDT', 'NEARUSDT', 'APTUSDT', 'ATOMUSDT', 'TRXUSDT',
+    'SUIUSDT', 'WIFUSDT', 'PEPEUSDT', 'ARBUSDT', 'OPUSDT',
+    'SEIUSDT', 'FILUSDT', 'INJUSDT', 'TIAUSDT', 'STXUSDT',
     'IMXUSDT', 'MKRUSDT', 'LTCUSDT', 'BCHUSDT', 'ETCUSDT',
-    'AAVEUSDT', 'GRTUSDT', 'RENUSDT', 'SNXUSDT', 'RUNEUSDT',
+    'AAVEUSDT', 'GRTUSDT', 'SNXUSDT', 'RUNEUSDT',
     'FETUSDT', 'WLDUSDT', 'JUPUSDT', 'ENAUSDT', 'TONUSDT',
-    'ORDIUSDT', 'ONDOUSDT', 'PENUSDT', 'JUPUSDT', 'PYTHUSDT',
-    'RNDRUSDT', 'AGIXUSDT', 'BLURUSDT', 'CELOUSDT', 'CFXUSDT',
+    'ORDIUSDT', 'ONDOUSDT', 'PYTHUSDT',
+    'RNDRUSDT', 'BLURUSDT', 'CELOUSDT', 'CFXUSDT',
+    'PENUSDT', 'AGIXUSDT', 'FLOKIUSDT', 'WOOUSDT',
 ]
 
 
-async def position_monitor(executor: PaperExecutor, interval: int = 30):
-    """持仓监控循环: 止损/止盈/超时检查"""
+async def position_monitor(executor, interval: int = 30):
+    """持仓监控: 止损/止盈/超时检查"""
     logger.info("position_monitor.started", interval=interval)
     while True:
         try:
             await executor.check_positions()
-
-            # 更新 risk_manager 的持仓状态 (从 DB 读)
             risk_manager.update_positions(
                 count_open_trades(),
                 get_open_symbols(),
             )
-
         except Exception as e:
             logger.error("position_monitor.error", error=str(e))
-
         await asyncio.sleep(interval)
+
+
+async def warmup_klines(symbols):
+    """启动时用 REST 拉取历史 K线"""
+    try:
+        import ccxt
+        exchange = ccxt.binance({'options': {'defaultType': 'future'}})
+        from data.kline_cache import kline_cache, Kline
+
+        for sym in symbols:
+            try:
+                pair = sym.replace('USDT', '/USDT')
+                # 拉 5min K线
+                ohlcv_5m = exchange.fetch_ohlcv(pair, '5m', limit=25)
+                for c in ohlcv_5m[:-1]:
+                    kline_cache.update(sym, '5m', Kline(
+                        timestamp=c[0], open=c[1], high=c[2],
+                        low=c[3], close=c[4], volume=c[5], is_closed=True,
+                    ))
+
+                # 拉 15min K线 (Tier 2 需要)
+                ohlcv_15m = exchange.fetch_ohlcv(pair, '15m', limit=50)
+                for c in ohlcv_15m[:-1]:
+                    kline_cache.update(sym, '15m', Kline(
+                        timestamp=c[0], open=c[1], high=c[2],
+                        low=c[3], close=c[4], volume=c[5], is_closed=True,
+                    ))
+
+                # 拉 1H K线 (Tier 3 需要)
+                ohlcv_1h = exchange.fetch_ohlcv(pair, '1h', limit=50)
+                for c in ohlcv_1h[:-1]:
+                    kline_cache.update(sym, '1h', Kline(
+                        timestamp=c[0], open=c[1], high=c[2],
+                        low=c[3], close=c[4], volume=c[5], is_closed=True,
+                    ))
+
+                logger.info("warmup.done", symbol=sym)
+            except Exception as e:
+                logger.warning("warmup.skip", symbol=sym, error=str(e))
+
+            await asyncio.sleep(0.2)  # 限速保护
+
+        logger.info("warmup.complete", symbols=len(symbols))
+    except Exception as e:
+        logger.error("warmup.failed", error=str(e))
 
 
 async def main():
@@ -65,49 +103,35 @@ async def main():
                 phase=settings.PHASE,
                 symbols=len(DEFAULT_SYMBOLS))
 
-    # 1. 初始化执行器
+    # 1. 执行器
     if settings.TRADING_MODE == 'paper':
         executor = PaperExecutor()
     else:
-        # Phase 2+: Binance 实盘
         raise NotImplementedError("Live executor not implemented yet")
 
-    # 2. Warmup: 用 ccxt REST 拉取历史 K线
-    try:
-        import ccxt
-        exchange = ccxt.binance({'options': {'defaultType': 'future'}})
-        for sym in DEFAULT_SYMBOLS[:20]:  # 先 warmup 前 20 个
-            try:
-                pair = sym.replace('USDT', '/USDT')
-                ohlcv = exchange.fetch_ohlcv(pair, '5m', limit=25)
-                from data.kline_cache import kline_cache, Kline
-                for candle in ohlcv[:-1]:  # 最后一根未收盘,不算
-                    kline_cache.update(sym, '5m', Kline(
-                        timestamp=candle[0],
-                        open=candle[1], high=candle[2],
-                        low=candle[3], close=candle[4],
-                        volume=candle[5], is_closed=True,
-                    ))
-                logger.info("warmup.done", symbol=sym,
-                           klines=len(ohlcv) - 1)
-            except Exception as e:
-                logger.warning("warmup.skip", symbol=sym, error=str(e))
-        logger.info("warmup.complete", symbols=20)
-    except Exception as e:
-        logger.error("warmup.failed", error=str(e))
+    # 2. Warmup K线 (5m + 15m + 1h)
+    await warmup_klines(DEFAULT_SYMBOLS)
 
-    # 3. 初始化 WebSocket
-    ws = BinanceWebSocket(DEFAULT_SYMBOLS)
+    # 3. WebSocket (kline 5m + 15m + 1h)
+    ws = BinanceWebSocket(DEFAULT_SYMBOLS, intervals=['5m', '15m', '1h'])
 
-    # 4. 初始化扫描器
+    # 4. REST 数据补充 (funding/OI/volume)
+    rest = RestPoller(DEFAULT_SYMBOLS)
+
+    # 5. 三层扫描器
     tier1 = Tier1Scalper(DEFAULT_SYMBOLS, executor=executor)
+    tier2 = Tier2TrendScanner(DEFAULT_SYMBOLS, executor=executor)
+    tier3 = Tier3DirectionScanner(executor=executor)
 
-    # 5. 启动所有任务
-    logger.info("engine.started")
+    # 6. 启动
+    logger.info("engine.started", tiers="1+2+3")
     await asyncio.gather(
-        ws.run(),                              # WebSocket 数据采集
-        tier1.run(),                           # Tier 1 扫描
-        position_monitor(executor, interval=30),  # 持仓监控
+        ws.run(),
+        rest.run(),
+        tier1.run(),
+        tier2.run(),
+        tier3.run(),
+        position_monitor(executor, interval=30),
     )
 
 
