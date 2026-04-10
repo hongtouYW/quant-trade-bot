@@ -1,71 +1,61 @@
-# 敏感配置文件
+# Sensitive config
 config.json
 *.env
 .env
 .env.*
 
-# API密钥和证书
+# API keys and certs
 *.pem
 *.key
 rsa_*
 
-# 数据库文件
+# Database files
 *.db
 *.sqlite
 *.sqlite3
 
-# 日志文件
+# Log files
 *.log
 logs/
 
-# Python缓存
+# Python cache
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
 
-# 虚拟环境
+# Virtual environments
 venv/
 env/
 ENV/
-env.bak/
-venv.bak/
 
-# IDE配置
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
 
-# 操作系统文件
+# OS files
 .DS_Store
 Thumbs.db
 
-# 临时文件
+# Temp files
 *.tmp
 *.bak
 
-# 数据和缓存文件
+# Data and cache
 data/
 cache/
-
-# 交易数据备份
 backups/
 *.csv
 *.json.bak
 
-# 系统文件
+# Test cache
 .pytest_cache/
 .coverage
 htmlcov/
 
-# 音频文件（TTS生成的）
+# TTS audio
 .claude/audio/
-
-# 个人配置示例文件保留，实际配置文件忽略
-# config.json.example (示例文件应该被包含)
-deploy_simple.sh
-view_trading_status.sh
-github-monitor/config.yaml
