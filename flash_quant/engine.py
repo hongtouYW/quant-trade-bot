@@ -72,13 +72,37 @@ async def main():
         # Phase 2+: Binance 实盘
         raise NotImplementedError("Live executor not implemented yet")
 
-    # 2. 初始化 WebSocket
+    # 2. Warmup: 用 ccxt REST 拉取历史 K线
+    try:
+        import ccxt
+        exchange = ccxt.binance({'options': {'defaultType': 'future'}})
+        for sym in DEFAULT_SYMBOLS[:20]:  # 先 warmup 前 20 个
+            try:
+                pair = sym.replace('USDT', '/USDT')
+                ohlcv = exchange.fetch_ohlcv(pair, '5m', limit=25)
+                from data.kline_cache import kline_cache, Kline
+                for candle in ohlcv[:-1]:  # 最后一根未收盘,不算
+                    kline_cache.update(sym, '5m', Kline(
+                        timestamp=candle[0],
+                        open=candle[1], high=candle[2],
+                        low=candle[3], close=candle[4],
+                        volume=candle[5], is_closed=True,
+                    ))
+                logger.info("warmup.done", symbol=sym,
+                           klines=len(ohlcv) - 1)
+            except Exception as e:
+                logger.warning("warmup.skip", symbol=sym, error=str(e))
+        logger.info("warmup.complete", symbols=20)
+    except Exception as e:
+        logger.error("warmup.failed", error=str(e))
+
+    # 3. 初始化 WebSocket
     ws = BinanceWebSocket(DEFAULT_SYMBOLS)
 
-    # 3. 初始化扫描器
+    # 4. 初始化扫描器
     tier1 = Tier1Scalper(DEFAULT_SYMBOLS, executor=executor)
 
-    # 4. 启动所有任务
+    # 5. 启动所有任务
     logger.info("engine.started")
     await asyncio.gather(
         ws.run(),                              # WebSocket 数据采集

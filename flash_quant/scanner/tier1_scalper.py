@@ -95,10 +95,16 @@ class Tier1Scalper(ScannerBase):
                 signals.append(sig)
 
         elapsed = (time.time() - t0) * 1000
-        if signals:
-            logger.info("tier1.scan_done",
-                       scanned=len(self.symbols), signals=len(signals),
-                       elapsed_ms=f"{elapsed:.0f}")
+
+        # 调试: 打印缓存详情
+        cached_syms = kline_cache.symbols()
+        check = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT']
+        closed_counts = {s: len(kline_cache.get(s, '5m', 5)) for s in check}
+        logger.info("tier1.scan_done",
+                   scanned=len(self.symbols), signals=len(signals),
+                   elapsed_ms=f"{elapsed:.0f}",
+                   kline_symbols=len(cached_syms),
+                   closed_klines_sample=str(closed_counts))
 
         return signals
 
@@ -106,7 +112,8 @@ class Tier1Scalper(ScannerBase):
         """扫描单个 symbol"""
         # 1. 黑名单检查
         vol_24h = market_data.get_volume_24h(symbol)
-        tradable, reason = is_tradable(symbol, vol_24h)
+        # vol_24h=0 表示还没拉取数据, 不过滤 (传 None 跳过黑名单)
+        tradable, reason = is_tradable(symbol, vol_24h if vol_24h > 0 else None)
         if not tradable:
             return None
 
@@ -146,13 +153,14 @@ class Tier1Scalper(ScannerBase):
             latest.open, latest.high, latest.low, latest.close
         )
 
-        # 8. CVD 过滤
+        # 8. CVD 过滤 (Phase 1: aggTrade 未订阅, 暂时跳过, Phase 2 启用)
         price_series = [k.close for k in klines]
         cvd_series = cvd_calculator.get_cumulative(symbol)
         if len(cvd_series) >= 20:
             cvd_passed, cvd_reason = cvd_filter(price_series, cvd_series, direction)
         else:
-            cvd_passed, cvd_reason = False, "cvd_warmup"
+            # Phase 1: CVD 数据不足时默认通过, 不阻塞信号
+            cvd_passed, cvd_reason = True, "cvd_skip_phase1"
 
         # 9. Funding 过滤
         funding_rate = market_data.get_funding_rate(symbol)

@@ -107,6 +107,14 @@ class BinanceWebSocket:
             elif '@aggTrade' in stream:
                 self._handle_agg_trade(data['data'])
 
+            # 每 1000 条打印一次状态
+            if self._msg_count % 1000 == 0:
+                from data.kline_cache import kline_cache
+                syms = kline_cache.symbols()
+                logger.info("binance_ws.stats",
+                           msgs=self._msg_count, errors=self._error_count,
+                           cached_symbols=len(syms))
+
         except Exception as e:
             self._error_count += 1
             if self._error_count % 100 == 0:
@@ -134,6 +142,11 @@ class BinanceWebSocket:
 
         # 更新价格
         market_data.update_price(symbol, kline.close)
+
+        # 调试: K线收盘日志
+        if kline.is_closed and interval == '5m':
+            logger.info("kline.closed", symbol=symbol, close=kline.close,
+                       vol=kline.volume, ts=kline.timestamp)
 
         # 黑天鹅检测 (每根 5m K线收盘时)
         if interval == '5m' and kline.is_closed:
