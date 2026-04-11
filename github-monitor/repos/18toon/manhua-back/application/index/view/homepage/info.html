@@ -1,0 +1,310 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form" lay-filter="homepageForm">
+        <input type="hidden" name="id" value="{$info.id}">
+
+        <!-- 模块下拉 -->
+        <div class="layui-form-item">
+            <label class="layui-form-label">模块</label>
+            <div class="layui-input-block">
+            <select name="module" id="moduleSelect" lay-filter="moduleSelect">
+                {foreach $moduleParams as $key => $val}
+                    <option value="{$key}" {if $info.module==$key}selected{/if}>{$val.label}</option>
+                {/foreach}
+            </select>
+            </div>
+        </div>
+
+        <!-- 参数渲染区域 -->
+        <div id="params-area"></div>
+
+        <!-- 排序 -->
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序</label>
+            <div class="layui-input-block">
+                <input type="number" name="sort" value="{$info.sort|default=1}" class="layui-input">
+                <div class="layui-form-mid layui-word-aux">数字越小越靠前</div>
+            </div>
+        </div>
+
+        <!-- 是否启用 -->
+        <div class="layui-form-item">
+            <label class="layui-form-label">状态</label>
+            <div class="layui-input-block">
+                <input type="checkbox"
+                    name="status"
+                    lay-skin="switch"
+                    lay-text="启用|禁用"
+                    value="1"
+                    {if $info.status==1}checked{/if} >
+            </div>
+        </div>
+
+        <!-- 是否高亮 -->
+        <div class="layui-form-item">
+            <label class="layui-form-label">高亮</label>
+            <div class="layui-input-block">
+                <input type="checkbox"
+                    name="is_highlight"
+                    lay-skin="switch"
+                    lay-text="高亮|否"
+                    value="1"
+                    {if $info.is_highlight==1}checked{/if} >
+            </div>
+        </div>
+
+
+        <div class="layui-form-item">
+            <label class="layui-form-label">全部语言</label>
+
+            <div class="layui-input-block">
+                <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+                    <ul class="layui-tab-title">
+                        {volist name="translations" id="lang"}
+                        <li {if $i==1}class="layui-this" {/if} lay-id="{$lang.lang_code}">
+                            {$lang.lang_code|strtoupper}
+                        </li>
+                        {/volist}
+                    </ul>
+
+                    <div class="layui-tab-content">
+                        {volist name="translations" id="lang"}
+                        <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">名称 ({$lang.lang_code})</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="translations[{$lang.lang_code}][name]"
+                                        value="{$lang.name|default=''}" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+      <!-- 保存按钮 -->
+      <div class="layui-form-item">
+        <div class="layui-input-block">
+          <button class="layui-btn" lay-submit lay-filter="sub">保存</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="/static/js/xm-select.js"></script>
+
+<script>
+
+var moduleNames = {
+    indexLists: '首页列表',
+    rank: '排行榜',
+    allRank: '综合排行榜',
+    lists: '漫画列表'
+};
+
+layui.use(['form', 'jquery', 'layer'], function () {
+    var $ = layui.jquery,
+        form = layui.form,
+        layer = layui.layer;
+
+    var moduleParams = <?php echo json_encode($moduleParams, JSON_UNESCAPED_UNICODE); ?>;
+    var infoParams = {};
+    <?php if (!empty($info['params'])): ?>
+    try { infoParams = JSON.parse('<?php echo addslashes($info["params"]); ?>'); } catch(e) { infoParams = {}; }
+    <?php endif; ?>
+
+    // 后端传过来的标签列表 {id: name}
+    var tagMap = <?php
+        $tagMap = [];
+        foreach($tagList as $t){ $tagMap[$t['id']] = $t['name']; }
+        echo json_encode($tagMap, JSON_UNESCAPED_UNICODE);
+    ?>;
+
+    function renderParams(module){
+        var fields = moduleParams[module]['params'] || [];
+        var html = "";
+
+        fields.forEach(function(f){
+            var val = infoParams[f.key] ?? '';
+
+            // 如果是 radio
+            if (f.as_radio) {
+                html += `<div class="layui-form-item">
+                            <label class="layui-form-label">${f.label}</label>
+                            <div class="layui-input-block">`;
+
+                Object.keys(f.options).forEach(function(optVal){
+                    var checked = (val == optVal) ? 'checked' : '';
+                    html += `
+                        <input type="radio" 
+                            name="params[${f.key}]" 
+                            value="${optVal}" 
+                            title="${f.options[optVal]}"
+                            ${checked}>
+                    `;
+                });
+
+                html += `</div></div>`;
+            }
+
+            // 题材下拉
+            else if(f.key === 'ticai_id'){
+                html += `<div class="layui-form-item">
+                            <label class="layui-form-label">${f.label}</label>
+                            <div class="layui-input-inline">
+                                <select name="params[${f.key}]">
+                                    <option value="">选择题材</option>
+                                    {volist name="ticaiList" id="vo"}
+                                    <option value="{$vo.id}" ${val=={$vo.id}?'selected':''}>{$vo.name}</option>
+                                    {/volist}
+                                </select>
+                            </div>
+                        </div>`;
+            }
+
+            // 标签 tag
+            else if(f.key === 'tag'){
+                html += `<div class="layui-form-item">
+                            <label class="layui-form-label">${f.label}</label>
+                            <div class="layui-input-block">
+                                <div id="tag-select"></div>
+                            </div>
+                        </div>`;
+            }
+            else if(f.type === 'select'){
+                html += `<div class="layui-form-item">
+                            <label class="layui-form-label">${f.label}</label>
+                            <div class="layui-input-inline">
+                                <select name="params[${f.key}]">
+                                    ${(function(){
+                                        let optionHtml = '';
+                                        // options 可能是数组 ['day','week'] 或 KV 对象
+                                        if(Array.isArray(f.options)){
+                                            f.options.forEach(opt=>{
+                                                let selected = (val == opt) ? 'selected' : '';
+                                                optionHtml += `<option value="${opt}" ${selected}>${opt}</option>`;
+                                            });
+                                        } else {
+                                            Object.keys(f.options).forEach(opt=>{
+                                                let selected = (val == opt) ? 'selected' : '';
+                                                optionHtml += `<option value="${opt}" ${selected}>${f.options[opt]}</option>`;
+                                            });
+                                        }
+                                        return optionHtml;
+                                    })()}
+                                </select>
+                            </div>
+                        </div>`;
+            }
+
+            // 普通输入框
+            else if(f.type === 'text' || f.type === 'number'){
+                html += `<div class="layui-form-item">
+                            <label class="layui-form-label">${f.label}</label>
+                            <div class="layui-input-block">
+                                <input type="${f.type}"
+                                    name="params[${f.key}]"
+                                    value="${val}"
+                                    placeholder="${f.placeholder ?? ''}"
+                                    class="layui-input">
+                            </div>
+                        </div>`;
+            }
+        });
+
+        $("#params-area").html(html);
+        form.render();
+
+        // 初始化 xmSelect 标签选择
+       // 渲染 tag 字段
+        var tagVal = '';
+        fields.forEach(function(f){
+            if(f.key === 'tag'){
+                tagVal = infoParams[f.key] ?? '';
+            }
+        });
+
+        if(fields.some(f => f.key==='tag')){
+            var defaultTags = [];
+            if (tagVal !== undefined && tagVal !== null && tagVal !== "") {
+                // 转数字或保持原样
+                var v = tagVal;
+
+                // 如果是 "3" 这样的字符串数字
+                if (typeof v === "string" && /^[0-9]+$/.test(v)) {
+                    v = parseInt(v);
+                }
+
+                if (tagMap[v]) {
+                    defaultTags.push({
+                        name: tagMap[v],
+                        value: v
+                    });
+                }
+            }
+
+            xmSelect.render({
+                el: '#tag-select',
+                name: 'params[tag]',
+                filterable: true,
+                remoteSearch: true,
+                remoteMethod: function (keyword, cb) {
+                    if(!keyword) return cb([]);
+                    $.ajax({
+                        url: "{:url('tagSearch')}",
+                        type: 'GET',
+                        dataType: 'json',
+                        data: { keyword: keyword },
+                        success: function(res){
+                            cb(res.data || []);
+                        },
+                        error: function(){
+                            cb([]);
+                        }
+                    });
+                },
+                initValue: defaultTags,
+                radio: true 
+            });
+        }
+
+    }
+
+    // 页面初始化
+    var module = "<?php echo $info['module'] ?? ''; ?>";
+    if(!module) module = Object.keys(moduleParams)[0];
+    renderParams(module);
+
+    // 模块切换事件
+    form.on('select(moduleSelect)', function(data){
+        renderParams(data.value);
+    });
+
+    // 表单提交
+    form.on('submit(sub)', function(data){
+        $.ajax({
+            url:"{:url('info')}",
+            type:"POST",
+            data:data.field,
+            success:function(res){
+                if(res.code==1){
+                    layer.msg(res.msg,{icon:1});
+                    setTimeout(function(){ parent.layer.closeAll(); parent.location.reload(); },1500);
+                } else {
+                    layer.msg(res.msg,{icon:2});
+                }
+            },
+            error:function(){ layer.msg("系统服务繁忙！",{offset:'200px'}); }
+        });
+        return false;
+    });
+});
+</script>
+</body>
+</html>

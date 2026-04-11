@@ -1,0 +1,153 @@
+{include file="public/header" /}
+<body>
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md12">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            <button class="layui-btn" onclick="ser_add()"><i class="layui-icon"></i>添加</button>
+          </div>
+          <div class="layui-card-body">
+            <table class="layui-table layui-form">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>名称</th>
+                  <th>封面</th>
+                  <th>点卷数量</th>
+                  <th>赠送钻石</th>
+                  <th>原价</th>
+                  <th>现价</th>
+                  <th>是否展示</th>
+                  <th>是否折扣</th>
+                  <th>是否热门</th>
+                  <th>是否推荐</th>
+                  <th>排序</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {volist name="list" id="vo"}
+                <tr>
+                  <td>{$vo.id}</td>
+                  <td>{$vo.title}</td>
+                  <td>
+                    {notempty name="vo.thumb"}
+                    <img src="{$img_url}{$vo.thumb}" style="width:70px;height:70px;cursor:pointer" onclick="show_img(this)">
+                    {else /}暂无图片{/notempty}
+                  </td>
+                  <td>{$vo.points}</td>
+                  <td>{$vo.diamonds}</td>
+                  <td>{$vo.cost}</td>
+                  <td>{$vo.money}</td>
+                  <td>
+                    <input type="checkbox" name="status" data-id="{$vo.id}" {if condition="$vo.status eq 1"} checked {/if} value="{$vo.['status']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                  </td>
+                  <td>
+                    <input type="checkbox" name="is_sale" data-id="{$vo.id}" {if condition="$vo.is_sale eq 1"} checked {/if} value="{$vo.['is_sale']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                  </td>
+                  <td>
+                    <input type="checkbox" name="hot" data-id="{$vo.id}" {if condition="$vo.hot eq 1"} checked {/if} value="{$vo.['hot']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                  </td>
+                  <td>
+                    <input type="checkbox" name="recommend" data-id="{$vo.id}" {if condition="$vo.recommend eq 1"} checked {/if} value="{$vo.['recommend']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                  </td>
+                  <td>
+                    <input type="number" min="0" class="layui-input sort" 
+                      data-id="{$vo.id}" value="{$vo.sort}" onchange="set_sort(this, this.value)">
+                  </td>
+                  <td class="td-manage">
+                      <button class="layui-btn layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                      <button class="layui-btn-danger layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                  </td>
+                </tr>
+                {/volist}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    layui.use(['form'], function() {
+      var form = layui.form;
+      form.on('switch(modify)', function(data) {
+        var field = $(this).attr('name');
+        var value = this.checked ? 1 : 0;
+        $.post("{:url('point/modify')}", {
+          id: $(this).data('id'),
+          field: field,
+          value: value
+        }, function(res) {
+          layer.msg(res.msg, {icon: res.code == 1 ? 1 : 2});
+        });
+      });
+    });
+
+    function ser_add() {
+      layer.open({
+        type: 2,
+        title: '添加点卷',
+        content: "{:url('point/info')}",
+        area: ['80%', '80%']
+      });
+    }
+
+    function set_edit(t) {
+      layer.open({
+        type: 2,
+        title: '编辑点卷',
+        content: "{:url('point/info')}?id=" + $(t).data('id'),
+        area: ['100%', '100%']
+      });
+    }
+
+    function set_del(t) {
+      layer.confirm('确认删除？', function(index) {
+        $.post("{:url('point/del')}", {id: $(t).data('id')}, function(res) {
+          layer.msg(res.msg, {icon: res.code == 1 ? 1 : 2});
+          if (res.code == 1) setTimeout(function() { location.reload(); }, 1500);
+        });
+      });
+    }
+
+    function set_sort(t,value) {
+      var id=$(t).attr("data-id");
+      $.ajax({
+        url: "{:url('modify')}",
+        type: "POST",
+        data: {
+          id:id,
+          field: 'sort',
+          value: value,
+        },
+        async: false,
+        success: function (data) {
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+    }
+
+    function show_img(t) {
+      layer.open({
+        type: 1,
+        title: false,
+        closeBtn: 0,
+        shadeClose: true,
+        content: '<img src="' + $(t).attr('src') + '" style="max-width:100%">'
+      });
+    }
+  </script>
+</body>
+</html>

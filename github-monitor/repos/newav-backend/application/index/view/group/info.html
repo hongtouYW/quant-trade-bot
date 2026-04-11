@@ -1,0 +1,152 @@
+{include file="public/header" /}
+<style>
+
+    .x-admin-sm .layui-btn-xs {
+        height: 22px;
+        line-height: 22px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
+</style>
+
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row">
+            <form class="layui-form">
+                <input type="hidden" name="id" value="{$info.id}">
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">原标题</label>
+                    <div  class="layui-input-inline">
+                        <input type="text" required="" lay-verify="required" name="title" value="{$info.title}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label"><span class="x-red">*</span>英文标题</label>
+                    <div  class="layui-input-inline">
+                        <input type="text" required="" lay-verify="required" name="title_en" value="{$info.title_en}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <!-- <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label"><span class="x-red">*</span>俄语标题</label>
+                    <div  class="layui-input-inline">
+                        <input type="text" required="" lay-verify="required" name="title_ru" value="{$info.title_ru}" autocomplete="off" class="layui-input">
+                    </div>
+                </div> -->
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>缩略图
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="image" name="image" value="{$info.image}"   style="width: 400px" class="layui-input" onchange="change()">
+                        <img style="width: 80px;height: 80px"  class="image" id="img1" src="{$img_url}{$info.image}" />
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">原简介</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea  name="description" placeholder="请输入简介" class="layui-textarea">{$info.description}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">英文简介</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea  name="description_en" placeholder="请输入简介" class="layui-textarea">{$info.description_en}</textarea>
+                    </div>
+                </div>
+
+                <!-- <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">俄语简介</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea  name="description_ru" placeholder="请输入简介" class="layui-textarea">{$info.description_ru}</textarea>
+                    </div>
+                </div> -->
+                
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>砖石数</label>
+                    <div class="layui-input-inline">
+                        <input type="number"min="0" name="amount"  edit="text" autocomplete="off" value="{$info.amount}" class="layui-input">
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">
+                        <span class="x-red"></span>不填默认为0
+                    </div>
+                </div>
+                
+                <div class="layui-form-item">
+                    <label class="layui-form-label">是否上线</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="is_show"  value="0" title="否" {if condition="$info.is_show eq 0 "}checked{/if}>
+                        <input type="radio" name="is_show"  value="1" title="是" {if condition="$info.is_show eq 1 "}checked{/if}>
+                    </div>
+                </div>
+                
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>排序</label>
+                    <div class="layui-input-inline">
+                        <input type="number"min="0" name="sort"  edit="text" autocomplete="off" value="{$info.sort}" class="layui-input">
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">
+                        <span class="x-red"></span>不填默认为99
+                    </div>
+                </div>
+
+                <div class="layui-form-item center">
+                    <div class="layui-input-block">
+                        <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        layui.use(['form', 'layer'], function () {
+        // 操作对象
+        var form = layui.form
+            , layer = layui.layer
+            , $ = layui.jquery
+            , upload = layui.upload;;
+
+        // 验证
+            form.verify({
+                required: [/[\S]+/, "必填项不能为空"],
+            });
+
+            form.on('submit(sub)', function (data) {
+                console.log(data.field);
+                $.ajax({
+                    url: "{:url('info')}",
+                    type: "POST",
+                    data: data.field,
+                    async: false,
+                    success: function (data) {
+                        if(data.code==1){
+                            layer.msg(data.msg,{icon:1});
+                            setTimeout(function () {
+                                parent.layer.closeAll();
+                                parent.location.reload();
+                            },1500);
+                        }else{
+                            layer.msg(data.msg,{icon:2});
+                        }
+                    },
+                    error: function () {
+                        layer.msg("System Service Busy!", {offset: '200px'});
+                    }
+                });
+                return false;
+            });
+
+        });
+
+    </script>
+
+</body>
+
+</html>

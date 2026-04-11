@@ -1,0 +1,126 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <form class="layui-form" id="giftForm" style="margin:20px;">
+    <input type="hidden" name="id" value="{$info.id|default=''}">
+    
+    <div class="layui-form-item">
+      <label class="layui-form-label">活动名称</label>
+      <div class="layui-input-block">
+        <input type="text" name="name" value="{$info.name|default=''}" required lay-verify="required" placeholder="请输入活动名称" class="layui-input">
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">绑定商品</label>
+      <div class="layui-input-block">
+        <select name="pro_id" lay-verify="required" lay-search="">
+          <option value="">请选择商品</option>
+          {foreach $products as $p}
+            <option value="{$p.id}" {if isset($info.pro_id) && $info.pro_id==$p.id}selected{/if}>{$p.title} - {$p.intro} (ID:{$p.id})</option>
+          {/foreach}
+        </select>
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">开始时间</label>
+      <div class="layui-input-block">
+        <input type="text" name="start_time" id="start_time" value="{if isset($info.id)}{$info.start_time}{else}{:date('Y-m-d')}{/if}" required lay-verify="required" placeholder="选择开始时间" class="layui-input">      
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">结束时间</label>
+      <div class="layui-input-block">
+        <input type="text" name="end_time" id="end_time" value="{if isset($info.id)}{$info.end_time}{else}{:date('Y-m-d')}{/if}" required lay-verify="required" placeholder="选择结束时间" class="layui-input">
+      </div>
+    </div>
+
+    <!-- ✅ 多语言翻译 TAB -->
+    <div class="layui-form-item">
+      <label class="layui-form-label">其它语言</label>
+      <div class="layui-input-block">
+        <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+          <ul class="layui-tab-title">
+            {volist name="translations" id="lang"}
+              <li {if $i==1}class="layui-this"{/if} lay-id="{$lang.lang_code}">
+                {$lang.lang_code|strtoupper}
+              </li>
+            {/volist}
+          </ul>
+          <div class="layui-tab-content">
+            {volist name="translations" id="lang"}
+            <div class="layui-tab-item {if $i==1}layui-show{/if}">
+              
+              <div class="layui-form-item">
+                <label class="layui-form-label">活动名称 ({$lang.lang_code})</label>
+                <div class="layui-input-block">
+                  <input type="text" 
+                        name="translations[{$lang.lang_code}][name]" 
+                        value="{$lang.name|default=''}" 
+                        class="layui-input">
+                </div>
+              </div>
+
+            </div>
+            {/volist}
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ✅ END 多语言翻译 -->
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">状态</label>
+      <div class="layui-input-block">
+        <input type="radio" name="status" value="1" title="开启" {if $info.status==1}checked{/if}>
+        <input type="radio" name="status" value="0" title="关闭" {if $info.status==0}checked{/if}>
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <div class="layui-input-block">
+        <button class="layui-btn" lay-submit lay-filter="giftSubmit">保存</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+layui.use(['form','laydate','jquery'], function(){
+  var form = layui.form, laydate = layui.laydate, $ = layui.jquery;
+
+  laydate.render({ elem: '#start_time', type: 'date' });
+  laydate.render({ elem: '#end_time', type: 'date' });
+
+  form.on('submit(giftSubmit)', function(data){
+
+    if(data.field.start_time){
+      data.field.start_time = data.field.start_time + ' 00:00:00';
+    }
+    if(data.field.end_time){
+      data.field.end_time = data.field.end_time + ' 23:59:59';
+    }
+
+    var $btn = $("button[lay-filter='giftSubmit']");
+    $btn.prop("disabled", true).addClass("layui-btn-disabled").text("保存中...");
+
+    $.post("{:url('gifts/info')}", data.field, function(res){
+      layer.msg(res.msg);
+      if(res.code !== 0){
+        setTimeout(()=>parent.location.reload(),1000);
+      } else {
+        $btn.prop("disabled", false).removeClass("layui-btn-disabled").text("保存");
+      }
+    }).fail(function(){
+      layer.msg('请求失败，请稍后重试');
+      $btn.prop("disabled", false).removeClass("layui-btn-disabled").text("保存");
+    });
+
+    return false;
+  });
+});
+</script>
+</body>
+</html>

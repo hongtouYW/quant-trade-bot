@@ -1,0 +1,174 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="x-nav">
+    <a class="layui-btn layui-btn-small" style="float:right" onclick="location.reload()" title="刷新">
+      <i class="layui-icon layui-icon-refresh"></i>
+    </a>
+  </div>
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="gift_add()">
+            <i class="layui-icon"></i>添加活动
+          </button>
+          <button class="layui-btn layui-btn-normal" onclick="clearGift()">
+              <i class="layui-icon"></i>清除缓存
+          </button>
+        </div>
+
+        <!-- 🔍 搜索表单 -->
+        <div class="layui-card-body">
+          <form class="layui-form" method="get" action="{:url('gifts/index')}" style="margin-bottom: 15px;">
+            <div class="layui-inline">
+              <input type="text" name="keyword" placeholder="搜索活动名称"
+                     value="{$Request.get.keyword|default=''}" class="layui-input">
+            </div>
+            <div class="layui-inline">
+              <select name="status">
+                <option value="">全部状态</option>
+                <option value="1" {if $Request.get.status=='1'}selected{/if}>开启</option>
+                <option value="0" {if $Request.get.status=='0'}selected{/if}>关闭</option>
+              </select>
+            </div>
+            <div class="layui-inline">
+              <select name="pro_id">
+                <option value="">全部商品</option>
+                {foreach $products as $p}
+                  <option value="{$p.id}" {if $Request.get.pro_id==$p.id}selected{/if}> {$p.title} - {$p.intro} (ID:{$p.id}) </option>
+                {/foreach}
+              </select>
+            </div>
+            <div class="layui-inline">
+              <button class="layui-btn" lay-submit>搜索</button>
+              <a href="{:url('gifts/index')}" class="layui-btn layui-btn-primary">重置</a>
+            </div>
+          </form>
+
+          <!-- 列表表格 -->
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>活动名称</th>
+              <th>状态</th>
+              <th>绑定商品ID</th>
+              <th>开始时间</th>
+              <th>结束时间</th>
+              <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {foreach $list as $vo}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>{$vo.name}</td>
+              <td><input type="checkbox" name="status" value="{$vo.id}" {if condition="$vo.status eq 1"} checked {/if} lay-skin="switch" lay-filter="giftStatusSwitch" lay-text="启用|禁用"></td>
+              <td>{$vo.pro_id}</td>
+              <td>{:date('Y-m-d',$vo.start_time)}</td>
+              <td>{:date('Y-m-d',$vo.end_time)}</td>
+              <td>
+                <button class="layui-btn layui-btn-xs" onclick="gift_edit({$vo.id})">编辑</button>
+                <button class="layui-btn layui-btn-normal layui-btn-xs" onclick="gift_items({$vo.id})">赠品</button>
+                <button class="layui-btn layui-btn-danger layui-btn-xs" onclick="gift_del({$vo.id})">删除</button>
+              </td>
+            </tr>
+            {/foreach}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+
+layui.use(['form'], function(){
+  var form = layui.form;
+  form.render('checkbox'); // 初次渲染 switch
+
+  form.on('switch(giftStatusSwitch)', function(obj){
+    var giftId = this.value;
+    var checked = obj.elem.checked ? 1 : 0;
+
+    $.post("{:url('gifts/toggle_status')}", {
+      id: giftId,
+      status: checked
+    }, function(res){
+      if(res.code == 1){
+        layer.msg(res.msg, {icon:1});
+      } else {
+        layer.msg(res.msg, {icon:2});
+        obj.elem.checked = !obj.elem.checked; // 回滚显示
+        form.render('checkbox');
+      }
+    }).fail(function(){
+      layer.msg('请求失败，请稍后重试', {icon:2});
+      obj.elem.checked = !obj.elem.checked;
+      form.render('checkbox');
+    });
+  });
+});
+
+function gift_add(){
+  layer.open({
+    type:2,
+    title:'添加活动',
+    area:['80%','80%'],
+    content:"{:url('gifts/info')}"
+  });
+}
+
+function gift_edit(id){
+  layer.open({
+    type:2,
+    title:'编辑活动',
+    area:['80%','80%'],
+    content:"{:url('gifts/info')}?id="+id
+  });
+}
+
+function gift_items(gift_id){
+  layer.open({
+    type:2,
+    title:'活动赠品',
+    area:['80%','80%'],
+    content:"{:url('gifts/items')}?gift_id="+gift_id
+  });
+}
+
+function gift_del(id){
+  layer.confirm('确定删除该活动吗?',function(){
+    $.post("{:url('gifts/del')}",{id:id},function(res){
+      layer.msg(res.msg);
+      if(res.code==1) setTimeout(()=>location.reload(),1000);
+    });
+  });
+}
+
+function clearGift() {
+  layer.confirm('你确定要清除公告缓存么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("clear")}',{},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+}
+</script>
+</html>

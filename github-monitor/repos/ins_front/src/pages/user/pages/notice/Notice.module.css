@@ -1,0 +1,30 @@
+.noticeList {
+  padding: 0px 15px;
+}
+.noticeItem {
+  color: #fff;
+  padding: 10px;
+  border-bottom: 1px solid #888;
+}
+
+.noticeTitle {
+  font-size: 22px;
+  line-height: 35px;
+  font-weight: 700;
+}
+
+.noticeContent {
+  margin: 10px 0px;
+  background-color: #3b3e45;
+}
+
+.noticeContentDesc {
+  padding: 5px;
+}
+
+.noticeContentDate {
+  text-align: right;
+  color: #888;
+  line-height: 30px;
+  font-size: 14px;
+}

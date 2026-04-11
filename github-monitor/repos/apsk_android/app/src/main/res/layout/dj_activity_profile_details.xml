@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black_1D1D1D"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imageView_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:contentDescription="@string/cd_image"
+            android:src="@drawable/dj_img_logo_profile" />
+
+        <View
+            android:id="@+id/view_spacer"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@+id/imageView_background" />
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/view_toolbar" />
+
+        <FrameLayout
+            android:id="@+id/panel_profile"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_alignBottom="@+id/view_spacer"
+            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal"
+            android:background="@drawable/bg_gradient_pill_button"
+            android:padding="3dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/imageView_profile"
+                android:layout_width="114dp"
+                android:layout_height="114dp"
+                android:src="@drawable/avatar_placeholder"
+                app:shapeAppearanceOverlay="@style/CircularImageView" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="bottom"
+                android:background="@drawable/bg_profile_overlay" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="26dp"
+                android:layout_gravity="bottom"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:text="@string/profile_change_profile_pic"
+                android:textColor="@color/orange_F8AF07"
+                android:textSize="12sp" />
+        </FrameLayout>
+    </RelativeLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/profile_personal_details"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/profile_username"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <com.dj.user.widget.RoundedEditTextView
+                android:id="@+id/editText_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/profile_user_id"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/textView_id"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_edit_text_transparent_disabled"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/profile_bind_social_media"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_edit_text_transparent_disabled"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/placeholder_dash"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_wa" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/profile_dob"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/panel_dob"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_edit_text_transparent"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:id="@+id/textView_dob"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/profile_choose_dob"
+                    android:textColor="@color/orange_F8AF07"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_chev_down" />
+            </LinearLayout>
+
+            <com.dj.user.widget.BlackTextButton
+                android:id="@+id/button_save"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:text="@string/profile_save" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

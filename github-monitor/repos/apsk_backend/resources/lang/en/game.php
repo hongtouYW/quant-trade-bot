@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'select' => 'Select Game',
+    'game_list' => 'Game List',
+    'add_new_game' => 'Add New Game',
+    'game_added_successfully' => 'Game ":game_name" added successfully!',
+    'game_updated_successfully' => 'Game ":game_name" updated successfully!',
+    'game_deleted_successfully' => 'Game ":game_name" deleted successfully!',
+    'game_name' => 'Game Name',
+    'game_desc' => 'Description',
+    'icon' => 'Icon',
+    'icon_zh' => 'Icon - Chinese',
+    'api' => 'API',
+    'status' => 'Status',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'never' => 'Never',
+    'edit_game' => 'Edit Game',
+    'delete_game' => 'Delete Game',
+    'confirm_delete_game' => 'Are you sure you want to delete Game ":game_name"?',
+    'no_data_found' => 'No Game found.',
+    'leave_blank_for_no_change' => 'Leave blank for no change',
+    'active_status' => 'Active',
+    'no_platform_found' => 'No Game Platform found.',
+    'platform' => 'Game Platform',
+    'platformselect' => 'Select Game Platform',
+];

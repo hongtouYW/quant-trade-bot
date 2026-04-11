@@ -1,0 +1,149 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>Key
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required lay-verify="required" name="key" value="{$info.key}" autocomplete="off" class="layui-input" {if condition="$info.id"}readonly{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>默认缩略图
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thumb" name="thumb" value="{$info.thumb}" style="width:400px" class="layui-input" onchange="change('thumb')">
+                    <img style="width:80px;height:80px" class="image" id="thumb_img" src="{$img_url}{$info.thumb}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">英文缩略图</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thumb_en" name="thumb_en" value="{$info.thumb_en}" style="width:400px" class="layui-input" onchange="change('thumb_en')">
+                    <img style="width:80px;height:80px" class="image" id="thumb_en_img" src="{$img_url}{$info.thumb_en}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>手机默认缩略图
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="m_thumb" name="m_thumb" value="{$info.m_thumb}" style="width:400px" class="layui-input" onchange="change('m_thumb')">
+                    <img style="width:80px;height:80px" class="image" id="m_thumb_img" src="{$img_url}{$info.m_thumb}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">手机英文缩略图</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="m_thumb_en" name="m_thumb_en" value="{$info.m_thumb_en}" style="width:400px" class="layui-input" onchange="change('m_thumb_en')">
+                    <img style="width:80px;height:80px" class="image" id="m_thumb_en_img" src="{$img_url}{$info.m_thumb_en}" />
+                </div>
+            </div>
+
+            <!-- <div class="layui-form-item">
+                <label class="layui-form-label">西班牙语缩略图</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thumb_es" name="thumb_es" value="{$info.thumb_es}" style="width:400px" class="layui-input" onchange="change('thumb_es')">
+                    <img style="width:80px;height:80px" class="image" id="thumb_es_img" src="{$img_url}{$info.thumb_es}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">俄语缩略图</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thumb_ru" name="thumb_ru" value="{$info.thumb_ru}" style="width:400px" class="layui-input" onchange="change('thumb_ru')">
+                    <img style="width:80px;height:80px" class="image" id="thumb_ru_img" src="{$img_url}{$info.thumb_ru}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">马来语缩略图</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thumb_ms" name="thumb_ms" value="{$info.thumb_ms}" style="width:400px" class="layui-input" onchange="change('thumb_ms')">
+                    <img style="width:80px;height:80px" class="image" id="thumb_ms_img" src="{$img_url}{$info.thumb_ms}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">泰语缩略图</label>
+                <div class="layui-input-inline">
+                    <input type="text" id="thumb_th" name="thumb_th" value="{$info.thumb_th}" style="width:400px" class="layui-input" onchange="change('thumb_th')">
+                    <img style="width:80px;height:80px" class="image" id="thumb_th_img" src="{$img_url}{$info.thumb_th}" />
+                </div>
+            </div> -->
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="启用" {if condition="$info.status eq 1"}checked{/if}>
+                    <input type="radio" name="status" value="0" title="禁用" {if condition="$info.status eq 0"}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-inline">
+                    <input type="number" min="0" name="sort_order" autocomplete="off" value="{$info.sort_order}" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">数字越大越靠前</div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label"></label>
+                <button class="layui-btn" lay-submit="sub" lay-filter="sub">保存</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+layui.use(['form', 'layer'], function() {
+    $ = layui.jquery;
+    var form = layui.form,
+        layer = layui.layer;
+        
+    form.verify({
+        required: [/[\S]+/, "必填项不能为空"],
+    });
+
+    form.on('submit(sub)', function(data) {
+        $.ajax({
+            url: "{:url('info')}",
+            type: "POST",
+            data: data.field,
+            async: false,
+            success: function(data) {
+                if(data.code == 1) {
+                    layer.msg(data.msg, {icon:1});
+                    setTimeout(function() {
+                        parent.layer.closeAll();
+                        parent.location.reload();
+                    }, 1500);
+                } else {
+                    layer.msg(data.msg, {icon:2});
+                }
+            },
+            error: function() {
+                layer.msg("System Service Busy!", {offset: '200px'});
+            }
+        });
+        return false;
+    });
+});
+
+function change(field) {
+    var img_url = "{$img_url}";
+    var src = $("#" + field).val();
+    $('#' + field + '_img').attr("src", img_url + src);
+}
+</script>
+</body>
+</html>

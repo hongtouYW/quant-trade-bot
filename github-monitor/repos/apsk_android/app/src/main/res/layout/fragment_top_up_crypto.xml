@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/panel_data"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ListView
+                android:id="@+id/listView_crypto_option"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="@color/blue_122346"
+                android:divider="@color/blue_354B9C"
+                android:dividerHeight="1dp"
+                android:listSelector="@android:color/transparent"
+                android:paddingStart="16dp"
+                android:paddingEnd="0dp" />
+        </LinearLayout>
+
+        <include
+            android:id="@+id/panel_no_data"
+            layout="@layout/view_no_data"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/panel_loading"
+            layout="@layout/view_loading"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>

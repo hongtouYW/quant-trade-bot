@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/textView_tab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/pingfang_sc_regular"
+        android:lines="1"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:textColor="@color/orange_F8AF07_50a"
+        android:textSize="14sp" />
+
+    <RelativeLayout
+        android:id="@+id/panel_tag"
+        android:layout_width="20dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="4dp"
+        android:background="@drawable/bg_tag_promo"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/textView_tag"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:gravity="center"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="8sp"
+            tools:ignore="SmallSp" />
+    </RelativeLayout>
+</LinearLayout>

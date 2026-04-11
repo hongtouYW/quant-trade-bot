@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'select' => 'Select Area',
+    'select_type' => 'Select Area Type',
+    'area_list' => 'Area List',
+    'add_new_area' => 'Add New Area',
+    'area_added_successfully' => 'Area added successfully!',
+    'area_updated_successfully' => 'Area updated successfully!',
+    'area_deleted_successfully' => 'Area deleted successfully!',
+    'area_code' => 'Area Code',
+    'area_name' => 'Area Name',
+    'area_type' => 'Area Type',
+    'postal_code' => 'Postal Code',
+    'district' => 'District',
+    'city' => 'City',
+    'status' => 'Status',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'never' => 'Never',
+    'edit_area' => 'Edit Area',
+    'delete_area' => 'Delete Area',
+    'confirm_delete_area' => 'Are you sure you want to delete Area?',
+    'no_data_found' => 'No Areas found.',
+    'leave_blank_for_no_change' => 'Leave blank for no change',
+    'active_status' => 'Active',
+];

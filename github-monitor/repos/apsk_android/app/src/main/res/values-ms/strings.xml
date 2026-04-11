@@ -1,0 +1,721 @@
+<resources>
+    <string name="app_name">Expro99</string>
+    <string name="new_notification">Anda menerima pemberitahuan baharu.</string>
+    <string name="search_hint">Cari</string>
+
+    <!-- Splash -->
+    <string name="splash_update_title">Kemas kini ke versi terbaru?</string>
+    <string name="splash_update_desc">Versi semasa v%s\nSila pasang versi terbaru v%s</string>
+    <string name="splash_update_negative">Langkau</string>
+    <string name="splash_update_positive">Sahkan</string>
+
+    <!-- Login -->
+    <string name="login_title">Log Masuk</string>
+    <string name="login_desc">Sila log masuk untuk maklumat terkini</string>
+    <string name="login_hint_phone">Nombor Telefon</string>
+    <string name="login_hint_password">Kata Laluan Log Masuk</string>
+    <string name="login_forgot_password">Lupa Kata Laluan</string>
+    <string name="login_third_party">Log Masuk Akaun Pihak Ketiga</string>
+    <string name="login_login">Log Masuk</string>
+    <string name="login_no_account">Tiada akaun lagi?</string>
+    <string name="login_register">Daftar</string>
+    <string name="login_invalid_credentials">Nama pengguna atau kata laluan tidak betul</string>
+
+    <string name="login_bind_title">Ikat Nombor Telefon</string>
+    <string name="login_bind_desc">Sila ikat nombor telefon anda. Selepas diikat, nombor rawak tidak lagi sah.</string>
+    <string name="login_bind_confirm">Sahkan Ikatan</string>
+    <string name="login_bind_resend_countdown">Hantar semula kod pengesahan (%d saat)</string>
+    <string name="login_bind_resend">Hantar Semula Kod Pengesahan</string>
+    <string name="login_bind_send">Hantar Kod Pengesahan</string>
+    <string name="login_bind_hint">Kod Pengesahan</string>
+
+    <!-- Register -->
+    <string name="register_title">Daftar</string>
+    <string name="register_desc">Muzik Baik, Hidup Baik</string>
+    <string name="register_hint_phone">Nombor Telefon</string>
+    <string name="register_hint_password">Kata Laluan Log Masuk</string>
+    <string name="register_hint_confirm_password">Sahkan Kata Laluan</string>
+    <string name="register_hint_invitation_code">Kod Jemputan</string>
+    <string name="register_password_mismatch">Kata laluan baru dan pengesahan tidak sepadan</string>
+    <string name="register_password_invalid">Panjang kata laluan mestilah 6–16 aksara</string>
+    <string name="register_password_requirement">Panjang kata laluan mestilah 6–16 aksara</string>
+    <string name="register_register">Daftar</string>
+    <string name="register_tnc_desc">Pendaftaran bermaksud anda bersetuju dengan</string>
+    <string name="register_tnc">Perjanjian Pengguna</string>
+
+    <!-- Reset -->
+    <string name="reset_request_title">Tetapkan Semula Kata Laluan</string>
+    <string name="reset_request_hint_phone">Nombor Telefon</string>
+    <string name="reset_request_verify">Sahkan</string>
+
+    <string name="verify_otp_title">Kod Pengesahan</string>
+    <string name="verify_otp_desc">Kod pengesahan telah dihantar ke %s</string>
+    <string name="verify_otp_count_down">Hantar semula kod pengesahan (%ds)</string>
+    <string name="verify_otp_resend">Hantar semula kod pengesahan</string>
+    <string name="verify_otp_verify">Sahkan</string>
+
+    <string name="reset_password_title">Tetapkan Semula Kata Laluan</string>
+    <string name="reset_password_desc">Sila masukkan kata laluan baru dan sahkan kata laluan</string>
+    <string name="reset_password_hint_new_password">Kata Laluan Baru</string>
+    <string name="reset_password_hint_confirm_password">Sahkan Kata Laluan</string>
+    <string name="reset_password_requirements">Panjang kata laluan mestilah 6–16 aksara</string>
+    <string name="reset_password_reset">Tetapkan Semula Kata Laluan</string>
+    <string name="reset_password_mismatch">Kata laluan baru dan pengesahan tidak sepadan</string>
+    <string name="reset_password_invalid">Panjang kata laluan mestilah 6–16 aksara</string>
+    <string name="reset_password_success_title">Tetapkan Semula Kata Laluan</string>
+    <string name="reset_password_success_desc">Kata laluan anda telah berjaya ditetapkan semula. Sila log masuk dengan kata laluan baru.</string>
+    <string name="reset_password_success_okay">OK</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_tab_home">Laman Utama</string>
+    <string name="dashboard_tab_promotion">Promosi</string>
+    <string name="dashboard_tab_support">Khidmat Pelanggan</string>
+    <string name="dashboard_tab_profile">Saya</string>
+
+    <string name="action_panel_top_up">Isi Tunai</string>
+    <string name="action_panel_transaction">Rekod Transaksi</string>
+    <string name="action_panel_withdraw">Pengeluaran</string>
+    <string name="action_panel_wallet">Dompet Saya</string>
+    <string name="action_panel_vip">Keistimewaan VIP</string>
+    <string name="action_panel_promotion">Pusat Promosi</string>
+    <string name="action_panel_bank">Butiran Bank</string>
+    <string name="action_panel_affiliate">Promosi Dapat Duit</string>
+
+    <!-- News Centre -->
+    <string name="news_centre_title">Pusat Mesej</string>
+    <string name="news_centre_tab_customer_care">Khidmat Pelanggan</string>
+    <string name="news_centre_tab_notification">Pemberitahuan</string>
+    <string name="news_centre_tab_home_notification">Marquee Laman Utama</string>
+    <string name="news_centre_tab_app_feedback">Maklum Balas App</string>
+
+    <!-- Home -->
+    <string name="home_balance">Baki Akaun</string>
+    <string name="home_withdraw_all">Muat Semula</string>
+    <string name="home_yxi_category_all">Semua</string>
+    <string name="home_yxi_category_popular">Popular</string>
+    <string name="home_yxi_category_app">APP</string>
+    <string name="home_yxi_category_slots">Mesin Slot</string>
+    <string name="home_yxi_category_live">Live</string>
+    <string name="home_yxi_category_sports">Sukan</string>
+    <string name="home_yxi_category_fishing">Memancing</string>
+    <string name="home_yxi_category_cock">Sabung Ayam</string>
+    <string name="home_yxi_category_lottery">Loteri</string>
+    <string name="home_yxi_category_cards">Kad Permainan</string>
+
+    <!-- Yxi -->
+    <string name="yxi_details_refreshing">Sedang menyegar, sila tunggu sebentar sebelum kembali</string>
+    <string name="yxi_details_login_label">Kelayakan Log Masuk Anda</string>
+    <string name="yxi_details_login_delete">Padam Pemain</string>
+    <string name="yxi_details_login_username">Nama Pengguna</string>
+    <string name="yxi_details_login_password">Kata Laluan</string>
+    <string name="yxi_details_yxi_list">Senarai Permainan %s</string>
+    <string name="yxi_details_desc">Main %s di telefon anda dengan mudah langkah demi langkah</string>
+    <string name="yxi_details_step_1_label">1</string>
+    <string name="yxi_details_step_1">Langkah 1</string>
+    <string name="yxi_details_step_2_label">2</string>
+    <string name="yxi_details_step_1_desc">Pindah dana ke dompet %s untuk mendapatkan nama pengguna dan kata laluan di bahagian bawah halaman ini</string>
+    <string name="yxi_details_step_2">Langkah 2</string>
+    <string name="yxi_details_step_2_desc">Pergi ke halaman muat turun untuk pasang aplikasi di telefon</string>
+    <string name="yxi_details_step_2_download">muat turun</string>
+    <string name="yxi_details_step_3_label">3</string>
+    <string name="yxi_details_step_3">Langkah 3</string>
+    <string name="yxi_details_step_3_desc">Lancarkan aplikasi di telefon anda dan log masuk dengan nama pengguna dan kata laluan anda</string>
+    <string name="yxi_details_choose_yxi">Sila pilih permainan dahulu</string>
+    <string name="yxi_details_start">Mula Main</string>
+    <string name="yxi_details_top_up">Isi Tunai</string>
+    <string name="yxi_details_transfer">Pindah</string>
+
+    <string name="yxi_details_delete_player_title">Sila Sahkan</string>
+    <string name="yxi_details_delete_player_desc">Adakah anda ingin memadam pemain %s\nSelepas dipadam, baki Points anda akan dipulangkan ke Credit.</string>
+    <string name="yxi_details_delete_player_note">*Perhatian: Hanya satu pemain baharu boleh ditambah sehari\nPoints pemain yang ingin dipadam mestilah kurang daripada 1</string>
+    <string name="yxi_details_delete_player_negative">Batal</string>
+    <string name="yxi_details_delete_player_positive">Sahkan</string>
+    <string name="yxi_details_delete_player_success">Berjaya memadam pemain, Credit akan dipulangkan ke akaun.</string>
+    <string name="yxi_details_delete_player_success_positive">OK</string>
+
+    <string name="yxi_player_title">Sila Pilih Pemain</string>
+    <string name="yxi_player_points">points</string>
+    <string name="yxi_player_new">Tambah Pemain Baharu</string>
+
+    <string name="yxi_lobby_home">Laman Utama</string>
+    <string name="yxi_action_title">Sila Pilih</string>
+    <string name="yxi_action_refresh">Segar</string>
+    <string name="yxi_action_reload">Pindah Masuk</string>
+    <string name="yxi_action_withdraw">Pengeluaran</string>
+    <string name="yxi_action_exit">Keluar Permainan</string>
+
+    <string name="yxi_withdraw_title">Pindah Keluar Jumlah</string>
+    <string name="yxi_withdraw_credit">Credit</string>
+    <string name="yxi_withdraw_points">%s Points</string>
+    <string name="yxi_withdraw_id">ID:%s</string>
+    <string name="yxi_withdraw_desc">Sila masukkan jumlah pindah keluar</string>
+    <string name="yxi_withdraw_all">Semua</string>
+    <string name="yxi_withdraw_transfer">Tukar</string>
+    <string name="yxi_withdraw_start_yxi">Mula Permainan</string>
+
+    <!-- Me -->
+    <string name="me_profile">Profil Peribadi</string>
+    <string name="me_action_privacy_security">Keselamatan Privasi</string>
+    <string name="me_action_find_us">Cari Kami</string>
+    <string name="me_action_find_us_desc">Cegah tidak boleh dibuka</string>
+    <string name="me_action_app_download">Muat Turun APP</string>
+    <string name="me_action_app_feedback">Maklum Balas APP</string>
+    <string name="me_action_language">Bahasa</string>
+    <string name="me_action_help">Bantuan</string>
+    <string name="me_action_logout">Log Keluar</string>
+    <string name="me_action_logout_desc">Tukar akaun</string>
+
+    <!-- Profile -->
+    <string name="profile_personal_details">Profil Peribadi</string>
+    <string name="profile_change_profile_pic">Tukar Foto Profil</string>
+    <string name="profile_username">Nama Pengguna</string>
+    <string name="profile_user_id">ID Pengguna</string>
+    <string name="profile_bind_social_media">Ikat Akaun Media Sosial</string>
+    <string name="profile_dob">Tarikh Lahir</string>
+    <string name="profile_choose_dob">Pilih Tarikh Lahir</string>
+    <string name="profile_save">Simpan</string>
+    <string name="profile_saved_successfully">Berjaya Disimpan</string>
+
+    <!-- Player Transfer / My Wallet -->
+    <string name="player_transfer_title">Tukar</string>
+    <string name="player_transfer_point">Points</string>
+    <string name="player_transfer_credit">Credit</string>
+    <string name="player_transfer_one_click">Tuntut Semua</string>
+    <string name="player_transfer_desc">Masukkan Points lain untuk pindah ke Credit hari ini</string>
+    <string name="player_transfer_header_yxi">Permainan</string>
+    <string name="player_transfer_header_points">Points Semasa</string>
+    <string name="player_transfer_header_transfer">Pindah</string>
+    <string name="player_transfer_confirm">Sahkan</string>
+    <string name="player_transfer_confirm_title">Sila Sahkan</string>
+    <string name="player_transfer_confirm_desc">Adakah anda pasti ingin memindahkan semua points semasa\nke credit?</string>
+    <string name="player_transfer_confirm_okay">Sahkan</string>
+    <string name="player_transfer_confirm_cancel">Batal</string>
+
+    <!-- Transaction -->
+    <string name="transaction_title">Rekod Transaksi</string>
+    <string name="transaction_tab_credit">Aliran Credit</string>
+    <string name="transaction_tab_points">Aliran Points</string>
+    <string name="transaction_tab_history">Sejarah Pertaruhan</string>
+
+    <string name="transaction_type_credit_unknown">Tidak Diketahui</string>
+    <string name="transaction_type_credit_unknown_desc">Tidak Diketahui RM</string>
+    <string name="transaction_type_credit_commission">Komisen</string>
+    <string name="transaction_type_credit_commission_desc">Komisen +RM</string>
+    <string name="transaction_type_credit_bonus_general">Bonus Kenaikan Pangkat Umum</string>
+    <string name="transaction_type_credit_bonus_general_desc">Bonus Kenaikan Pangkat Umum +RM</string>
+    <string name="transaction_type_credit_bonus_weekly">Bonus Mingguan</string>
+    <string name="transaction_type_credit_bonus_weekly_desc">Bonus Mingguan +RM</string>
+    <string name="transaction_type_credit_bonus_monthly">Bonus Bulanan</string>
+    <string name="transaction_type_credit_bonus_monthly_desc">Bonus Bulanan +RM</string>
+    <string name="transaction_type_credit_new_register">Promosi-Pendaftaran Baru</string>
+    <string name="transaction_type_credit_new_register_desc">Promosi-Pendaftaran Baru +RM</string>
+    <string name="transaction_type_credit_new_reload">Promosi-Tambah Nilai Ahli Baru</string>
+    <string name="transaction_type_credit_new_reload_desc">Promosi-Tambah Nilai Ahli Baru +RM</string>
+    <string name="transaction_type_credit_new_recruit">Promosi-Ganjaran Rujukan</string>
+    <string name="transaction_type_credit_new_recruit_desc">Promosi-Ganjaran Rujukan +RM</string>
+    <string name="transaction_type_credit_new_yxi_reload">Promosi-Top Up Game Ahli Baru</string>
+    <string name="transaction_type_credit_new_yxi_reload_desc">Promosi-Top Up Game Ahli Baru +RM</string>
+    <string name="transaction_type_credit_top_up_online">Isi Tunai Dalam Talian</string>
+    <string name="transaction_type_credit_top_up_online_desc">Isi Tunai Dalam Talian +RM</string>
+    <string name="transaction_type_credit_top_up_shop">Isi Tunai Kedai</string>
+    <string name="transaction_type_credit_top_up_shop_desc">Isi Tunai Kedai +RM</string>
+    <string name="transaction_type_credit_top_up_yxi">Isi Tunai Permainan</string>
+    <string name="transaction_type_credit_top_up_yxi_desc">Isi Tunai Permainan +RM</string>
+    <string name="transaction_type_credit_withdraw_online">Pengeluaran Dalam Talian</string>
+    <string name="transaction_type_credit_withdraw_online_desc">Pengeluaran Dalam Talian -RM</string>
+    <string name="transaction_type_credit_withdraw_shop">Pengeluaran Kedai</string>
+    <string name="transaction_type_credit_withdraw_shop_desc">Pengeluaran Kedai -RM</string>
+    <string name="transaction_type_credit_withdraw_shop_qr">Pengeluaran QR Kedai</string>
+    <string name="transaction_type_credit_withdraw_shop_qr_desc">Pengeluaran QR Kedai -RM</string>
+    <string name="transaction_type_credit_withdraw_yxi">Pengeluaran Permainan</string>
+    <string name="transaction_type_credit_withdraw_yxi_desc">Pengeluaran Permainan -RM</string>
+
+    <string name="transaction_type_point_reload">Tambah Mata</string>
+    <string name="transaction_type_point_reload_desc">Tambah Mata +RM</string>
+    <string name="transaction_type_point_withdraw">Kurang Mata</string>
+    <string name="transaction_type_point_withdraw_desc">Kurang Mata -RM</string>
+
+    <string name="transaction_status_success">Berjaya</string>
+    <string name="transaction_status_processing">Dalam Pemprosesan</string>
+    <string name="transaction_status_failed">Gagal</string>
+
+    <string name="transaction_history_bet">Pertaruhan %s</string>
+    <string name="transaction_history_win">Menang %s</string>
+    <string name="transaction_history_begin">Baki Mula RM%s</string>
+    <string name="transaction_history_end">Baki Akhir RM%s</string>
+
+    <!-- Transaction Details -->
+    <string name="transaction_details_title">Rekod Transaksi</string>
+    <string name="transaction_details_bank">Bank</string>
+    <string name="transaction_details_method">Kaedah Transaksi</string>
+    <string name="transaction_details_provider">Pembekal</string>
+    <string name="transaction_details_yxi">Permainan</string>
+    <string name="transaction_details_bet">Pertaruhan</string>
+    <string name="transaction_details_win">Menang</string>
+    <string name="transaction_details_opening_balance">Baki Mula</string>
+    <string name="transaction_details_closing_balance">Baki Akhir</string>
+    <string name="transaction_details_date_time">Masa Transaksi</string>
+    <string name="transaction_details_id">ID Transaksi</string>
+    <string name="transaction_details_status">Status Transaksi</string>
+    <string name="transaction_details_remarks">Catatan</string>
+
+    <!-- Transaction Filter -->
+    <string name="transaction_filter_range">Julat Tapisan</string>
+    <string name="transaction_filter_reset">Tetapkan Semula</string>
+    <string name="transaction_filter_results">Keputusan Tapisan</string>
+    <string name="transaction_filter_title">Tapisan</string>
+    <string name="transaction_filter_date_search">Carian Tarikh</string>
+    <string name="transaction_filter_all">Semua</string>
+    <string name="transaction_filter_today">Hari Ini</string>
+    <string name="transaction_filter_yesterday">Semalam</string>
+    <string name="transaction_filter_this_week">Minggu Ini</string>
+    <string name="transaction_filter_last_week">Minggu Lepas</string>
+    <string name="transaction_filter_this_month">Bulan Ini</string>
+    <string name="transaction_filter_last_month">Bulan Lepas</string>
+    <string name="transaction_filter_previous_day">Hari Sebelumnya</string>
+    <string name="transaction_filter_next_day">Hari Berikutnya</string>
+
+    <!-- Top Up -->
+    <string name="top_up_title">Isi Tunai</string>
+    <string name="top_up_tab_online">Isi Tunai Dalam Talian</string>
+    <string name="top_up_tab_crypto">Isi Tunai Dompet Mata Wang Kripto</string>
+    <string name="top_up_tab_ewallet">Isi Tunai eWallet</string>
+    <string name="top_up_tab_qr">Isi Tunai QR</string>
+    <string name="top_up_range">Minimum %s - Maksimum %s</string>
+    <string name="top_up_range_error">Jumlah isi tunai minimum %s - maksimum %s</string>
+    <string name="top_up_min">Minimum %s</string>
+    <string name="top_up_min_error">Jumlah isi tunai minimum %s</string>
+    <string name="top_up_max_error">Jumlah melebihi %s. Sila pecahkan pembayaran mengikut had.</string>
+    <string name="top_up_amount">Jumlah Isi Tunai</string>
+    <string name="top_up_amount_other">Jumlah Lain</string>
+    <string name="top_up_now">Isi Tunai Sekarang</string>
+    <string name="top_up_error_no_url">Tiada pautan disediakan</string>
+    <string name="top_up_success_title">Isi Tunai Berjaya</string>
+    <string name="top_up_success_desc">Anda telah berjaya mengisi tunai:</string>
+    <string name="top_up_okay">OK</string>
+    <string name="top_up_add_bank_account">Sila tambah akaun bank dahulu sebelum meneruskan</string>
+    <string name="top_up_success">Isi Tunai Berjaya +RM %s</string>
+
+    <!-- Withdrawal -->
+    <string name="withdraw_title">Pengeluaran</string>
+    <string name="withdraw_bank_account_name">Nama Pemegang Akaun Bank</string>
+    <string name="withdraw_bank_account_number">Nombor Akaun Bank</string>
+    <string name="withdraw_application_submitted">Permohonan pengeluaran berjaya dihantar, sistem akan membekukan jumlah pengeluaran, tunggu pengesahan belakang tabir.</string>
+    <string name="withdraw_credit">Credit</string>
+    <string name="withdraw_point">Point</string>
+    <string name="withdraw_id">ID Saya</string>
+    <string name="withdraw_enter_amount">Masukkan Jumlah</string>
+    <string name="withdraw_all">Semua</string>
+    <string name="withdraw_percentage">* Akaun ini dikenakan komisen sebanyak %s%%</string>
+    <string name="withdraw_withdrawable">Jumlah yang akan diterima ialah %s</string>
+    <string name="withdraw_min">Minimum 1.01</string>
+    <string name="withdraw_method">Kaedah Pengeluaran</string>
+    <string name="withdraw_submit_request">Hantar Permintaan Pindahan</string>
+    <string name="withdraw_shop_qr">Bayaran Tunai QR Kedai</string>
+    <string name="withdraw_add_bank">Tambah Bank</string>
+    <string name="withdraw_choose_bank">Pilih Bank</string>
+    <string name="withdraw_add_bank_account">Tambah Akaun Bank</string>
+    <string name="withdraw_added_bank">Bank yang Ditambah</string>
+    <string name="withdraw_change_bank_account">Tukar Akaun Bank</string>
+    <string name="withdraw_added_bank_account">Akaun Bank yang Ditambah</string>
+    <string name="withdraw_add_bank_prompt">Sila pilih akaun bank</string>
+    <string name="withdraw_add_bank_prompt_new">Tambah akaun bank baharu</string>
+    <string name="withdraw_next">Pergi</string>
+    <string name="withdraw_generate_qr">Jana Kod QR</string>
+
+    <string name="withdraw_qr_title">Bayaran Tunai QR Kedai</string>
+    <string name="withdraw_qr_label">Pengeluaran QR:</string>
+    <string name="withdraw_qr_desc">Tunjukkan kod QR kepada peniaga untuk selesaikan potongan</string>
+    <string name="withdraw_qr_refresh">Kira detik segar automatik:</string>
+    <string name="withdraw_qr_success_title">Potongan Berjaya</string>
+    <string name="withdraw_qr_success_desc">Peniaga perlu bayar pemain tunai:</string>
+    <string name="withdraw_qr_success_positive">OK</string>
+    <string name="withdraw_qr_success_toast">Bayaran tunai QR kedai berjaya RM%s</string>
+
+    <!-- VIP -->
+    <string name="vip_privilege_title">Keistimewaan VIP</string>
+    <string name="vip_redeem_success">Tebusan Berjaya</string>
+    <string name="vip_current_level">Tahap Semasa</string>
+    <string name="vip_redeem_all">Tuntut Semua</string>
+    <string name="vip_redeem_history">Rekod Tebusan</string>
+    <string name="vip_redeem_distance">Perlu isi tunai untuk naik tahap</string>
+    <string name="vip_tab_bonus">Bonus Kenaikan Pangkat</string>
+    <string name="vip_tab_weekly">Bonus Mingguan</string>
+    <string name="vip_tab_monthly">Bonus Bulanan</string>
+    <string name="vip_tab_vip">Keistimewaan VIP</string>
+    <string name="vip_header_level">Tahap</string>
+    <string name="vip_header_progress">Pertaruhan Semula Kenaikan Pangkat</string>
+    <string name="vip_header_reward">Bonus Kenaikan Pangkat</string>
+    <string name="vip_redemption_redeem">Tebus</string>
+    <string name="vip_redemption_success">Berjaya</string>
+
+    <!-- Promotion -->
+    <string name="promotion_tab_event">Aktiviti</string>
+    <string name="promotion_tab_vip">VIP</string>
+    <string name="promotion_tab_rebate">Rebat</string>
+    <string name="promotion_tab_redeem_history">Rekod Tebusan</string>
+
+    <string name="promotion_category_new_reload">Isi Tunai Ahli Baharu</string>
+    <string name="promotion_category_crypto_reload">Mata Wang Digital</string>
+    <string name="promotion_category_agent">Ejen</string>
+    <string name="promotion_category_popular">Aktiviti Popular</string>
+    <string name="promotion_category_others">Aktiviti Lain</string>
+
+    <!-- Bank Details -->
+    <string name="bank_details_title">Butiran Bank</string>
+    <string name="bank_details_update_success">Kemas Kini Berjaya</string>
+    <string name="bank_details_added_bank">Akaun Bank yang Ditambah</string>
+    <string name="bank_details_added_bank_desc">Akaun bank yang anda tambah akan digunakan untuk mengisi jumlah tepat yang diperlukan untuk pembelian dalam aplikasi.</string>
+    <string name="bank_details_add_bank">Tambah Akaun Bank Baharu</string>
+    <string name="bank_details_add_bank_desc">Dayakan akaun ini untuk pembayaran pantas</string>
+    <string name="bank_details_new">Tambah Akaun Bank Baharu</string>
+    <string name="bank_details_bank_account_holder">Nama Pemegang Akaun</string>
+    <string name="bank_details_bank_account_number">Nombor Akaun Bank</string>
+    <string name="bank_details_quick_pay">Pembayaran Pantas</string>
+    <string name="bank_details_added_success">Tambah Berjaya</string>
+    <string name="bank_details_delete_title">Sila Sahkan</string>
+    <string name="bank_details_delete_desc">Adakah anda pasti ingin memadam akaun bank ini?\nIni juga akan memadam pembayaran pantas anda.</string>
+    <string name="bank_details_delete_negative">Batal</string>
+    <string name="bank_details_delete_positive">Pergi</string>
+    <string name="bank_details_delete_success">Padam Berjaya</string>
+
+    <string name="bank_form_add_bank">Tambah Akaun Bank</string>
+    <string name="bank_form_account_holder">Nama Pemegang Akaun</string>
+    <string name="bank_form_account_holder_desc">Hanya boleh guna satu nama pemegang akaun, tidak boleh dipadam, sila semak dengan teliti.</string>
+    <string name="bank_form_bank_name">Nama Bank</string>
+    <string name="bank_form_choose_bank">Pilih Bank</string>
+    <string name="bank_form_bank_account_number">Nombor Akaun Bank</string>
+    <string name="bank_form_quick_pay">Pembayaran Pantas</string>
+    <string name="bank_form_disclaimer">Dengan mendayakan akaun ini untuk pembayaran pantas, anda bersetuju dengan terma dan syarat.</string>
+    <string name="bank_form_add">Tambah Akaun Bank</string>
+    <string name="bank_form_delete">Padam Akaun Bank</string>
+
+    <string name="bank_option_title">Pilih Bank</string>
+    <string name="bank_option_search_hint">Cari …</string>
+    <string name="bank_option_search">Cari</string>
+
+    <!-- Affiliate -->
+    <string name="affiliate_title">Promosi Dapat Duit</string>
+    <string name="affiliate_tab_share">Kongsi Promosi</string>
+    <string name="affiliate_tab_data">Data Saya</string>
+    <string name="affiliate_tab_kpi">Prestasi Saya</string>
+    <string name="affiliate_tab_commission">Komisen Saya</string>
+    <string name="affiliate_tab_downline">Maklumat Bawahan</string>
+    <string name="affiliate_tab_ratio">Nisbah Pulangan</string>
+    <string name="affiliate_tab_new">Pembukaan Langsung</string>
+
+    <string name="affiliate_share_to_redeem">Menunggu Tebusan</string>
+    <string name="affiliate_share_upline">Upline Saya</string>
+    <string name="affiliate_share_one_click_redeem">Tuntut Semua</string>
+    <string name="affiliate_share_redeem_history">Rekod Komisen</string>
+    <string name="affiliate_share_agent_mode">Mod Ejen: Ejen Rakyat (Selesaian Harian)</string>
+    <string name="affiliate_share_save">Simpan</string>
+    <string name="affiliate_share_link">Pautan Saya</string>
+    <string name="affiliate_share_invitation_code">Kod Jemputan Saya</string>
+    <string name="affiliate_share_change_link">Tukar</string>
+    <string name="affiliate_share_share">Kongsi</string>
+    <string name="affiliate_share_tutorial">Tutorial Promosi</string>
+    <string name="affiliate_share_example">Contoh penerangan seperti berikut:</string>
+    <string name="affiliate_share_saved">Lokasi fail disimpan:</string>
+
+    <string name="affiliate_data_tab_today">Hari Ini</string>
+    <string name="affiliate_data_tab_ytd">Semalam</string>
+    <string name="affiliate_data_tab_this_week">Minggu Ini</string>
+    <string name="affiliate_data_tab_last_week">Minggu Lepas</string>
+    <string name="affiliate_data_tab_this_month">Bulan Ini</string>
+    <string name="affiliate_data_tab_last_month">Bulan Lepas</string>
+    <string name="affiliate_data_downline_template">%s Data Langsung</string>
+    <string name="affiliate_data_team">Jumlah Data Langsung</string>
+    <string name="affiliate_data_new_downline">Bawahan Baharu</string>
+    <string name="affiliate_data_first_top_up_amount">Jumlah Isi Tunai Pertama</string>
+    <string name="affiliate_data_first_top_up_head_count">Bilangan Isi Tunai Pertama</string>
+    <string name="affiliate_data_top_up_amount">Jumlah Isi Tunai</string>
+    <string name="affiliate_data_top_up_count">Bilangan Isi Tunai</string>
+    <string name="affiliate_data_withdraw_amount">Jumlah Pengeluaran</string>
+    <string name="affiliate_data_withdraw_count">Bilangan Pengeluaran</string>
+    <string name="affiliate_data_bet_amount">Pertaruhan Berkesan</string>
+    <string name="affiliate_data_redeem_reward">Tebus Hadiah</string>
+    <string name="affiliate_data_downline_win_loss">Menang/Kalah Bawahan</string>
+    <string name="affiliate_data_downline_kpi">Prestasi Bawahan</string>
+    <string name="affiliate_data_total_commision">Jumlah Komisen</string>
+    <string name="affiliate_data_team_head_count">Bilangan Pasukan</string>
+    <string name="affiliate_data_downline_head_count">Bilangan Bawahan</string>
+    <string name="affiliate_data_other_head_count">Bilangan Lain</string>
+    <string name="affiliate_data_total_kpi">Jumlah Prestasi</string>
+    <string name="affiliate_data_other_kpi">Prestasi Lain</string>
+    <string name="affiliate_data_downline_commision">Komisen Bawahan</string>
+    <string name="affiliate_data_other_commision">Komisen Lain</string>
+    <string name="affiliate_data_accumulated_commision">Komisen Terkumpul</string>
+    <string name="affiliate_data_redeemed">Telah Ditebus</string>
+    <string name="affiliate_data_to_redeem">Belum Ditebus</string>
+    <string name="affiliate_data_accumulated_downline_top_up">Isi Tunai Bawahan Terkumpul</string>
+    <string name="affiliate_data_accumulated_downline_withdraw">Pengeluaran Bawahan Terkumpul</string>
+    <string name="affiliate_data_accumulated_downline_redeem">Tebusan Bawahan Terkumpul</string>
+    <string name="affiliate_data_accumulated_downline_bet">Pertaruhan Berkesan Bawahan Terkumpul</string>
+    <string name="affiliate_data_accumulated_downline_win_loss">Menang/Kalah Bawahan Terkumpul</string>
+
+    <string name="affiliate_kpi_date">Tarikh</string>
+    <string name="affiliate_kpi_total_commission">Jumlah Komisen</string>
+    <string name="affiliate_kpi_head_count">Bilangan Orang</string>
+
+    <string name="affiliate_commission_username">Nama Pengguna</string>
+    <string name="affiliate_commission_login">ID Pengguna</string>
+    <string name="affiliate_commission_top_up">Isi Tunai Pengguna</string>
+    <string name="affiliate_commission_date_time">Masa Isi Tunai</string>
+    <string name="affiliate_commission_commission">Komisen</string>
+
+    <string name="affiliate_downline_id">ID：%s</string>
+    <string name="affiliate_downline_join_date">Sertai：%s</string>
+    <string name="affiliate_downline_invitation_code">Kod Jemputan：%s</string>
+
+    <string name="affiliate_new_id">Sila masukkan nombor telefon</string>
+    <string name="affiliate_new_password">Kata Laluan Log Masuk</string>
+    <string name="affiliate_new_phone_invalid">Format nombor telefon tidak betul</string>
+    <string name="affiliate_new_password_invalid">Panjang kata laluan mestilah 6–16 aksara</string>
+    <string name="affiliate_new_proceed">Pergi</string>
+    <string name="affiliate_new_success">Pembukaan Langsung Berjaya</string>
+
+    <string name="affiliate_code_tab_friend">Senarai Rakan</string>
+    <string name="affiliate_code_tab_reward">Rebat Saya</string>
+
+    <string name="affiliate_code_title">Kod Jemputan Saya</string>
+    <string name="affiliate_code_default_label">Kod Jemputan Saya</string>
+    <string name="affiliate_code_default">Lalai</string>
+    <string name="affiliate_code_set_as_default">Tetapkan sebagai Kod Jemputan Lalai</string>
+    <string name="affiliate_code_rebate">Rebat Saya/Rebat Rakan %</string>
+    <string name="affiliate_code_invitation_code">Kod Jemputan</string>
+    <string name="affiliate_code_invitation_link">Pautan Jemputan</string>
+    <string name="affiliate_code_invite_now">Jemput Sekarang</string>
+    <string name="affiliate_code_more">Lain</string>
+    <string name="affiliate_code_summary">Statistik Jemputan Saya</string>
+    <string name="affiliate_code_team_count">Bilangan Pasukan (orang)</string>
+    <string name="affiliate_code_transacted_count">Bilangan Telah Bertransaksi (orang)</string>
+    <string name="affiliate_code_my_rebate">Rebat Saya (RM)</string>
+
+    <string name="affiliate_code_friend_member_id">ID Orang Dijemput</string>
+    <string name="affiliate_code_friend_code">Kod Jemputan</string>
+    <string name="affiliate_code_friend_reward_date">Masa Rebat</string>
+    <string name="affiliate_code_friend_invited_count">Bilangan Dijemput</string>
+    <string name="affiliate_code_friend_traded_count">Bilangan Telah Bertransaksi</string>
+    <string name="affiliate_code_friend_total_amount">Jumlah Transaksi</string>
+
+    <string name="affiliate_code_reward_date">Masa Rebat</string>
+    <string name="affiliate_code_reward_member_id">ID Orang Dijemput</string>
+    <string name="affiliate_code_reward_count">Kuantiti Rebat</string>
+
+    <!-- Security & Privacy -->
+    <string name="security_privacy_title">Keselamatan Privasi</string>
+    <string name="security_privacy_phone">Nombor Telefon</string>
+    <string name="security_privacy_email">Ikat E-mel</string>
+    <string name="security_privacy_google">Pengesahan Google</string>
+    <string name="security_privacy_biometric">Pengesahan Biometrik</string>
+    <string name="security_privacy_password">Tukar Kata Laluan</string>
+    <string name="security_privacy_binded">Telah Diikat</string>
+    <string name="security_privacy_to_bind">Belum Ditambah</string>
+
+    <string name="bind_phone_title">Nombor Telefon</string>
+    <string name="bind_phone_label">Ikat Nombor Telefon</string>
+    <string name="bind_phone_label_binded">Nombor Telefon yang Diikat</string>
+    <string name="bind_phone_desc">Nombor telefon ini akan digunakan untuk log masuk</string>
+    <string name="bind_phone_desc_binded">Nombor telefon ini akan digunakan untuk log masuk</string>
+    <string name="bind_phone_verify">Sahkan</string>
+
+    <string name="bind_email_title">E-mel</string>
+    <string name="bind_email_label">Ikat E-mel</string>
+    <string name="bind_email_hint">E-mel</string>
+    <string name="bind_email_proceed">Pergi</string>
+
+    <string name="bind_otp_title">Kod Pengesahan</string>
+    <string name="bind_otp_label">Sila masukkan kod pengesahan</string>
+    <string name="bind_otp_desc">Kod pengesahan telah dihantar ke %s</string>
+    <string name="bind_otp_resend_countdown">Hantar semula kod pengesahan (%d)</string>
+    <string name="bind_otp_resend">Hantar semula kod pengesahan</string>
+    <string name="bind_otp_verify">Sahkan</string>
+    <string name="bind_otp_success_phone">Ikat nombor telefon berjaya</string>
+    <string name="bind_otp_success_email">Ikat e-mel berjaya</string>
+
+    <string name="google_authentication_title">Pengesahan Google</string>
+    <string name="google_authentication_unbind">Buka Ikat Pengesahan Google</string>
+    <string name="google_authentication_bind">Ikat Pengesahan Google</string>
+    <string name="google_authentication_step_1">Langkah 1: Muat Turun</string>
+    <string name="google_authentication_step_2">Langkah 2: Buka aplikasi pengesah dan tambah kod QR</string>
+    <string name="google_authentication_step_2_binded">Langkah 2: Masukkan enam digit dari aplikasi pengesah untuk pengesahan</string>
+    <string name="google_authentication_step_3">Langkah 3: Masukkan enam digit dari aplikasi pengesah untuk pengesahan</string>
+    <string name="google_authentication_app">Aplikasi Pengesah Google</string>
+    <string name="google_authentication_click">(klik untuk pergi)</string>
+    <string name="google_authentication_copy">Salin SharedSecret</string>
+    <string name="google_authentication_proceed">Pergi</string>
+    <string name="google_authentication_success_unbind">Buka ikat Pengesahan Google berjaya</string>
+    <string name="google_authentication_success_bind">Ikat Pengesahan Google berjaya</string>
+
+    <string name="biometric_title">Pengesahan Biometrik</string>
+    <string name="biometric_identification">Pengesahan Biometrik</string>
+    <string name="biometric_label">Pengesahan Muka/Cap Jari</string>
+    <string name="biometric_prompt_title">Pengesahan Identiti</string>
+    <string name="biometric_prompt_desc">Sila gunakan biometrik untuk melengkapkan pengesahan</string>
+    <string name="biometric_prompt_cancel">Batal</string>
+    <string name="biometric_prompt_failed">Tidak dapat mulakan pengesahan\n</string>
+    <string name="biometric_not_supported">Peranti tidak menyokong biometrik</string>
+    <string name="biometric_not_setup">Maklumat biometrik belum ditetapkan, sila tambah biometrik dalam tetapan sistem dahulu</string>
+    <string name="biometric_unavailable">Perkakasan biometrik tidak tersedia buat masa ini</string>
+    <string name="biometric_success_enabled">Dayakan biometrik berjaya</string>
+    <string name="biometric_failed">Pengesahan gagal</string>
+
+    <string name="change_password_title">Tukar Kata Laluan</string>
+    <string name="change_password_label">Sila masukkan kata laluan</string>
+    <string name="change_password_hint_old_password">Kata Laluan Lama</string>
+    <string name="change_password_hint_new_password">Kata Laluan Baru</string>
+    <string name="change_password_hint_confirm_password">Sahkan Kata Laluan</string>
+    <string name="change_password_strength">Kekuatan Kata Laluan</string>
+    <string name="change_password_proceed">Pergi</string>
+    <string name="change_password_mismatch">Kata laluan baru dan pengesahan tidak sepadan</string>
+
+    <string name="change_password_otp_title">Pengesahan Keselamatan</string>
+    <string name="change_password_otp_success">Tukar kata laluan berjaya</string>
+    <string name="change_password_otp_phone">Nombor Telefon</string>
+    <string name="change_password_otp_phone_desc">Sila masukkan kod pengesahan yang diterima oleh %s</string>
+    <string name="change_password_otp_phone_switch_email">Tukar kepada cara pengesahan e-mel</string>
+    <string name="change_password_otp_email">E-mel</string>
+    <string name="change_password_otp_email_desc">Sila masukkan kod pengesahan yang diterima oleh e-mel %s</string>
+    <string name="change_password_otp_google">Kod Pengesahan Google</string>
+    <string name="change_password_otp_google_desc">Sila masukkan kod pengesahan Google</string>
+    <string name="change_password_otp_send">Hantar Kod Pengesahan</string>
+    <string name="change_password_otp_resend_countdown">Hantar semula kod pengesahan (%ds)</string>
+    <string name="change_password_otp_resend">Hantar semula kod pengesahan</string>
+    <string name="change_password_otp_paste">Tampal</string>
+    <string name="change_password_otp_verify">Sahkan</string>
+
+    <!-- Find Us -->
+    <string name="find_us_title">Cari Kami</string>
+    <string name="find_us_save_web_label">Simpan Laman Web</string>
+    <string name="find_us_save_web_desc">Untuk mencegah (elakkan) laman web tidak boleh dibuka, mempengaruhi pengalaman permainan anda, sila simpan alamat kekal kami dengan segera:</string>
+    <string name="find_us_web_template">Alamat Laman Web %d</string>
+    <string name="find_us_web_1">Alamat Laman Web 1</string>
+    <string name="find_us_web_2">Alamat Laman Web 2</string>
+    <string name="find_us_save_email_label">Simpan E-mel</string>
+    <string name="find_us_save_email_desc">E-mel rasmi, dapatkan alamat terkini dengan menghantar apa-apa kandungan</string>
+    <string name="find_us_official">E-mel Rasmi</string>
+    <string name="find_us_save">Simpan Gambar</string>
+
+    <!-- App Download -->
+    <string name="app_download_title">Muat Turun APP</string>
+    <string name="app_download_current_version">Versi semasa: V %s_%s</string>
+    <string name="app_download_desc">Imbas atau klik kedai aplikasi untuk muat turun aplikasi kami</string>
+    <string name="app_download_click">(klik untuk pergi)</string>
+    <string name="app_download_check">Semak versi terkini</string>
+    <string name="app_download_upgrade_title">Kemas kini ke versi terbaru?</string>
+    <string name="app_download_upgrade_desc">Versi semasa V %s\nAdakah anda pasti ingin pasang versi baru V %s?</string>
+    <string name="app_download_upgrade_install">Pasang Sekarang</string>
+    <string name="app_download_upgrade_skip">Langkau</string>
+    <string name="app_download_already_latest">Anda telah menggunakan versi terkini</string>
+
+    <!-- App Feedback -->
+    <string name="app_feedback_create">Buat Maklum Balas</string>
+    <string name="app_feedback_list">Maklum Balas Saya</string>
+    <string name="app_feedback_subject_label">Tajuk Maklum Balas</string>
+    <string name="app_feedback_subject_prompt">Masalah Maklum Balas</string>
+    <string name="app_feedback_subject_speed">Kelajuan Muat Permainan</string>
+    <string name="app_feedback_subject_performance">Rasa Operasi / Kelancaran</string>
+    <string name="app_feedback_subject_level">Kesukaran Peringkat</string>
+    <string name="app_feedback_subject_newbie">Panduan Pemula</string>
+    <string name="app_feedback_subject_others">Lain</string>
+    <string name="app_feedback_message_desc">Kandungan Maklum Balas\nSebarang cadangan anda sangat penting kepada kami, dialu-alukan untuk bersuara!</string>
+    <string name="app_feedback_message_count">0/1000</string>
+    <string name="app_feedback_image_label">Gambar Maklum Balas</string>
+    <string name="app_feedback_image_desc">Menyokong muat naik gambar dan video, saiz gambar tidak boleh melebihi 2MB,\nsaiz video tidak boleh melebihi 20MB</string>
+    <string name="app_feedback_submit">Hantar Maklum Balas</string>
+    <string name="app_feedback_upload_desc">Sila muat naik sekurang-kurangnya satu imej sebelum menghantar.</string>
+    <string name="app_feedback_upload_okay">OK</string>
+
+    <string name="app_feedback_upload_gallery">Galeri</string>
+    <string name="app_feedback_upload_camera">Kamera</string>
+    <string name="app_feedback_upload_cancel">Batal</string>
+    <string name="app_feedback_image_create_failed">Tidak dapat buat fail gambar</string>
+    <string name="app_feedback_image_process_failed">Pemprosesan gambar gagal</string>
+    <string name="app_feedback_image_compress_failed">Gambar masih melebihi 2MB selepas mampatan, muat naik gagal</string>
+    <string name="app_feedback_image_size_mb">%.2f MB</string>
+    <string name="app_feedback_image_size_kb">%.2f KB</string>
+    <string name="app_feedback_camera_permission">Keizinan kamera diperlukan untuk ambil gambar</string>
+    <string name="app_feedback_gallery_permission">Keizinan storan diperlukan untuk akses gambar</string>
+
+    <string name="app_feedback_details_title">Maklum Balas APP</string>
+
+    <!-- Language -->
+    <string name="language_title">Bahasa</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_english">English</string>
+    <string name="language_malay">Malay</string>
+
+    <!-- Help -->
+    <string name="help_title">Bantuan</string>
+    <string name="help_support_title">Khidmat Pelanggan Dalam Talian 7 x 24</string>
+    <string name="help_support_desc">Khidmat pelanggan profesional dalam talian, selesaikan masalah untuk anda.</string>
+    <string name="help_support_1">Talian 1</string>
+    <string name="help_support_2">Talian 2</string>
+    <string name="help_support_other">Khidmat Pelanggan Lain</string>
+    <string name="help_support_unavailable">Khidmat pelanggan tidak tersedia buat sementara waktu. Sila cuba lagi kemudian.</string>
+    <string name="help_tab_common">Soalan Lazim</string>
+    <string name="help_tab_transaction">Operasi Transaksi</string>
+    <string name="help_tab_transfer">Pindahan</string>
+    <string name="help_tab_vip">Penerangan Tahap VIP</string>
+    <string name="help_tab_affiliate">Penerangan Promosi Dapat Duit</string>
+    <string name="help_tab_agent">Penerangan Ejen</string>
+    <string name="help_details_title">Bantuan</string>
+
+    <!-- Logout -->
+    <string name="logout_title">Sila Sahkan</string>
+    <string name="logout_desc">Adakah keluar dari akaun semasa?</string>
+    <string name="logout_negative">Batal</string>
+    <string name="logout_positive">Sahkan Keluar</string>
+
+    <string name="month_jan">Jan</string>
+    <string name="month_feb">Feb</string>
+    <string name="month_mar">Mac</string>
+    <string name="month_apr">Apr</string>
+    <string name="month_may">Mei</string>
+    <string name="month_jun">Jun</string>
+    <string name="month_jul">Jul</string>
+    <string name="month_aug">Ogos</string>
+    <string name="month_sep">Sep</string>
+    <string name="month_oct">Okt</string>
+    <string name="month_nov">Nov</string>
+    <string name="month_dec">Dis</string>
+
+    <string name="country_code">Kod Negara</string>
+    <string name="country_code_mys">+60</string>
+
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_space_s">%s %s</string>
+    <string name="template_s_dash_space_s">%s - %s</string>
+    <string name="template_s_space_plus_s">%s +%s</string>
+    <string name="template_s_bracket_s">%s (%s)</string>
+    <string name="template_s_rm_s">%sRM%s</string>
+    <string name="template_s_s_rm_s">%s %sRM%s</string>
+    <string name="template_plus_s">+%s</string>
+    <string name="template_rm_s">RM%s</string>
+    <string name="template_d_secs">%d saat</string>
+    <string name="template_d_pax">%d orang</string>
+
+    <string name="placeholder_currency_amount">RM0.00</string>
+    <string name="placeholder_currency_myr">RM</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_dash">-</string>
+
+    <string name="cd_icon">Ikon</string>
+    <string name="cd_image">Imej</string>
+
+    <string name="common_no_data">Tiada rekod buat masa ini</string>
+    <string name="common_password">Kata Laluan</string>
+    <string name="common_ok">OK</string>
+
+    <string name="calendar_negative">Batal</string>
+    <string name="calendar_positive">Sahkan</string>
+
+    <string name="in_app_updater_preparing_download">Menyediakan muat turun…</string>
+    <string name="in_app_updater_downloading_update">Memuat turun kemas kini…</string>
+    <string name="in_app_updater_installing_update">Memasang kemas kini…</string>
+    <string name="in_app_updater_wait">Sila tunggu</string>
+    <string name="in_app_updater_progress">%d%% (%dKB / %dKB)</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

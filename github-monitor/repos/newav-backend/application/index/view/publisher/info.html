@@ -1,0 +1,106 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"   name="name" value="{$info.name}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>英文名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"   name="name_en" value="{$info.name_en}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>缩略图
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="image" name="image" value="{$info.image}"   style="width: 400px" class="layui-input" onchange="change()">
+                    <img style="width: 80px;height: 80px"  class="image" id="img1" src="{$img_url}{$info.image}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>背景图
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="background_image" name="background_image" value="{$info.background_image}"   style="width: 400px" class="layui-input" onchange="change()">
+                    <img style="width: 80px;height: 80px"  class="background_image" id="background_image1" src="{$img_url}{$info.background_image}" />
+                </div>
+            </div>
+
+            <!-- <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>俄语名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"   name="name_ru" value="{$info.name_ru}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div> -->
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(sub)', function (data) {
+            $.ajax({
+                url: "{:url('info')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    console.log(data);
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+
+
+</script>
+</body>
+
+</html>

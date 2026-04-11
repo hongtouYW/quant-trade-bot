@@ -1,0 +1,416 @@
+<resources>
+    <string name="app_name">Expro99 Manager</string>
+    <string name="copyright">Expro99 Manager 2025</string>
+    <string name="exit_tap_twice">Tekan kembali dua kali untuk keluar</string>
+    <string name="no_data">Tiada rekod ditemui</string>
+    <string name="whoops_something_went_wrong">Ralat telah berlaku!</string>
+    <string name="new_notification">Anda menerima pemberitahuan baharu.</string>
+    <string name="search_hint">Cari</string>
+    <string name="copied">Disalin ke papan klip</string>
+    <string name="common_okay">OK</string>
+
+    <string name="session_expired_title">Log Masuk Telah Tamat</string>
+    <string name="session_expired_desc">Sesi log masuk anda telah tamat, sila log masuk semula</string>
+    <string name="session_expired_okay">Baik</string>
+
+    <string name="splash_version_title">Kemas kini ke versi terkini?</string>
+    <string name="splash_version_desc">Versi semasa v%s\nSila pasang versi terkini v%s</string>
+    <string name="splash_version_confirm">Sahkan</string>
+    <string name="splash_version_cancel">Langkau</string>
+
+    <string name="onboarding_change_language">Tukar bahasa</string>
+    <string name="onboarding_login">Log Masuk</string>
+
+    <string name="login_title">Log Masuk</string>
+    <string name="login_hint_username">Nama Pengguna</string>
+    <string name="login_hint_password">Kata Laluan</string>
+    <string name="login_forgot_password">Lupa kata laluan?</string>
+    <string name="login_button">Log Masuk</string>
+    <string name="login_invalid_credentials">Nama pengguna atau kata laluan tidak betul</string>
+
+    <string name="forgot_password_title">Lupa Kata Laluan?</string>
+    <string name="forgot_password_desc">Tetapan semula kata laluan hanya boleh dilakukan oleh admin.\nSila hubungi admin untuk bantuan.</string>
+    <string name="forgot_password_okay">Baik</string>
+
+    <string name="dashboard_balance">Jumlah Pendapatan Kedai</string>
+    <string name="dashboard_capital">Modal Kedai</string>
+    <string name="dashboard_shop_count">Bilangan Kedai</string>
+    <string name="dashboard_search_hint">Nama kedai atau pengguna</string>
+    <string name="dashboard_point_history">SEJARAH POINT</string>
+    <string name="dashboard_point_go">Pergi ></string>
+    <string name="dashboard_point_all">Lihat semua butiran pesanan</string>
+    <string name="dashboard_shop_management">Pengurusan Kedai</string>
+    <string name="dashboard_shop_management_all">Lihat semua kedai</string>
+    <string name="dashboard_shop_management_desc">Lihat dan urus semua kedai</string>
+    <string name="dashboard_user_management">Pengurusan Pengguna</string>
+    <string name="dashboard_user_management_user">Lihat dan urus semua pengguna</string>
+    <string name="dashboard_notification">Pemberitahuan</string>
+    <string name="dashboard_notification_all">Lihat semua</string>
+    <string name="dashboard_system_log">Log Sistem</string>
+    <string name="dashboard_yxi_log">Log Permainan</string>
+    <string name="dashboard_qr_scan">Imbas</string>
+    <string name="dashboard_profile_settings">Tetapan Profil</string>
+
+    <string name="dashboard_search_title">Keputusan Carian</string>
+    <string name="dashboard_search_filter_all">Semua</string>
+    <string name="dashboard_search_filter_member">Ahli</string>
+    <string name="dashboard_search_filter_shop">Kedai</string>
+    <string name="dashboard_search_no_result_template">Tiada rekod berkaitan \'%s\' ditemui</string>
+    <string name="dashboard_search_no_result_desc">Sila cuba kata kunci lain</string>
+    <string name="dashboard_search_result_count">\'%s\' - %d hasil carian</string>
+
+    <string name="notification_title">Pemberitahuan</string>
+    <string name="notification_latest">Terkini</string>
+    <string name="notification_today">Hari ini</string>
+    <string name="notification_yesterday">Semalam</string>
+    <string name="notification_earlier">Lebih Awal</string>
+    <string name="notification_details_current_version">Versi semasa : v.%s_%s</string>
+    <string name="notification_details_latest_version">Anda telah menggunakan versi terkini</string>
+
+    <string name="profile_settings_title">Tetapan Profil</string>
+    <string name="profile_settings_shop_management">Butiran Kedai</string>
+    <string name="profile_settings_change_password">Tukar Kata Laluan</string>
+    <string name="profile_settings_logout">Log Keluar</string>
+    <string name="profile_settings_logout_title">Sahkan Log Keluar?</string>
+    <string name="profile_settings_logout_confirm">Sahkan</string>
+    <string name="profile_settings_logout_cancel">Batal</string>
+
+    <string name="change_password_title">Tukar Kata Laluan</string>
+    <string name="change_password_hint_old">Masukkan kata laluan lama</string>
+    <string name="change_password_hint_new">Masukkan kata laluan baru</string>
+    <string name="change_password_hint_confirm">Masukkan kata laluan baru sekali lagi</string>
+    <string name="change_password_mismatch">Kata laluan baru dan pengesahan tidak sepadan</string>
+    <string name="change_password_success">Kata laluan telah dikemas kini!</string>
+    <string name="change_password_submit">Hantar</string>
+
+    <string name="profile_language_settings">Tetapan Bahasa</string>
+
+    <string name="shop_list_title">Pengurusan Kedai</string>
+    <string name="shop_list_hint_search">Cari nama kedai, pengguna atau negara/wilayah kedai</string>
+    <string name="shop_list_tab_all">Semua Kedai</string>
+    <string name="shop_list_tab_active">Kedai Aktif</string>
+    <string name="shop_list_tab_closed">Kedai Tertutup</string>
+    <string name="shop_list_registered_user">Pengguna Berdaftar</string>
+    <string name="shop_list_yxi">Permainan Kedai</string>
+    <string name="shop_list_balance">Wang Tunai Semasa</string>
+    <string name="shop_list_income">Pendapatan Kedai</string>
+
+    <string name="shop_details_title">Butiran Kedai</string>
+    <string name="shop_details_settlement_success">Penyelesaian kedai berjaya!</string>
+    <string name="shop_details_status_updated">Status kedai telah dikemas kini!</string>
+    <string name="shop_details_country">Lokasi</string>
+    <string name="shop_details_password">Kata Laluan Kedai</string>
+    <string name="shop_details_shop_username">Nama Pengguna Kedai</string>
+    <string name="shop_details_opening_balance">Jumlah Pembukaan Kedai</string>
+    <string name="shop_details_current_balance">Jumlah Semasa Keseluruhan</string>
+    <string name="shop_details_status">Status Kedai</string>
+    <string name="shop_details_settlement">Penyelesaian Kedai</string>
+    <string name="shop_details_change_password">Tukar Kata Laluan Kedai</string>
+    <string name="shop_details_change_balance">Tukar Jumlah Kedai</string>
+    <string name="shop_details_transactions">Rekod Transaksi Kedai</string>
+    <string name="shop_details_permissions">Tetapan Keizinan</string>
+
+    <string name="shop_new_title">Tambah Kedai Baharu</string>
+    <string name="shop_new_country">Negara:</string>
+    <string name="shop_new_state">Negeri:</string>
+    <string name="shop_new_area">Kawasan:</string>
+    <string name="shop_new_choose_country">Pilih negara kedai</string>
+    <string name="shop_new_choose_state">Pilih negeri kedai</string>
+    <string name="shop_new_choose_area">Pilih kawasan kedai</string>
+    <string name="shop_new_hint_name">Masukkan nama kedai</string>
+    <string name="shop_new_hint_username">Masukkan nama pengguna kedai</string>
+    <string name="shop_new_hint_password">Masukkan kata laluan kedai</string>
+    <string name="shop_new_hint_amount">Jumlah</string>
+    <string name="shop_new_choose_country_first">Sila pilih negara kedai dahulu</string>
+    <string name="shop_new_choose_state_first">Sila pilih negeri kedai dahulu</string>
+    <string name="shop_new_submit">Hantar</string>
+    <string name="shop_new_success_title">Berjaya menambah kedai baharu</string>
+    <string name="shop_new_success_desc">Kedai baharu sudah sedia</string>
+    <string name="shop_new_success_back">Kembali ke Pengurusan Kedai</string>
+
+    <string name="shop_balance_title">Tukar Jumlah Kedai</string>
+    <string name="shop_balance_current">Jumlah Semasa</string>
+    <string name="shop_balance_existing_settings">Jumlah yang Ditetapkan</string>
+    <string name="shop_balance_modify">Tukar Jumlah</string>
+    <string name="shop_balance_settings">Tetapkan Jumlah Kedai</string>
+    <string name="shop_balance_amount_settings_chosen">Tetapan Jumlah : RM %s</string>
+    <string name="shop_balance_min_settings">Peringatan Jumlah Minimum</string>
+    <string name="shop_balance_100">RM100</string>
+    <string name="shop_balance_200">RM200</string>
+    <string name="shop_balance_2000">RM2000</string>
+    <string name="shop_balance_5000">RM5000</string>
+    <string name="shop_balance_update">Kemas kini Tetapan</string>
+    <string name="shop_balance_update_success">Jumlah yang ditetapkan telah dikemas kini!</string>
+
+    <string name="shop_change_password_title">Tukar Kata Laluan Kedai</string>
+    <string name="shop_change_password_new_hint">Masukkan kata laluan baru</string>
+    <string name="shop_change_password_confirm_hint">Masukkan kata laluan baru sekali lagi</string>
+    <string name="shop_change_password_mismatch">Kata laluan baru dan pengesahan tidak sepadan</string>
+    <string name="shop_change_password_updated">Kata laluan kedai telah dikemas kini!</string>
+    <string name="shop_change_password_submit">Hantar</string>
+
+    <string name="shop_transaction_title">Rekod Transaksi Kedai</string>
+    <string name="shop_transaction_type_all">Semua</string>
+    <string name="shop_transaction_type_top_up">Isi Tunai Pengguna</string>
+    <string name="shop_transaction_type_withdraw">Pengeluaran Pengguna</string>
+    <string name="shop_transaction_type_manager_settlement">Penyelesaian Pengurus</string>
+    <string name="shop_transaction_type_manager_top_up">Tambahan Kredit Pengurus</string>
+
+    <string name="shop_transaction_details_title">Butiran Transaksi</string>
+    <string name="shop_transaction_details_date">Tarikh Transaksi</string>
+    <string name="shop_transaction_details_id">ID Akaun</string>
+    <string name="shop_transaction_details_phone">Nombor Telefon</string>
+    <string name="shop_transaction_details_player">ID Akaun Permainan</string>
+    <string name="shop_transaction_details_manager">ID Manager</string>
+    <string name="shop_transaction_details_method">Kaedah Transaksi</string>
+    <string name="shop_transaction_details_status">Status Transaksi</string>
+    <string name="shop_transaction_details_remarks">Catatan</string>
+
+    <string name="shop_permission_title">Tetapan Keizinan</string>
+    <string name="shop_permission_top_up">Boleh isi tunai</string>
+    <string name="shop_permission_withdraw">Boleh bayar/mengeluarkan tunai</string>
+    <string name="shop_permission_create_user">Boleh buat akaun</string>
+    <string name="shop_permission_block_user">Boleh menyekat akaun</string>
+    <string name="shop_permission_alarm">Suis sistem amaran</string>
+    <string name="shop_permission_income">Paparkan jumlah pendapatan kedai</string>
+    <string name="shop_permission_settlement">Paparkan rekod penyelesaian</string>
+    <string name="shop_permission_view_credentials">Paparkan butiran log masuk pengguna</string>
+    <string name="shop_permission_withdrawal_fee">Yuran pengeluaran</string>
+    <string name="shop_permission_updated">Keizinan kedai telah dikemas kini!</string>
+
+    <string name="user_list_title">Pengurusan Pengguna</string>
+    <string name="user_list_hint_search">Cari nama kedai, pengguna atau negara/wilayah kedai</string>
+    <string name="user_list_tab_all">Semua Pengguna</string>
+    <string name="user_list_tab_active">Pengguna Aktif</string>
+    <string name="user_list_tab_blocked">Pengguna Disekat</string>
+    <string name="user_list_tab_deleted">Pengguna Dipadam</string>
+    <string name="user_list_created_from">Dicipta daripada</string>
+    <string name="user_list_created_shop">Kedai</string>
+    <string name="user_list_created_online">Atas Talian</string>
+
+    <string name="user_details_title">Butiran Pengguna</string>
+    <string name="user_details_delete">Padam Akaun</string>
+    <string name="user_details_block_success">Pengguna telah disekat!</string>
+    <string name="user_details_delete_success">Pengguna telah dipadam!</string>
+    <string name="user_details_country">Negara</string>
+    <string name="user_details_id">ID Akaun</string>
+    <string name="user_details_password">Lata Laluan Pengguna</string>
+    <string name="user_details_status">Status Pengguna</string>
+    <string name="user_details_created_by">ID Kedai</string>
+    <string name="user_details_current_balance">Jumlah Semasa Keseluruhan</string>
+    <string name="user_details_current_point">Jumlah Point Semasa</string>
+    <string name="user_details_current_exp">Pengalaman Semasa</string>
+    <string name="user_details_last_login">Masa Log Masuk Terakhir</string>
+    <string name="user_details_change_password">Tukar Kata Laluan</string>
+    <string name="user_details_all_yxi">Semua Permainan</string>
+    <string name="user_details_block">Sekat</string>
+
+    <string name="user_change_password_title">Tukar Kata Laluan Pengguna</string>
+    <string name="user_change_password_id">ID Akaun</string>
+    <string name="user_change_password_desc">Klik sahkan untuk menukar kata laluan</string>
+    <string name="user_change_password_confirm">Sahkan</string>
+    <string name="user_change_password_desc_random">*Kata laluan baru akan digantikan dengan kata laluan rawak</string>
+    <string name="user_change_password_success">Tukar kata laluan berjaya</string>
+    <string name="user_change_password_phone">Nombor Telefon</string>
+    <string name="user_change_password_password">Kata Laluan</string>
+    <string name="user_change_password_back">Kembali ke Butiran Pengguna</string>
+
+    <string name="yxi_title">Semua Permainan</string>
+    <string name="yxi_select_yxi">Sila pilih permainan</string>
+    <string name="yxi_hint_search">Cari permainan</string>
+    <string name="yxi_next">Seterusnya</string>
+
+    <string name="yxi_player_search_hint">Cari akaun permainan</string>
+    <string name="yxi_player_all">Semua Akaun Permainan</string>
+    <string name="yxi_player_add">Tambah Akaun Permainan</string>
+
+    <string name="yxi_player_details_title">Butiran Akaun Permainan</string>
+    <string name="yxi_player_details_delete">Padam Akaun</string>
+    <string name="yxi_player_details_id">ID Akaun Permainan</string>
+    <string name="yxi_player_details_password">Kata Laluan Akaun Permainan</string>
+    <string name="yxi_player_details_point">Point Permainan</string>
+    <string name="yxi_player_details_status">Status Akaun Permainan</string>
+    <string name="yxi_player_details_reset_password">Tetapkan Semula Kata Laluan</string>
+    <string name="yxi_player_reset_title">Sahkan Tetapkan Semula Kata Laluan?</string>
+    <string name="yxi_player_reset_confirm">Sahkan</string>
+    <string name="yxi_player_reset_cancel">Batal</string>
+    <string name="yxi_player_reset_success">Kata laluan akaun permainan telah dikemas kini!</string>
+    <string name="yxi_player_delete_title">Sahkan Padam Akaun?</string>
+    <string name="yxi_player_delete_confirm">Sahkan</string>
+    <string name="yxi_player_delete_cancel">Batal</string>
+
+    <string name="point_history_title">Sejarah Point</string>
+    <string name="point_history_hint_search">Cari nama kedai, pengguna</string>
+
+    <string name="point_details_title">Butiran Pesanan</string>
+    <string name="point_details_fail">Gagal</string>
+    <string name="point_details_by_shop">Kedai Sumber</string>
+    <string name="point_details_account_id">ID Akaun</string>
+    <string name="point_details_created_on">Masa Ciptaan</string>
+    <string name="point_details_phone">Nombor Telefon</string>
+    <string name="point_details_created_by">Dicipta oleh</string>
+    <string name="point_details_operated_by">Dikendalikan oleh</string>
+    <string name="point_details_operated_by_user">Pengguna</string>
+    <string name="point_details_ip">Alamat IP</string>
+    <string name="point_details_shop_before_balance">Jumlah Asal Kedai</string>
+    <string name="point_details_shop_after_balance">Jumlah Kedai Selepas Pengubahan</string>
+    <string name="point_details_account_before_balance">Jumlah Asal Akaun</string>
+    <string name="point_details_account_after_balance">Jumlah Akaun Selepas Pengubahan</string>
+
+    <string name="point_filter_title">Tapisan</string>
+    <string name="point_filter_reset">Kosongkan Pilihan</string>
+    <string name="point_filter_list_title">Paparan Senarai</string>
+    <string name="point_filter_list_all">Semua</string>
+    <string name="point_filter_list_shop">Senarai Kedai</string>
+    <string name="point_filter_list_game">Senarai Permainan</string>
+    <string name="point_filter_transaction_title">Kategori Transaksi</string>
+    <string name="point_filter_transaction_all">Semua</string>
+    <string name="point_filter_transaction_bonus">Bonus</string>
+    <string name="point_filter_transaction_reward">Ganjaran</string>
+    <string name="point_filter_transaction_top_up">Isi Tunai</string>
+    <string name="point_filter_transaction_withdraw">Pengeluaran</string>
+    <string name="point_filter_status_title">Status Transaksi</string>
+    <string name="point_filter_status_all">Semua</string>
+    <string name="point_filter_status_success">Berjaya</string>
+    <string name="point_filter_status_fail">Gagal</string>
+    <string name="point_filter_date_title">Masa Ciptaan Transaksi</string>
+    <string name="point_filter_date_all">Semua</string>
+    <string name="point_filter_date_choose">Pilih Tarikh</string>
+    <string name="point_filter_choose_list_first">Sila pilih paparan senarai dahulu</string>
+    <string name="point_filter_confirm">Sahkan</string>
+
+    <string name="log_title">Log Sistem</string>
+    <string name="log_filter_title">Tapisan</string>
+    <string name="log_filter_choose_shop">Pilih Kedai</string>
+    <string name="log_filter_choose_manager">Pilih Pengurus</string>
+    <string name="log_filter_chosen_template">%d %s dipilih</string>
+    <string name="log_filter_shop_manager">Paparkan semua kedai dan pengurus</string>
+    <string name="log_filter_shop">Hanya paparkan kedai</string>
+    <string name="log_filter_shop_unit">buah</string>
+    <string name="log_filter_shop_search_hint">Cari nama kedai</string>
+    <string name="log_filter_shop_chosen">Kedai dipilih (%d)</string>
+    <string name="log_filter_manager">Hanya paparkan pengurus</string>
+    <string name="log_filter_manager_unit">orang</string>
+    <string name="log_filter_manager_search_hint">Cari pengurus</string>
+    <string name="log_filter_manager_chosen">Pengurus dipilih (%d)</string>
+    <string name="log_filter_all">Semua</string>
+    <string name="log_filter_confirm">Sahkan</string>
+
+    <string name="yxi_log_title">Log Permainan</string>
+    <string name="yxi_log_bet">Pertaruhan %s</string>
+    <string name="yxi_log_win">Menang %s</string>
+    <string name="yxi_log_begin">Baki Mula RM%s</string>
+    <string name="yxi_log_end">Baki Akhir RM%s</string>
+    <string name="yxi_log_filter_title">Tapisan</string>
+    <string name="yxi_log_filter_choose_shop">Pilih Kedai</string>
+    <string name="yxi_log_filter_choose_yxi">Pilih Permainan</string>
+    <string name="yxi_log_filter_chosen_template">%d %s dipilih</string>
+    <string name="yxi_log_filter_shop_yxi">Paparkan semua</string>
+    <string name="yxi_log_filter_shop">Hanya paparkan kedai</string>
+    <string name="yxi_log_filter_shop_unit">buah</string>
+    <string name="yxi_log_filter_shop_search_hint">Cari nama kedai</string>
+    <string name="yxi_log_filter_shop_chosen">Kedai dipilih (%d)</string>
+    <string name="yxi_log_filter_yxi">Hanya paparkan permainan</string>
+    <string name="yxi_log_filter_yxi_unit">buah</string>
+    <string name="yxi_log_filter_yxi_search_hint">Cari permainan</string>
+    <string name="yxi_log_filter_yxi_chosen">Permainan dipilih (%d)</string>
+    <string name="yxi_log_filter_all">Semua</string>
+    <string name="yxi_log_filter_confirm">Sahkan</string>
+
+    <string name="qr_scan_title">Imbas Kod QR</string>
+    <string name="qr_scan_camera_permission">Keizinan kamera diperlukan</string>
+    <string name="qr_scan_gallery_permission">Keizinan storan diperlukan untuk mengakses gambar</string>
+    <string name="qr_scan_no_code">Kod QR tidak sah</string>
+    <string name="qr_scan_failed_to_load">Gagal memuatkan gambar</string>
+
+    <string name="placeholder_currency">RM</string>
+    <string name="placeholder_currency_amount">RM0.00</string>
+    <string name="placeholder_currency_amount_space">RM 0.00</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_amount_add">+0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_password_masked">•••••••••</string>
+
+    <string name="template_s">\'%s\'</string>
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_s_dashed">%s - %s</string>
+    <string name="template_bracket_s">(%s)</string>
+    <string name="template_currency_amount">RM%s</string>
+    <string name="template_currency_amount_space">RM %s</string>
+
+    <string name="language_english">English</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_malay">Malay</string>
+
+    <string name="cd_icon">Ikon</string>
+    <string name="cd_image">Imej</string>
+
+    <string name="user_status_active">Aktif</string>
+    <string name="user_status_blocked">Disekat</string>
+    <string name="user_status_deleted">Dipadam</string>
+    <string name="user_status_action_block">Sekat</string>
+    <string name="user_status_action_unblock">Nyahsekat</string>
+
+    <string name="player_status_active">Aktif</string>
+    <string name="player_status_blocked">Disekat</string>
+    <string name="player_status_deleted">Dipadam</string>
+
+    <string name="shop_status_active">Aktif</string>
+    <string name="shop_status_closed">Tertutup</string>
+    <string name="shop_status_deleted">Dipadam</string>
+    <string name="shop_status_action_close">Tutup Kedai</string>
+    <string name="shop_status_action_open">Buka Kedai</string>
+
+    <string name="transaction_type_top_up">Isi Tunai Pengguna</string>
+    <string name="transaction_type_top_up_yxi">Isi Tunai Akaun Permainan</string>
+    <string name="transaction_type_withdraw">Pengeluaran Pengguna</string>
+    <string name="transaction_type_withdraw_yxi">Pengeluaran Akaun Permainan</string>
+    <string name="transaction_type_manager_settlement">Penyelesaian Pengurus</string>
+    <string name="transaction_type_manager_top_up">Tambahan Kredit Pengurus</string>
+    <string name="transaction_type_close_shop">Tutup Kedai</string>
+    <string name="transaction_type_unknown">Tidak Diketahui</string>
+
+    <string name="transaction_status_success">Berjaya</string>
+    <string name="transaction_status_failed">Gagal</string>
+
+    <string name="notification_action_shop_details">Pergi ke Butiran Kedai</string>
+    <string name="notification_action_app_update">Kemas Kini Sekarang</string>
+    <string name="notification_action_remove_alarm">Padam Amaran</string>
+
+    <string name="point_type_bonus">Bonus</string>
+    <string name="point_type_reward">Ganjaran</string>
+    <string name="point_type_top_up">Isi Tunai</string>
+    <string name="point_type_withdraw">Pengeluaran</string>
+
+    <string name="reason_action_close_shop">Tutup Kedai</string>
+    <string name="reason_action_block_user">Sekat Pengguna</string>
+    <string name="reason_action_delete_user">Padam Pengguna</string>
+    <string name="reason_action_submit">Hantar</string>
+
+    <string name="time_ago_just_now">Baru sahaja</string>
+    <string name="time_ago_mins">minit lalu</string>
+    <string name="time_ago_mins_template">%d minit lalu</string>
+    <string name="time_ago_hours">jam lalu</string>
+    <string name="time_ago_hours_template">%d jam lalu</string>
+    <string name="time_ago_days">%d hari lalu</string>
+
+    <string name="month_jan">Jan</string>
+    <string name="month_feb">Feb</string>
+    <string name="month_mar">Mac</string>
+    <string name="month_apr">Apr</string>
+    <string name="month_may">Mei</string>
+    <string name="month_jun">Jun</string>
+    <string name="month_jul">Jul</string>
+    <string name="month_aug">Ogos</string>
+    <string name="month_sep">Sep</string>
+    <string name="month_oct">Okt</string>
+    <string name="month_nov">Nov</string>
+    <string name="month_dec">Dis</string>
+
+    <string name="in_app_updater_preparing_download">Menyediakan muat turun…</string>
+    <string name="in_app_updater_downloading_update">Memuat turun kemas kini…</string>
+    <string name="in_app_updater_installing_update">Memasang kemas kini…</string>
+    <string name="in_app_updater_wait">Sila tunggu</string>
+    <string name="in_app_updater_progress">%d%% (%dKB / %dKB)</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

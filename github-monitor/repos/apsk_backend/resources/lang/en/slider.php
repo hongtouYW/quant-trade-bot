@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'select' => 'Select Slider',
+    'slider_list' => 'Slider List',
+    'add_new_slider' => 'Add New Slider',
+    'slider_added_successfully' => 'Slider :title added successfully!',
+    'slider_updated_successfully' => 'Slider :title updated successfully!',
+    'slider_deleted_successfully' => 'Slider :title deleted successfully!',
+    'title' => 'Title',
+    'slider_desc' => 'Description',
+    'url' => 'Url',
+    'status' => 'Status',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'never' => 'Never',
+    'edit_slider' => 'Edit Slider',
+    'delete_slider' => 'Delete Slider',
+    'confirm_delete_slider' => 'Are you sure you want to delete Slider :title?',
+    'no_data_found' => 'No Sliders found.',
+    'leave_blank_for_no_change' => 'Leave blank for no change',
+    'active_status' => 'Active',
+    'agent_name' => 'Agent Name',
+    'dashboarddeposit' => ':member_name recharged :amount',
+    'dashboardwithdraw' => ':member_name withdrew :amount',
+    'dashboardwin' => ':member_name won :amount',
+];

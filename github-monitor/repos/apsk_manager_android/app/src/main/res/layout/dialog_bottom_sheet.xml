@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:orientation="vertical"
+    android:padding="40dp">
+
+    <TextView
+        android:id="@+id/textView_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/poppins_semi_bold"
+        android:gravity="center"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/textView_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:gravity="center"
+        android:lineSpacingExtra="4sp"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="16sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_confirm"
+        android:layout_width="245dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/bg_positive_button"
+        android:backgroundTint="@null"
+        android:fontFamily="@font/poppins_semi_bold"
+        android:textColor="@color/gold_D4AF37"
+        android:textSize="16sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/button_cancel"
+        android:layout_width="245dp"
+        android:layout_height="56dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="26dp"
+        android:background="@android:color/transparent"
+        android:fontFamily="@font/poppins_semi_bold"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="16sp" />
+</LinearLayout>

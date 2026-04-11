@@ -1,0 +1,286 @@
+.homeContainer {
+  overflow-x: hidden;
+}
+
+.noticeMarquee {
+  display: flex;
+  align-items: center;
+  margin: 20px 0px;
+}
+
+.noticeBulletin {
+  font-size: 18px;
+  color: #fff;
+  text-transform: uppercase;
+  background: #333;
+  position: relative;
+  padding: 12px 20px;
+  margin-right: 20px;
+  width: 150px;
+  text-align: center;
+}
+
+.noticeBulletin:after {
+  position: absolute;
+  /* z-index: 1; */
+  top: 50%;
+  left: 100%;
+  width: 0;
+  height: 0;
+  margin-top: -22px;
+  content: " ";
+  pointer-events: none;
+  border: solid transparent;
+  border-width: 22.5px;
+  border-left-width: 12px;
+  border-left-color: #333;
+}
+
+.marqueeText {
+  color: #888;
+  font-size: 18px;
+}
+
+.noticeIcons {
+  display: none;
+}
+
+.asHomeFooter {
+  margin: 1px 0px;
+}
+
+.asHomeFooter img {
+  width: 100%;
+  max-height: 100px;
+  object-fit: contain;
+}
+
+.noticeDialogContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #3b3e45;
+  border: none;
+  max-width: 400px;
+  padding: 8px 0px;
+  border-radius: 5px;
+  z-index: 105;
+}
+
+.noticeContainer {
+  /* width: 410px; */
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0px 10px;
+  margin-bottom: 5px;
+}
+
+.noticeContainer p {
+  font-size: 13px;
+  line-height: 35px;
+}
+.noticeContainerClose {
+  cursor: pointer;
+  font-size: 25px;
+}
+
+.noticeContainerClose img {
+  width: 100%;
+}
+
+.noticeContainerContent {
+  padding: 10px;
+  border-top: 1px solid #e1e4eb;
+  border-bottom: 1px solid #e1e4eb;
+}
+
+.noticeContainerFooter {
+  padding: 5px 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.noticeContainerFooter button {
+  padding: 5px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.imageCenterModal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 110;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.imgCenterContainer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 110;
+}
+
+.closeDialogImg {
+  border: none;
+  color: #fff;
+  font-size: 38px;
+  font-weight: 300;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.3137254902);
+  line-height: 30px;
+  padding: 1px 6px;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 120;
+  cursor: pointer;
+}
+
+.imageContent {
+  max-width: 500px;
+  width: max-content;
+}
+.imageContent img {
+  width: 100%;
+}
+
+.imageBottomModal {
+  position: fixed;
+  bottom: 1%;
+  right: 10px;
+  z-index: 110;
+}
+
+.imgBottomContainer {
+
+}
+
+.configLinksContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #000;
+  border: none;
+  width: 420px;
+  max-width: 420px;
+  /* padding: 8px 0px; */
+  border-radius: 10px;
+  z-index: 105;
+}
+
+.configLinksHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin-bottom: 5px;
+  border-top-right-radius: 10px;
+  border-top-left-radius: 10px;
+  background: linear-gradient(
+    106.42deg,
+    var(--primary-gradient-color-1) 37.32%,
+    var(--primary-gradient-color-2) 85.5%
+  );
+
+}
+
+.configLinksHeader p {
+  font-weight: 700;
+}
+
+.configLinksHeaderClose {
+  font-size: 24px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+
+.configLinksItemList {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  padding: 20px 16px;
+}
+
+.configLinksItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.configLinksItemImg {
+  width: 50px;
+  height: 50px;
+}
+.configLinksItemImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.configLinksItem p {
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+  padding: 4px 0px;
+}
+
+
+@media screen and (max-width: 600px) {
+  .noticeMarquee {
+    padding: 0px 10px;
+  }
+
+  .noticeBulletin {
+    display: none;
+  }
+
+  .bannerContainer {
+    margin: 15px 0px;
+  }
+
+  .noticeIcons {
+    display: block;
+    margin-right: 15px;
+  }
+
+  .noticeDialogContainer {
+    width: 70%;
+  }
+
+  .imageContent {
+    max-width: 90vw;
+    width: max-content;
+  }
+
+  .configLinksContainer {
+    width: 90vw;
+    max-width: 90vw;
+  }
+
+  .configLinksItemList {
+    gap: 8px;
+    padding: 16px 12px;
+  }
+  
+  .configLinksItemImg {
+    width: 40px;
+    height: 40px;
+  }
+  .configLinksItemList {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+}

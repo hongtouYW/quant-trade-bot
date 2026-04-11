@@ -1,0 +1,244 @@
+{include file="public/header" /}
+<style type="text/css">
+.hide{display:none}
+</style>
+<body>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i></a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="add()">
+            <i class="layui-icon"></i>添加
+          </button>
+        </div>
+        <div class="layui-card-body" >
+          <table class="layui-table layui-form" id="test-tree-table" lay-filter="test">
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+  layui.config({
+    base: '/static/lay_table/js/'
+  });
+  FORM='';
+  layui.use(['treetable','form'],function(){
+    var form=layui.form;
+    FORM=form;
+    $.post('{:url("authmenu/index")}',{},function(data){
+      if(data.code==1){
+        var data=data.data;
+        var o = layui.$,treetable = layui.treetable;
+        var form = layui.form,layer = layui.layer;
+        treetable.render({
+          elem: '#test-tree-table',
+          data: data,
+          field: 'title',
+          cols: [
+            {
+              field: 'id',
+              title: 'ID',
+            }, {
+              field: 'title',
+              title: '菜单名称',
+            }, {
+              field: 'url',
+              title: '菜单权限',
+            }, {
+              field: 'type',
+              title: '菜单类型',
+              template:function (item) {
+                if(item.type=="menu"){
+                  return '菜单栏控制';
+                }else {
+                  return '节点控制';
+                }
+              }
+            },  {
+              field: 'status',
+              title: '状态',
+              template:function (item) {
+                  if(item.status == 1){
+                    return '<input name="status" data-id="'+item.id+'" type="checkbox" type="checkbox" lay-skin="switch" checked lay-filter="modify" lay-text="开启|停用" >'
+                  }else{
+                    return '<input name="status" data-id="'+item.id+'" type="checkbox" type="checkbox" lay-skin="switch" lay-filter="modify" lay-text="开启|停用" >'
+                  }
+              }
+            },
+            {
+              field: 'sort',
+              title: '排序',
+              template:function (item){
+                return '<input type="text" data-id="'+item.id+'"  type="number" min="0" autocomplete="off" onchange="set_sort(this,this.value)" name="sort" class="layui-input" value="'+ item.sort +'"></td>'
+              }
+            },
+            {
+              field: 'actions',
+              title: '操作',
+              template: function(item){
+                var tem = [];
+                tem.push('<button lay-filter="add" class="layui-btn layui-btn-normal layui-btn-xs" >添加子级</button>');
+                tem.push('<button lay-filter="edit" class="layui-btn layui-btn-normal layui-btn-xs" >编辑</button>');
+                if(item.pid == 0){
+                  tem.push('<button class="add-child layui-btn layui-btn-danger  layui-btn-xs"  lay-filter="delete">删除</button>');
+                }
+                if(item.pid > 0){
+                  tem.push('<button class="set-attr layui-btn layui-btn-primary  layui-btn-xs"  lay-filter="delete">删除</button>');
+                }
+                return tem.join(' <font>&nbsp;</font> ')
+              },
+            },
+          ]
+        });
+
+        treetable.on('treetable(edit)',function(data){
+          var id=data.item.id;
+          var url='{:url("authmenu/edit")}'+'?id='+id;
+          layer.open({
+            type: 2,
+            title: '信息',
+            shadeClose: true,
+            shade: 0.8,
+            area: ['80%', '80%'],
+            content: url, //iframe的url
+          });
+
+        });
+        treetable.on('treetable(add)',function(data){
+          var id=data.item.id;
+          var url='{:url("authmenu/add")}'+'?id='+id;
+          layer.open({
+            type: 2,
+            title: '信息',
+            shadeClose: true,
+            shade: 0.8,
+            area: ['80%', '80%'],
+            content: url, //iframe的url
+          });
+
+        });
+
+
+
+        treetable.on('treetable(delete)',function(data){
+          var id=data.item.id;
+          layer.confirm('你确定要删除么？', {
+            btn: ['确定', '取消'] //可以无限个按钮
+          }, function (index, layero) {
+            //按钮【按钮一】的回调
+            $.post('{:url("authmenu/del")}', {'id': id}, function (data) {
+              if (data.code == 1) {
+                layer.msg(data.msg, {icon: 1});
+                setTimeout(function () {
+                  location.reload();
+                }, 1500);
+              } else {
+                layer.alert(data.msg, {icon: 2});
+              }
+            });
+
+          }, function (index) {
+            //按钮【按钮二】的回调
+          });
+
+        });
+
+        o('.up-all').click(function(){
+          treetable.all('up');
+        });
+
+        o('.down-all').click(function(){
+          treetable.all('down');
+        });
+
+        o('.get-checked').click(function(){
+          console.dir(treetable.all('checked'));
+        });
+
+        form.on('switch(modify)',function(data){
+          var that = $(this), status = 0;
+          if(this.checked){
+            status = 1;
+          }
+          var field = that.attr('name');
+          var id = that.attr('data-id');
+          $.ajax({
+            url: "{:url('authmenu/modify')}",
+            type: "POST",
+            data: {
+              id:id,
+              field: field,
+              value: status,
+            },
+            async: false,
+            success: function (data) {
+              if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                  location.reload();
+                }, 1500);
+              }else{
+                layer.msg(data.msg,{icon:2});
+              }
+            },
+            error: function () {
+              layer.msg("System Service Busy!", {offset: '200px'});
+            }
+          });
+        });
+      }
+    })
+})
+
+  function add() {
+    var url='{:url("authmenu/add")}';
+    layer.open({
+      type: 2,
+      shadeClose: true,
+      shade: 0.8,
+      area: ['80%', '80%'],
+      content: url, //iframe的url
+    });
+
+  }
+  /*
+  排序
+   */
+  function set_sort(t,value) {
+    var id=$(t).attr("data-id");
+    $.ajax({
+      url: "{:url('authmenu/modify')}",
+      type: "POST",
+      data: {
+        id:id,
+        field: 'sort',
+        value: value,
+      },
+      async: false,
+      success: function (data) {
+        if(data.code==1){
+          layer.msg(data.msg,{icon:1});
+          setTimeout(function () {
+            location.reload();
+          }, 1500);
+        }else{
+          layer.msg(data.msg,{icon:2});
+        }
+      },
+      error: function () {
+        layer.msg("System Service Busy!", {offset: '200px'});
+      }
+    });
+
+  }
+
+</script>
+</html>

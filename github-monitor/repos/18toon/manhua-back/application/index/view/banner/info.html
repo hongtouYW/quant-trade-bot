@@ -1,0 +1,211 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>位置</label>
+        <div class="layui-input-inline">
+          <select name="position" lay-verify="required">
+            <option value="">位置</option>
+            {volist name="position" id="vo"}
+            <option value="{$key}" {if condition="$info['position'] eq $key"}selected {/if}>{$vo}</option>
+            {/volist}
+          </select>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>标题
+        </label>
+        <div class="layui-input-inline">
+          <input type="text"  name="title" value="{$info.title}"  autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">对应漫画ID：</label>
+        <div class="layui-input-inline">
+          <input type="text" id="mid" class="layui-input" value="{$info.mid}" placeholder="漫画id" name="mid">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>缩略图
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="image" id="image" value="{$info.image}"  lay-verify="required" style="width: 400px" class="layui-input" onclick="change()">
+          <img alt style="max-width: 200px" class="image" id="img1" src="{$info.image}" />
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          跳转link
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="link" value="{$info.link}"  style="width: 400px" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>状态</label>
+        <div class="layui-input-block">
+          <input type="radio" name="status"  lay-filter="status" value="1" title="正常" {if condition="$info.status eq 1 "}checked{/if}>
+          <input type="radio" name="status" lay-filter="status" value="0" title="下架" {if condition="$info.status eq 0 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>排序</label>
+        <div class="layui-input-inline">
+          <input type="number"min="0" name="sort" autocomplete="off" value="{$info.sort}" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          <span class="x-red"></span>不填默认为0
+        </div>
+      </div>
+
+      <!-- 多语言翻译 TAB -->
+      <div class="layui-form-item">
+          <label class="layui-form-label">其它语言</label>
+          <div class="layui-input-block">
+              <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+                  <ul class="layui-tab-title">
+                      {volist name="translations" id="lang"}
+                      <li {if $i==1}class="layui-this" {/if} lay-id="{$lang.lang_code}">
+                          {$lang.lang_code|strtoupper}
+                      </li>
+                      {/volist}
+                  </ul>
+                  <div class="layui-tab-content">
+                      {volist name="translations" id="lang"}
+                      <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                          <div class="layui-form-item layui-form-text">
+                              <label class="layui-form-label">缩略图 ({$lang.lang_code})</label>
+                              <div class="layui-input-block">
+                                  <input type="text" name="translations[{$lang.lang_code}][image]"
+                                      value="{$lang.image|default=''}" class="layui-input">
+                              </div>
+                          </div>
+                      </div>
+                      {/volist}
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>layui.use(['form', 'layer'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+                  layer = layui.layer;
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+          });
+
+          form.on('submit(sub)', function (data) {
+            $.ajax({
+              url: "{:url('info')}",
+              type: "POST",
+              data: data.field,
+              async: false,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+
+
+function show_video() {
+  var url='{:url("video_list")}';
+  layer.open({
+    type: 2,
+    title: '视频列表',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['90%', '90%'],
+    content: url, //iframe的url
+  });
+}
+
+function show_actor() {
+  var url='{:url("actor_list")}';
+  layer.open({
+    type: 2,
+    title: '演员列表',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['90%', '90%'],
+    content: url, //iframe的url
+  });
+}
+
+
+// 选择标签
+$('.selectVideo').click(function () {
+    show_video();
+})
+
+// 选择标签
+$('.selectActor').click(function () {
+  show_actor();
+})
+
+/**
+ * 获取子页面传递过来的分类参数
+ * @param obj  分类id
+ */
+function GetValue(obj){
+  $('#vid').val(obj);
+}
+
+/**
+ * 获取子页面传递过来的分类参数
+ * @param obj  分类id
+ */
+function GetValue1(obj){
+  $('#aid').val(obj);
+}
+  function change() {
+
+      var src=$("#image").val();
+      $('#img1').attr("src", src)//这时写地址
+  }
+</script>
+</body>
+
+</html>

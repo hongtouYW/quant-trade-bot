@@ -1,0 +1,723 @@
+<resources>
+    <string name="notify_channel_id" translatable="false">General</string>
+
+    <string name="app_name">Expro99</string>
+    <string name="new_notification">You received a new notification.</string>
+    <string name="search_hint">Search</string>
+
+    <!-- Splash -->
+    <string name="splash_update_title">Upgrade to the latest version?</string>
+    <string name="splash_update_desc">The current version v%s\nPlease install the latest version v%s</string>
+    <string name="splash_update_negative">Skip</string>
+    <string name="splash_update_positive">Confirm</string>
+
+    <!-- Login -->
+    <string name="login_title">Login</string>
+    <string name="login_desc">Login to get the latest updates</string>
+    <string name="login_hint_phone">Phone number</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_forgot_password">Forgot password</string>
+    <string name="login_third_party">Third-Party Account Login</string>
+    <string name="login_login">Login</string>
+    <string name="login_no_account">Don\'t have an account?</string>
+    <string name="login_register">Register</string>
+    <string name="login_invalid_credentials">Invalid Username or Password</string>
+
+    <string name="login_bind_title">Bind Mobile Number</string>
+    <string name="login_bind_desc">Please bind your mobile number. After binding, the random number will no longer be valid.</string>
+    <string name="login_bind_confirm">Confirm Binding</string>
+    <string name="login_bind_resend_countdown">Resend OTP (%d seconds)</string>
+    <string name="login_bind_resend">Resend OTP</string>
+    <string name="login_bind_send">Send OTP</string>
+    <string name="login_bind_hint">OTP</string>
+
+    <!-- Register -->
+    <string name="register_title">Register</string>
+    <string name="register_desc">Good music, good life</string>
+    <string name="register_hint_phone">Phone number</string>
+    <string name="register_hint_password">Password</string>
+    <string name="register_hint_confirm_password">Confirm password</string>
+    <string name="register_hint_invitation_code">Invitation code</string>
+    <string name="register_password_mismatch">Password and confirm password do not match</string>
+    <string name="register_password_invalid">Password length must be between 6–16 characters</string>
+    <string name="register_password_requirement">Password length must be between 6–16 characters</string>
+    <string name="register_register">Register</string>
+    <string name="register_tnc_desc">By registering, you agree to the</string>
+    <string name="register_tnc">User Agreement</string>
+
+    <!-- Reset -->
+    <string name="reset_request_title">Reset Password</string>
+    <string name="reset_request_hint_phone">Phone number</string>
+    <string name="reset_request_verify">Verify</string>
+
+    <string name="verify_otp_title">Verification Code</string>
+    <string name="verify_otp_desc">OTP has been sent to %s</string>
+    <string name="verify_otp_count_down">Resend OTP in (%ds)</string>
+    <string name="verify_otp_resend">Resend OTP</string>
+    <string name="verify_otp_verify">Verify</string>
+
+    <string name="reset_password_title">Reset Password</string>
+    <string name="reset_password_desc">Please enter new password and confirm password</string>
+    <string name="reset_password_hint_new_password">New password</string>
+    <string name="reset_password_hint_confirm_password">Confirm password</string>
+    <string name="reset_password_requirements">Password length must be between 6–16 characters</string>
+    <string name="reset_password_reset">Reset Password</string>
+    <string name="reset_password_mismatch">New and confirm password do not match</string>
+    <string name="reset_password_invalid">Password length must be between 6–16 characters</string>
+    <string name="reset_password_success_title">Reset Password</string>
+    <string name="reset_password_success_desc">Your password has been reset successfully. Please proceed to login with the new password.</string>
+    <string name="reset_password_success_okay">OK</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_tab_home">Home</string>
+    <string name="dashboard_tab_promotion">Promotion</string>
+    <string name="dashboard_tab_support">Support</string>
+    <string name="dashboard_tab_profile">Me</string>
+
+    <string name="action_panel_top_up">Top Up</string>
+    <string name="action_panel_transaction">Transaction</string>
+    <string name="action_panel_withdraw">Withdrawal</string>
+    <string name="action_panel_wallet">My Wallet</string>
+    <string name="action_panel_vip">VIP Privileges</string>
+    <string name="action_panel_promotion">Promotion</string>
+    <string name="action_panel_bank">Bank Details</string>
+    <string name="action_panel_affiliate">Affiliate</string>
+
+    <!-- News Centre -->
+    <string name="news_centre_title">News Centre</string>
+    <string name="news_centre_tab_customer_care">Support</string>
+    <string name="news_centre_tab_notification">Notifications</string>
+    <string name="news_centre_tab_home_notification">Announcements</string>
+    <string name="news_centre_tab_app_feedback">App Feedback</string>
+
+    <!-- Home -->
+    <string name="home_balance">Account Balance</string>
+    <string name="home_withdraw_all">Refresh</string>
+    <string name="home_yxi_category_all">All</string>
+    <string name="home_yxi_category_popular">Popular</string>
+    <string name="home_yxi_category_app">APP</string>
+    <string name="home_yxi_category_slots">Slots</string>
+    <string name="home_yxi_category_live">Live</string>
+    <string name="home_yxi_category_sports">Sports</string>
+    <string name="home_yxi_category_fishing">Fishing</string>
+    <string name="home_yxi_category_cock">Cock</string>
+    <string name="home_yxi_category_lottery">Lottery</string>
+    <string name="home_yxi_category_cards">Cards</string>
+
+    <!-- Yxi -->
+    <string name="yxi_details_refreshing">Refreshing, please wait before going back</string>
+    <string name="yxi_details_login_label">Your Login Credentials</string>
+    <string name="yxi_details_login_delete">Delete Player</string>
+    <string name="yxi_details_login_username">Username</string>
+    <string name="yxi_details_login_password">Password</string>
+    <string name="yxi_details_yxi_list">%s Game List</string>
+    <string name="yxi_details_desc">Easily play %s step-by-step on your mobile</string>
+    <string name="yxi_details_step_1_label">1</string>
+    <string name="yxi_details_step_1">Step 1</string>
+    <string name="yxi_details_step_2_label">2</string>
+    <string name="yxi_details_step_1_desc">Transfer funds into your %s wallet to obtain your username and password in the section below on this page</string>
+    <string name="yxi_details_step_2">Step 2</string>
+    <string name="yxi_details_step_2_desc">Go to the download page to install the app on your phone</string>
+    <string name="yxi_details_step_2_download">download</string>
+    <string name="yxi_details_step_3_label">3</string>
+    <string name="yxi_details_step_3">Step 3</string>
+    <string name="yxi_details_step_3_desc">Launch the app on your phone and log in using your username and password</string>
+    <string name="yxi_details_choose_yxi">Please select a game first</string>
+    <string name="yxi_details_start">Start Game</string>
+    <string name="yxi_details_top_up">Top Up</string>
+    <string name="yxi_details_transfer">Transfer</string>
+
+    <string name="yxi_details_delete_player_title">Delete Confirmation</string>
+    <string name="yxi_details_delete_player_desc">Do you want to delete player %s?\nAfter deletion, your remaining Points will be returned to Credit.</string>
+    <string name="yxi_details_delete_player_note">*Note: Only one new player can be added per day.\nThe player to be deleted must have less than 1 Point.</string>
+    <string name="yxi_details_delete_player_negative">Cancel</string>
+    <string name="yxi_details_delete_player_positive">Confirm</string>
+    <string name="yxi_details_delete_player_success">Player deleted successfully. Credit will be returned to your account.</string>
+    <string name="yxi_details_delete_player_success_positive">OK</string>
+
+    <string name="yxi_player_title">Select Player</string>
+    <string name="yxi_player_points">points</string>
+    <string name="yxi_player_new">Add New Player</string>
+
+    <string name="yxi_lobby_home">Home</string>
+    <string name="yxi_action_title">Please Choose</string>
+    <string name="yxi_action_refresh">Refresh</string>
+    <string name="yxi_action_reload">Top Up</string>
+    <string name="yxi_action_withdraw">Withdraw</string>
+    <string name="yxi_action_exit">Exit Game</string>
+
+    <string name="yxi_withdraw_title">Points Withdrawal</string>
+    <string name="yxi_withdraw_credit">Credit</string>
+    <string name="yxi_withdraw_points">%s Points</string>
+    <string name="yxi_withdraw_id">ID: %s</string>
+    <string name="yxi_withdraw_desc">Please enter the withdrawal amount</string>
+    <string name="yxi_withdraw_all">All</string>
+    <string name="yxi_withdraw_transfer">Transfer</string>
+    <string name="yxi_withdraw_start_yxi">Start Game</string>
+
+    <!-- Me -->
+    <string name="me_profile">My Profile</string>
+    <string name="me_action_privacy_security">Privacy &amp; Security</string>
+    <string name="me_action_find_us">Find Us</string>
+    <string name="me_action_find_us_desc">To avoid connection issues</string>
+    <string name="me_action_app_download">APP Download</string>
+    <string name="me_action_app_feedback">APP Feedback</string>
+    <string name="me_action_language">Language</string>
+    <string name="me_action_help">Help</string>
+    <string name="me_action_logout">Logout</string>
+    <string name="me_action_logout_desc">Switch account</string>
+
+    <!-- Profile -->
+    <string name="profile_personal_details">Profile</string>
+    <string name="profile_change_profile_pic">Change</string>
+    <string name="profile_username">Username</string>
+    <string name="profile_user_id">User ID</string>
+    <string name="profile_bind_social_media">Bind Social Media Account</string>
+    <string name="profile_dob">Date of Birth</string>
+    <string name="profile_choose_dob">Choose date</string>
+    <string name="profile_save">Save</string>
+    <string name="profile_saved_successfully">Saved successfully</string>
+
+    <!-- Player Transfer / My Wallet -->
+    <string name="player_transfer_title">Transfer</string>
+    <string name="player_transfer_point">Points</string>
+    <string name="player_transfer_credit">Credit</string>
+    <string name="player_transfer_one_click">Claim All</string>
+    <string name="player_transfer_desc">Enter the amount of Points to transfer to today\'s Credit</string>
+    <string name="player_transfer_header_yxi">Game</string>
+    <string name="player_transfer_header_points">Current Points</string>
+    <string name="player_transfer_header_transfer">Transfer</string>
+    <string name="player_transfer_confirm">Confirm</string>
+    <string name="player_transfer_confirm_title">Transfer Confirmation</string>
+    <string name="player_transfer_confirm_desc">Are you sure you want to transfer all your current Points to Credit?</string>
+    <string name="player_transfer_confirm_okay">Confirm</string>
+    <string name="player_transfer_confirm_cancel">Cancel</string>
+
+    <!-- Transaction -->
+    <string name="transaction_title">Transactions</string>
+    <string name="transaction_tab_credit">Credit</string>
+    <string name="transaction_tab_points">Points</string>
+    <string name="transaction_tab_history">Bet History</string>
+
+    <string name="transaction_type_credit_unknown">Unknown</string>
+    <string name="transaction_type_credit_unknown_desc">Unknown RM</string>
+    <string name="transaction_type_credit_commission">Commission</string>
+    <string name="transaction_type_credit_commission_desc">Commission +RM</string>
+    <string name="transaction_type_credit_bonus_general">Level Up Bonus</string>
+    <string name="transaction_type_credit_bonus_general_desc">Level Up Bonus +RM</string>
+    <string name="transaction_type_credit_bonus_weekly">Weekly Bonus</string>
+    <string name="transaction_type_credit_bonus_weekly_desc">Weekly Bonus +RM</string>
+    <string name="transaction_type_credit_bonus_monthly">Monthly Bonus</string>
+    <string name="transaction_type_credit_bonus_monthly_desc">Monthly Bonus +RM</string>
+    <string name="transaction_type_credit_new_register">Promotion-New Registration</string>
+    <string name="transaction_type_credit_new_register_desc">Promotion-New Registration +RM</string>
+    <string name="transaction_type_credit_new_reload">Promotion-New Member Reload</string>
+    <string name="transaction_type_credit_new_reload_desc">Promotion-New Member Reload +RM</string>
+    <string name="transaction_type_credit_new_recruit">Promotion-Referral Reward</string>
+    <string name="transaction_type_credit_new_recruit_desc">Promotion-Referral Reward +RM</string>
+    <string name="transaction_type_credit_new_yxi_reload">Promotion-New Member Game Top Up</string>
+    <string name="transaction_type_credit_new_yxi_reload_desc">Promotion-New Member Game Top Up +RM</string>
+    <string name="transaction_type_credit_top_up_online">Online Top Up</string>
+    <string name="transaction_type_credit_top_up_online_desc">Online Top Up +RM</string>
+    <string name="transaction_type_credit_top_up_shop">Shop Top Up</string>
+    <string name="transaction_type_credit_top_up_shop_desc">Shop Top Up +RM</string>
+    <string name="transaction_type_credit_top_up_yxi">Game Top Up</string>
+    <string name="transaction_type_credit_top_up_yxi_desc">Game Top Up + RM</string>
+    <string name="transaction_type_credit_withdraw_online">Online Withdrawal</string>
+    <string name="transaction_type_credit_withdraw_online_desc">Online Withdrawal -RM</string>
+    <string name="transaction_type_credit_withdraw_shop">Shop Withdrawal</string>
+    <string name="transaction_type_credit_withdraw_shop_desc">Shop Withdrawal -RM</string>
+    <string name="transaction_type_credit_withdraw_shop_qr">Shop QR Withdrawal</string>
+    <string name="transaction_type_credit_withdraw_shop_qr_desc">Shop QR Withdrawal -RM</string>
+    <string name="transaction_type_credit_withdraw_yxi">Game Withdrawal</string>
+    <string name="transaction_type_credit_withdraw_yxi_desc">Game Withdrawal -RM</string>
+
+    <string name="transaction_type_point_reload">Game Top Up</string>
+    <string name="transaction_type_point_reload_desc">Game Top Up +RM</string>
+    <string name="transaction_type_point_withdraw">Game Withdrawal</string>
+    <string name="transaction_type_point_withdraw_desc">Game Withdrawal -RM</string>
+
+    <string name="transaction_status_success">Success</string>
+    <string name="transaction_status_processing">Processing</string>
+    <string name="transaction_status_failed">Failed</string>
+
+    <string name="transaction_history_bet">Bet RM%s</string>
+    <string name="transaction_history_win">Win RM%s</string>
+    <string name="transaction_history_begin">Begin RM%s</string>
+    <string name="transaction_history_end">End RM%s</string>
+
+    <!-- Transaction Details -->
+    <string name="transaction_details_title">Transaction Details</string>
+    <string name="transaction_details_bank">Bank</string>
+    <string name="transaction_details_method">Payment Method</string>
+    <string name="transaction_details_provider">Provider</string>
+    <string name="transaction_details_yxi">Game</string>
+    <string name="transaction_details_bet">Bet</string>
+    <string name="transaction_details_win">Win</string>
+    <string name="transaction_details_opening_balance">Begin</string>
+    <string name="transaction_details_closing_balance">End</string>
+    <string name="transaction_details_date_time">Transaction Date</string>
+    <string name="transaction_details_id">Transaction ID</string>
+    <string name="transaction_details_status">Transaction Status</string>
+    <string name="transaction_details_remarks">Remarks</string>
+
+    <!-- Transaction Filter -->
+    <string name="transaction_filter_title">Filter</string>
+    <string name="transaction_filter_range">Filter Range</string>
+    <string name="transaction_filter_reset">Reset</string>
+    <string name="transaction_filter_results">Filter Results</string>
+    <string name="transaction_filter_all">All</string>
+    <string name="transaction_filter_today">Today</string>
+    <string name="transaction_filter_yesterday">Yesterday</string>
+    <string name="transaction_filter_this_week">This Week</string>
+    <string name="transaction_filter_last_week">Last Week</string>
+    <string name="transaction_filter_this_month">This Month</string>
+    <string name="transaction_filter_last_month">Last Month</string>
+    <string name="transaction_filter_previous_day">Previous Day</string>
+    <string name="transaction_filter_next_day">Next Day</string>
+    <string name="transaction_filter_date_search">Date Search</string>
+
+    <!-- Top Up -->
+    <string name="top_up_title">Top Up</string>
+    <string name="top_up_tab_online">Online</string>
+    <string name="top_up_tab_crypto">Crypto Wallet</string>
+    <string name="top_up_tab_ewallet">eWallet</string>
+    <string name="top_up_tab_qr">QR Top Up</string>
+    <string name="top_up_range">Min %s - Max %s</string>
+    <string name="top_up_range_error">Top up amount must be between %s and %s</string>
+    <string name="top_up_min">Minimum %s</string>
+    <string name="top_up_min_error">Top up amount must be at least %s</string>
+    <string name="top_up_max_error">The amount exceeds %s. Please split the payment accordingly.</string>
+    <string name="top_up_amount">Top Up Amount</string>
+    <string name="top_up_amount_other">Other Amount</string>
+    <string name="top_up_now">Top Up Now</string>
+    <string name="top_up_error_no_url">No URL provided</string>
+    <string name="top_up_success_title">Top up successfully</string>
+    <string name="top_up_success_desc">You have successfully topped up:</string>
+    <string name="top_up_okay">OK</string>
+    <string name="top_up_add_bank_account">Please add a bank account first to continue</string>
+    <string name="top_up_success">Top up successfully +RM %s</string>
+
+    <!-- Withdrawal -->
+    <string name="withdraw_title">Withdrawal</string>
+    <string name="withdraw_bank_account_name">Bank Account Holder Name</string>
+    <string name="withdraw_bank_account_number">Bank Account Number</string>
+    <string name="withdraw_application_submitted">Withdrawal request submitted successfully. The system will freeze the withdrawal amount while awaiting backend review.</string>
+    <string name="withdraw_credit">Credit</string>
+    <string name="withdraw_point">Point</string>
+    <string name="withdraw_id">My Member ID</string>
+    <string name="withdraw_enter_amount">Enter amount</string>
+    <string name="withdraw_all">All</string>
+    <string name="withdraw_percentage">* This account has a commission of %s%%</string>
+    <string name="withdraw_withdrawable">The amount you can receive is %s</string>
+    <string name="withdraw_min">Minimum 1.01</string>
+    <string name="withdraw_method">Withdrawal Method</string>
+    <string name="withdraw_submit_request">Submit Withdrawal Request</string>
+    <string name="withdraw_shop_qr">Shop QR Cash Withdrawal</string>
+    <string name="withdraw_add_bank">Add Bank</string>
+    <string name="withdraw_choose_bank">Choose Bank</string>
+    <string name="withdraw_add_bank_account">Add Bank Account Number</string>
+    <string name="withdraw_added_bank">Added Bank</string>
+    <string name="withdraw_change_bank_account">Change Bank Account</string>
+    <string name="withdraw_added_bank_account">Added Bank Accounts</string>
+    <string name="withdraw_add_bank_prompt">Select bank account</string>
+    <string name="withdraw_add_bank_prompt_new">New bank account</string>
+    <string name="withdraw_next">Proceed</string>
+    <string name="withdraw_generate_qr">Generate QR Code</string>
+
+    <string name="withdraw_qr_title">Store QR Withdrawal</string>
+    <string name="withdraw_qr_label">QR Withdrawal：</string>
+    <string name="withdraw_qr_desc">Show the QR code to the merchant to complete the deduction</string>
+    <string name="withdraw_qr_refresh">Auto refresh in:</string>
+    <string name="withdraw_qr_success_title">Deduction Successful</string>
+    <string name="withdraw_qr_success_desc">Merchant should pay the player in cash:</string>
+    <string name="withdraw_qr_success_positive">OK</string>
+    <string name="withdraw_qr_success_toast">Store QR code cash payment successful RM%s</string>
+
+    <!-- VIP -->
+    <string name="vip_privilege_title">VIP Privileges</string>
+    <string name="vip_redeem_success">Redeemed successfully</string>
+    <string name="vip_current_level">Current Level</string>
+    <string name="vip_redeem_all">Redeem All</string>
+    <string name="vip_redeem_history">Redeem History</string>
+    <string name="vip_redeem_distance">Recharge needed to upgrade</string>
+    <string name="vip_tab_bonus">Level Up Bonus</string>
+    <string name="vip_tab_weekly">Weekly Rewards</string>
+    <string name="vip_tab_monthly">Monthly Rewards</string>
+    <string name="vip_tab_vip">VIP Privileges</string>
+    <string name="vip_header_level">Level</string>
+    <string name="vip_header_progress">Level Up Wager</string>
+    <string name="vip_header_reward">Level Up Bonus</string>
+    <string name="vip_redemption_redeem">Redeem</string>
+    <string name="vip_redemption_success">Success</string>
+
+    <!-- Promotion -->
+    <string name="promotion_tab_event">Events</string>
+    <string name="promotion_tab_vip">VIP</string>
+    <string name="promotion_tab_rebate">Rebate</string>
+    <string name="promotion_tab_redeem_history">Redeem History</string>
+
+    <string name="promotion_category_new_reload">New Member Reload</string>
+    <string name="promotion_category_crypto_reload">Crypto Reload</string>
+    <string name="promotion_category_agent">Agent</string>
+    <string name="promotion_category_popular">Popular</string>
+    <string name="promotion_category_others">Others</string>
+
+    <!-- Bank Details -->
+    <string name="bank_details_title">Bank Details</string>
+    <string name="bank_details_update_success">Updated successfully</string>
+    <string name="bank_details_added_bank">Bank Account Added</string>
+    <string name="bank_details_added_bank_desc">The bank account you added will be used to top up the exact amount required for in-app purchases.</string>
+    <string name="bank_details_add_bank">Add New Bank Account</string>
+    <string name="bank_details_add_bank_desc">Enable this account for quick payments</string>
+    <string name="bank_details_new">Add New Bank Account</string>
+    <string name="bank_details_bank_account_holder">Account Holder Name</string>
+    <string name="bank_details_bank_account_number">Bank Account Number</string>
+    <string name="bank_details_quick_pay">Quick Pay</string>
+    <string name="bank_details_added_success">Added successfully</string>
+    <string name="bank_details_delete_title">Delete Confirmation</string>
+    <string name="bank_details_delete_desc">Are you sure you want to delete this bank account?\nThis will also remove your quick payment setup.</string>
+    <string name="bank_details_delete_negative">Cancel</string>
+    <string name="bank_details_delete_positive">Proceed</string>
+    <string name="bank_details_delete_success">Deleted successfully</string>
+
+    <string name="bank_form_add_bank">Add Bank Account</string>
+    <string name="bank_form_account_holder">Account Holder Name</string>
+    <string name="bank_form_account_holder_desc">Only one account holder name can be used. It cannot be deleted, please check carefully.</string>
+    <string name="bank_form_bank_name">Bank Name</string>
+    <string name="bank_form_choose_bank">Select Bank</string>
+    <string name="bank_form_bank_account_number">Bank Account Number</string>
+    <string name="bank_form_quick_pay">Quick Pay</string>
+    <string name="bank_form_disclaimer">By enabling this account for quick payments, you agree to the terms and conditions.</string>
+    <string name="bank_form_add">Add Bank Account</string>
+    <string name="bank_form_delete">Delete Bank Account</string>
+
+    <string name="bank_option_title">Choose Bank</string>
+    <string name="bank_option_search_hint">Search …</string>
+    <string name="bank_option_search">Search</string>
+
+    <!-- Affiliate -->
+    <string name="affiliate_title">Affiliate Program</string>
+    <string name="affiliate_tab_share">Share &amp; Promote</string>
+    <string name="affiliate_tab_data">My Data</string>
+    <string name="affiliate_tab_kpi">My Performance</string>
+    <string name="affiliate_tab_commission">My Commission</string>
+    <string name="affiliate_tab_downline">Downline Info</string>
+    <string name="affiliate_tab_ratio">Rebate Ratio</string>
+    <string name="affiliate_tab_new">Direct Registration</string>
+
+    <string name="affiliate_share_to_redeem">Pending</string>
+    <string name="affiliate_share_upline">My Upline</string>
+    <string name="affiliate_share_one_click_redeem">Redeem All</string>
+    <string name="affiliate_share_redeem_history">Redeem History</string>
+    <string name="affiliate_share_agent_mode">Agent Mode – Daily Settlement</string>
+    <string name="affiliate_share_save">Save</string>
+    <string name="affiliate_share_link">My Link</string>
+    <string name="affiliate_share_invitation_code">My Invitation Code</string>
+    <string name="affiliate_share_change_link">Change</string>
+    <string name="affiliate_share_share">Share</string>
+    <string name="affiliate_share_tutorial">Promotion Tutorial</string>
+    <string name="affiliate_share_example">An example is given below:</string>
+    <string name="affiliate_share_saved">Saved at: </string>
+
+    <string name="affiliate_data_tab_today">Today</string>
+    <string name="affiliate_data_tab_ytd">Yesterday</string>
+    <string name="affiliate_data_tab_this_week">This Week</string>
+    <string name="affiliate_data_tab_last_week">Last Week</string>
+    <string name="affiliate_data_tab_this_month">This Month</string>
+    <string name="affiliate_data_tab_last_month">Last Month</string>
+    <string name="affiliate_data_downline_template">%s Direct Data</string>
+    <string name="affiliate_data_team">Total Direct Data</string>
+    <string name="affiliate_data_new_downline">New Direct</string>
+    <string name="affiliate_data_first_top_up_amount">First Top Up Amount</string>
+    <string name="affiliate_data_first_top_up_head_count">First Top Up Count</string>
+    <string name="affiliate_data_top_up_amount">Top Up Amount</string>
+    <string name="affiliate_data_top_up_count">Top Up Count</string>
+    <string name="affiliate_data_withdraw_amount">Withdrawal Amount</string>
+    <string name="affiliate_data_withdraw_count">Withdrawal Count</string>
+    <string name="affiliate_data_bet_amount">Valid Bets</string>
+    <string name="affiliate_data_redeem_reward">Redeemed Rewards</string>
+    <string name="affiliate_data_downline_win_loss">Direct Win/Loss</string>
+    <string name="affiliate_data_downline_kpi">Direct Performance</string>
+    <string name="affiliate_data_total_commision">Total Commission</string>
+    <string name="affiliate_data_team_head_count">Team Members</string>
+    <string name="affiliate_data_downline_head_count">Direct Members</string>
+    <string name="affiliate_data_other_head_count">Other Members</string>
+    <string name="affiliate_data_total_kpi">Total Performance</string>
+    <string name="affiliate_data_other_kpi">Other Performance</string>
+    <string name="affiliate_data_downline_commision">Direct Commission</string>
+    <string name="affiliate_data_other_commision">Other Commission</string>
+    <string name="affiliate_data_accumulated_commision">Accumulated Commission</string>
+    <string name="affiliate_data_redeemed">Redeemed</string>
+    <string name="affiliate_data_to_redeem">Pending</string>
+    <string name="affiliate_data_accumulated_downline_top_up">Accumulated Direct Top Up</string>
+    <string name="affiliate_data_accumulated_downline_withdraw">Accumulated Direct Withdrawal</string>
+    <string name="affiliate_data_accumulated_downline_redeem">Accumulated Direct Redemption</string>
+    <string name="affiliate_data_accumulated_downline_bet">Accumulated Direct Bet</string>
+    <string name="affiliate_data_accumulated_downline_win_loss">Accumulated Direct Win Loss</string>
+
+    <string name="affiliate_kpi_date">Date</string>
+    <string name="affiliate_kpi_total_commission">Total Commission</string>
+    <string name="affiliate_kpi_head_count">Head Count</string>
+
+    <string name="affiliate_commission_username">Member Name</string>
+    <string name="affiliate_commission_login">Member ID</string>
+    <string name="affiliate_commission_top_up">Member Top Up</string>
+    <string name="affiliate_commission_date_time">Top Up Date Time</string>
+    <string name="affiliate_commission_commission">Commission Earned</string>
+
+    <string name="affiliate_downline_id">ID：%s</string>
+    <string name="affiliate_downline_join_date">Join Date：%s</string>
+    <string name="affiliate_downline_invitation_code">Invitation Code：%s</string>
+
+    <string name="affiliate_new_id">Please enter phone number</string>
+    <string name="affiliate_new_password">Password</string>
+    <string name="affiliate_new_phone_invalid">The phone number format is incorrect</string>
+    <string name="affiliate_new_password_invalid">Password length must be between 6–16 characters</string>
+    <string name="affiliate_new_proceed">Proceed</string>
+    <string name="affiliate_new_success">Successfully opened a direct account</string>
+
+    <string name="affiliate_code_tab_friend">Friend List</string>
+    <string name="affiliate_code_tab_reward">My Rewards</string>
+
+    <string name="affiliate_code_title">My Invitation Code</string>
+    <string name="affiliate_code_default_label">My Invitation Code</string>
+    <string name="affiliate_code_default">Default</string>
+    <string name="affiliate_code_set_as_default">Set as Default</string>
+    <string name="affiliate_code_rebate">My Rebate / Friend Rebate %</string>
+    <string name="affiliate_code_invitation_code">Invitation Code</string>
+    <string name="affiliate_code_invitation_link">Invitation Link</string>
+    <string name="affiliate_code_invite_now">Invite Now</string>
+    <string name="affiliate_code_more">More</string>
+    <string name="affiliate_code_summary">My Invitation Summary</string>
+    <string name="affiliate_code_team_count">Team\n(people)</string>
+    <string name="affiliate_code_transacted_count">Transacted\n(people)</string>
+    <string name="affiliate_code_my_rebate">My Rebate\n(RM)</string>
+
+    <string name="affiliate_code_friend_member_id">Member ID</string>
+    <string name="affiliate_code_friend_code">Invitation Code</string>
+    <string name="affiliate_code_friend_reward_date">Rebate Date</string>
+    <string name="affiliate_code_friend_invited_count">Total Invited</string>
+    <string name="affiliate_code_friend_traded_count">Total Transacted</string>
+    <string name="affiliate_code_friend_total_amount">Total Transaction Amount</string>
+
+    <string name="affiliate_code_reward_date">Rebate Date</string>
+    <string name="affiliate_code_reward_member_id">Member ID</string>
+    <string name="affiliate_code_reward_count">Rebate Amount</string>
+
+    <!-- Security & Privacy -->
+    <string name="security_privacy_title">Privacy &amp; Security</string>
+    <string name="security_privacy_phone">Phone Number</string>
+    <string name="security_privacy_email">Bind Email</string>
+    <string name="security_privacy_google">Google Authentication</string>
+    <string name="security_privacy_biometric">Identity Verification</string>
+    <string name="security_privacy_password">Change Password</string>
+    <string name="security_privacy_binded">Bound</string>
+    <string name="security_privacy_to_bind">Not bound</string>
+
+    <string name="bind_phone_title">Phone Number</string>
+    <string name="bind_phone_label">Bind Phone Number</string>
+    <string name="bind_phone_label_binded">Phone Number Bound</string>
+    <string name="bind_phone_desc">This phone number will be used for login</string>
+    <string name="bind_phone_desc_binded">This phone number will be used for login</string>
+    <string name="bind_phone_verify">Verify</string>
+
+    <string name="bind_email_title">Email</string>
+    <string name="bind_email_label">Bind Email</string>
+    <string name="bind_email_hint">Email address</string>
+    <string name="bind_email_proceed">Proceed</string>
+
+    <string name="bind_otp_title">Verification Code</string>
+    <string name="bind_otp_label">Please enter your OTP</string>
+    <string name="bind_otp_desc">OTP has been sent to %s</string>
+    <string name="bind_otp_resend_countdown">Resend OTP in (%ds)</string>
+    <string name="bind_otp_resend">Resend OTP</string>
+    <string name="bind_otp_success_phone">Phone number successfully bound</string>
+    <string name="bind_otp_success_email">Email successfully bound</string>
+    <string name="bind_otp_verify">Verify</string>
+
+    <string name="google_authentication_title">Google Authentication</string>
+    <string name="google_authentication_unbind">Unbind Google Authenticator</string>
+    <string name="google_authentication_bind">Bind Google Authenticator</string>
+    <string name="google_authentication_step_1">Step 1: Download</string>
+    <string name="google_authentication_step_2">Step 2: Open the authenticator app and add the QR code</string>
+    <string name="google_authentication_step_2_binded">Step 2: Enter the 6-digit code from your authenticator app to verify</string>
+    <string name="google_authentication_step_3">Step 3: Enter the 6-digit code from your authenticator app to verify</string>
+    <string name="google_authentication_app">Google Authenticator</string>
+    <string name="google_authentication_click">(Click to proceed)</string>
+    <string name="google_authentication_copy">Copy Shared Secret</string>
+    <string name="google_authentication_proceed">Proceed</string>
+    <string name="google_authentication_success_unbind">Successfully unbound Google Authentication</string>
+    <string name="google_authentication_success_bind">Successfully bound Google Authentication</string>
+
+    <string name="biometric_title">Identity verification</string>
+    <string name="biometric_identification">Biometric Authentication</string>
+    <string name="biometric_label">Face ID/Fingerprint Verification</string>
+    <string name="biometric_prompt_title">Identity Verification</string>
+    <string name="biometric_prompt_desc">Please use biometrics to complete verification</string>
+    <string name="biometric_prompt_cancel">Cancel</string>
+    <string name="biometric_prompt_failed">Unable to start verification\n</string>
+    <string name="biometric_not_supported">Biometrics not supported on this device</string>
+    <string name="biometric_not_setup">No biometric information set up. Please add biometrics in system settings first</string>
+    <string name="biometric_unavailable">Biometric hardware is currently unavailable</string>
+    <string name="biometric_success_enabled">Biometrics successfully enabled</string>
+    <string name="biometric_failed">Verification failed</string>
+
+    <string name="change_password_title">Change Password</string>
+    <string name="change_password_label">Please enter your passwords</string>
+    <string name="change_password_hint_old_password">Current password</string>
+    <string name="change_password_hint_new_password">New password</string>
+    <string name="change_password_hint_confirm_password">Confirm new password</string>
+    <string name="change_password_strength">Password Strength</string>
+    <string name="change_password_proceed">Proceed</string>
+    <string name="change_password_mismatch">New and confirm password do not match</string>
+
+    <string name="change_password_otp_title">Security Verification</string>
+    <string name="change_password_otp_phone">Phone Number</string>
+    <string name="change_password_otp_phone_desc">Please enter the OTP sent to phone number %s</string>
+    <string name="change_password_otp_phone_switch_email">Switch to Email Verification</string>
+    <string name="change_password_otp_email">Email</string>
+    <string name="change_password_otp_email_desc">Please enter the OTP sent to email %s</string>
+    <string name="change_password_otp_google">Google Authenticator Code</string>
+    <string name="change_password_otp_google_desc">Please enter the Google Authenticator code</string>
+    <string name="change_password_otp_send">Send OTP</string>
+    <string name="change_password_otp_resend_countdown">Resend OTP in (%ds)</string>
+    <string name="change_password_otp_resend">Resend OTP</string>
+    <string name="change_password_otp_paste">Paste</string>
+    <string name="change_password_otp_verify">Verify</string>
+    <string name="change_password_otp_success">Password changed successfully</string>
+
+    <!-- Find Us -->
+    <string name="find_us_title">Find Us</string>
+    <string name="find_us_save_web_label">Save Website</string>
+    <string name="find_us_save_web_desc">To avoid issues accessing the website that may affect your gaming experience, please save our permanent address in time:</string>
+    <string name="find_us_web_template">Home Website %d</string>
+    <string name="find_us_web_1">Home Website 1</string>
+    <string name="find_us_web_2">Home Website 2</string>
+    <string name="find_us_save_email_label">Save Email</string>
+    <string name="find_us_save_email_desc">Official email for domain inquiries — Never get lost: contact us to get the latest domain</string>
+    <string name="find_us_official">Official Email</string>
+    <string name="find_us_save">Save Image</string>
+
+    <!-- App Download -->
+    <string name="app_download_title">APP Download</string>
+    <string name="app_download_current_version">Current version： V %s_%s</string>
+    <string name="app_download_desc">Scan or click the app store to download our app</string>
+    <string name="app_download_click">(Click to proceed)</string>
+    <string name="app_download_check">Check for latest version</string>
+    <string name="app_download_upgrade_title">Upgrade to the latest version?</string>
+    <string name="app_download_upgrade_desc">Current version V %s\nAre you sure you want to install the new version V %s?</string>
+    <string name="app_download_upgrade_install">Install Now</string>
+    <string name="app_download_upgrade_skip">Skip</string>
+    <string name="app_download_already_latest">You already have the latest version</string>
+
+    <!-- App Feedback -->
+    <string name="app_feedback_create">Create Feedback</string>
+    <string name="app_feedback_list">My Feedback</string>
+    <string name="app_feedback_subject_label">Feedback Title</string>
+    <string name="app_feedback_subject_prompt">Feedback Issue</string>
+    <string name="app_feedback_subject_speed">Game Loading Speed</string>
+    <string name="app_feedback_subject_performance">Operation Feel / Smoothness</string>
+    <string name="app_feedback_subject_level">Level Difficulty</string>
+    <string name="app_feedback_subject_newbie">New Player Guide</string>
+    <string name="app_feedback_subject_others">Others</string>
+    <string name="app_feedback_message_desc">Feedback Content\nEvery comment matters to us — feel free to share your thoughts!</string>
+    <string name="app_feedback_message_count">0/1000</string>
+    <string name="app_feedback_image_label">Feedback Images</string>
+    <string name="app_feedback_image_desc">Supports image and video upload. Image size must not exceed 2MB,\nand video size must not exceed 20MB.</string>
+    <string name="app_feedback_submit">Submit Feedback</string>
+    <string name="app_feedback_upload_desc">Please upload at least one image before submitting.</string>
+    <string name="app_feedback_upload_okay">Okay</string>
+
+    <string name="app_feedback_upload_gallery">Gallery</string>
+    <string name="app_feedback_upload_camera">Camera</string>
+    <string name="app_feedback_upload_cancel">Cancel</string>
+    <string name="app_feedback_image_create_failed">Failed to create image file</string>
+    <string name="app_feedback_image_process_failed">Image processing failed</string>
+    <string name="app_feedback_image_compress_failed">Image is still over 2MB after compression. Upload failed.</string>
+    <string name="app_feedback_image_size_mb">%.2f MB</string>
+    <string name="app_feedback_image_size_kb">%.2f KB</string>
+    <string name="app_feedback_camera_permission">Camera permission is required to take photos</string>
+    <string name="app_feedback_gallery_permission">Storage permission is required to access images</string>
+
+    <string name="app_feedback_details_title">APP Feedback</string>
+
+    <!-- Language -->
+    <string name="language_title">Language</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_english">English</string>
+    <string name="language_malay">Malay</string>
+
+    <!-- Help -->
+    <string name="help_title">Help</string>
+    <string name="help_support_title">24/7 Online Support</string>
+    <string name="help_support_desc">Professional customer service available online to help you resolve issues.</string>
+    <string name="help_support_1">Online Support 1</string>
+    <string name="help_support_2">Online Support 2</string>
+    <string name="help_support_other">Other Support</string>
+    <string name="help_support_unavailable">Customer support is temporarily unavailable. Please try again later.</string>
+    <string name="help_tab_common">FAQ</string>
+    <string name="help_tab_transaction">Transaction</string>
+    <string name="help_tab_transfer">Transfer</string>
+    <string name="help_tab_vip">VIP Levels</string>
+    <string name="help_tab_affiliate">Affiliate Program</string>
+    <string name="help_tab_agent">Agent Program</string>
+    <string name="help_details_title">Help</string>
+
+    <!-- Logout -->
+    <string name="logout_title">Logout Confirmation</string>
+    <string name="logout_desc">Do you want to log out of the current account?</string>
+    <string name="logout_negative">Cancel</string>
+    <string name="logout_positive">Confirm Logout</string>
+
+    <string name="month_jan">Jan</string>
+    <string name="month_feb">Feb</string>
+    <string name="month_mar">Mar</string>
+    <string name="month_apr">Apr</string>
+    <string name="month_may">May</string>
+    <string name="month_jun">Jun</string>
+    <string name="month_jul">Jul</string>
+    <string name="month_aug">Aug</string>
+    <string name="month_sep">Sep</string>
+    <string name="month_oct">Oct</string>
+    <string name="month_nov">Nov</string>
+    <string name="month_dec">Dec</string>
+
+    <string name="country_code">Country code</string>
+    <string name="country_code_mys">+60</string>
+
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_space_s">%s %s</string>
+    <string name="template_s_dash_space_s">%s - %s</string>
+    <string name="template_s_space_plus_s">%s +%s</string>
+    <string name="template_s_bracket_s">%s (%s)</string>
+    <string name="template_s_rm_s">%sRM%s</string>
+    <string name="template_s_s_rm_s">%s %sRM%s</string>
+    <string name="template_plus_s">+%s</string>
+    <string name="template_rm_s">RM%s</string>
+    <string name="template_d_secs">%d secs</string>
+    <string name="template_d_pax">%d pax</string>
+
+    <string name="placeholder_currency_amount">RM0.00</string>
+    <string name="placeholder_currency_myr">RM</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_dash">-</string>
+
+    <string name="cd_icon">Icon</string>
+    <string name="cd_image">Image</string>
+
+    <string name="common_no_data">No Data</string>
+    <string name="common_password">Password</string>
+    <string name="common_ok">OK</string>
+
+    <string name="calendar_negative">Cancel</string>
+    <string name="calendar_positive">Confirm</string>
+
+    <string name="in_app_updater_preparing_download">Preparing download…</string>
+    <string name="in_app_updater_downloading_update">Downloading update…</string>
+    <string name="in_app_updater_installing_update">Installing update…</string>
+    <string name="in_app_updater_wait">Please wait</string>
+    <string name="in_app_updater_progress">%d%% (%dKB / %dKB)</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

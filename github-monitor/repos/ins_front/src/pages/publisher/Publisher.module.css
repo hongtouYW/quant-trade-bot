@@ -1,0 +1,57 @@
+.publisherKeyword {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.publisherKeyword span {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.publisherList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.publisherItem {
+  text-align: center;
+  min-width: 33%;
+}
+
+.publisherItem p {
+  color: #fff;
+  line-height: 35px;
+}
+
+.loadingContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@media screen and (max-width: 600px) {
+  .publisherContainer {
+    padding: 10px 10px 50px 10px;
+  }
+
+  .publisherItem {
+    min-width: 40%;
+  }
+
+  .publisherItem p {
+    font-size: 14px;
+  }
+}

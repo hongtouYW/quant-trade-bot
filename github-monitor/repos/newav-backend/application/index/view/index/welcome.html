@@ -1,0 +1,530 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <blockquote class="layui-elem-quote" >
+                        <a href="#" onclick="clearConfig()" class="layui-btn layui-btn-normal">清除Config缓存</a>
+                        <a href="#" onclick="clearVideo()" class="layui-btn layui-btn-normal">清除视频缓存</a>
+                        <a href="#" onclick="clearBanner()" class="layui-btn layui-btn-normal">清除Banner缓存</a>
+                        <a href="#" onclick="clearAd()" class="layui-btn layui-btn-normal">清除广告缓存</a>
+                        <a href="#" onclick="clearLink()" class="layui-btn layui-btn-normal">清除友情连接缓存</a>
+                        <a href="#" onclick="clearNotice()" class="layui-btn layui-btn-normal">清除公告缓存</a>
+                        <a href="#" onclick="clearAll()" class="layui-btn layui-btn-normal">清除全部缓存</a>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+        <div class="layui-col-md12">
+            <!-- 今日数据 -->
+            <div class="layui-card">
+                <div class="layui-card-header" style="color:#a0f621;">今日数据</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日总下单量</h3>
+                                <p><cite>{$order_stats.today.total_order}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日总完成付款单</h3>
+                                <p><cite>{$order_stats.today.paid_order}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日总收益</h3>
+                                <p><cite>{$order_stats.today.money}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日新用户</h3>
+                                <p><cite>{$user_stats.today}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日用户登入量</h3>
+                                <p><cite>{$user_stats.today_login}</cite></p>
+                            </a>
+                        </li>
+                        <!-- <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日回流付费用户(7日内消费)</h3>
+                                <p><cite><?php echo intval($user_stats['today_buyer_login']); ?></cite></p>
+                            </a>
+                        </li> --> 
+
+                        <!-- next line -->
+                        <li class="layui-col-md12" style="height:0; padding:0; margin:0;"></li>
+                        {foreach name="totals" key="type" item="stats"}
+                        {assign name="typeName" value=$type}
+                        {if $type=='vip'}{assign name="typeName" value='VIP'}{/if}
+                        {if $type=='coin'}{assign name="typeName" value='钻石'}{/if}
+                        {if $type=='point'}{assign name="typeName" value='点卷'}{/if}
+                        <!-- <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}今日销售额</h3>
+                                <p><cite>{$stats.today.sales}</cite></p>
+                            </a>
+                        </li> -->
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}今日订单数</h3>
+                                <p><cite>{$stats.today.count}</cite></p>
+                            </a>
+                        </li>
+                        {/foreach}
+                        
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日入库影片</h3>
+                                <p><cite>{$videos.today}</cite></p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 昨日数据 -->
+            <div class="layui-card">
+                <div class="layui-card-header" style="color:#a0f621;">昨日数据</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日总下单量</h3>
+                                <p><cite>{$order_stats.yesterday.total_order}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日总完成付款单</h3>
+                                <p><cite>{$order_stats.yesterday.paid_order}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日总收益</h3>
+                                <p><cite>{$order_stats.yesterday.money}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日新用户</h3>
+                                <p><cite>{$user_stats.yesterday}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日用户登入量</h3>
+                                <p><cite>{$user_stats.yesterday_login}</cite></p>
+                            </a>
+                        </li>
+                        <!-- <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日回流付费用户(7日内消费)</h3>
+                                <p><cite><?php echo intval($user_stats['yesterday_buyer_login']); ?></cite></p>
+                            </a>
+                        </li> -->
+
+                        <!-- next line -->
+                        <li class="layui-col-md12" style="height:0; padding:0; margin:0;"></li>
+                        {foreach name="totals" key="type" item="stats"}
+                        {assign name="typeName" value=$type}
+                        {if $type=='vip'}{assign name="typeName" value='VIP'}{/if}
+                        {if $type=='coin'}{assign name="typeName" value='钻石'}{/if}
+                        {if $type=='point'}{assign name="typeName" value='点卷'}{/if}
+                        <!-- <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}昨日销售额</h3>
+                                <p><cite>{$stats.yesterday.sales}</cite></p>
+                            </a>
+                        </li> -->
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}昨日订单数</h3>
+                                <p><cite>{$stats.yesterday.count}</cite></p>
+                            </a>
+                        </li>
+                        {/foreach}
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>昨日入库影片</h3>
+                                <p><cite>{$videos.yesterday}</cite></p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- 总体数据 -->
+            <div class="layui-card">
+                <div class="layui-card-header" style="color:#a0f621;">总体数据</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>总下单</h3>
+                                <p><cite>{$total_records}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>总收益</h3>
+                                <p><cite>{$total_sales}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>VIP总销售额</h3>
+                                <p><cite>{$vip.sales}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>VIP总订单数</h3>
+                                <p><cite>{$vip.count}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>钻石总销售额</h3>
+                                <p><cite>{$coin.sales}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>钻石总订单数</h3>
+                                <p><cite>{$coin.count}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>点卷总销售额</h3>
+                                <p><cite>{$point.sales}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>点卷总订单数</h3>
+                                <p><cite>{$point.count}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>用户总数</h3>
+                                <p><cite>{$user_stats.total}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>影片总数</h3>
+                                <p><cite>{$videos.total}</cite></p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 本月/季度/年度数据 -->
+            <!-- <div class="layui-card">
+                <div class="layui-card-header" style="color:#a0f621;">本月/季度/年度销售统计</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        {foreach name="totals" key="type" item="stats"}
+                        {assign name="typeName" value=$type}
+                        {if $type=='vip'}{assign name="typeName" value='VIP'}{/if}
+                        {if $type=='coin'}{assign name="typeName" value='钻石'}{/if}
+                        {if $type=='point'}{assign name="typeName" value='点卷'}{/if}
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}本月销售额</h3>
+                                <p><cite>{$stats.month.sales}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}本季度销售额</h3>
+                                <p><cite>{$stats.quarter.sales}</cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$typeName}本年度销售额</h3>
+                                <p><cite>{$stats.year.sales}</cite></p>
+                            </a>
+                        </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div> -->
+
+            <!-- 产品明细 -->
+            {foreach name="breakdowns" key="type" item="items"}
+            {assign name="typeName" value=$type}
+            {if $type=='vip'}{assign name="typeName" value='VIP'}{/if}
+            {if $type=='coin'}{assign name="typeName" value='钻石'}{/if}
+            {if $type=='point'}{assign name="typeName" value='点卷'}{/if}
+            <div class="layui-card">
+                <div class="layui-card-header">{$typeName}产品销售明细</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        {volist name="items" id="item"}
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>{$item.title}</h3>
+                                <p>销售额: <cite>{$item.sales}</cite></p>
+                                <p>订单数: <cite>{$item.count}</cite></p>
+                            </a>
+                        </li>
+                        {/volist}
+                    </ul>
+                </div>
+            </div>
+            {/foreach}
+
+            <!-- 今日字幕数据 -->
+            <div class="layui-card">
+                <div class="layui-card-header" style="color:#a0f621;">今日提取字幕</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日请求</h3>
+                                <p><cite><?php echo intval($transcribe_stats['requested']); ?></cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>成功回调</h3>
+                                <p><cite><?php echo intval($transcribe_stats['success']); ?></cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>处理中</h3>
+                                <p><cite><?php echo intval($transcribe_stats['pending']); ?></cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日失败</h3>
+                                <p><cite><?php echo intval($transcribe_stats['failed']); ?></cite></p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="layui-card">
+                <div class="layui-card-header" style="color:#a0f621;">今日翻译字幕</div>
+                <div class="layui-card-body">
+                    <ul class="layui-row layui-col-space10 x-admin-carousel x-admin-backlog">
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日请求</h3>
+                                <p><cite><?php echo intval($translate_stats['requested']); ?></cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>成功回调</h3>
+                                <p><cite><?php echo intval($translate_stats['success']); ?></cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>处理中</h3>
+                                <p><cite><?php echo intval($translate_stats['pending']); ?></cite></p>
+                            </a>
+                        </li>
+                        <li class="layui-col-md2 layui-col-xs6">
+                            <a href="javascript:;" class="x-admin-backlog-body">
+                                <h3>今日失败</h3>
+                                <p><cite><?php echo intval($translate_stats['failed']); ?></cite></p>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style id="welcome_style"></style>
+</body>
+</html>
+
+<script>
+layui.use(['laydate','form'], function(){
+    var laydate = layui.laydate;
+    var form = layui.form;
+});
+
+function clearConfig() {
+    layer.confirm('你确定要清除配置缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearConfig")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+
+function clearVideo() {
+    layer.confirm('你确定要清除视频缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearVideo")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+
+
+function clearBanner() {
+    layer.confirm('你确定要清除Banner缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearBanner")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+
+function clearAd() {
+    layer.confirm('你确定要清除广告缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearAd")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+function clearLink() {
+    layer.confirm('你确定要清除友情链接缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearLink")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+function clearNotice() {
+    layer.confirm('你确定要清除公告缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearNotice")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+
+
+function clearAll() {
+    layer.confirm('你确定要清除全部缓存么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("base/clearAll")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+</script>

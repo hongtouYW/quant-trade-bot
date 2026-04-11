@@ -1,0 +1,6 @@
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap (optional but recommended)
+Sitemap: https://18toon.vip/sitemap

@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'select' => 'Select Agreement',
+    'agreement_list' => 'Agreement List',
+    'add_new_agreement' => 'Add New Agreement',
+    'agreement_added_successfully' => 'Agreement added successfully!',
+    'agreement_updated_successfully' => 'Agreement updated successfully!',
+    'agreement_deleted_successfully' => 'Agreement deleted successfully!',
+    'title' => 'Title',
+    'desc' => 'Description',
+    'picture' => 'Picture',
+    'url' => 'Link',
+    'status' => 'Status',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'never' => 'Never',
+    'edit_agreement' => 'Edit Agreement',
+    'delete_agreement' => 'Delete Agreement',
+    'confirm_delete_agreement' => 'Are you sure you want to delete Agreement?',
+    'no_data_found' => 'No Agreement found.',
+    'leave_blank_for_no_change' => 'Leave blank for no change',
+    'active_status' => 'Active',
+    'agent_name' => 'Agent Name',
+];

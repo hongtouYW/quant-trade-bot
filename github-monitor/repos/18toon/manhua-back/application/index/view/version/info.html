@@ -1,0 +1,147 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>版本号
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" required="" lay-verify="required"  name="code" value="{$info.code}"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>版本名称
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" required="" lay-verify="required"  name="code_name" value="{$info.code_name}"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>终端</label>
+        <div class="layui-input-block">
+          <input type="radio" lay-verify="otherReq" name="type"  lay-filter="type" value="1" title="安卓" {if condition="$info.type eq 1 "}checked{/if}>
+          <input type="radio" lay-verify="otherReq" name="type" lay-filter="type" value="2" title="IOS" {if condition="$info.type eq 2  "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>下载地址
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" lay-verify="required" autocomplete="off" name="down_url" value="{$info.down_url}"  style="width: 400px" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>状态</label>
+        <div class="layui-input-block">
+          <input type="radio"  name="status" value="1" title="开启" {if condition="$info.status eq 1 "}checked{/if}>
+          <input type="radio" name="status" value="0" title="禁用" {if condition="$info.status eq 0 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>强制更新</label>
+        <div class="layui-input-block">
+          <input type="radio" name="is_force"   value="1" title="是" {if condition="$info.is_force eq 1 "}checked{/if}>
+          <input type="radio" name="is_force"  value="0" title="否" {if condition="$info.is_force eq 0 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>版本描述
+        </label>
+        <div class="layui-input-block">
+          <textarea placeholder="版本描述"  lay-verify="required" name="des" class="layui-textarea">{$info.des}</textarea>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+  layui.use(['form', 'layer'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+                  layer = layui.layer;
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+            otherReq: function(value,item){
+              var $ = layui.$;
+              var verifyName=$(item).attr('name')
+                      , verifyType=$(item).attr('type')
+                      ,formElem=$(item).parents('.layui-form')//获取当前所在的form元素，如果存在的话
+//,verifyElem=formElem.find('input[name='+verifyName+']')//获取需要校验的元素
+                      ,verifyElem=formElem.find("input[name='"+verifyName+"']")//获取需要校验的元素
+                      ,isTrue= verifyElem.is(':checked')//是否命中校验
+                      ,focusElem = verifyElem.next().find('i.layui-icon');//焦点元素
+              if(!isTrue || !value){
+                //定位焦点
+                focusElem.css(verifyType=='radio'?{"color":"#FF5722"}:{"border-color":"#FF5722"});
+                //对非输入框设置焦点
+                focusElem.first().attr("tabIndex","1").css("outline","0").blur(function() {
+                  focusElem.css(verifyType=='radio'?{"color":""}:{"border-color":""});
+                }).focus();
+                return '必填项不能为空';
+              }
+            }
+          });
+
+          form.on('submit(sub)', function (data) {
+            $.ajax({
+              url: "{:url('info')}",
+              type: "POST",
+              data: data.field,
+              async: false,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+  function change() {
+
+      var src=$("#image").val();
+      $('#img1').attr("src", src)//这时写地址
+  }
+</script>
+</body>
+
+</html>

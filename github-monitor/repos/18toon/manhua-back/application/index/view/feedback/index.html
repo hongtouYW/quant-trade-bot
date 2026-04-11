@@ -1,0 +1,104 @@
+{include file="public/header" /}
+<body>
+<div class="x-nav">
+  <span class="layui-breadcrumb"><a><cite>反馈管理</cite></a></span>
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+  </a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5">
+            <div class="layui-inline layui-show-xs-block">
+                <select name="satisfaction">
+                    <option value="">全部满意度</option>
+                    <option value="1" {if condition="$satisfaction eq 1"}selected{/if}>满意</option>
+                    <option value="2" {if condition="$satisfaction eq 2"}selected{/if}>一般</option>
+                    <option value="3" {if condition="$satisfaction eq 3"}selected{/if}>不满意</option>
+                </select>
+            </div>
+            <div class="layui-inline layui-show-xs-block">
+              <input type="text" name="search" value="{$search|default=''}" placeholder="搜索内容/联系方式/IP" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-inline layui-show-xs-block">
+              <button class="layui-btn" lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
+            </div>
+          </form>
+        </div>
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>满意度</th>
+              <th>摘要内容</th>
+              <th>用户</th>
+              <th>IP</th>
+              <th>联系方式</th>
+              <th>时间</th>
+              <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>
+                  {switch name="vo.satisfaction"}
+                      {case value="1"}<span class="layui-badge layui-bg-red">满意</span>{/case}
+                      {case value="2"}<span class="layui-badge layui-bg-blue">一般</span>{/case}
+                      {case value="3"}<span class="layui-badge layui-bg-gray">一般</span>{/case}
+                      {default /}<span class="layui-badge layui-bg-gray">不满意</span>
+                  {/switch}
+              </td>
+              <td title="点击详情查看完整内容">
+                  {$vo.content|mb_substr=0,30}
+              </td>
+              <td>{$vo.member_id|default='游客'}</td>
+              <td>{$vo.ip}</td>
+              <td>{$vo.contact}</td>
+              <td>{$vo.add_time|date="Y-m-d H:i"}</td>
+              <td class="td-manage">
+                <button class="layui-btn layui-btn-normal layui-btn-xs" onclick="xadmin.open('反馈详情','{:url('feedback/info')}?id={$vo.id}',600,450)">
+                    <i class="layui-icon">&#xe63c;</i>详情
+                </button>
+                <button class="layui-btn-danger layui-btn layui-btn-xs" id-data="{$vo.id}" onclick="set_del(this)" >
+                    <i class="layui-icon">&#xe640;</i>删除
+                </button>
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body "><div id="pages" class="center"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+layui.use(['laypage', 'layer', 'form'], function() {
+    var laypage = layui.laypage, form = layui.form, $ = layui.jquery;
+    var curUrl = "{:url('feedback/index',$param)}";
+    laypage.render({
+        elem: 'pages', count: {$total}, limit: {$limit}, curr: {$page},
+        layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+        jump: function(obj, first){
+            if(!first){ location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit); }
+        }
+    });
+});
+function set_del(t) {
+    var id = $(t).attr("id-data");
+    layer.confirm('确认删除吗？', function () {
+        $.post('{:url("feedback/del")}', {'id': id}, function (data) {
+            if (data.code == 1) { layer.msg(data.msg, {icon: 1}, function(){ location.reload(); }); }
+            else { layer.alert(data.msg, {icon: 2}); }
+        });
+    });
+}
+</script>

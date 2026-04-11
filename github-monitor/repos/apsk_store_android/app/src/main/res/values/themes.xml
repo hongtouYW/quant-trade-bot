@@ -1,0 +1,24 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.DJShop" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/black_192D51</item>
+        <item name="colorPrimaryVariant">@color/black_192D51</item>
+        <item name="colorOnPrimary">@color/white_FFFFFF</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/gold_FFCB22</item>
+        <item name="colorSecondaryVariant">@color/gold_FFCB22</item>
+        <item name="colorOnSecondary">@color/black_000000</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/blue_000122</item>
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/blue_000122</item>
+        <item name="android:textColor">@color/white_FFFFFF</item>
+    </style>
+
+    <style name="AppTheme_FullscreenDialog" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

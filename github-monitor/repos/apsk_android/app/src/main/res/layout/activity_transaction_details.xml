@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                android:background="@drawable/bg_transaction_details"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:id="@+id/panel_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/textView_type"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_amount"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/orange_FFBC00"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_bank"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_bank"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_bank"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_payment_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_method"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_payment_type"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_provider"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_provider"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_provider"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_yxi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_yxi"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_yxi"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_bet"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_bet"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_bet"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_win"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_win"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_win"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_start"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_opening_balance"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_start"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_end"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_closing_balance"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_end"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_date_time"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_date"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_id"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_id"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_status"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_status"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_status"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/green_9EEE69"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_remark"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.4"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/transaction_details_remarks"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_remark"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="end"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

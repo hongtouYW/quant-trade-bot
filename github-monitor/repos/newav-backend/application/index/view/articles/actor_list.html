@@ -1,0 +1,91 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5" action="">
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="text" name="wd" placeholder="请输入演员名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="submit" class="layui-btn"  value="搜索">
+            </div>
+          </form>
+        </div>
+
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th width="25"></th>
+              <th>ID</th>
+              <th>演员名称</th>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td><input type="checkbox" name="ids[]" data-name="{$vo.name}" value="{$vo.id}" class="layui-checkbox checkbox-ids" lay-skin="primary">
+                <div class="layui-unselect layui-form-checkbox" lay-skin="primary"><i class="layui-icon"></i></div>
+              </td>
+              <td>{$vo.id}</td>
+              <td>{$vo.name}</td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+
+          <div id="pages" class="center"></div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+
+  var curUrl="{:url('actor_list',$param)}";
+  layui.use(['laypage', 'layer'], function() {
+    var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+    laypage.render({
+      elem: 'pages'
+      ,count: {$total}
+      ,limit: {$limit}
+      ,limits:[10,20,50,100]
+      ,curr: {$page}
+      ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+      ,jump: function(obj,first){
+        if(!first){
+          location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+        }
+      }
+    });
+  });
+
+
+  layui.use(['laypage', 'layer','form','jquery'], function() {
+    var laypage = layui.laypage
+            , layer = layui.layer,
+            form = layui.form
+            ,$ = layui.jquery;
+
+    $(document).on('click','.layui-form-checkbox',function(){
+      var aid = $(this).parent('td').find('input').val();
+      var actor = $(this).parent('td').find('input').attr('data-name');
+      parent.GetValue1(aid,actor); //GetValue是父界面的Js 方法
+      var index = parent.layer.getFrameIndex(window.name);
+      parent.layer.close(index);
+    })
+  });
+
+
+</script>
+
+</html>

@@ -1,0 +1,14 @@
+[Unit]
+Description=video_cut_go
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+Restart=always
+ExecStart=/home/video_cut_go/video_cut_go
+WorkingDirectory=/home/video_cut_go
+
+[Install]
+WantedBy=multi-user.target

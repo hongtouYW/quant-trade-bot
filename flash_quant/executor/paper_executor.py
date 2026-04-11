@@ -29,8 +29,14 @@ class PaperExecutor(ExecutorBase):
                             stop_loss_roi: float, signal_id: int = None) -> dict:
         price = market_data.get_price(symbol)
         if price <= 0:
-            logger.warning("paper.no_price", symbol=symbol)
-            return {'error': 'no_price'}
+            # 尝试从 K线缓存取价格
+            from data.kline_cache import kline_cache
+            latest = kline_cache.get_latest(symbol, '5m')
+            if latest and latest.close > 0:
+                price = latest.close
+            else:
+                logger.warning("paper.no_price", symbol=symbol)
+                return {'error': 'no_price'}
 
         # 滑点
         if direction == 'long':
@@ -108,7 +114,9 @@ class PaperExecutor(ExecutorBase):
         direction = trade['direction']
         price = market_data.get_price(symbol)
         if price <= 0:
-            price = trade['entry_price']
+            from data.kline_cache import kline_cache
+            latest = kline_cache.get_latest(symbol, '5m')
+            price = latest.close if latest and latest.close > 0 else trade['entry_price']
 
         # 滑点
         if direction == 'long':
@@ -170,6 +178,10 @@ class PaperExecutor(ExecutorBase):
             symbol = pos['symbol']
             direction = pos['direction']
             price = market_data.get_price(symbol)
+            if price <= 0:
+                from data.kline_cache import kline_cache
+                latest = kline_cache.get_latest(symbol, '5m')
+                price = latest.close if latest and latest.close > 0 else 0
             if price <= 0:
                 continue
 

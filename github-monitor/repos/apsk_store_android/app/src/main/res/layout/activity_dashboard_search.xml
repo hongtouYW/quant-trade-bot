@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <LinearLayout
+        android:id="@+id/panel_search"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:layout_margin="20dp"
+        android:background="@drawable/bg_edit_text"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_search" />
+
+        <EditText
+            android:id="@+id/editText_search"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="10dp"
+            android:layout_weight="1"
+            android:background="@android:color/transparent"
+            android:fontFamily="@font/poppins_medium"
+            android:hint="@string/dashboard_search_hint"
+            android:lines="1"
+            android:singleLine="true"
+            android:textColor="@color/white_FFFFFF"
+            android:textColorHint="@color/gray_C2C3CB"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@+id/imageView_clear"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_cancel"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:id="@+id/panel_data"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ListView
+                android:id="@+id/listView_search"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:divider="@color/gray_999999"
+                android:dividerHeight="0.25dp"
+                android:listSelector="@android:color/transparent" />
+        </LinearLayout>
+
+        <include
+            android:id="@+id/panel_no_data"
+            layout="@layout/view_no_data"
+            android:visibility="gone" />
+
+        <include
+            android:id="@+id/panel_loading"
+            layout="@layout/view_loading"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>

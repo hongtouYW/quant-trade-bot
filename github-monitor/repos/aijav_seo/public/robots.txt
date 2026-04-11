@@ -1,0 +1,27 @@
+# robots.txt for AI JAV
+# https://aij-av.com/
+
+User-agent: *
+Allow: /
+
+# Allow search engines to crawl main pages
+Allow: /watch/
+Allow: /actress/
+Allow: /publisher/
+Allow: /search
+
+# Disallow user-specific pages (require login)
+Disallow: /my-channels
+Disallow: /my-favorites
+Disallow: /watch-history
+Disallow: /profile
+Disallow: /settings
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Sitemap location
+Sitemap: https://aij-av.com/sitemap.xml
+
+# Crawl-delay for politeness
+Crawl-delay: 1

@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/panel_dates"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView_prev_month"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_chev_left_orange_calendar" />
+
+            <LinearLayout
+                android:id="@+id/panel_month_year"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                tools:ignore="UseCompoundDrawables">
+
+                <TextView
+                    android:id="@+id/textView_month_year"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="2dp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="15sp" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_chev_down_orange_calendar" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/imageView_next_month"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_chev_right_orange_calendar" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/weekDaysContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal" />
+
+        <com.kizitonwose.calendar.view.CalendarView
+            android:id="@+id/calendar_view"
+            android:layout_width="match_parent"
+            android:layout_height="320dp"
+            android:layout_margin="16dp"
+            app:cv_dayViewResource="@layout/item_calendar_day" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/panel_month"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imageView_prev_year"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_chev_left_gray_calendar" />
+
+            <TextView
+                android:id="@+id/textView_year"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:gravity="center"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="15sp" />
+
+            <ImageView
+                android:id="@+id/imageView_next_year"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_chev_right_gray_calendar" />
+        </LinearLayout>
+
+        <GridView
+            android:id="@+id/gridView_month"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
+            android:horizontalSpacing="0dp"
+            android:numColumns="3"
+            android:paddingHorizontal="16dp"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="0dp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/blue_354B9C" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_margin="16dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/textView_clear"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_button_bordered_transparent"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:gravity="center"
+            android:text="@string/calendar_negative"
+            android:textColor="@color/orange_F8AF07"
+            android:textSize="14sp" />
+
+        <com.dj.user.widget.BlackTextButton
+            android:id="@+id/button_next"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/calendar_positive" />
+    </LinearLayout>
+</LinearLayout>

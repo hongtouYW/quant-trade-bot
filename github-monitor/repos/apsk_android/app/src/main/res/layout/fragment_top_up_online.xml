@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.dj.user.widget.ExpandableHeightGridView
+                android:id="@+id/gridView_platform"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:horizontalSpacing="16dp"
+                android:numColumns="3"
+                android:paddingVertical="16dp"
+                android:stretchMode="columnWidth"
+                android:verticalSpacing="16dp" />
+
+            <LinearLayout
+                android:id="@+id/panel_amount_selection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="8dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14dp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/top_up_amount"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <com.google.android.flexbox.FlexboxLayout
+                    android:id="@+id/flexboxLayout_amount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:flexWrap="wrap"
+                    app:justifyContent="flex_start" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panel_amount_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/top_up_amount_other"
+                    android:textColor="@color/gray_6E6E6E"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginVertical="4dp"
+                    android:background="@drawable/bg_edit_text_transparent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="8dp">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="10dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_dollar" />
+
+                    <EditText
+                        android:id="@+id/editText_amount"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@android:color/transparent"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:hint="@string/placeholder_amount"
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/orange_FFBC00"
+                        android:textColorHint="@color/yellow_FFFC86_50a"
+                        android:textSize="18sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textView_min_max"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:textColor="@color/gray_6E6E6E"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <com.dj.user.widget.BlackTextButton
+                android:id="@+id/button_top_up"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_marginBottom="40dp"
+                android:text="@string/top_up_now" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

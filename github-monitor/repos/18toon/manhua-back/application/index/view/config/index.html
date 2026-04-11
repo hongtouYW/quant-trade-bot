@@ -1,0 +1,170 @@
+{include file="public/header" /}
+
+<body>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+  </a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="set_add()">
+            <i class="layui-icon"></i>添加
+          </button>
+
+            <button class="layui-btn layui-btn-normal" onclick="clearConfig()">
+                <i class="layui-icon"></i>清除缓存
+            </button>
+        </div>
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+<!--              <th>id</th>-->
+              <th>名称</th>
+              <th>Value</th>
+              <th>描述</th>
+              <th>创建时间</th>
+              <th>更新时间</th>
+              <th>操作</th></tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.name}</td>
+              <td>{$vo.value}</td>
+              <td>{$vo.remark}</td>
+              <td>{$vo.create_time}</td>
+              <td>{$vo.update_time}</td>
+              <td class="td-manage">
+                <button class="layui-btn layui-btn layui-btn-xs"  id-data="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+<!--                <button class="layui-btn-danger layui-btn layui-btn-xs"  id-data="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+              -->
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script src="__STATIC__/xadmin/js/date.js"></script>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl="{:url('config/index',$param)}";
+      layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          ,count: {$total}
+          ,limit: {$limit}
+          ,limits:[10,20,50,100]
+          ,curr: {$page}
+          ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          ,jump: function(obj,first){
+            if(!first){
+              location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+            }
+          }
+        });
+      });
+    });
+
+    /*
+    添加
+     */
+    function set_add() {
+      var url='{:url("config/info")}';
+      layer.open({
+        type: 2,
+        title: '添加标签',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+    /*
+    编辑
+     */
+    function set_edit(t) {
+      var id=$(t).attr("id-data");
+      var url='{:url("config/info")}'+'?id='+id;
+      layer.open({
+        type: 2,
+        title: '信息',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+
+    /*
+    删除
+    */
+    function set_del(t) {
+      var id = $(t).attr("id-data");
+      layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+      }, function (index, layero) {
+        //按钮【按钮一】的回调
+        $.post('{:url("config/del")}', {'id': id}, function (data) {
+          if (data.code == 1) {
+            layer.msg(data.msg, {icon: 1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          } else {
+            layer.alert(data.msg, {icon: 2});
+          }
+        });
+
+      }, function (index) {
+        //按钮【按钮二】的回调
+      });
+    }
+
+function clearConfig() {
+    layer.confirm('你确定要清除Config么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("clear")}',{},function(data){
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+
+
+}
+</script>
+</html>

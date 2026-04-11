@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'select' => '选择跑马灯',
+    'slider_list' => '跑马灯列表',
+    'add_new_slider' => '添加新跑马灯',
+    'slider_added_successfully' => '跑马灯 :title 添加成功！',
+    'slider_updated_successfully' => '跑马灯 :title 更新成功！',
+    'slider_deleted_successfully' => '跑马灯 :title 删除成功！',
+    'title' => '标题',
+    'slider_desc' => '描述',
+    'url' => '网址',
+    'status' => '状态',
+    'active' => '启用',
+    'inactive' => '禁用',
+    'never' => '从不',
+    'edit_slider' => '编辑跑马灯',
+    'delete_slider' => '删除跑马灯',
+    'confirm_delete_slider' => '确定要删除跑马灯 :title 吗？',
+    'no_data_found' => '未找到跑马灯。',
+    'leave_blank_for_no_change' => '留空表示不更改',
+    'active_status' => '启用状态',
+    'agent_name' => '代理名字',
+    'dashboarddeposit' => ':member_name 充值了 :amount ',
+    'dashboardwithdraw' => ':member_name 提现 :amount ',
+    'dashboardwin' => ':member_name 赢了 :amount ',
+];

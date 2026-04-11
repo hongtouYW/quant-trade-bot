@@ -1,0 +1,200 @@
+{include file="public/header" /}
+<body>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+  </a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="add()">
+            <i class="layui-icon"></i>添加
+          </button>
+        </div>
+
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+<!--              <th>ID</th>-->
+              <th>账号</th>
+              <th>角色</th>
+              <th>登陆时间</th>
+              <th>登陆IP</th>
+              <th>谷歌秘钥</th>
+              <th>状态</th>
+              <th>操作</th>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+<!--              <td>{$vo.id}</td>-->
+              <td>{$vo.username}</td>
+              <td>{$vo.role_name}</td>
+              <td>{$vo.last_login}</td>
+              <td>{$vo.last_ip}</td>
+              <td>{$vo.google_secret}</td>
+              <td><input data-href="{:url('status')}?id={$vo['id']}" type="checkbox" name="status" {if condition="$vo['status'] eq 1"} checked {/if} value="{$vo['status']}" lay-skin="switch" lay-filter="switchStatus" lay-text="启用|禁用"  ></td>
+              <td class="td-manage">
+                <button class="layui-btn layui-btn layui-btn-xs"  id-data="{$vo.id}" onclick="edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                <button class="layui-btn layui-btn-warm layui-btn-xs" id-data="{$vo.id}" onclick="google(this)" ><i class="layui-icon">&#xe642;</i>重置谷歌秘钥</button>
+                {if ($vo.id != 1) }
+                <button class="layui-btn-danger layui-btn layui-btn-xs"  id-data="{$vo.id}" onclick="del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                {/if}
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl="{:url('admin/index',$param)}";
+      layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          ,count: {$total}
+          ,limit: {$limit}
+          ,limits:[10,20,50,100]
+          ,curr: {$page}
+          ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          ,jump: function(obj,first){
+            if(!first){
+              location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+            }
+          }
+        });
+      });
+
+      /* 监听状态设置开关 */
+      form.on('switch(switchStatus)', function(data) {
+        var that = $(this), status = 1;
+        if (!that.attr('data-href')) {
+          layer.msg('请设置data-href参数');
+          return false;
+        }
+        if (this.checked) {
+          status = 2;
+        }
+        $.get(that.attr('data-href'), {val:status}, function(res) {
+
+          if (res.code == 1) {
+            layer.msg(res.msg, {icon: 1});
+          } else {
+            layer.alert(res.msg, {icon: 2});
+            that.trigger('click');
+            form.render('checkbox');
+          }
+        });
+      });
+    });
+
+  /*
+  添加
+   */
+  function add() {
+    var url='{:url("admin/add")}';
+    layer.open({
+      type: 2,
+      title: '信息',
+      shadeClose: true,
+      shade: 0.8,
+      area: ['80%', '80%'],
+      content: url, //iframe的url
+    });
+  }
+
+
+  /*
+  编辑
+   */
+  function edit(t) {
+    var id=$(t).attr("id-data");
+    var url='{:url("admin/edit")}'+'?id='+id;
+    layer.open({
+      type: 2,
+      title: '信息',
+      shadeClose: true,
+      shade: 0.8,
+      area: ['80%', '80%'],
+      content: url, //iframe的url
+    });
+  }
+  /*
+  删除
+   */
+  function del(t) {
+    var id = $(t).attr("id-data");
+    if(id == 1){
+
+      layer.alert('id为1的管理员不能删除', {icon: 2});
+      return;
+    }
+    layer.confirm('你确定要删除么？', {
+      btn: ['确定', '取消'] //可以无限个按钮
+    }, function (index, layero) {
+      //按钮【按钮一】的回调
+      $.post('{:url("admin/del")}', {'id': id}, function (data) {
+        if (data.code == 1) {
+          layer.msg(data.msg, {icon: 1});
+          setTimeout(function () {
+            location.reload();
+          }, 1500);
+        } else {
+          layer.alert(data.msg, {icon: 2});
+        }
+      });
+
+    }, function (index) {
+      //按钮【按钮二】的回调
+    });
+  }
+
+
+  /*
+删除
+ */
+  function google(t) {
+    var id = $(t).attr("id-data");
+    layer.confirm('您确定要重置吗？', {
+      btn: ['确定', '取消'] //可以无限个按钮
+    }, function (index, layero) {
+      //按钮【按钮一】的回调
+      $.post('{:url("admin/upgooglesecret")}', {'id': id}, function (data) {
+        if (data.code == 1) {
+          layer.msg(data.msg, {icon: 1});
+          setTimeout(function () {
+            window.location.reload();
+          }, 1500);
+        } else {
+          layer.alert(data.msg, {icon: 2});
+        }
+      });
+
+    }, function (index) {
+      //按钮【按钮二】的回调
+    });
+  }
+
+</script>
+
+</html>

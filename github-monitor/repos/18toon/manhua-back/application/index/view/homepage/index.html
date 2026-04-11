@@ -1,0 +1,218 @@
+{include file="public/header"/}
+
+<body>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="float:right;margin-top:3px" onclick="location.reload()">
+    <i class="layui-icon layui-icon-refresh"></i>
+  </a>
+</div>
+
+<div class="layui-fluid">
+  <div class="layui-row">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="set_add()">
+            <i class="layui-icon"></i> 添加模块
+          </button>
+          <button  class="layui-btn layui-btn-normal" onclick="clearModule()">
+            <i class="layui-icon"></i>清除缓存
+          </button>
+        </div>
+
+        <div class="layui-card-body">
+          <table class="layui-table layui-form">
+            <thead>
+              <tr>
+                <th width="70">ID</th>
+                <th>标题</th>
+                <th>模块</th>
+                <th>参数</th>
+                <th width="50">排序</th>
+                <th>状态</th>
+                <th>描述</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>{$vo.name}</td>
+              <td>{$vo.module_label}</td>
+              <td><pre>{$vo.params}</pre></td>
+              <td><input  type="number" min="0" autocomplete="off" data-id="{$vo.id}" onchange="set_sort(this,this.value)" value="{$vo.sort}" class="layui-input sort"></td>
+              <td>
+                <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="status" {if condition="$vo.status eq 1"} checked {/if}  value="{$vo['status']}" lay-skin="switch" lay-filter="modify" lay-text="展示|隐藏" >
+              </td>
+              <td>{$vo.remark}</td>
+              <td>
+                <button class="layui-btn layui-btn-xs" onclick="set_edit({$vo.id})">
+                    <i class="layui-icon">&#xe642;</i> 编辑
+                </button>
+                <button class="layui-btn layui-btn-danger layui-btn-xs" onclick="set_del({$vo.id})">
+                    <i class="layui-icon">&#xe640;</i> 删除
+                </button>
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="layui-card-body">
+          <div id="pages"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl = "{:url('homepage/index',$param)}";
+      layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          , count: {$total}
+          , limit: {$limit}
+          , limits: [10, 20, 50, 100]
+          , curr: {$page}
+          , layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          , jump: function (obj, first) {
+            if (!first) {
+              location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        if(this.checked){
+          status = 1;
+        }
+        var field = that.attr('name');
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field: field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+    });
+
+function set_add(){
+    layer.open({
+        type:2,
+        title:'添加模块',
+        area:['80%','80%'],
+        content:"{:url('homepage/info')}"
+    });
+}
+
+function set_edit(id){
+    layer.open({
+        type:2,
+        title:'编辑模块',
+        area:['80%','80%'],
+        content:"{:url('homepage/info')}?id="+id
+    });
+}
+
+function set_del(id){
+    layer.confirm('确定删除此模块？',function(){
+        $.post("{:url('homepage/del')}",{id:id},function(res){
+            if(res.code==1){
+                layer.msg(res.msg,{icon:1});
+                setTimeout(()=>location.reload(),1000);
+            }else{
+                layer.alert(res.msg,{icon:2});
+            }
+        });
+    });
+}
+
+/*
+排序
+ */
+function set_sort(t,value) {
+  var id=$(t).attr("data-id");
+  $.ajax({
+    url: "{:url('homepage/modify')}",
+    type: "POST",
+    data: {
+      id:id,
+      field: 'sort',
+      value: value,
+    },
+    async: false,
+    success: function (data) {
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        }, 1500);
+      }else{
+        layer.msg(data.msg,{icon:2});
+      }
+    },
+    error: function () {
+      layer.msg("System Service Busy!", {offset: '200px'});
+    }
+  });
+}
+
+function clearModule() {
+  layer.confirm('你确定要清除模块缓存么？', {
+    btn: ['确定', '取消'] 
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("clear")}',{},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+}
+</script>
+</body>
+</html>

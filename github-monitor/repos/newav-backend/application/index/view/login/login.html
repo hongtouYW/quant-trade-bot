@@ -1,0 +1,72 @@
+{include file="public/header" /}
+<link rel="stylesheet" href="__STATIC__/xadmin/css/login.css">
+<body class="login-bg">
+
+<div class="login layui-anim layui-anim-up">
+    <div class="message">后台管理系统</div>
+    <div id="darkbannerwrap"></div>
+
+    <form class="layui-form" >
+        <input name="username" id="username" placeholder="用户名"  type="text" lay-verify="username" class="layui-input" >
+        <hr class="hr15">
+        <input name="password" id="password" lay-verify="password" placeholder="密码"  type="password" class="layui-input">
+        <hr class="hr15">
+        {if $isGoogleCheck==1}
+        <input name="code" id="code" lay-verify="" placeholder="谷歌验证码"  type="text" class="layui-input">
+        <hr class="hr15">
+        {/if}
+        <input value="登录" lay-submit lay-filter="login" style="width:100%;" type="submit">
+        <hr class="hr20" >
+
+
+
+    </form>
+</div>
+
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        form.verify({
+            username: [/[\S]+/, "用户名不能为空"],
+            password: [
+                /^[\S]{6,18}$/,
+                '密码必须6到12位，且不能出现空格'
+            ]
+        });
+
+        form.on('submit(login)', function (data) {
+            var username=$("#username").val();
+            var password=$("#password").val();
+            var code=$("#code").val();
+            $.ajax({
+                url: "{:url('/login/login')}",
+                type: "POST",
+                data: {
+                    username: username,
+                    pwd: password,
+                    code:code,
+                },
+                async: false,
+                success: function (data) {
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        window.location.href=data.url;
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+
+            return false;
+        });
+
+    });
+</script>
+<!-- 底部结束 -->
+</body>
+</html>

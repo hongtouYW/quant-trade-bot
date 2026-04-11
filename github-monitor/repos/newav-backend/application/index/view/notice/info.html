@@ -1,0 +1,152 @@
+{include file="public/header" /}
+
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"> </script>
+</head>
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>标题
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" name="title" lay-verify="required" value="{$info.title}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>英文标题
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text"  name="title_en" value="{$info.title_en}" lay-verify="required"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <!-- <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>俄语标题
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text"  name="title_ru" value="{$info.title_ru}" lay-verify="required"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div> -->
+
+            <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">内容</label>
+                <div class="layui-input-block">
+                    <textarea id="content" placeholder="请输入内容" class="ckeditor">{$info.content}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">英文内容</label>
+                <div class="layui-input-block">
+                    <textarea id="content_en" placeholder="请输入英文内容" class="ckeditor">{$info.content_en}</textarea>
+                </div>
+            </div>
+
+            <!-- <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">俄语内容</label>
+                <div class="layui-input-block">
+                    <textarea id="content_ru" placeholder="请输入俄语内容" class="ckeditor">{$info.content_ru}</textarea>
+                </div>
+            </div> -->
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is_show" value="1" title="开启" {if condition="$info.is_show eq 1 "}checked{/if}>
+                    <input type="radio" name="is_show" value="0" title="停用" {if condition="$info.is_show eq 0 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>排序</label>
+                <div class="layui-input-inline">
+                    <input type="number"min="0" name="sort"  edit="text" autocomplete="off" value="{$info.sort}" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <span class="x-red"></span>不填默认为99
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(sub)', function (data) {
+            var content = CKEDITOR.instances['content'].getData();
+            var content_en = CKEDITOR.instances['content_en'].getData();
+            // var content_ru = CKEDITOR.instances['content_ru'].getData();
+            if (!content){
+                layer.msg("请输入内容", { icon: 5 });
+                return false;
+            }
+            if (!content_en){
+                layer.msg("请输入英文内容", { icon: 5 });
+                return false;
+            }
+            // if (!content_ru){
+            //     layer.msg("请输入俄语内容", { icon: 5 });
+            //     return false;
+            // }
+            data.field.content = content;
+            data.field.content_en = content_en;
+            // data.field.content_ru = content_ru;
+            $.ajax({
+                url: "{:url('info')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    console.log(data);
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+
+
+</script>
+</body>
+
+</html>

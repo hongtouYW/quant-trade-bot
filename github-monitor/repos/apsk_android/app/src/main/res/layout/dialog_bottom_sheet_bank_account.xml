@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:orientation="vertical">
+
+    <View
+        android:layout_width="48dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center"
+        android:layout_marginVertical="8dp"
+        android:background="@color/gray_C4CDD2" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <ImageView
+            android:id="@+id/imageView_dismiss"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_dismiss" />
+
+        <TextView
+            android:id="@+id/textView_title"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginHorizontal="8dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:gravity="center"
+            android:text="@string/withdraw_add_bank_prompt"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/imageView_confirm"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_tick" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/blue_354B9C" />
+
+    <com.dj.user.widget.ExpandableHeightListView
+        android:id="@+id/listView_bank_account"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/blue_122346"
+        android:divider="@color/blue_354B9C"
+        android:dividerHeight="1dp"
+        android:listSelector="@android:color/transparent"
+        android:paddingStart="16dp"
+        android:paddingEnd="0dp" />
+
+    <LinearLayout
+        android:id="@+id/panel_add"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_gravity="center"
+        android:layout_margin="10dp"
+        android:background="@drawable/bg_button_bordered_orange"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="38dp">
+
+        <ImageView
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_add_player" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:text="@string/withdraw_add_bank_prompt_new"
+            android:textColor="@color/orange_F8AF07"
+            android:textSize="14sp" />
+    </LinearLayout>
+</LinearLayout>

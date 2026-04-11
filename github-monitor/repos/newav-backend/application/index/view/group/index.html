@@ -1,0 +1,318 @@
+{include file="public/header" /}
+<body>
+  <div class="layui-fluid">
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+      </a>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md12">
+        <div class="layui-card">
+          <div class="layui-card-body ">
+              <form class="layui-form layui-col-space5" action="">
+                <div class="layui-input-inline layui-show-xs-block">
+                  <input type="text" name="id" placeholder="系列id"  value="{$param['id']}" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-input-inline layui-show-xs-block">
+                  <input type="text" name="wd" placeholder="请输入系列名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-input-inline w150">
+                  <select name="is_show">
+                    <option value="">是否上线</option>
+                    <option value="0" {if condition="$param['is_show'] eq '0'"}selected {/if}>否</option>
+                    <option value="1" {if condition="$param['is_show'] eq '1'"}selected {/if}>是</option>
+                  </select>
+                </div>
+                <div class="layui-input-inline w150">
+                  <select name="sort">
+                    <option value="">钻石排序</option>
+                    <option value="1" {if condition="$param['sort'] eq '1'"}selected {/if}>砖石数↓</option>
+                    <option value="2" {if condition="$param['sort'] eq '2'"}selected {/if}>砖石数↑</option>
+                  </select>
+                </div>
+
+                <div class="layui-input-inline layui-show-xs-block">
+                    <input type="submit" class="layui-btn"  value="搜索">
+                </div>
+              </form>
+          </div>
+          <div class="layui-card-header">
+            <button class="layui-btn layui-btn-normal" onclick="clearCache()">
+              <i class="layui-icon"></i>清除缓存
+            </button>
+            <button class="layui-btn" onclick="ser_add()">
+              <i class="layui-icon"></i>添加
+            </button>
+          </div>
+          <div class="layui-card-body ">
+            <table class="layui-table layui-form">
+              <thead>
+                <tr>
+                  <th width="50">ID</th>
+                  <th width="80">系列名称</th>
+                  <th width="80">封面</th>
+                  <th width="50">砖石数</th>
+                  <th width="50">影片总数</th>
+                  <th>上线</th>
+                  <th width="50">排序</th>
+                  <th width="300">操作</th>
+                  <th width="80">上映时间</th>
+              </thead>
+              <tbody>
+                {volist name="list" id="vo"}
+                  <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.title}</td>
+                    <td>
+                      {notempty name="vo.image"}
+                      <div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)"><img style="width: 100%;height: 100%" src="{$img_url}{$vo.image}"></div>
+                      {else /}
+                      暂无图片
+                      {/notempty}
+                    </td>
+                    <td>{$vo.amount}</td>
+                    <td>{$vo.total_video}</td>
+                    <td>
+                      <input type="checkbox" name="is_show" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.is_show eq 1"} checked {/if}  value="{$vo['is_show']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" >
+                    </td>
+                    <td><input  type="number" min="0" autocomplete="off" data-id="{$vo.id}" onchange="set_sort(this,this.value)" value="{$vo.sort}" class="layui-input sort"></td>
+                    <td class="td-manage">
+                        <button class="layui-btn layui-btn layui-btn-primary" data-id="{$vo.id}" onclick="set_translate(this, 'group')">进行翻译</button>
+                        <button class="layui-btn layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                        <button class="layui-btn-danger layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                    </td>
+                    <td>{$vo.created_at}</td>
+                  </tr>
+                {/volist}
+              </tbody>
+            </table>
+          </div>
+          <div class="layui-card-body ">
+              <div id="pages" class="center"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl="{:url('group/index',$param)}";
+      layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          ,count: {$total}
+          ,limit: {$limit}
+          ,limits:[10,20,50,100]
+          ,curr: {$page}
+          ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          ,jump: function(obj,first){
+            if(!first){
+              location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        var field = that.attr('name');
+        if(this.checked){
+            status = 1;
+        }
+
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('group/modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field:field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+    });
+
+    /*
+    添加
+     */
+    function ser_add() {
+      var url='{:url("info")}';
+      layer.open({
+        type: 2,
+        title: '添加系列',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+
+    /*
+    编辑
+     */
+    function set_edit(t) {
+      var id=$(t).attr("data-id");
+      var url='{:url("info")}'+'?id='+id;
+      var edit = layer.open({
+        type: 2,
+        title: '编辑系列',
+        area: ['100%', '100%'],
+        content: url, //iframe的url
+      });
+      layer.full(edit);
+    }
+
+    /*
+    排序
+     */
+    function set_sort(t,value) {
+      var id=$(t).attr("data-id");
+      $.ajax({
+        url: "{:url('modify')}",
+        type: "POST",
+        data: {
+          id:id,
+          field: 'sort',
+          value: value,
+        },
+        async: false,
+        success: function (data) {
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+    }
+
+    /*
+    删除
+     */
+    function set_del(t) {
+      var id=$(t).attr("data-id");
+      layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+      }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("del")}',{'id':id},function(data){
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            },1500);
+          }else{
+            layer.alert(data.msg,{icon:2});
+          }
+        });
+      }, function(index){
+        //按钮【按钮二】的回调
+      });
+    }
+
+    
+    function show_img(t) {
+      var t = $(t).find("img");
+      //页面层
+      layer.open({
+        type: 1,
+        skin: 'layui-layer-rim', //加上边框
+        area: ['75%', '75%'], //宽高
+        shadeClose: true, //开启遮罩关闭
+        end: function (index, layero) {
+          $('body,html,iframe').css({
+            "overflow-x": "auto",
+            "overflow-y": "auto"
+          });
+          return false;
+        },
+        content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+      });
+      $('body,html,iframe').css({
+        "overflow-x": "hidden",
+        "overflow-y": "hidden"
+      });
+    }
+    
+  /*
+  翻译
+  */
+ function set_translate(t, modelType) {
+    var id = $(t).attr("data-id");
+    var loadingIndex = layer.load(1, { shade: [0.3, '#000'] });
+    
+    // Call universal translate controller with model_type parameter
+    $.post('{:url("translate/translate")}', { 
+        id: id, 
+        model_type: modelType  // 'publisher', 'actor', 'tag', etc.
+    }, function (data) {
+        layer.close(loadingIndex);
+        if (data.code == 1) {
+            layer.msg(data.msg, { icon: 1 });
+            setTimeout(function () {
+                location.reload();
+            }, 1500);
+        } else {
+            layer.alert(data.msg, { icon: 2 });
+        }
+    }, 'json');
+  }
+
+  function clearCache() {
+    layer.confirm('你确定要清除系列缓存么？', {
+      btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("clearCache")}',{},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+        }else{
+          layer.alert(data.msg,{icon:2});
+        }
+      });
+
+    }, function(index){
+  });
+}
+</script>
+</html>

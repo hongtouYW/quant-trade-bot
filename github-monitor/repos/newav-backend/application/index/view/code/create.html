@@ -1,0 +1,148 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>生成个数</label>
+                <div class="layui-input-inline">
+                    <input type="number"min="0" name="num" lay-verify="required" edit="text" autocomplete="off"  class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>有效天数</label>
+                <div class="layui-input-inline">
+                    <select name="day" required="" lay-verify="required">
+                        <option value="">有效天数</option>
+                        <option value="3">3天</option>
+                        <option value="7">7天</option>
+                        <option value="30">30天</option>
+                        <option value="60">60天</option>
+                        <option value="360">360天</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span class="x-red">*</span>VIP天数:</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="day_value" value="{$info.day_value}" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <span class="x-red">*</span>不填默认为0
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span class="x-red">*</span>钻石数量:</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="diamonds" value="{$info.diamonds}" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <span class="x-red">*</span>不填默认为0
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">点卷数量:</label>
+                <div class="layui-input-inline">
+                    <input type="number" name="points" value="{$info.points}" autocomplete="off" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <span class="x-red">*</span>不填默认为0
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+            
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+            // Add custom validation for benefits
+            benefits: function(value, item) {
+                var dayValue = $('input[name="day_value"]').val();
+                var diamonds = $('input[name="diamonds"]').val();
+                var points = $('input[name="points"]').val();
+                
+                // Convert to numbers and handle empty values
+                dayValue = dayValue ? parseInt(dayValue) : 0;
+                diamonds = diamonds ? parseInt(diamonds) : 0;
+                points = points ? parseInt(points) : 0;
+                
+                // Check if all benefits are 0
+                if (dayValue === 0 && diamonds === 0 && points === 0) {
+                    return '至少需要设置一种权益（VIP天数、钻石数量或点卷数量）';
+                }
+            }
+        });
+
+        var flag=false;
+        form.on('submit(sub)', function (data) {
+            if (flag){
+                return  false;
+            }
+            
+            // Manual validation before AJAX call
+            var dayValue = $('input[name="day_value"]').val();
+            var diamonds = $('input[name="diamonds"]').val();
+            var points = $('input[name="points"]').val();
+            
+            // Convert to numbers and handle empty values
+            dayValue = dayValue ? parseInt(dayValue) : 0;
+            diamonds = diamonds ? parseInt(diamonds) : 0;
+            points = points ? parseInt(points) : 0;
+            
+            // Check if all benefits are 0
+            if (dayValue === 0 && diamonds === 0 && points === 0) {
+                layer.msg('至少需要设置一种权益（VIP天数、钻石数量或点卷数量）', {icon: 2});
+                return false;
+            }
+            
+            flag = true;
+            $.ajax({
+                url: "{:url('create')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    console.log(data);
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        flag = false;
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    flag = false;
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,64 @@
+{include file="public/header" /}
+<link rel="stylesheet" href="__STATIC__/xadmin/css/login.css">
+<body class="login-bg">
+
+<div class="login layui-anim layui-anim-up">
+    <div class="message">国内18Toon-后台管理系统</div>
+    <div id="darkbannerwrap"></div>
+
+    <form class="layui-form">
+        <div style="text-align: center; margin-bottom: 15px;">
+            <img src="{$qrCodeUrl}" alt="Google QR Code" style="width:200px;height:200px;">
+        </div>
+        <div style="margin-bottom: 15px; text-align: center; color: #333;">
+            请使用 Google Authenticator 扫描上方二维码  
+            <br> 或手动输入秘钥：<b>{$secret}</b>
+        </div>
+
+        <input name="code" id="code" lay-verify="required" placeholder="请输入6位谷歌验证码" type="text" class="layui-input">
+        <hr class="hr15">
+
+        <input value="绑定并登录" lay-submit lay-filter="bind" style="width:100%;" type="submit">
+        <hr class="hr20">
+    </form>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+    var $ = layui.jquery;
+    var form = layui.form,
+        layer = layui.layer;
+
+    form.verify({
+        required: [/[\S]+/, "验证码不能为空"]
+    });
+
+    form.on('submit(bind)', function () {
+        var code = $("#code").val();
+
+        $.ajax({
+            url: "{:url('/login/bindCheck')}", // 你需要新建的后端验证路由
+            type: "POST",
+            data: {
+                code: code
+            },
+            success: function (data) {
+                if (data.code == 1) {
+                    layer.msg(data.msg, {icon: 1});
+                    window.location.href = data.url;
+                } else {
+                    layer.msg(data.msg, {icon: 2});
+                }
+            },
+            error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+            }
+        });
+
+        return false;
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'select' => 'Pilih Kawasan',
+    'select_type' => 'Pilih Jenis Kawasan',
+    'area_list' => 'Senarai Kawasan',
+    'add_new_area' => 'Tambah Kawasan Baru',
+    'area_added_successfully' => 'Kawasan berjaya ditambah!',
+    'area_updated_successfully' => 'Kawasan berjaya dikemaskini!',
+    'area_deleted_successfully' => 'Kawasan berjaya dipadam!',
+    'area_code' => 'Kod Kawasan',
+    'area_name' => 'Nama Kawasan',
+    'area_type' => 'Jenis Kawasan',
+    'postal_code' => 'Poskod',
+    'district' => 'Daerah',
+    'city' => 'Bandar',
+    'status' => 'Status',
+    'active' => 'Aktif',
+    'inactive' => 'Tidak Aktif',
+    'never' => 'Tidak Pernah',
+    'edit_area' => 'Kemaskini Kawasan',
+    'delete_area' => 'Padam Kawasan',
+    'confirm_delete_area' => 'Adakah anda pasti ingin memadam Kawasan ini?',
+    'no_data_found' => 'Tiada Kawasan dijumpai.',
+    'leave_blank_for_no_change' => 'Biarkan kosong jika tiada perubahan',
+    'active_status' => 'Aktif',
+];

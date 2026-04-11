@@ -1,0 +1,24 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.DJUser" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/blue_1C3B7C</item>
+        <item name="colorPrimaryVariant">@color/blue_1C3B7C</item>
+        <item name="colorOnPrimary">@color/black_000000</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/orange_F8AF07</item>
+        <item name="colorSecondaryVariant">@color/orange_F8AF07</item>
+        <item name="colorOnSecondary">@color/white_FFFFFF</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/blue_00143D</item>
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/blue_00143D</item>
+        <item name="android:textColor">@color/white_FFFFFF</item>
+    </style>
+
+    <style name="AppTheme_FullscreenDialog" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+</resources>

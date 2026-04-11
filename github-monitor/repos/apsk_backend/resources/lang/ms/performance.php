@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'performance_list' => 'Sejarah Prestasi',
+    'id' => 'ID',
+    'upline' => 'Atasan （Upline）',
+    'downline' => 'Bawahan（Downline）',
+    'sales_amount' => 'Jumlah Jualan',
+    'commission_amount' => 'Jumlah Komisen',
+    'performance_date' => 'Tarikh Prestasi',
+    'before_balance' => 'Baki Sebelum',
+    'after_balance' => 'Baki Selepas',
+    'notes' => 'Rekod Prestasi',
+    'status' => 'Status',
+    'active' => 'Lulus',
+    'pending' => 'Menunggu Keputusan',
+    'inactive' => 'Transaksi Telah Ditolak',
+    'mydata' => 'Data Saya',
+    'invitecode' => 'Kod Jemputan',
+    'invitecode_no_data' => 'Kod Jemputan semasa tidak ditemui',
+    'duplicateinvitecode' => 'Kod Jemputan telah digunakan.',
+    'invitecode_addsuccess' => 'Kod Jemputan telah ditambah.',
+    'invitecode_editsuccess' => 'Kod Jemputan telah dikemas kini.',
+    'no_data_found' => 'Tiada rekod prestasi ditemui.',
+];

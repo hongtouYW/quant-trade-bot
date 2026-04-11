@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog"
+    android:elevation="4dp"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/textView_dialog_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/pingfang_sc_semi_bold"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="18sp" />
+
+    <View
+        android:id="@+id/view_divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/blue_354B9C" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView_dialog_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:lineSpacingExtra="4sp"
+                android:padding="16dp"
+                android:textColor="@color/gray_BCBCBC"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/textView_dialog_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:lineSpacingExtra="4sp"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/textView_dialog_negative"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="16dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_bordered_orange"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:gravity="center"
+                    android:textColor="@color/orange_F8AF07"
+                    android:textSize="14sp" />
+
+                <com.dj.user.widget.BlackTextButton
+                    android:id="@+id/button_dialog_positive"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

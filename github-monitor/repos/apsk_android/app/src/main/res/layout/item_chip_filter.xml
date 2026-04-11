@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/chip_label"
+    android:layout_width="wrap_content"
+    android:layout_height="36dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_button_bordered_transparent"
+    android:fontFamily="@font/pingfang_sc_regular"
+    android:gravity="center"
+    android:paddingHorizontal="16dp"
+    android:textColor="@color/orange_F8AF07"
+    android:textSize="12sp" />

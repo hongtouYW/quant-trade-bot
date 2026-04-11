@@ -1,0 +1,106 @@
+@font-face {
+  font-family: 'PingFang SC';
+  src: url('/fonts/PingFang-SC-Regular.woff2') format('woff2'),
+       url('/fonts/PingFang-SC-Regular.woff') format('woff'),
+       url('/fonts/PingFang-SC-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PingFang SC';
+  src: url('/fonts/PingFang-SC-Medium.woff2') format('woff2'),
+       url('/fonts/PingFang-SC-Medium.woff') format('woff'),
+       url('/fonts/PingFang-SC-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PingFang SC';
+  src: url('/fonts/PingFang-SC-Semibold.woff2') format('woff2'),
+       url('/fonts/PingFang-SC-Semibold.woff') format('woff'),
+       url('/fonts/PingFang-SC-Semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PingFang SC';
+  src: url('/fonts/PingFang-SC-Bold.woff2') format('woff2'),
+       url('/fonts/PingFang-SC-Bold.woff') format('woff'),
+       url('/fonts/PingFang-SC-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Times New Roman';
+  src: local('Times New Roman');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Times New Roman';
+  src: local('Times New Roman');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Font Classes */
+.font-pingfang {
+  font-family: 'PingFang SC', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.font-roboto {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.font-inter {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.font-times {
+  font-family: 'Times New Roman', Times, serif;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins/Poppins-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins/Poppins-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins/Poppins-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

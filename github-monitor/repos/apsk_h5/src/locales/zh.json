@@ -1,0 +1,1392 @@
+{
+  "welcome": "欢迎, ",
+  "vip": "VIP {level}",
+  "balance": "余额",
+  "wallet": "我的钱包",
+  "transactions": "交易记录",
+  "topup": "充值",
+  "withdraw": "提现",
+  "vipPrivileges": "VIP 特权",
+  "discount": "优惠中心",
+  "bank": "银行详情",
+  "promote": "推广赚钱",
+  "bonusBadge": "送 {percent}%",
+  "nav": {
+    "home": "首页",
+    "privacy": "隐私政策",
+    "sport": "体育",
+    "all": "全部",
+    "slot": "老虎机",
+    "hot": "热门",
+    "app": "APP",
+    "electronic": "电子",
+    "chess": "棋牌",
+    "newMember": "新会员充值",
+    "crypto": "数字货币充值活动",
+    "agent": "代理",
+    "hotActivity": "热门活动",
+    "other": "其他活动",
+    "fishing": "捕鱼",
+    "live": "真人",
+    "sports": "体育",
+    "lottery": "彩票",
+    "cock": "斗鸡"
+  },
+  "account": {
+    "switch": "切换账号"
+  },
+  "tabs": {
+    "hot": "热门",
+    "recent": "最近",
+    "favorite": "收藏"
+  },
+  "footer": {
+    "home": "首页",
+    "promo": "优惠",
+    "cs": "客服",
+    "me": "我的"
+  },
+
+  "setting": {
+    "profile": "个人资料",
+    "safety": "安全隐私",
+    "contact": "找到我们",
+    "contactNote": "防止打不开",
+    "download": "APP 下载",
+    "feedback": "APP 反馈",
+    "help": "帮助",
+    "language": "语言",
+    "logout": "登出",
+    "logoutConfirm": "确认退出",
+    "logoutConfirmMessage": "是否退出当前账号?"
+  },
+  "findus": {
+    "common": {
+      "copied": "已复制",
+      "copyFailed": "复制失败",
+      "openEmail": "打开邮箱"
+    },
+    "title": "找到我们",
+    "saveWebsite": "保存网址",
+    "websiteNote": "为了防止（避免）网页打不开，影响您的游戏体验，请您及时保存我们的永久地址：",
+    "homeLink1": "回家网址 1",
+    "homeLink2": "回家网址 2",
+    "officialLink": "官方网址",
+    "saveImage": "保存图片",
+    "saveEmail": "保存邮箱",
+    "emailNote": "官方邮箱，咨询域名，永不迷路：发送任何内容获取最新地址"
+  },
+  "appdownload": {
+    "iosVersion": "iOS 版本 {version}",
+    "androidVersion": "Android 版本 {version}",
+    "title": "APP 下载",
+    "instruction": "扫描或点击应用商店下载我们的应用程序",
+    "clickNote": "（点击可前往）"
+  },
+
+  "language": {
+    "current": {
+      "zh": "简体中文",
+      "ms": "Melayu",
+      "en": "English"
+    },
+    "title": "语言",
+    "cn": "中文",
+    "zh": "中文",
+    "ms": "马来文",
+    "en": "英语",
+    "th": "泰国",
+    "vi": "越南",
+    "my": "缅甸"
+  },
+  "help": {
+    "noSupportLink": "客服暂时无法使用，请稍后再试。",
+    "noChild": "暂无子项目",
+    "detailTitle": "帮助详情",
+    "noAnswer": "暂无内容",
+    "createdOn": "创建时间",
+    "title": "帮助",
+    "tab": {
+      "faq": "常见问题",
+      "trade": "交易操作",
+      "transfer": "转移",
+      "vip": "VIP等级讲解"
+    },
+
+    "card": {
+      "title": "7 × 24 在线客服",
+      "subtitle": "专业客服在线对话，为您解决问题。",
+      "cs1": "在线客服 1",
+      "cs2": "在线客服 2",
+      "otherCS": "其他客服"
+    },
+
+    "group": {
+      "wallet": "虚拟币钱包",
+      "game": "游戏问题",
+      "promo": "优惠问题",
+      "topup": "充值问题",
+      "withdraw": "提现问题"
+    },
+
+    "q": {
+      "wallet": {
+        "1": "1．USDT虚拟币钱包的了解和使用",
+        "2": "2．使用虚拟币的好处",
+        "3": "3．如何下载并使用虚拟币"
+      },
+      "game": {
+        "1": "1．游戏常见问题"
+      },
+      "promo": {
+        "1": "1．优惠相关问题"
+      },
+      "topup": {
+        "1": "1．如何充值与到账时间"
+      },
+      "withdraw": {
+        "1": "1．如何提现与注意事项"
+      }
+    }
+  },
+  "msgCenter": {
+    "title": "消息中心",
+    "tabs": {
+      "cs": "客服",
+      "notice": "通知",
+      "marquee": "首页跑马灯",
+      "appFeedback": "App反馈"
+    },
+    "actions": {
+      "create": "创建反馈",
+      "mine": "我的反馈",
+      "submit": "提交反馈"
+    },
+    "form": {
+      "topic": "反馈标题",
+      "topicPlaceholder": "反馈问题",
+      "topic_bug": "功能异常 / Bug",
+      "topic_ui": "界面显示",
+      "topic_suggest": "功能建议",
+      "topic_other": "其他",
+      "content": "反馈内容",
+      "placeholder": "你的任何一件事对我们都很重要，欢迎您畅所欲言！",
+      "mediaTitle": "反馈图片",
+      "mediaNote": "支持图片与视频上传，图片大小不得超过2MB，视频大小不得超过20MB",
+      "topic_gameSpeed": "游戏加载速度",
+      "topic_uiSmooth": "操作手感 / 流畅度",
+      "topic_difficulty": "关卡难度",
+      "topic_guide": "新手引导"
+    },
+    "toast": {
+      "submitted": "已提交反馈",
+      "success": "反馈已成功提交！",
+      "error": "提交失败，请稍后再试。"
+    },
+    "mine": {
+      "empty": "暂无反馈记录"
+    },
+    "validation": {
+      "fillAll": "请填写所有必填项。",
+      "topicRequired": "请选择反馈主题。",
+      "contentRequired": "请输入反馈内容。",
+      "missingMember": "用户信息缺失，请重新登录。",
+      "imageRequired": "至少上传一张图片。"
+    }
+  },
+  "profile": {
+    "title": "个人资料",
+    "changeAvatar": "更换头像",
+    "username": "用户名",
+    "usernamePlaceholder": "请输入用户名",
+    "userId": "用户ID",
+    "bindSocial": "绑定社交账号",
+    "birthday": "生日",
+    "saveSuccess": "资料已成功保存",
+    "saveFailed": "资料保存失败，请重试",
+    "errors": {
+      "usernameRequired": "请输入用户名",
+      "socialRequired": "请输入社交账号",
+      "birthdayRequired": "请选择生日",
+      "avatarRequired": "请上传头像",
+      "userIdRequired": "用户编号不能为空"
+    }
+  },
+  "common": {
+    "loadFailed": "加载失败，请重试",
+    "home": "首页",
+    "confirmLogout": "确认退出登录",
+    "sessionExpired": "登录已过期",
+    "sessionExpiredMessage": "您的登录已过期，请重新登录。",
+    "networkError": "网络错误，请稍后再试。",
+    "select": "请选择",
+    "success": "成功",
+    "error": "发生错误，请稍后再试。",
+    "noData": "暂无数据",
+    "underMaintenanceTitle": "页面维护中",
+    "underMaintenanceMessage": "此页面目前仅供示范用途，功能暂不可用。",
+    "ok": "确定",
+    "save": "保存",
+    "loading": "加载中...",
+    "saveSuccess": "保存成功",
+    "noRecords": "暂无记录",
+    "noMore": "没有更多了",
+    "copy": "复制",
+    "copySuccess": "复制成功",
+    "copyFailed": "复制失败",
+    "cancel": "取消",
+    "confirm": "确认",
+    "back": "返回",
+    "somethingWentWrong": "发生错误，请重试。",
+    "copied": "已复制",
+    "favorite": "收藏",
+    "retry": "重试",
+    "next": "前往",
+    "credit": "余额",
+    "points": "积分",
+    "close": "关闭",
+    "backHome": "返回首页",
+    "link": "链接",
+    "downloadUrl": "App下载链接"
+  },
+  "vips": {
+    "invalidBonusType": "无效的奖励类型",
+    "dailyBonusNotImplemented": "每日奖励接口尚未实现",
+    "max": "已达最高等级",
+    "title": "VIP 特权",
+    "oneClickClaim": "一键领取",
+    "claimRecords": "领取记录",
+    "upgradeNeed": "距离升级还需充值",
+    "section": {
+      "normal": "普级奖金",
+      "weekly": "周俸禄",
+      "monthly": "月俸禄",
+      "firstbonus": "普及奖金",
+      "dailybonus": "日俸禄",
+      "weeklybonus": "周俸禄",
+      "monthlybonus": "月俸禄"
+    },
+    "col": {
+      "level": "等级",
+      "needNormal": "普级再充值",
+      "needWeekly": "周投注",
+      "needMonthly": "月投注",
+      "reward": "奖金"
+    },
+    "rules": {
+      "title": "规则说明",
+      "item1": "晋级标准：满足VIP晋级要求（即充值值或有效投注都满足条件），即可晋级相应VIP等级，获得相应晋级奖金。如连续晋级多级，可获得全部晋级奖金，今日00:00:00以后才可领取；",
+      "item2": "日俸禄：每日充值及有效投注满足当前等级日俸禄要求，可获得对应日俸禄奖金。如连续晋级多级，仅可获得当前等级日俸禄奖金，今日00:00:00以后才可领取，当天未领取，奖励过期；",
+      "item3": "周俸禄：每周充值及有效投注满足当前等级周俸禄要求，可获得对应周俸禄奖金。如连续晋级多级，仅可获得当前等级周俸禄奖金，今日00:00:00以后才可领取，本周未领取，奖励过期；",
+      "item4": "月俸禄：每月充值及有效投注满足当前等级月俸禄要求，可获得对应月俸禄奖金。如连续晋级多级，仅可获得当前等级月俸禄奖金，今日00:00:00以后才可领取，本月未领取，奖励过期；",
+      "item5": "奖励过期说明：奖励过期直接作废，请在领取倒计时结束前进行领取；",
+      "item6": "稽核说明：VIP所赠送的奖金需1倍流水（即稽核，打码或有效投注）才能提取，打码不限游戏平台；",
+      "item7": "活动声明：本功能仅限账号本人进行正常游戏投注，禁止租借账号、无风险投注（对冲、对刷、低赔刷水）、恶意套利、使用外挂程式、机器人、利用协议、漏洞、接口、群控或其他技术手段参与，一经查核属实，本平台有权终止会员登录、暂停会员使用网站、及没收奖金和不当盈利的权利，无需特别通知；"
+    }
+  },
+  "transaction": {
+    "title": "交易记录",
+    "back": "返回",
+    "tabs": {
+      "credit": "Credit流水",
+      "points": "Points流水",
+      "bets": "投注历史"
+    },
+    "tx": {
+      "qrPayment": "商店QR提现 {amount}",
+      "pointReload": "上分 {amount}",
+      "topup": "线上充值 {amount}",
+      "rebate": "领取 rebate {amount}",
+      "bonus": "领取 bonus {amount}",
+      "withdraw": "线上提现 {amount}",
+      "reload": "上分 {amount}",
+      "pointWithdraw": "下分 {amount}",
+      "gameDeposit": "游戏充值 {amount}",
+      "gameWithdraw": "游戏提现 {amount}",
+      "deposit": "线上充值 {amount}",
+      "unknown": "交易 {amount}"
+    },
+    "detail": {
+      "pTopup": "商店充值",
+      "provider": "供应商",
+      "notFound": "未找到交易记录",
+      "amount": "充值金额",
+      "bank": "银行",
+      "time": "交易时间",
+      "method": "交易方式",
+      "id": "交易编号",
+      "status": "交易状态",
+      "game": "游戏",
+      "bet": "投注",
+      "win": "赢取",
+      "begin": "开始余额",
+      "end": "结束余额"
+    },
+    "status": {
+      "success": "成功",
+      "failed": "失败",
+      "pending": "处理中"
+    },
+    "actions": {
+      "filter": "筛选"
+    },
+    "filter": {
+      "title": "筛选",
+      "clear": "清除",
+      "rangeTitle": "筛选范围",
+      "searchByDate": "日期搜索",
+      "reset": "重置",
+      "resultTitle": "筛选结果",
+      "quick": {
+        "all": "全部",
+        "today": "今天",
+        "yesterday": "昨天",
+        "thisWeek": "这星期",
+        "lastWeek": "上星期",
+        "thisMonth": "这个月",
+        "lastMonth": "上个月",
+        "prevDay": "前一天",
+        "nextDay": "下一天"
+      },
+      "date": "日期",
+      "dateFrom": "开始日期",
+      "dateTo": "结束日期",
+      "cancel": "取消",
+      "apply": "应用",
+      "preview": "预览"
+    }
+  },
+
+  "safety": {
+    "title": "安全隐私",
+    "items": {
+      "phone": "手机号",
+      "email": "绑定邮箱",
+      "googleAuth": "Google Authentication",
+      "face": "脸部验证",
+      "fingerprint": "指纹验证",
+      "changePassword": "更改密码"
+    },
+    "status": {
+      "unbound": "未绑定",
+      "unadded": "未添加",
+      "bound": "已绑定"
+    },
+    "actions": {
+      "back": "返回"
+    }
+  },
+  "bindPhone": {
+    "title": "手机号",
+    "heading": "绑定手机号码",
+    "subtitle": "此电话号码将用于登录",
+    "placeholder": "请输入手机号",
+    "verify": "验证",
+    "boundTitle": "已绑定手机号",
+    "boundSubtitle": "此电话号码将用于登录"
+  },
+  "otp": {
+    "title": "验证码",
+    "enterCode": "请输入验证码",
+    "sentTo": "验证码已发送至 {phone}",
+    "resend": "重新发送验证码 ({seconds}s)",
+    "verify": "验证",
+    "bindSuccess": "成功绑定电话号码"
+  },
+  "bindEmail": {
+    "title": "邮箱",
+    "heading": "绑定邮箱",
+    "subtitle": "此邮箱将用于登录",
+    "placeholder": "请输入邮箱",
+    "verify": "验证",
+    "errors": {
+      "emailRequired": "请输入邮箱地址",
+      "emailInvalid": "邮箱地址格式不正确"
+    }
+  },
+  "ga": {
+    "title": "谷歌验证器",
+    "h1Bind": "绑定谷歌验证器",
+    "h1Unbind": "解绑谷歌验证器",
+
+    "step1": "步骤一",
+    "download": "下载并安装",
+    "googleAuthenticator": "Google Authenticator",
+    "openTip": "安装后打开应用",
+
+    "step2": "步骤二",
+    "addQrTip": "在应用中扫描二维码或手动输入密钥",
+    "copyPrefix": "密钥",
+    "copy": "复制",
+
+    "step3": "步骤三",
+    "enterSixDigits": "在下方输入应用生成的6位验证码",
+    "enterSixDigitsToUnbind": "输入6位验证码以解绑",
+
+    "actions": {
+      "bindNow": "立即绑定",
+      "unbindNow": "立即解绑"
+    },
+
+    "copied": "已复制",
+    "enableSuccess": "绑定成功",
+    "disableSuccess": "解绑成功",
+
+    "errors": {
+      "sixDigits": "请输入6位数字验证码",
+      "failed": "操作失败，请稍后重试",
+      "noMember": "找不到用户，请重新登录"
+    }
+  },
+  "pwd": {
+    "title": "修改密码",
+    "enterPwd": "请输入您的密码",
+    "old": "当前密码",
+    "new": "新密码",
+    "confirm": "确认新密码",
+    "strength": "密码强度",
+    "next": "下一步",
+    "errors": {
+      "required": "请输入当前密码",
+      "min6": "新密码至少6位字符",
+      "mix": "新密码需包含字母和数字",
+      "mismatch": "两次输入的密码不一致",
+      "failed": "修改密码失败"
+    },
+    "show": "显示",
+    "hide": "隐藏"
+  },
+  "securityVerify": {
+    "success": "密码已成功更新",
+    "successModal": {
+      "title": "密码更改成功",
+      "message": "下次登入可开始使用新的密码",
+      "confirm": "我知道了"
+    },
+    "errors": {
+      "invalidCode": "请输入有效的 6 位验证码",
+      "noMethod": "没有可用的验证方式",
+      "failed": "验证失败"
+    },
+    "title": "安全驗證",
+    "phone": {
+      "title": "手機號碼",
+      "tip": "請輸入手機號碼收到的驗證碼",
+      "switch": "切換到郵箱驗證方式"
+    },
+    "email": {
+      "title": "郵箱",
+      "tip": "請輸入郵箱收到的驗證碼"
+    },
+    "ga": {
+      "title": "谷歌驗證碼",
+      "tip": "請輸入谷歌驗證碼"
+    },
+    "actions": {
+      "send": "發送驗證碼",
+      "paste": "粘貼",
+      "verify": "驗證"
+    }
+  },
+  "bankDetail": {
+    "title": "银行详情",
+    "addedTitle": "已添加银行账户",
+    "desc": "您添加的银行账户将用于充值和应用内购买所需的确切金额。",
+    "fastPay": "快速支付",
+    "addNewTitle": "添加新银行账户",
+    "addNewDesc": "通过启用此账户进行快捷付款。",
+    "addBankAccount": "添加新银行账户"
+  },
+  "bankAdd": {
+    "title": "添加银行卡",
+    "addTitle": "新增银行卡",
+    "username": {
+      "label": "账户姓名",
+      "placeholder": "请输入账户姓名",
+      "tip": "请填写与银行账户一致的姓名"
+    },
+    "bank": {
+      "label": "选择银行",
+      "placeholder": "请选择银行"
+    },
+    "account": {
+      "label": "银行卡号",
+      "placeholder": "请输入银行卡号"
+    },
+    "fastPay": {
+      "label": "快捷支付",
+      "note": "开启后可用于快速充值/支付"
+    },
+    "actions": {
+      "submit": "确认提交"
+    },
+    "errors": {
+      "nameRequired": "请填写账户姓名",
+      "bankRequired": "请选择银行",
+      "accountRequired": "请填写银行卡号",
+      "accountDigitsOnly": "银行卡号只能包含数字",
+      "accountMinLen": "银行卡号长度不能少于 8 位",
+      "accountMaxLen": "银行卡号长度不能超过 {max} 位",
+      "invalidFormat": "银行卡号格式不正确"
+    },
+    "toasts": {
+      "saving": "提交中…",
+      "saveSuccess": "保存成功",
+      "saveFailed": "保存失败，请稍后重试"
+    }
+  },
+
+  "bankPicker": {
+    "title": "选择银行",
+    "searchPlaceholder": "搜索银行名称",
+    "search": "搜索",
+    "empty": "暂无可选银行",
+    "noResults": "未找到匹配的银行"
+  },
+
+  "bankEdit": {
+    "header": "已添加银行账号",
+    "title": "添加银行户口",
+    "actions": {
+      "delete": "删除银行户口"
+    },
+    "deleteConfirm": {
+      "message": "您确定要删除此银行账户吗？这也会删除您的快速付款。",
+      "confirm": "前往"
+    },
+    "toast": {
+      "deleted": "银行账户已删除"
+    }
+  },
+  "withdraws": {
+    "accountCommission": "此账号抽成 {value}%",
+    "chargeRate": "手续费 {value}%",
+    "finalAmount": "可获得的金额为 {value}",
+    "selectBank": "更换银行",
+    "addBank": "添加银行",
+    "title": "提现",
+    "credit": "余额",
+    "points": "积分",
+    "myId": "我的ID",
+    "amount": "输入金额",
+    "all": "全部",
+    "minAmount": "最低 {value}",
+    "maxAmount": "最高 {value}",
+    "submitTransfer": "提交转账请求",
+    "qrPay": "门店二维码现金支付",
+    "bank": "已添加的银行",
+    "bankUsername": "银行账户姓名",
+    "bankAccount": "银行账户号码",
+    "submit": "前往",
+    "qrSubtitle": "QR提现：",
+    "qrInstruction": "向商家出示二维码以完成扣款",
+    "autoRefreshLabel": "自动刷新倒计时：",
+    "success": "成功提交提现请求，系统将冻结提现金额，等待后台审核",
+    "errors": {
+      "amountRequired": "请输入金额",
+      "amountGtZero": "金额需大于 0",
+      "amountMin": "最低提款金额为 {value}",
+      "amountMax": "最高提款金额为 {value}",
+      "bankRequired": "请选择银行账号"
+    }
+  },
+  "earn": {
+    "title": "推广赚钱",
+    "tabs": {
+      "share": "推广分享",
+      "stats": "我的数据",
+      "performance": "我的业绩",
+      "commission": "我的佣金",
+      "downline": "下级信息",
+      "backRatioTab": "返回比列",
+      "directMember": "直属开户"
+    },
+    "share": {
+      "wechatTip": "请长按二维码或截图，在微信中分享给好友",
+      "invitaionCode": "邀请码",
+      "toClaim": "待领取",
+      "myUpline": "我的上级",
+      "oneClickReceive": "一键领取",
+      "receiveHistory": "佣金记录",
+      "agentMode": "代理模式 全民代理（日结）",
+      "save": "保存",
+      "myLink": "我的链接",
+      "switch": "更换",
+      "shareTitle": "将此邀请码分享给"
+    },
+    "tutorial": {
+      "title": "推广教程",
+      "selfPerformance": "直屬業績",
+      "directCommission": "直屬傭金",
+      "otherCommission": "其他傭金",
+      "totalCommission": "本期傭金"
+    },
+    "note": "每一級新會員直屬業績和佣金，員工下級只限有效，越多越好",
+    "rules": {
+      "title": "佣金说明如下：",
+      "r1": "A的业绩计算方式如下：\n（1）认领说明：A的直系来源除了直属下级B1、B2和B3五家，还有效用其他下级C1、C2和C3来源。\n（2）A当日业绩直系：即A的直属下级B1、B2和B3会员所做的业绩，计算公式 = 直属业绩：直属直投业绩B1+直属B2投直投业绩B3的直投业绩 = 500+3000+2000=5500；\n（3）A的佣金计算公式：直属佣金=直属业绩比例×佣金比例=5500×10%=550；\n（4）A其他佣金：由C1、C2和C3以及B1直属下级所做的业绩，计算公式 = 其他佣金：(1000+2000+2000+1000+2000)×10%×3%=690；\n（5）A本期佣金：直属佣金550+其他佣金690=1240。",
+      "r2": "B1的业绩计算方式如下（下线分佣0.1%）：\n（1）认领说明：B1的直系来源除了直属下级C1、C2和C3三家。\n（2）B1当日业绩直系：即B1的直属下级C1、C2和C3会员所做的业绩，计算公式 = 直属业绩：C1直投业绩1000+C2直投业绩2000+C3直投业绩2000=5000；\n（3）B1的佣金计算公式：直属佣金=直属业绩比例×佣金比例=5000×10%=500；\n（4）B1的佣金计算：佣金即直属佣金500。",
+      "r3": "B2的业绩计算方式如下：\n（1）认领说明：B2的直系来源除了直属下级D1、D2和D3三家。\n（2）B2当日业绩直系：即B2的直属下级D1、D2和D3会员所做的业绩，计算公式 = 直属业绩：D1直投业绩1000+D2直投业绩2000+D3直投业绩3000=6000；\n（3）B2的佣金计算公式：直属佣金=直属业绩比例×佣金比例=6000×10%=600；\n（4）B2的佣金计算：佣金即直属佣金600。",
+      "r4": "B3的业绩计算方式如下：\n（1）认领说明：B3的直系来源除了直属下级E1、E2和E3三家，还有来自其他下级F1、C2和C3来源。\n（2）B3当日业绩直系：即B3的直属下级E1、E2和E3会员所做的业绩，计算公式 = 直属业绩：E1直投业绩1000+E2直投业绩2000+E3直投业绩2000=5000；\n（3）B3的佣金计算公式：直属佣金=直属业绩比例×佣金比例=5000×10%=500；\n（4）B3的佣金计算：佣金即直属佣金500。",
+      "r5": "备注：佣金分配标准说明：\n佣金日结：会员当日做的业绩佣金，B1/B2/B3直属业绩佣金，直属下级佣金，其他下级佣金即时计算，当日佣金日结入账。为了便于理解，本文只取日结佣金作详细分解。"
+    },
+    "placeholders": {
+      "stats": "这里显示我的数据",
+      "performance": "这里显示我的业绩",
+      "commission": "这里显示我的佣金",
+      "downline": "这里显示下级信息"
+    }
+  },
+  "myData": {
+    "title": "我的数据",
+    "filter": {
+      "today": "今日",
+      "yesterday": "昨日",
+      "thisWeek": "本周",
+      "lastWeek": "上周",
+      "thisMonth": "本月",
+      "lastMonth": "上月"
+    },
+    "directData": {
+      "title": "今日直属数据",
+      "newMember": "新增直属",
+      "firstTopupAmount": "首充金额",
+      "firstTopupTotal": "首充总额",
+      "firstTopupCount": "首充人数",
+      "rechargeAmount": "充值金额",
+      "rechargeCount": "充值人次",
+      "withdrawAmount": "提现金额",
+      "withdrawCount": "提现次数",
+      "validBet": "有效投注",
+      "rewardClaimed": "领取奖励",
+      "directWin": "直属输赢",
+      "directPerformance": "直属业绩",
+      "totalCommission": "总佣金"
+    },
+    "teamData": {
+      "title": "总直属数据",
+      "teamCount": "团队人数",
+      "directCount": "直属人数",
+      "otherCount": "其他人数",
+      "totalPerformance": "总业绩",
+      "directPerformance": "直属业绩",
+      "otherPerformance": "其他业绩",
+      "totalCommission": "总佣金",
+      "directCommission": "直属佣金",
+      "otherCommission": "其他佣金",
+      "commissionAccumulated": "累计佣金",
+      "commissionReceived": "已领取",
+      "commissionPending": "未领取",
+      "directRecharge": "累计直属充值",
+      "directWithdraw": "累计直属提现",
+      "directReward": "累计直属领取",
+      "directValidBet": "累计直属有效投注",
+      "directWin": "累计直属输赢"
+    }
+  },
+  "myPerformance": {
+    "date": "日期",
+    "totalCommission": "总佣金",
+    "people": "人数"
+  },
+  "myCommission": {
+    "username": "用户名",
+    "userId": "用户ID",
+    "recharge": "用户充值",
+    "time": "充值时间",
+    "commission": "提成佣金"
+  },
+  "subInfo": {
+    "id": "ID",
+    "joined": "加入",
+    "invite": "邀请码",
+    "inviteCode": "邀请码",
+    "copy": "复制"
+  },
+  "returnRatio": {
+    "valid": "有效数据",
+    "performance": "业绩",
+    "rebate": "每万返佣金额"
+  },
+  "directOpen": {
+    "accountPlaceholder": "请输入账号",
+    "passwordPlaceholder": "登陆密码",
+    "showPwd": "显示密码",
+    "hidePwd": "隐藏密码",
+    "go": "前往"
+  },
+  "invite": {
+    "defaultUpdated": "默认邀请码已更新",
+    "createSuccess": "邀请码创建成功",
+    "title": "推广赚钱",
+    "myCode": "我的邀请码",
+    "default": "默认",
+    "rebateRate": "我的返利/好友返利 %",
+    "inviteCode": "邀请码",
+    "inviteLink": "邀请链接",
+    "inviteNow": "立即邀请",
+    "more": "更多",
+    "myStats": "我的邀请统计",
+    "groupCount": "团队人数(人)",
+    "tradeCount": "已交易人数(人)",
+    "myRebate": "我的返利(USDT)",
+
+    "setAsDefault": "设为默认邀请码",
+    "noMore": "没有更多内容了",
+    "newCode": {
+      "desc": "您可以将此邀请码设为默认，方便下次分享。",
+      "title": "新增邀请码",
+      "remarkPlaceholder": "备注",
+      "friendRebate": "好友返利 %",
+      "myRebate": "我的返利 %",
+      "setAsDefault": "设为默认邀请码"
+    }
+  },
+  "inviteRecords": {
+    "title": "我的邀请码",
+    "tabs": {
+      "friends": "好友列表",
+      "rebate": "我的返利"
+    },
+    "time": "返利时间",
+    "invitedId": "被邀请人ID",
+    "code": "邀请码",
+    "invitedCount": "被邀请人数",
+    "tradedCount": "已交易人数",
+    "totalAmount": "交易总数额",
+    "rebateAmount": "返利数量"
+  },
+  "topups": {
+    "redirect": {
+      "title": "正在跳转到支付页面...",
+      "desc": "请稍候片刻。",
+      "missingUrl": "未找到支付链接。"
+    },
+    "title": "充值",
+    "tabs": {
+      "online": "线上充值",
+      "crypto": "货币钱包充值",
+      "ewallet": "eWallet 充值",
+      "qr": "QR充值"
+    },
+    "payments": {
+      "empty": "暂无可用支付方式",
+      "loadFailed": "支付方式加载失败"
+    },
+    "platform": "平台{n}",
+    "amount": {
+      "title": "选择金额",
+      "other": "自定义金额",
+      "placeholder": "0",
+      "limits": "最小 {min} / 最大 {max}",
+      "limitsRange": "允许范围：{min} 至 {max}",
+      "mustMatchAllowed": "该支付方式仅支持固定面额，请选择上方任一金额。",
+      "outOfRange": "金额超出允许范围。",
+      "overMaxSplit": "金额超过上限，请分成两笔打款"
+    },
+    "actions": {
+      "submit": "立即充值"
+    },
+    "success": {
+      "title": "充值成功",
+      "desc": "您的充值已受理。"
+    },
+
+    "cancel": {
+      "title": "取消等待？",
+      "desc": "正在查询/等待支付状态。是否停止等待？"
+    },
+    "keepWaiting": "继续等待",
+    "status": {
+      "completedNow": "已完成，正在显示结果…",
+      "current": "当前订单状态：{status}",
+      "initializing": "订单正在创建，请稍候重试",
+      "error": "支付失败，请重试.",
+      "failed": "支付失败，请重试.",
+      "processing": "支付处理中，请稍候重试"
+    }
+  },
+  "discounts": {
+    "claimSuccess": "领取成功。",
+    "claimAllSuccess": "成功领取",
+    "claimFail": "领取失败",
+    "title": "活动",
+    "activity": "活动",
+    "vip": "VIP",
+    "return": "返水",
+    "record": "领取记录",
+    "noData": "暂无数据",
+    "validBet": "有效投注",
+    "returnRatio": "返水比例",
+    "claimable": "可领取",
+    "claim": "领取",
+    "success": "成功",
+    "oneClickClaim": "一键领取",
+    "toClaimPoints": "待领取 +{points} points",
+    "claimedIntoWallet": "已领取 +{points} points 进 eWallet"
+  },
+  "discountDetail": {
+    "title": "优惠详情",
+    "noAnswer": "暂无说明",
+    "noData": "暂无优惠",
+    "headlinePrefix": "充值",
+    "headlineMid": "立即得",
+    "rules": {
+      "title": "規則說明",
+      "newbie": "晉級標準：新會員充值，即可獲得額外的 +200 points。",
+      "period": "活動於 1/5/2025 開始，至 31/12/2025 11:59:00 AM 截止。"
+    },
+    "how": {
+      "title": "如何操作",
+      "step1": "晉級標準：滿足 VIP 晉級要求（即充值或有效投注滿足條件），即可晉級至相應等級，獲得相應晉級獎金，如連續晉級多級，可獲得全部等級晉級獎金；今日 00:00:00 以後方可領取；",
+      "step2": "日俸禄：每日充值及有效投注滿足當前等級日俸禄要求，可獲得對應日俸禄獎金，如連續晉級多級，僅可獲得當前等級日俸禄獎金，今日 00:00:00 以後方可領取，本日未領取，獎勵過期；",
+      "step3": "周俸禄：每周充值及有效投注滿足當前等級周俸禄要求，可獲得對應周俸禄獎金，如連續晉級多級，僅可獲得當前等級周俸禄獎金，今日 00:00:00 以後方可領取，本周未領取，獎勵過期；",
+      "step4": "月俸禄：每月充值及有效投注滿足當前等級月俸禄要求，可獲得對應月俸禄獎金，如連續晉級多級，僅可獲得當前等級月俸禄獎金，今日 00:00:00 以後方可領取，本月未領取，獎勵過期；",
+      "step5": "獎勵過期說明：獎勵過期直接作廢，請在領取倒計時結束前進行領取；",
+      "step6": "稽核說明：VIP 所贈送的彩金需 1 倍流水（即稽核、打碼或有效投注）才能提現，打碼不限遊戲平台；",
+      "step7": "活動聲明：本功能僅限帳號本人進行正常遊戲投注，禁止租借帳號、無風險投注（對賭、對刷、低倍率小水）、惡意套利、使用外掛程式、機器人、利用協議、漏洞、接口、群控或其他技術手段參與，一經查核屬實，本平台有權終止會員登錄、暫停會員使用網站，及沒收獎金和不當盈利的權利，無需特別通知。"
+    },
+    "actions": {
+      "play": "開啟遊戲",
+      "deposit": "充值"
+    }
+  },
+  "players": {
+    "invitationCode": "邀请码",
+    "credentials": "您的登陆凭证",
+    "brand": "WL 真人",
+    "selectTitle": "请选择玩家",
+    "points": "积分",
+    "addNew": "添加新玩家",
+    "addTitle": "添加新玩家",
+    "myId": "我的玩家ID",
+    "password": "密码",
+    "startGame": "充值和開啟遊戲",
+    "delete": "删除玩家",
+    "setPassword": "设置密码",
+    "addSuccess": "玩家添加成功",
+    "deleteConfirmTitle": "确认删除",
+    "deleteConfirmDesc": "是否要删除玩家 PLAYER_ID_PLACEHOLDER ？\n删除后，您剩余的 Credit 将会返回 Credit 里。\n\n*注意：一天只能添加一个新玩家",
+    "deleteSuccess": "删除成功，正在返回首页...",
+    "deleteFailed": "删除失败，请重试",
+    "errors": {
+      "idRequired": "缺少玩家ID"
+    }
+  },
+  "wallets": {
+    "balance": "账户余额",
+    "withdrawTitle": "金额转出",
+    "loadingGameTitle2": "正在加载游戏...",
+    "pleaseWaitToContinue2": "请稍候，正在打开游戏页面",
+    "popupBlockedNotice": "如果长时间未跳转，说明弹出窗口被拦截。请开启浏览器弹窗权限，或点击下方按钮打开游戏。",
+    "openGameManually": "手动打开游戏",
+    "backToHome": "返回首页",
+    "tapToOpenGame": "点击此页面重新打开游戏",
+    "providerPoints": "{{provider}} Points",
+    "addBankRequired": "请先添加银行账户再继续",
+    "credit": "Credit",
+    "points": "Points",
+    "fromCredit": "从Credit",
+    "toPoints": "到Points",
+    "all": "全部",
+    "convert": "转换",
+    "openGame": "开启游戏",
+    "transferTitle": "金额转入",
+    "topup": "充值",
+    "transfer": "转移",
+    "confirmMessage": "是否要将 Credit 转换成 Points?",
+    "toCredit": "到Credit",
+    "fromPoints": "从Points",
+    "inputAmount": "输入金额",
+    "idLabel": "ID:{value}",
+    "transferSuccess": "转换成功",
+    "confirmTitle": "确认转换",
+    "confirmCreditToPoints": "确认从Credit 转换为Point？",
+    "confirmPointsToCredit": "确认从Point 转换为Credit？",
+    "enterAmount": "请输入金额转入",
+    "redirectingTitle": "正在跳转...",
+    "redirecting": "正在准备您的支付页面...",
+    "pleaseWait": "请稍候",
+    "urlNotFound": "未找到支付链接",
+    "topupSuccess": "充值请求已提交",
+    "topupFailed": "充值请求失败，请稍后再试",
+    "loading": "加载中...",
+    "amountInvalid": "请输入有效的金额",
+    "selectPayment": "请选择支付方式",
+    "confirmTopup": "确认充值",
+    "topupNow": "立即充值",
+    "loadingGameTitle": "正在载入游戏...",
+    "loadingGame": "正在载入游戏...",
+    "pleaseWaitToContinue": "请稍候，页面将自动跳转。",
+    "transferFailedTitle": "转账失败",
+    "transferFailedMessage": "转账过程中出现错误，请稍后重试。",
+    "transferFailed": "转账失败，请重试。",
+    "loadingGameFailedTitle": "无法载入游戏",
+    "loadingGameFailedMessage": "请返回上一页并重试。",
+    "loadingGameFailed": "载入游戏失败。",
+    "errorTitle": "错误",
+    "cannotLoadGame": "无法载入游戏，请返回上一页并重试。",
+    "cannotLoadGame2": "无法载入游戏，请重试。",
+    "close": "关闭",
+    "redirectingSoon": "页面将在数秒后自动返回。",
+    "popupBlockedTryAgain": "弹出窗口被拦截，请手动打开。"
+  },
+  "transfer": {
+    "noDeepLink": "未提供应用链接，无法直接打开。请下载游戏后，手动复制用户名和密码登录",
+    "tryOpen": "正在尝试打开应用…",
+    "appNotInstalled": "无法打开应用，请先下载。",
+    "openSuccess": "应用已打开。",
+    "processing": "请稍候，钱包转账正在处理中…",
+    "failed": "钱包转账失败，请稍后再试。",
+    "createPlayerFailed": "创建玩家失败",
+    "generalError": "发生错误，请稍后再试。",
+    "title": "转换",
+    "success": "一键回收成功！",
+    "oneClick": "一键回收",
+    "credit": "Credit",
+    "points": "Points",
+    "tip": "输入其他 Points 以转移到当天 Credit",
+    "table": {
+      "game": "游戏",
+      "currentPoints": "目前Points",
+      "toTransfer": "转移"
+    },
+    "quickSet": "快捷设置",
+    "actions": {
+      "allIn": "转全部",
+      "clear": "清零"
+    },
+    "confirm": "确认",
+    "transferSuccess": "转换成功",
+    "transferFail": "转换失败，请重试",
+    "invalidAmount": "请输入有效金额",
+    "ipError": "无法获取IP地址"
+  },
+
+  "login": {
+    "invalidCredentials": "用户名或密码错误",
+    "title": "登陆",
+    "subtitle": "请登陆以获得最新资讯",
+    "phone": "手机号码",
+    "password": "登陆密码",
+    "forgot": "忘记密码",
+    "submit": "登陆",
+    "socialTitle": "第三方账号登陆",
+    "noAccount": "还没有账号？",
+    "register": "注册",
+    "phonePickerTitle": "地区码",
+    "searchCountry": "搜索国家或区号",
+    "remember": "记住我",
+    "submitting": "正在登录...",
+    "errors": {
+      "format": "密码必须至少6个字符。",
+      "phoneRequired": "请输入手机号",
+      "invalidPhone": "请输入有效的手机号",
+      "passwordRequired": "请输入密码",
+      "passwordMin": "密码至少需要 6 位"
+    }
+  },
+  "register": {
+    "agreement": {
+      "title": "用户协议",
+      "section1": "注册并使用本平台即表示您已阅读、理解并完全同意本《用户协议》的所有条款和条件，包括平台后续不定期发布的更新版本。本协议对所有用户具有法律约束力。如您不同意本协议任何内容，请立即停止使用本平台及其所有服务。",
+
+      "section2": "您确认在注册过程中提交的所有资料（包括姓名、联系方式、银行信息、支付方式、身份证明等）均为真实、准确且属于您本人。若提供虚假、伪造或误导性资料，平台有权在不另行通知的情况下限制、冻结或终止您的帐号，并保留追究法律责任的权利。",
+
+      "section3": "您的帐号仅供个人合法使用，不得出租、出借、共享、出售、转让给任何第三方，也不得作为团体或组织的公共帐号使用。您必须妥善保管帐号与密码，如因密码泄露、账户被盗等情况导致损失，平台不承担任何责任。您对通过该帐号进行的所有操作承担全部法律责任。",
+
+      "section4": "您同意不从事、协助或参与任何破坏平台正常运营的行为，包括但不限于：入侵服务器、扫描漏洞、绕过安全机制、使用外挂或自动化工具、操纵交易、创建虚假帐号、进行欺诈性活动或任何违反法律法规的行为。一旦发现违规，平台有权立即冻结帐号并保留追究民事或刑事责任的权利。",
+
+      "section5": "您理解并接受，平台所有交易记录（包括充值、提款、额度转换、奖励计算、信用流水、投注历史等）均以系统最终数据为准。若因系统故障、网络延迟、第三方支付异常或人工操作错误导致数据不一致，平台有权对相关记录进行调整、修正或撤销，且无须事先征得您的同意。",
+
+      "section6": "平台可能会根据运营、法律或政策要求对本协议进行更新或修改。所有更新将在发布后立即生效，并取代旧版本。您有责任定期查看最新版本的协议内容。您继续使用平台即表示接受更新后的协议条款。",
+
+      "section7": "如发生任何争议，包括但不限于交易纠纷、奖励计算、账户安全问题、服务内容等，平台保留最终解释权与最终裁决权。若对裁决结果有异议，您可向平台提交书面申诉，但平台拥有是否受理的最终决定权。",
+
+      "section8": "若本协议的任何条款被认定为无效、违法或不可执行，其余条款仍然完全有效并继续对双方具有约束力。您继续使用本平台即表示无条件接受所有有效条款。",
+
+      "section9": "平台严格遵守相关法律法规，承诺保护您的个人资料，包括注册信息、交易记录、联系方式及其他敏感数据。平台会采取合理的技术手段保障数据安全，但无法对任何未经授权的第三方攻击、网络故障、设备损坏等不可抗力承担责任。",
+
+      "section10": "您清楚了解并同意，使用平台服务可能存在一定风险，包括但不限于网络延迟、系统故障、支付失败、账号异常等情况。平台将尽力确保系统稳定性，但无法保证所有服务在任何时间都完全不中断或无错误运行。",
+
+      "section11": "您承诺未满18岁（或当地法律规定的法定年龄）不得注册或使用本平台。平台有权在必要时要求用户提供身份信息进行年龄验证。若发现未成年人使用平台，平台将立即关闭相关账户并拒绝提供服务。",
+
+      "section12": "您不得利用平台从事任何违法活动，包括洗钱、诈骗、盗取账户、滥用支付渠道、发布非法内容等行为。对于涉嫌违法犯罪的操作，平台将依据法律要求向有关部门提供必要的资料。",
+
+      "section13": "您必须确保您的设备安全，包括手机、浏览器环境、网络连接等。若因设备感染病毒、恶意软件、Wi-Fi 劫持等造成账户损失，平台不承担责任。建议开启双重验证或高强度密码以提高账号安全性。",
+
+      "section14": "平台可通过站内公告、系统提示、短信、电子邮件等方式向您发送通知，包括政策更新、服务变更、风险提示、活动信息等。您同意接受这些通知，并视其为正式沟通方式。",
+
+      "section15": "您同意平台在法律允许范围内对服务内容进行维护、升级、更换或中断。因维护或升级导致的短暂中断、延迟、数据不同步等情况不视为平台违约。",
+
+      "section16": "本协议构成您与平台之间关于使用服务的完整协议，并取代之前所有口头或书面的沟通或声明。您的持续使用行为视为您已充分理解并接受此协议的所有内容。"
+    },
+    "enterReferral": "请输入邀请码",
+    "referralCode": "邀请码",
+    "agentCode": "代理编号",
+    "agentCodePlaceholder": "请输入代理编号",
+    "agentCodeReadonly": "代理编号（自动填写）",
+    "agentCodeDelete": "删除代理编号",
+    "title": "注册",
+    "confirmPassword": "确认密码",
+    "subtitle": "好音乐好生活",
+    "phone": "请输入手机号",
+    "username": "请输入用户名",
+    "password": "请输入密码",
+    "passwordRule": "密码必须至少6个字符",
+    "submit": "注册",
+    "agreePrefix": "注册代表您同意",
+    "userAgreement": "用户协议",
+    "success": "注册成功",
+    "errors": {
+      "passwordRequired": "请输入密码",
+      "confirmPasswordRequired": "请输入确认密码",
+      "passwordMismatch": "两次输入的密码不一致",
+      "phoneRequired": "请输入手机号",
+      "usernameRequired": "请输入用户名",
+      "agreementRequired": "请勾选用户协议",
+      "generic": "注册失败，请稍后再试",
+      "passwordWeak": "密码必须为6-16位，并包含大小写字母"
+    }
+  },
+  "reset": {
+    "title": "重新設置密碼",
+    "subtitle": "验证码已发送至",
+    "subtitle2": "请输入您的手机号以发送验证码",
+    "phone": "请输入手机号",
+    "verify": "驗證"
+  },
+  "verify": {
+    "title": "驗證碼",
+    "subtitle": "验证码已发送至",
+    "subtitle2": "请输入手机号码$phone收到的验证码",
+    "resendPhone": "验证码已发送到手机",
+    "resendEmail": "验证码已发送到邮箱",
+    "resendGoogle": "请在 Google 验证器中查看验证码",
+    "googleTip": "请打开 Google 验证器获取6位验证码",
+    "send": "發送驗證碼",
+    "resend": "重新發送驗證碼",
+    "submit": "驗證",
+    "errors": {
+      "requiredAll": "请输入完整的验证码",
+      "sixDigits": "验证码必须是6位数字",
+      "invalidCode": "验证码无效"
+    },
+    "resendInSuffix": "秒后可重新发送",
+    "resendSuccess": "验证码已发送到邮箱",
+    "resendError": "发送失败，请稍后再试",
+    "resendIn": "重新发送倒计时"
+  },
+  "resetPwd": {
+    "title": "重新設置密碼",
+    "subtitle": "請輸入新密碼與再次確認密碼",
+    "newPassword": "新密碼",
+    "confirmPassword": "再次確認密碼",
+    "rule": "6–16 數字大小字母組合",
+    "submit": "重置密碼",
+    "errors": {
+      "passwordRequired": "请输入密码",
+      "confirmRequired": "请确认密码",
+      "notMatch": "两次输入的密码不一致",
+      "failed": "重置密码失败"
+    },
+    "players": {
+      "setPassword": "设置密码"
+    }
+  },
+
+  "mega": {
+    "gameSeriesList": "游戏列表",
+    "subtitle": "轻松登录在您的手机上玩",
+    "steps": {
+      "1": {
+        "title": "步骤 1",
+        "desc": "前往下载页面在手机上安装应用"
+      },
+      "2": {
+        "title": "步骤 2",
+        "desc": "打开应用程序"
+      },
+      "3": {
+        "title": "步骤 3",
+        "desc": "点击 “开启游戏” 或输入您的用户名和密码登录"
+      },
+      "start": {
+        "title": "点击开启游戏",
+        "desc": "您只需点击“开始游戏”按钮即可立即进入，请确保浏览器没有拦截弹出窗口或限制新标签页的打开，以保证游戏正常运行"
+      }
+    },
+    "credentials": {
+      "title": "您的登录凭证",
+      "username": "用户名",
+      "password": "密码"
+    },
+    "actions": {
+      "copy": "复制"
+    }
+  },
+  "avatar": {
+    "title": "选择头像",
+    "confirmTitle": "确认更换头像",
+    "confirmMsg": "你确定要使用这个头像吗？",
+    "confirmAction": "确认",
+    "selectFirstTitle": "提示",
+    "selectFirstMsg": "请先选择一个头像",
+    "changeButton": "更换头像"
+  },
+  "feedback": {
+    "detailTitle": "反馈详情",
+    "noPhoto": "暂无图片",
+    "notFound": "未找到反馈内容"
+  },
+  "download": {
+    "android": "安卓下载",
+    "ios": "苹果下载"
+  },
+  "agent": {
+    "storeFailed": "代理编号保存失败",
+    "title": "代理推广下载",
+    "copied": {
+      "ios": "已复制 iOS 邀请码！",
+      "android": "已复制 Android 邀请码！",
+      "web": "已复制网页版邀请链接！"
+    },
+    "copyFailed": "复制失败，请重试。",
+    "yourCode": "您的代理编号",
+    "noCode": "未找到代理编号",
+    "tips": {
+      "clickButton": "点击下方按钮即可复制专属推广码",
+      "copiedHint": "复制成功后请发送给用户进行注册"
+    },
+    "buttons": {
+      "ios": "iOS 下载",
+      "android": "安卓下载",
+      "web": "网页版"
+    },
+    "toast": {
+      "success": "复制成功！",
+      "fail": "复制失败，请稍后再试。"
+    }
+  },
+
+  "shop": {
+    "storeFailed": "保存店铺ID失败",
+    "title": "代理推广下载",
+    "copied": {
+      "ios": "iOS 邀请码已复制！",
+      "android": "Android 邀请码已复制！",
+      "web": "网页版邀请链接已复制！"
+    },
+    "copyFailed": "复制失败，请重试。",
+    "yourCode": "你的 SHOP Code",
+    "noCode": "未找到 SHOP Code",
+    "tips": {
+      "clickButton": "点击下方按钮复制你的专属推广码",
+      "copiedHint": "复制后发送给用户用于注册"
+    },
+    "buttons": {
+      "ios": "下载 iOS 版",
+      "android": "下载 Android 版",
+      "web": "网页版"
+    },
+    "toast": {
+      "success": "复制成功！",
+      "fail": "复制失败，请重试。"
+    }
+  },
+  "promotion": {
+    "title": "优惠活动",
+    "newMember": "新会员充值",
+    "crypto": "数字货币充值活动",
+    "agent": "代理",
+    "hotActivity": "热门活动",
+    "other": "其他活动",
+    "noData": "暂无活动",
+    "loading": "加载中..."
+  },
+  "gameMenu": {
+    "choose": "请选择",
+    "refresh": "刷新",
+    "withdraw": "提现",
+    "exitGame": "退出游戏",
+    "home": "首页"
+  },
+  "user": {
+    "referralCode": "推荐码",
+    "agentCode": "代理编号",
+    "noCode": "暂无推荐码。",
+    "storeFailed": "保存推荐码失败。",
+    "copyFailed": "复制推荐码失败。",
+    "copied": {
+      "ios": "已复制推荐码（iOS）！",
+      "android": "已复制推荐码（Android）！",
+      "web": "推荐码已保存，正在跳转..."
+    }
+  },
+  "noData": "暂无数据",
+  "errorScreen": {
+    "subtitle": "请返回上一页后再试一次。",
+    "clickToGoBack": "请点击这里返回上一页。"
+  },
+  "landing": {
+    "announcement": {
+      "text": "通告：本平台最新消息与重要更新将持续于此滚动播出，请留意相关信息..."
+    },
+    "nav": {
+      "help": "新手帮助",
+      "privacy": "隐私政策",
+      "terms": "条款与条件",
+      "home": "首页",
+      "electronic": "电子",
+      "chess": "棋牌",
+      "fishing": "捕鱼",
+      "real": "真人",
+      "sports": "体育",
+      "lottery": "彩票",
+      "service": "客服",
+      "promo": "优惠",
+      "app": "APP",
+      "login": "登入",
+      "register": "注册"
+    },
+    "download": {
+      "title": "多种刺激好玩的游戏 最新的APP",
+      "desc": "兼容所有手机型号 随时随地畅玩",
+      "qr": "二维码",
+      "scan": "扫码下载"
+    },
+    "games": {
+      "cardLine1": "公平公正的",
+      "cardLine2": "各类棋牌游戏",
+      "title": "游戏中心",
+      "sub": "玩法丰富多样",
+      "cardTitle": "棋牌游戏",
+      "cardDesc": "随时畅玩，大奖不断",
+      "cardTitle1": "专业客服",
+      "cardLine1_1": "24小时在线协助",
+      "cardLine2_1": "快速可靠的服务",
+
+      "cardTitle2": "安全平台",
+      "cardLine1_2": "先进风控保护",
+      "cardLine2_2": "您的数据全面加密",
+
+      "cardTitle3": "极速交易",
+      "cardLine1_3": "充值快速到账",
+      "cardLine2_3": "支持即时提款"
+    },
+    "live": {
+      "title": "线上直播",
+      "tab1": "直播中",
+      "tab2": "今日赛程",
+      "tab3": "全部赛程",
+      "cta": "加入投注",
+      "league1": "联赛 1",
+      "league2": "联赛 2",
+      "league3": "联赛 3",
+      "time1": "7月30日 - 8pm",
+      "time2": "7月30日 - 9pm",
+      "time3": "7月30日 - 10pm",
+      "playingTeam": "参赛队伍",
+      "odds": "赔率"
+    },
+    "service": {
+      "title": "技术驱动娱乐",
+      "sub": "顶尖技术与安全保障",
+      "cardTitle": "专业客服",
+      "cardDesc": "24小时在线服务",
+      "cardFoot": "响应快速，游戏更安心",
+      "cardLine1": "快速安全的服务",
+      "cardLine2": "全天候客户支持"
+    },
+    "footer": {
+      "copy": "© Expro99 版权所有",
+      "terms": "条款与条件",
+      "privacy": "隐私政策",
+      "contact": "新手帮助"
+    }
+  },
+
+  "terms": {
+    "title": "条款与条件",
+    "section1": {
+      "title": "1. 接受条款",
+      "desc": "当您访问、浏览或使用本网站及其相关服务时，即表示您已阅读、理解并完全接受本条款与条件。本条款构成您与本平台之间具有法律约束力的协议。如果您不同意本条款或其任何部分，请立即停止使用本网站。我们保留在任何时间无须事先通知即可修改、更新或补充本条款的权利，更新后的条款将在发布后立即生效。您继续使用本网站即视为接受所有更新内容。"
+    },
+    "section2": {
+      "title": "2. 使用资格",
+      "desc": "您必须年满18岁，或已达到您所在司法管辖区所要求的合法年龄，方可使用本平台提供的服务。若您未满足相关法律规定的年龄要求，请勿注册账户或使用任何相关功能。您应确保您在所在地区使用本网站不违反任何当地法律法规。若因您未达合法年龄或违反当地规定而导致的任何损失，本平台概不负责。"
+    },
+    "section3": {
+      "title": "3. 帐户责任",
+      "desc": "在注册及使用本平台账户期间，您应确保所提供的一切信息真实、准确、完整并保持最新。您需自行妥善保管账户和密码，避免泄露给任何第三方。所有通过您账户进行的操作均视为您的行为，您须自行承担相关责任。如发现任何未经授权的使用、账号异常或安全风险，您应立即通知我们。本平台对于因您未能充分保护账户信息而造成的损失概不负责。"
+    },
+    "section4": {
+      "title": "4. 使用限制",
+      "desc": "您不得将本网站或其内容用于任何非法、欺诈、滥用、恶意或未经授权的目的。包括但不限于：尝试入侵、破坏或干扰网站系统；复制、修改、传播或转售平台内容；利用平台从事洗钱、诈骗、赌博法规所禁止的行为；或采取任何导致平台正常运作受损的行为。若您违反上述使用限制，我们有权立即暂停或终止您的账户，并保留追究法律责任的权利。"
+    },
+    "section5": {
+      "title": "5. 条款修改",
+      "desc": "本平台保留随时修改、更新、暂停或终止本网站全部或部分服务的权利，且无需事先通知用户。若本条款发生变更，我们将以适当方式公布更新后的内容。您有责任定期查阅本条款的最新版本。当条款变更后，您继续使用本平台即视为同意该等修改。如您不同意修改后的条款，您应立即停止使用本服务。"
+    }
+  },
+  "privacy": {
+    "title": "隐私政策",
+    "section1": {
+      "title": "1. 我们收集的信息",
+      "desc": "在您注册账户、使用本平台服务或与我们互动时，我们会收集您主动提供的个人信息，其中包括但不限于您的姓名、联系方式、账户资料、设备信息及使用记录。我们也可能自动收集与系统安全及用户体验相关的数据，例如 IP 地址、访问时间、浏览器类型、设备识别码以及操作日志，以确保平台运行稳定并提升服务品质。"
+    },
+    "section2": {
+      "title": "2. 我们如何使用这些信息",
+      "desc": "我们会使用您的信息来创建和维护账号、处理交易、提供客户服务、提升服务表现并遵循法律法规的要求。您的信息也可能用于分析使用行为，以优化平台功能、改善系统稳定性、个性化推荐内容以及预防欺诈和滥用行为。为保障您与平台的安全，我们可能将相关数据用于身份验证、安全监控与风险管理。"
+    },
+    "section3": {
+      "title": "3. 数据保护与安全措施",
+      "desc": "为保护您的个人信息，我们采用行业标准的安全措施，包括数据加密、访问控制、安全审计以及系统监控等。尽管我们尽最大努力保障您的数据安全，但互联网上的传输和储存方式无法完全避免风险。因此，我们建议您妥善管理自己的账户密码，并定期检查账户活动记录，以保护您的个人资讯安全。"
+    },
+    "section4": {
+      "title": "4. 信息共享与披露",
+      "desc": "我们不会出售或交易您的个人信息。我们仅会在必要情况下，与受信任的合作伙伴或服务供应商共享部分信息，例如支付处理机构、身份验证服务和技术基础设施提供商。所有第三方均须遵守严格的保密与数据保护义务。此外，当法律要求或监管机构调查时，我们可能需要根据法规披露相关信息，以配合调查或履行法律义务。"
+    },
+    "section5": {
+      "title": "5. 您的权利与选择",
+      "desc": "您有权随时访问、更正或更新您的个人资料。在法律允许的范围内，您也可以请求删除相关信息、限制某些数据处理方式，或撤销您先前所提供的授权。请注意，若您选择移除或限制某些必要信息，可能会影响某些功能的正常使用。如您希望行使相关权利或对隐私保护有任何疑问，可通过我们的客服渠道与我们联系，我们将尽力协助处理。"
+    }
+  },
+  "helps": {
+    "title": "帮助中心",
+    "section1": {
+      "title": "1. 常见问题",
+      "desc": "在这里您可以快速找到用户最常见的问题解答，包括帐号注册、充值、提款及游戏相关说明。本章节旨在帮助您在无需联系客服的情况下自行解决大部分基础问题，提高处理效率。"
+    },
+    "section2": {
+      "title": "2. 充值协助",
+      "desc": "本部分为您提供完整的充值指南，包括充值步骤、常见失败原因、处理方式以及不同支付方式的到账时间说明。我们同时列出避免充值失败的建议，帮助您顺利完成每一次存款。"
+    },
+    "section3": {
+      "title": "3. 提款协助",
+      "desc": "了解提款申请流程、审核要求、平均处理时间以及常见延误原因。本章节将协助您顺利提交提款申请，并提供必要的排查步骤，让资金更安全、快速地到账。"
+    },
+    "section4": {
+      "title": "4. 帐号与安全",
+      "desc": "此处涵盖如何管理帐号资料、更新个人信息、重置密码以及启用安全功能。我们也提供多项安全建议，例如避免诈骗、保护登入信息和识别可疑活动等，确保您的帐户安全无虞。"
+    },
+    "section5": {
+      "title": "5. 联系客服",
+      "desc": "如果您需要进一步协助，我们的客服团队随时为您服务。您可以通过线上客服、电子邮件或通讯软件与我们联系。无论是技术问题、帐户验证还是紧急事项，我们都会尽快为您处理。"
+    }
+  },
+  "bind": {
+    "sendCode": "发送验证码",
+    "resendCode": "重新发送验证码",
+    "title": "绑定手机号码",
+    "subtitle": "请绑定手机号码，绑定后随机号码将不再有效。",
+    "phone": "请输入手机号码",
+    "otp": "验证码",
+    "confirm": "确认绑定",
+    "invalidCode": "验证码无效",
+    "errors": {
+      "phoneRequired": "请输入手机号码",
+      "otpRequired": "请输入验证码"
+    }
+  }
+}

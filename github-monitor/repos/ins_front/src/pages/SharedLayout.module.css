@@ -1,0 +1,38 @@
+.identifyDialogContainer {
+  position: fixed;
+  top: 52%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border: none;
+  z-index: 110;
+}
+
+.identifyContainer {
+  width: 410px;
+}
+
+.identifyContainerClose {
+  border: none;
+  background: transparent;
+  position: absolute;
+  top: 5px;
+  right: 0px;
+  width: 60px;
+  z-index: 100;
+  cursor: pointer;
+}
+
+.identifyContainerClose img {
+  width: 100%;
+}
+
+@media screen and (max-width: 600px) {
+  .identifyDialogContainer {
+    width: 90%;
+  }
+
+  .identifyContainer {
+    width: 100%;
+  }
+}

@@ -1,0 +1,55 @@
+<?php
+
+return [
+    0 => 'Operation failed',
+    1 => 'Operation successful',
+    999 => 'Network error, please try again later',
+    1000 => 'Parameter error',
+    1001 => 'Signature error',
+    1002 => 'Request timed out',
+    1003 => 'System parameter not found',
+
+    // User
+    2000 => 'Login has expired, please log in again',
+    2001 => 'Username cannot be empty',
+    2002 => 'Username can only contain letters and numbers',
+    2003 => 'Password cannot be empty',
+    2004 => 'Password can only contain letters and numbers',
+    2005 => 'Password must be between 6 and 20 characters',
+    2006 => 'The two passwords do not match',
+    2007 => 'User already exists, please enter a different username',
+    2008 => 'User does not exist',
+    2009 => 'Password is incorrect',
+    2010 => 'Account has been frozen',
+    2011 => 'New password cannot be the same as the old password',
+    2012 => 'Nickname already exists, please enter a different one',
+    2013 => 'A maximum of five feedback submissions per day',
+    2014 => 'Title cannot be empty',
+    2015 => 'Content cannot be empty',
+    2016 => 'Title cannot exceed 100 characters',
+    2017 => 'Content cannot exceed 255 characters',
+    2018 => 'Nickname already exists, please enter a different one',
+    2019 => 'Username must be between 6 and 20 characters',
+    2020 => 'Please select a problematic video',
+    2021 => 'Invalid invitation code',
+    2022 => 'Redemption code cannot be empty',
+    2023 => 'Redemption code does not exist',
+    2024 => 'Redemption code has already been used',
+    2025 => 'You have already redeemed a code from this batch',
+
+    // Video
+    3001 => 'Video does not exist',
+    3002 => 'Video has been removed',
+    3003 => 'Actor does not exist',
+    3004 => 'VIP required to watch the video',
+    3005 => 'Author does not exist',
+    3006 => 'Review does not exist or has been removed',
+
+    // Recharge
+    4001 => 'Package does not exist',
+    4002 => 'No suitable payment method available',
+    4003 => 'Current payment method is busy, please choose another',
+    4004 => 'Can only operate once every 30 seconds, please try again later',
+    4005 => 'Payment method does not exist',
+    4006 => 'Order creation failed, please try again later',
+];

@@ -1,0 +1,54 @@
+.searchBarContainer {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  /* padding: 5px 15px; */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.searchBarSelect {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+}
+
+.searchBarSelect option {
+  color: #333;
+}
+
+.searchBarInput {
+  background: transparent;
+  outline: none;
+  border: none;
+  width: 100%;
+  color: #fff;
+}
+
+.searchIcon {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.searchText {
+  width: 65px;
+  font-size: 10px;
+  border: none;
+  outline: none;
+  color: #121420;
+  border-radius: 50px;
+  background: linear-gradient(
+    106.42deg,
+    var(--primary-gradient-color-1) 37.32%,
+    var(--primary-gradient-color-2) 85.5%
+  );
+  padding: 5px 18px;
+}
+
+@media screen and (max-width: 360px) {
+  .searchText {
+    width: 70px;
+  }
+}

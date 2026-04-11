@@ -1,0 +1,349 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>标题
+        </label>
+        <div class="layui-input-inline">
+          <input type="text"  name="title" value="{$info.title}" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>缩略图
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="thumb" id="thumb" value="{$info.thumb}"  lay-verify="required" style="width: 400px" class="layui-input" onclick="change()">
+          <img alt style="max-width: 200px" class="image" id="img1" src="{$info.thumb}" onerror="this.style.display='none'" />
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>手机缩略图
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="h5_thumb" id="h5_thumb" value="{$info.h5_thumb}"  lay-verify="" style="width: 400px" class="layui-input" onclick="change()">
+          <img alt style="max-width: 200px" class="image" id="img2" src="{$info.h5_thumb}" onerror="this.style.display='none'" />
+        </div>
+      </div>
+      
+      <div class="layui-form-item">
+        <label class="layui-form-label">类型选择</label>
+        <div class="layui-input-block">
+          <input type="radio" name="type" value="1" title="视频" lay-filter="typeRadio" {if $info.type eq '1'}checked{/if} {if !$info.type}checked{/if}>
+          <input type="radio" name="type" value="2" title="演员" lay-filter="typeRadio" {if $info.type eq '2'}checked{/if}>
+          <input type="radio" name="type" value="3" title="跳转url" lay-filter="typeRadio" {if $info.type eq '3'}checked{/if}>
+          <input type="radio" name="type" value="4" title="套餐" lay-filter="typeRadio" {if $info.type eq '4'}checked{/if}>
+        </div>
+      </div>
+      
+      <div class="layui-form-item">
+        <label class="layui-form-label">位置选择</label>
+        <div class="layui-input-block">
+          <input type="radio" name="position" value="1" title="顶部" lay-filter="positionRadio" {if $info.position eq '1'}checked{/if} {if !$info.position}checked{/if}>
+          <input type="radio" name="position" value="2" title="中部" lay-filter="positionRadio" {if $info.position eq '2'}checked{/if}>
+          <input type="radio" name="position" value="3" title="底部" lay-filter="positionRadio" {if $info.position eq '3'}checked{/if}>
+          <input type="radio" name="position" value="4" title="弹窗" lay-filter="positionRadio" {if $info.position eq '4'}checked{/if}>
+        </div>
+      </div>
+      
+      
+      <div class="layui-form-item type-p_type">
+        <label class="layui-form-label">套餐种类</label>
+        <div class="layui-input-block">
+          <input type="radio" name="p_type" value="1" title="VIP" lay-filter="p_typeRadio" {if $info.p_type eq '1'}checked{/if} {if !$info.p_type}checked{/if}>
+          <input type="radio" name="p_type" value="2" title="点卷" lay-filter="p_typeRadio" {if $info.p_type eq '2'}checked{/if}>
+          <input type="radio" name="p_type" value="3" title="钻石" lay-filter="p_typeRadio" {if $info.p_type eq '3'}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item type-video">
+        <label class="layui-form-label">对应视频ID：</label>
+        <div class="layui-input-inline">
+          <input type="text" id="vid" class="layui-input" value="{$info.vid}" placeholder="视频id" name="vid">
+        </div>
+        <div class="layui-input-inline">
+          <a class="layui-btn selectVideo" title="查询视频">查询视频</a>
+        </div>
+      </div>
+
+      <div class="layui-form-item type-actor">
+        <label class="layui-form-label">对应演员ID：</label>
+        <div class="layui-input-inline">
+          <input type="text" id="aid" class="layui-input" value="{$info.aid}" placeholder="演员id" name="aid">
+        </div>
+        <div class="layui-input-inline">
+          <a class="layui-btn selectActor" title="查询演员">查询演员</a>
+        </div>
+      </div>
+
+      <div class="layui-form-item type-url">
+        <label class="layui-form-label">跳转url</label>
+        <div class="layui-input-inline">
+          <input type="text" name="url" value="{$info.url}" style="width: 400px" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item type-package">
+        <label class="layui-form-label">选择套餐：</label>
+        <div class="layui-input-inline">
+          <select name="p_type_id" id="p_type_id" lay-verify="" lay-search="">
+            <option value="">请选择套餐</option>
+            {if $info.p_type == 1}
+              <!-- VIP Packages -->
+              {volist name="vipList" id="vo"}
+              <option value="{$vo.id}" {if $info.p_type_id == $vo.id}selected{/if}>{$vo.title}</option>
+              {/volist}
+            {elseif $info.p_type == 2}
+              <!-- Point Packages -->
+              {volist name="pointList" id="vo"}
+              <option value="{$vo.id}" {if $info.p_type_id == $vo.id}selected{/if}>{$vo.title}</option>
+              {/volist}
+            {elseif $info.p_type == 3}
+              <!-- Coin Packages -->
+              {volist name="coinList" id="vo"}
+              <option value="{$vo.id}" {if $info.p_type_id == $vo.id}selected{/if}>{$vo.title}</option>
+              {/volist}
+            {/if}
+          </select>
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          当前选择的套餐类型: 
+          {if $info.p_type == 1}VIP
+          {elseif $info.p_type == 2}点卷
+          {elseif $info.p_type == 3}钻石
+          {else}未选择
+          {/if}
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>排序</label>
+        <div class="layui-input-inline">
+          <input type="number" min="0" name="sort" autocomplete="off" value="{$info.sort}" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          <span class="x-red"></span>不填默认为0
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+        </label>
+        <button class="layui-btn" lay-submit="sub" lay-filter="sub">
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+layui.use(['form', 'layer'], function() {
+  var $ = layui.jquery;
+  var form = layui.form;
+  var layer = layui.layer;
+  
+  form.verify({
+    required: [/[\S]+/, "必填项不能为空"],
+  });
+
+  // 存储套餐数据到JavaScript变量
+  var vipPackages = [
+    {volist name="vipList" id="vo"}
+    {id: {$vo.id}, title: "{$vo.title}"},
+    {/volist}
+  ];
+
+  var pointPackages = [
+    {volist name="pointList" id="vo"}
+    {id: {$vo.id}, title: "{$vo.title}"},
+    {/volist}
+  ];
+
+  var coinPackages = [
+    {volist name="coinList" id="vo"}
+    {id: {$vo.id}, title: "{$vo.title}"},
+    {/volist}
+  ];
+
+  // 类型选择切换显示
+  function toggleTypeFields(type) {
+      // 隐藏所有类型相关的区域
+      $('.type-video').hide();
+      $('.type-actor').hide();
+      $('.type-url').hide();
+      $('.type-p_type').hide();
+      $('.type-package').hide();
+      
+      // 根据选择的类型显示对应的区域
+      switch(type) {
+          case '1': // 视频
+              $('.type-video').show();
+              break;
+          case '2': // 演员
+              $('.type-actor').show();
+              break;
+          case '3': // 跳转url
+              $('.type-url').show();
+              break;
+          case '4': // 套餐
+              $('.type-p_type').show();
+              $('.type-package').show();
+              break;
+      }
+  }
+
+  // 更新套餐下拉框
+  function updatePackageDropdown(pType) {
+      var $packageSelect = $('#p_type_id');
+      $packageSelect.empty().append('<option value="">请选择套餐</option>');
+      
+      var packages = [];
+      switch(pType) {
+          case '1': // VIP
+              packages = vipPackages;
+              break;
+          case '2': // Point
+              packages = pointPackages;
+              break;
+          case '3': // Coin
+              packages = coinPackages;
+              break;
+      }
+      
+      // 填充下拉框
+      packages.forEach(function(pkg) {
+          $packageSelect.append('<option value="' + pkg.id + '">' + pkg.title + '</option>');
+      });
+      
+      // 重新渲染下拉框
+      form.render('select');
+      
+      // 如果有之前选中的值，重新选中
+      var selectedId = '{$info.p_type_id}';
+      if (selectedId && pType == '{$info.p_type}') {
+          $packageSelect.val(selectedId);
+          form.render('select');
+      }
+  }
+
+  // 初始化页面时根据当前选中的类型显示对应区域
+  var initialType = $('input[name="type"]:checked').val();
+  toggleTypeFields(initialType);
+
+  // 初始化页面时根据当前选中的套餐类型更新下拉框
+  var initialPType = $('input[name="p_type"]:checked').val();
+  if (initialPType) {
+      updatePackageDropdown(initialPType);
+  }
+
+  // 监听类型选择变化
+  form.on('radio(typeRadio)', function(data){
+      toggleTypeFields(data.value);
+      
+      // 如果切换到套餐类型，且已有选中的套餐类型，则更新下拉框
+      if (data.value == '4') {
+          var currentPType = $('input[name="p_type"]:checked').val();
+          if (currentPType) {
+              updatePackageDropdown(currentPType);
+          }
+      }
+  });
+
+  // 监听套餐类型选择变化
+  form.on('radio(p_typeRadio)', function(data){
+      updatePackageDropdown(data.value);
+  });
+
+  form.on('submit(sub)', function (data) {
+      $.ajax({
+        url: "{:url('info')}",
+        type: "POST",
+        data: data.field,
+        async: false,
+        success: function (data) {
+          console.log(data);
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              parent.layer.closeAll();
+              parent.location.reload();
+            },1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+      return false;
+  });
+
+});
+
+function show_video() {
+  var url='{:url("video_list")}';
+  layer.open({
+    type: 2,
+    title: '视频列表',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['90%', '90%'],
+    content: url, //iframe的url
+  });
+}
+
+function show_actor() {
+  var url='{:url("actor_list")}';
+  layer.open({
+    type: 2,
+    title: '演员列表',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['90%', '90%'],
+    content: url, //iframe的url
+  });
+}
+
+// 选择标签
+$('.selectVideo').click(function () {
+    show_video();
+})
+
+// 选择标签
+$('.selectActor').click(function () {
+  show_actor();
+})
+
+/**
+ * 获取子页面传递过来的分类参数
+ * @param obj  分类id
+ */
+function GetValue(obj){
+  $('#vid').val(obj);
+}
+
+/**
+ * 获取子页面传递过来的分类参数
+ * @param obj  分类id
+ */
+function GetValue1(obj){
+  $('#aid').val(obj);
+}
+
+function change() {
+    var src=$("#thumb").val();
+    $('#img1').attr("src", src);//这时写地址
+}
+</script>
+</body>
+</html>

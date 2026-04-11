@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'select' => '选择协议',
+    'agreement_list' => '协议列表',
+    'add_new_agreement' => '新增协议',
+    'agreement_added_successfully' => '协议添加成功！',
+    'agreement_updated_successfully' => '协议更新成功！',
+    'agreement_deleted_successfully' => '协议删除成功！',
+    'title' => '标题',
+    'desc' => '内容',
+    'picture' => '图片',
+    'url' => '链接',
+    'status' => '状态',
+    'active' => '激活',
+    'inactive' => '未激活',
+    'never' => '从不',
+    'edit_agreement' => '编辑协议',
+    'delete_agreement' => '删除协议',
+    'confirm_delete_agreement' => '您确定要删除协议吗？',
+    'no_data_found' => '未找到协议。',
+    'leave_blank_for_no_change' => '留空表示不更改',
+    'active_status' => '激活',
+    'agent_name' => '代理名字',
+];

@@ -1,0 +1,119 @@
+.paginationInfo {
+  margin: 20px 0px;
+}
+
+.paginationInfo p {
+  text-align: center;
+  color: #d0d0d0;
+  font-weight: 500;
+}
+
+.paginationNumSize {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.paginationContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  /* margin: 30px auto 10px auto; */
+  list-style: none;
+  user-select: none;
+  gap: 6px;
+}
+
+.pageItem {
+  min-width: 18px;
+  min-height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 2px;
+  color: #fff;
+  /* transition: all 0.3s; */
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 16px;
+  font-size: 12px;
+  line-height: 24px;
+  cursor: pointer;
+}
+
+.pageItem.active {
+  /* border-radius: 50%;
+    line-height: 40px; */
+  text-align: center;
+  /* width: 40px;
+    height: 40px; */
+  /* border: solid; */
+  background: var(--primary-color);
+  color: #fff;
+  cursor: pointer;
+}
+
+.pageItem.disabled {
+  cursor: not-allowed;
+  color: rgba(155, 155, 155, 0.3);
+}
+
+.pageItemArrow {
+  font-size: 20px;
+}
+.dot {
+  /* background: rgba(255, 255, 255, 0.08); */
+  color: #fff;
+  padding: 4px 8px;
+  /* font-size: 12px; */
+  line-height: 24px;
+}
+
+.paginationInput {
+  width: 55px;
+  line-height: 32px;
+  color: #fff;
+  text-align: center;
+  border: 1px solid #999;
+  background-color: rgba(255, 255, 255, 0.08);
+  margin-right: 5px;
+}
+
+.paginationGoBtn {
+  border: none;
+  outline: none;
+  width: 45px;
+  line-height: 32px;
+  /* font-weight: 500; */
+  background: linear-gradient(
+    106.42deg,
+    var(--primary-gradient-color-1) 37.32%,
+    var(--primary-gradient-color-2) 85.5%
+  );
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+@media screen and (max-width: 600px) {
+  .pageItem {
+    padding: 4px 14px;
+  }
+  .pagination {
+    width: auto;
+    /* flex-wrap: wrap; */
+    justify-content: center;
+  }
+
+  .paginationContainer {
+    flex-direction: column;
+  }
+
+  .dot {
+    padding: 0px;
+  }
+}

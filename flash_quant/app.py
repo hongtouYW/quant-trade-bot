@@ -203,7 +203,25 @@ def create_app():
     @app.route('/risk')
     @login_required
     def risk_page():
-        return render_template('risk.html')
+        from models.db_ops import get_open_positions, get_dashboard_stats, get_consecutive_losses
+        from core.constants import (
+            MAX_CONCURRENT_POSITIONS, CIRCUIT_DAILY_LOSS_PCT,
+            CIRCUIT_WEEKLY_LOSS_PCT, CIRCUIT_MONTHLY_LOSS_PCT,
+        )
+        positions = get_open_positions()
+        stats = get_dashboard_stats()
+        consec = get_consecutive_losses()
+        risk_data = {
+            'open_positions': len(positions),
+            'max_positions': MAX_CONCURRENT_POSITIONS,
+            'consecutive_losses': consec,
+            'daily_pnl': stats['total_pnl'],
+            'daily_pct': stats['total_pnl'] / 10000 * 100 if stats['total_pnl'] else 0,
+            'daily_limit': CIRCUIT_DAILY_LOSS_PCT * 100,
+            'weekly_limit': CIRCUIT_WEEKLY_LOSS_PCT * 100,
+            'monthly_limit': CIRCUIT_MONTHLY_LOSS_PCT * 100,
+        }
+        return render_template('risk.html', risk=risk_data)
 
     @app.route('/config')
     @login_required

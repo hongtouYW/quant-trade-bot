@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_bottom_sheet_dialog"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical"
+    android:windowSoftInputMode="adjustResize">
+
+    <View
+        android:layout_width="48dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center"
+        android:layout_marginVertical="8dp"
+        android:background="@color/gray_C4CDD2" />
+
+    <TextView
+        android:id="@+id/textView_title"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="8dp"
+        android:fontFamily="@font/pingfang_sc_semi_bold"
+        android:gravity="center"
+        android:text="输入转移金额"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="18sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/blue_354B9C" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.google.android.flexbox.FlexboxLayout
+                android:id="@+id/flexboxLayout_point"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="10dp"
+                app:flexWrap="wrap"
+                app:justifyContent="flex_start" />
+
+            <LinearLayout
+                android:id="@+id/panel_amount_input"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="30dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="其他金额"
+                    android:textColor="@color/gray_6E6E6E"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_marginVertical="10dp"
+                    android:background="@drawable/bg_button_bordered_white"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <EditText
+                        android:id="@+id/editText_point"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginHorizontal="10dp"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:hint="@string/placeholder_amount"
+                        android:inputType="numberDecimal"
+                        android:textColor="@color/orange_F8AF07"
+                        android:textColorHint="@color/yellow_FFFC86_50a"
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/textView_add"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="10dp"
+                        android:background="@drawable/bg_button_orange"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="center"
+                        android:minWidth="45dp"
+                        android:paddingHorizontal="10dp"
+                        android:text="+"
+                        android:textColor="@color/black_000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_minus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_button_orange"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="center"
+                        android:minWidth="45dp"
+                        android:paddingHorizontal="10dp"
+                        android:text="-"
+                        android:textColor="@color/black_000000"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textView_current_point"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="目前Points 0.00"
+                    android:textColor="@color/gray_6E6E6E"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <com.dj.user.widget.BlackTextButton
+                android:id="@+id/button_done"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_marginBottom="40dp"
+                android:text="完成" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</LinearLayout>

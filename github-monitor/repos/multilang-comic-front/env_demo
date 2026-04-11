@@ -1,0 +1,27 @@
+VITE_STATIC_JSON_HOST=https://newmhjs.ckam3uxg8nvd.com
+
+# 设置默认语言
+VITE_DEFAULT_LANGUAGE=en-US
+
+# 设置默认币种
+VITE_DEFAULT_CURRENCY=USD
+VITE_DEFAULT_CURRENCY_SYMBOL=$
+
+# 设置默认域名
+VITE_DEFAULT_BASE_URL=https://newmaomimhapi.9xyrp3kg4b86.com
+
+# 设置系统名称、Email
+VITE_SYSTEM_NAME=18Toon
+VITE_SYSTEM_EMAIL=official@18toon.vip
+
+#js / css 链接
+VITE_INDEX_DOMAIN=https://toonjt.sh0888.com #js / css 链接
+
+# 百度统计
+VITE_BAIDU_STATISTICS=f4301ab78f557d7c9c15c03a72192fcb
+
+# Google Analytics
+VITE_GOOGLE_ANALYTICS_ID=G-SV6TLDRXXP
+
+# 国内 = china / 国际 = global
+VITE_APP_REGION=global

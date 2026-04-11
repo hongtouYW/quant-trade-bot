@@ -1,0 +1,172 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+
+      <input type="hidden" name="id" id="id" value="{$find.id}">
+      <div class="layui-form-item">
+        <label  class="layui-form-label">id</label>
+        <div class="layui-input-inline">
+          <input type="text" disabled value="{$find.id}" autocomplete="off" class="layui-input" />
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label  class="layui-form-label">用户名</label>
+        <div class="layui-input-inline">
+          <input type="text" disabled value="{$find.username}" autocomplete="off" class="layui-input" />
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>状态</label>
+        <div class="layui-input-block">
+          <input type="radio" name="status"  lay-filter="status" value="0" title="正常" {if condition="$find.status eq 0 "}checked{/if}>
+          <input type="radio" name="status" lay-filter="status" value="1" title="冻结" {if condition="$find.status eq 1 "}checked{/if}>
+        </div>
+      </div>
+
+      <div id="stop"  {if ( $find.status == 0) } style="display: none" {/if}  class="layui-form-item">
+        <label  class="layui-form-label">冻结原因</label>
+        <div class="layui-input-inline">
+          <input type="text" name="stop" id="stop_reason" value="{$find.stop}" autocomplete="off" class="layui-input" />
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>VIP：
+        </label>
+        <div class="layui-input-inline w500">
+          <input name="vip_end_time" id="time" type="text" value="{if condition="$find['vip_end_time'] > 0"} {:date('Y-m-d H:i:s',$find.vip_end_time)} {/if}" name="vip_end_time" class="layui-input"  placeholder="请选择有码Vip到期时间">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label for="coin" class="layui-form-label">
+          <span class="x-red">*</span>钻石
+        </label>
+        <div class="layui-input-inline">
+          <input type="number" name="coin" id="coin" value="{$find.coin}" required="" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="point" class="layui-form-label">
+          <span class="x-red">*</span>点卷
+        </label>
+        <div class="layui-input-inline">
+          <input type="number" name="point" id="point" value="{$find.point}" required="" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="password" class="layui-form-label">
+          <span class="x-red">*</span>密码
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="password" id="password" value="{$find.ori_password}" required="" lay-verify="password"
+                 autocomplete="off" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          6到16个字符
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="password" class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="edit"  lay-filter="edit">
+          编辑
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>layui.use(['form', 'layer','laydate'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+              layer = layui.layer;
+              laydate = layui.laydate;
+
+/*          form.on('select(vip)', function(r){
+            if(r.value >= 1){
+              $('#viptime').show();
+            }else{
+              $('#viptime').hide();
+            }
+          });*/
+          laydate.render({
+            elem: '#time',
+            type: 'datetime'
+          });
+
+          laydate.render({
+            elem: '#time1',
+            type: 'datetime'
+          });
+
+          laydate.render({
+            elem: '#time2',
+            type: 'datetime'
+          });
+
+          laydate.render({
+            elem: '#time3',
+            type: 'datetime'
+          });
+
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+          });
+
+
+          form.on("radio(status)", function (data) {
+            var val = data.value;
+            if(val == 1){
+              $('#stop').show();
+            }else{
+              $('#stop').hide();
+            }
+          });
+
+          form.on('submit(edit)', function (data) {
+
+            var status = $('input[name=status]:checked').val();
+            var stop = $("#stop_reason").val();
+
+            if(status == 1 && stop == ''){
+                layer.msg('请输入冻结原因',{icon:2});
+                return  false;
+            }
+            $.ajax({
+              url: "{:url('user/edit')}",
+              type: "POST",
+              data: data.field,
+              async: true,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+</script>
+</body>
+
+</html>

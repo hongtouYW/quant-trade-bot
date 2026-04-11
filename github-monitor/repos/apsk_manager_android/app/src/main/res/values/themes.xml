@@ -1,0 +1,18 @@
+<resources>
+    <!-- Base application theme. -->
+    <style name="Theme.DJManager" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/black_1B1E20</item>
+        <item name="colorPrimaryVariant">@color/black_1B1E20</item>
+        <item name="colorOnPrimary">@color/white_FFFFFF</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/gold_D4AF37</item>
+        <item name="colorSecondaryVariant">@color/gold_D4AF37</item>
+        <item name="colorOnSecondary">@color/black_000000</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/black_141718</item>
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@color/black_141718</item>
+        <item name="android:textColor">@color/white_FFFFFF</item>
+    </style>
+</resources>

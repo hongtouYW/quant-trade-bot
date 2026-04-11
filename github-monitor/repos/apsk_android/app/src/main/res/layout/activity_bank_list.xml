@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:id="@+id/panel_binded"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14sp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/bank_details_added_bank"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="24sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/bank_details_added_bank_desc"
+                    android:textColor="@color/gray_BCBCBC"
+                    android:textSize="14sp" />
+
+                <com.dj.user.widget.ExpandableHeightListView
+                    android:id="@+id/listView_bank"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:divider="@android:color/transparent"
+                    android:dividerHeight="16dp"
+                    android:listSelector="@android:color/transparent"
+                    android:paddingHorizontal="4dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panel_bind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14sp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/bank_details_add_bank"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="24sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:lineSpacingExtra="4sp"
+                    android:text="@string/bank_details_add_bank_desc"
+                    android:textColor="@color/gray_BCBCBC"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:id="@+id/panel_add"
+                    android:layout_width="match_parent"
+                    android:layout_height="132dp"
+                    android:layout_marginHorizontal="4dp"
+                    android:background="@drawable/bg_dotted_border"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginBottom="4dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_add_bank" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="center"
+                        android:text="@string/bank_details_new"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="10sp"
+                        tools:ignore="SmallSp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

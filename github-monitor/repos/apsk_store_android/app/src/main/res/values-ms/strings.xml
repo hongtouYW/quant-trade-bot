@@ -1,0 +1,296 @@
+<resources>
+    <string name="app_name">Expro99 Store</string>
+    <string name="copyright">2025 Expro99 STORE</string>
+    <string name="exit_tap_twice">Tekan dua kali untuk keluar</string>
+    <string name="no_data">Tiada rekod ditemui</string>
+    <string name="new_notification">Anda menerima pemberitahuan baharu.</string>
+    <string name="search_hint">Cari</string>
+    <string name="copied">Disalin ke papan klip</string>
+    <string name="button_confirm">Setuju</string>
+    <string name="common_okay">OK</string>
+
+    <string name="session_expired_title">Sesi Tamat</string>
+    <string name="session_expired_desc">Sesi anda telah tamat. Sila log masuk semula</string>
+    <string name="session_expired_button">Log Masuk</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_version_title">Naik taraf ke versi terkini?</string>
+    <string name="splash_version_desc">Versi semasa v%s\nSila pasang versi terkini v%s</string>
+    <string name="splash_version_confirm">Setuju</string>
+    <string name="splash_version_cancel">Langkau</string>
+
+    <!-- Login -->
+    <string name="login_welcome">Selamat datang</string>
+    <string name="login_hint_username">Nama pengguna</string>
+    <string name="login_hint_password">Kata laluan</string>
+    <string name="login_button">Log Masuk</string>
+    <string name="login_change_language">Tukar bahasa</string>
+    <string name="login_invalid_credentials">Nama pengguna atau kata laluan tidak betul</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_amount">Jumlah kedai</string>
+    <string name="dashboard_income">Pendapatan hari ini</string>
+    <string name="dashboard_alert">Amaran jumlah separuh</string>
+    <string name="dashboard_alert_success">Makluman berjaya</string>
+    <string name="dashboard_yxi_count">Bilangan permainan</string>
+    <string name="dashboard_player_count">Bilangan pemain</string>
+    <string name="dashboard_account_new">Cipta pengguna</string>
+    <string name="dashboard_account_password">Tukar kata laluan pengguna</string>
+    <string name="dashboard_account_block">Sekat pengguna</string>
+    <string name="dashboard_action_top_up">Top up</string>
+    <string name="dashboard_action_withdraw">Keluarkan duit</string>
+    <string name="dashboard_action_history">Sejarah laporan</string>
+    <string name="dashboard_action_setting">Tetapan peribadi</string>
+
+    <!-- Dashboard - Search -->
+    <string name="dashboard_search_title">Cari</string>
+    <string name="dashboard_search_hint">Cari nombor telefon, nama pengguna atau ID pengguna</string>
+    <string name="dashboard_search_check_details">Lihat butiran</string>
+
+    <!-- Action Main -->
+    <string name="action_main_top_up_title">Top up</string>
+    <string name="action_main_top_up_desc">Masukkan nombor telefon atau ID pengguna atau\npilih cara lain</string>
+    <string name="action_main_top_up_option_qr">Imbas kod QR untuk top up</string>
+    <string name="action_main_top_up_option_yxi">Top up ke akaun permainan</string>
+    <string name="action_main_withdraw_title">Keluarkan duit</string>
+    <string name="action_main_withdraw_desc">Masukkan nombor telefon atau ID pengguna atau\npilih cara lain</string>
+    <string name="action_main_withdraw_option_qr">Imbas kod QR</string>
+    <string name="action_main_withdraw_option_yxi">Cari akaun permainan</string>
+    <string name="action_main_create_user_title">Cipta pengguna</string>
+    <string name="action_main_create_user_desc">Masukkan nombor telefon atau\npilih cara ciptaan lain</string>
+    <string name="action_main_create_user_option_random">Cipta akaun rawak</string>
+    <string name="action_main_create_user_option_yxi">Cipta akaun permainan</string>
+    <string name="action_main_create_random_title">Cipta akaun rawak</string>
+    <string name="action_main_create_random_desc">Klik setuju untuk\ncipta akaun rawak</string>
+    <string name="action_main_change_password_title">Tukar kata laluan pengguna</string>
+    <string name="action_main_change_password_desc">Masukkan nombor telefon atau\nklik atas kanan untuk imbas carian</string>
+    <string name="action_main_block_title">Sekat/pemblokiran pengguna</string>
+    <string name="action_main_block_desc">Masukkan nombor telefon untuk langkah seterusnya</string>
+    <string name="action_main_block_reason_hint">Sebab sekat (pilihan)</string>
+    <string name="action_main_block_reason_success_title">Sekat pengguna</string>
+    <string name="action_main_block_reason_success_desc">Sebab telah diserahkan</string>
+    <string name="action_main_block_reason_success_okay">Okay</string>
+    <string name="action_main_hint_format">eg. 60121234567</string>
+    <string name="action_main_hint_search">Nombor telefon / ID akaun</string>
+    <string name="action_main_hint_phone">Nombor telefon</string>
+    <string name="action_main_button_search">Cari</string>
+    <string name="action_main_button_create">Cipta</string>
+    <string name="action_main_button_confirm">Setuju</string>
+    <string name="action_main_button_cancel">Batal</string>
+
+    <!-- Action User Details -->
+    <string name="details_player_title">Butiran akaun permainan</string>
+    <string name="details_user_title">Butiran akaun</string>
+    <string name="details_account_id">ID Akaun</string>
+    <string name="details_phone">Nombor Telefon</string>
+    <string name="details_password">Kata Laluan</string>
+    <string name="details_yxi_password">Kata Laluan Permainan</string>
+    <string name="details_yxi">Permainan</string>
+    <string name="details_join_date">Tarikh Menyertai</string>
+    <string name="details_account_balance">Jumlah Semasa Akaun</string>
+    <string name="details_player_id">ID Akaun Permainan</string>
+    <string name="details_yxi_balance">Jumlah Semasa Permainan</string>
+    <string name="details_hint_top_up_amount">Jumlah Top Up</string>
+    <string name="details_hint_withdraw_amount">Jumlah Pengeluaran</string>
+    <string name="details_button_top_up">Top Up</string>
+    <string name="details_button_withdraw">Keluarkan Duit</string>
+    <string name="details_button_next">Langkah Seterusnya</string>
+    <string name="details_button_block">Sekat</string>
+    <string name="details_button_change_password">Tukar Kata Laluan</string>
+    <string name="details_button_cancel">Batal</string>
+
+    <!-- Success -->
+    <string name="success_action_top_up_title">RM%s\nTop up berjaya</string>
+    <string name="success_action_top_up_another">Top up akaun lain</string>
+    <string name="success_action_withdraw_title">RM%s\nPengeluaran berjaya</string>
+    <string name="success_action_withdraw_another">Keluarkan duit akaun lain</string>
+    <string name="success_action_create_user_title">Cipta pengguna berjaya</string>
+    <string name="success_action_create_user_desc">OTP telah dihantar ke nombor telefon pengguna</string>
+    <string name="success_action_create_user_another">Cipta pengguna baru lain</string>
+    <string name="success_action_create_user_random_title">Cipta pengguna rawak berjaya</string>
+    <string name="success_action_change_password_title">Tukar kata laluan berjaya</string>
+    <string name="success_action_change_password_desc">OTP telah dihantar ke nombor telefon pengguna</string>
+    <string name="success_action_change_password_another">Tukar kata laluan pengguna lain</string>
+    <string name="success_action_block_title">Pengguna telah disekat</string>
+    <string name="success_action_block_desc">Pengguna telah dihadkan</string>
+    <string name="success_action_block_submit">Serahkan</string>
+    <string name="success_action_block_another">Sekat pengguna lain</string>
+    <string name="success_action_create_player_title">Cipta akaun permainan berjaya</string>
+    <string name="success_action_create_player_another">Cipta akaun lain</string>
+    <string name="success_action_feedback_title">Maklum balas berjaya</string>
+    <string name="success_action_feedback_desc">Terima kasih atas maklum balas anda</string>
+    <string name="success_action_connect_printer_title">Pencetak berhubung berjaya</string>
+    <string name="success_action_connect_printer_desc">Uji cetak sedang berjalan…</string>
+    <string name="success_action_home">Kembali ke halaman utama</string>
+    <string name="success_action_print">Cetak</string>
+    <string name="success_action_top_up">Pergi ke top up</string>
+
+    <!-- Yxi -->
+    <string name="yxi_title">Pilih Permainan</string>
+    <string name="yxi_select_yxi">Sila pilih permainan</string>
+    <string name="yxi_search_hint">Cari permainan</string>
+    <string name="yxi_create_player">Cipta akaun permainan</string>
+    <string name="yxi_next">Langkah seterusnya</string>
+
+    <!-- Player Search -->
+    <string name="player_search_id_hint">Akaun permainan</string>
+    <string name="player_search_button_search">Cari</string>
+    <string name="player_search_button_back">Kembali pilih permainan</string>
+    <string name="player_search_hint_top_up">Jumlah top up</string>
+    <string name="player_search_hint_withdraw">Jumlah pengeluaran</string>
+
+    <!-- Transaction -->
+    <string name="transaction_title">Sejarah laporan</string>
+    <string name="transaction_tab_all">Semua</string>
+    <string name="transaction_tab_user">Sejarah Penciptaan</string>
+    <string name="transaction_tab_top_up">Top up pengguna</string>
+    <string name="transaction_tab_withdraw">Pengeluaran pengguna</string>
+    <string name="transaction_tab_manager_settlement">Penyelesaian akaun Manager</string>
+    <string name="transaction_type_user">Cipta Pengguna</string>
+    <string name="transaction_type_user_random">Cipta Pengguna Rawak</string>
+    <string name="transaction_type_user_player">Cipta Akaun Permainan</string>
+    <string name="transaction_type_top_up">Top up pengguna</string>
+    <string name="transaction_type_yxi_top_up">Top up akaun permainan</string>
+    <string name="transaction_type_withdraw">Pengeluaran pengguna</string>
+    <string name="transaction_type_yxi_withdraw">Pengeluaran akaun permainan</string>
+    <string name="transaction_type_manager_settlement">Penyelesaian akaun Manager</string>
+    <string name="transaction_type_manager_top_up">Tambah had Manager</string>
+    <string name="transaction_type_close_shop">Tutup Kedai</string>
+    <string name="transaction_type_unknown">Tidak diketahui</string>
+    <string name="transaction_search_hint">Cari Manager</string>
+    <string name="transaction_details_title">Butiran Transaksi</string>
+    <string name="transaction_date">Tarikh Transaksi</string>
+    <string name="transaction_phone">Telefon Nombor</string>
+    <string name="transaction_player_id">ID Akaun Permainan</string>
+    <string name="transaction_manager">Manager</string>
+    <string name="transaction_member_id">ID Akaun</string>
+    <string name="transaction_payment_mode">Kaedah Transaksi</string>
+    <string name="transaction_status">Status Transaksi</string>
+    <string name="transaction_remarks">Catatan</string>
+    <string name="transaction_history_user_details">Butiran Akaun ></string>
+
+    <!-- Profile -->
+    <string name="profile_title">Profil Peribadi</string>
+    <string name="profile_unknown_user">Pengguna Tidak Diketahui</string>
+    <string name="profile_profile_setting">Tetapan Peribadi</string>
+    <string name="profile_feedback">Maklum Balas Sistem</string>
+    <string name="profile_language_setting">Tetapan Bahasa</string>
+    <string name="profile_logout">Log Keluar</string>
+    <string name="profile_logout_title">Setuju log keluar?</string>
+    <string name="profile_logout_confirm">Setuju</string>
+    <string name="profile_logout_cancel">Batal</string>
+
+    <!-- Profile Setting -->
+    <string name="profile_setting_title">Tetapan Peribadi</string>
+    <string name="profile_setting_user">Maklumat Pengguna</string>
+    <string name="profile_setting_user_desc">Tukar maklumat pengguna</string>
+    <string name="profile_setting_printer">Hubungkan Pencetak</string>
+    <string name="profile_setting_printer_desc">Hubung dan urus pencetak</string>
+
+    <!-- Profile Setting - User -->
+    <string name="profile_setting_user_title">Maklumat Pengguna</string>
+    <string name="profile_setting_user_name">Nama Pengguna</string>
+    <string name="profile_setting_user_country">Negara Kedai</string>
+    <string name="profile_setting_user_state">Negeri Kedai</string>
+    <string name="profile_setting_user_area">Kawasan Kedai</string>
+    <string name="profile_setting_user_qr">Kod QR Kedai</string>
+
+    <!-- Profile Feedback -->
+    <string name="profile_feedback_title">Maklum balas sistem</string>
+    <string name="profile_feedback_subject_manager">Laporkan tingkah laku Manager</string>
+    <string name="profile_feedback_subject_manager_desc">Laporkan pengurusan Manager tidak wajar atau sebarang tingkah laku tidak wajar lain</string>
+    <string name="profile_feedback_subject_app">Maklum balas penggunaan APP / berikan cadangan</string>
+    <string name="profile_feedback_subject_app_desc">APP terlalu perlahan atau isu kilat?</string>
+    <string name="profile_feedback_subject_other">Lain-lain</string>
+    <string name="profile_feedback_subject_other_desc">Tiada dalam senarai di atas</string>
+    <string name="profile_feedback_subject_title">Tajuk maklum balas</string>
+    <string name="profile_feedback_hint_content">Kandungan maklum balas</string>
+    <string name="profile_feedback_content_count">0/1000</string>
+    <string name="profile_feedback_content_count_template">%d/1000</string>
+    <string name="profile_feedback_upload">Muat naik gambar</string>
+    <string name="profile_feedback_upload_gallery">Galeri</string>
+    <string name="profile_feedback_upload_camera">Kamera</string>
+    <string name="profile_feedback_upload_cancel">Batal</string>
+    <string name="profile_feedback_note">* Maklum balas dan cadangan ini akan dikemukakan terus kepada kepimpinan syarikat dan pengurusan kanan untuk semakan.</string>
+    <string name="profile_feedback_note_desc">Syarikat amat menghargai maklum balas dan cadangan daripada setiap pekerja.\nSemua kandungan akan dikendalikan dengan sikap yang serius, profesional dan berhati-hati.</string>
+    <string name="profile_feedback_submit">Serahkan</string>
+    <string name="profile_feedback_image_create_failed">Tidak dapat mencipta fail gambar</string>
+    <string name="profile_feedback_image_process_failed">Pemprosesan gambar gagal</string>
+    <string name="profile_feedback_image_compress_failed">Gambar masih melebihi 2MB selepas mampatan, muat naik gagal</string>
+    <string name="profile_feedback_image_size_mb">%.2f MB</string>
+    <string name="profile_feedback_image_size_kb">%.2f KB</string>
+    <string name="profile_feedback_camera_permission">Memerlukan kebenaran kamera untuk mengambil gambar</string>
+    <string name="profile_feedback_gallery_permission">Memerlukan kebenaran storan untuk mengakses gambar</string>
+    <string name="profile_feedback_upload_desc">Sila muat naik sekurang-kurangnya satu imej sebelum menghantar.</string>
+    <string name="profile_feedback_upload_okay">Okay</string>
+
+    <!-- Profile Setting - Printer -->
+    <string name="profile_setting_printer_title">Hubungkan Pencetak</string>
+    <string name="profile_setting_printer_refresh">Muat Semula</string>
+    <string name="profile_setting_printer_scanning">Mengimbas</string>
+    <string name="profile_setting_printer_no_printer">Tiada pencetak ditemui</string>
+    <string name="profile_setting_printer_scan_completed">Imbasan selesai</string>
+    <string name="profile_setting_printer_connect_failed">Sambungan gagal</string>
+    <string name="profile_setting_printer_bluetooth_not_supported">Peranti semasa tidak menyokong Bluetooth</string>
+    <string name="profile_setting_printer_bluetooth_permission">Sila hidupkan Bluetooth untuk mengimbas pencetak</string>
+    <string name="profile_setting_printer_gps_permission">Sila hidupkan GPS untuk mengimbas pencetak</string>
+    <string name="profile_setting_printer_gps_on">Hidupkan</string>
+    <string name="profile_setting_printer_gps_cancel">Batal</string>
+    <string name="profile_setting_printer_connect">Sambung</string>
+    <string name="profile_setting_printer_disconnect">Putus Sambung</string>
+    <string name="profile_setting_printer_connected">Tersambung, Pencetak lalai</string>
+    <string name="profile_setting_printer_disconnected">Tidak bersambung</string>
+
+    <string name="qr_scan_title">Imbas carian</string>
+    <string name="qr_scan_camera_permission">Memerlukan kebenaran kamera untuk mengimbas kod QR</string>
+
+    <string name="user_status_active">Aktif</string>
+    <string name="user_status_blocked">Disekat</string>
+    <string name="user_status_deleted">Dipadam</string>
+
+    <string name="transaction_status_success">Berjaya</string>
+    <string name="transaction_status_failed">Gagal</string>
+
+    <string name="template_currency_amount">RM %s</string>
+    <string name="template_bracket_s">(%s)</string>
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_bracket_s">%s (%s)</string>
+
+    <string name="placeholder_currency">RM</string>
+    <string name="placeholder_currency_amount">RM 0.00</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_amount_add">+0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_password_masked">•••••••••</string>
+
+    <string name="language_english">English</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_malay">Malay</string>
+
+    <string name="cd_icon">Ikon</string>
+    <string name="cd_qr">QR</string>
+    <string name="cd_image">Gambar</string>
+
+    <string name="print_connected">TERSAMBUNG---------------------</string>
+    <string name="print_template_store">Kedai : %s</string>
+    <string name="print_template_date">Tarikh : %s</string>
+    <string name="print_template_yxi">Permainan : %s</string>
+    <string name="print_template_id">I : %s</string>
+    <string name="print_template_password">P : %s</string>
+    <string name="print_template_top_up">+ : RM %s</string>
+    <string name="print_template_yxi_balance">GB : %s</string>
+    <string name="print_template_balance">B : %s</string>
+
+    <string name="country_code">Kod Kawasan</string>
+    <string name="country_code_mys">+60</string>
+
+    <string name="qr_user_app_download_title">Kod QR App Pelanggan</string>
+    <string name="qr_user_app_download_desc">Imbas untuk memuat turun aplikasi pelanggan</string>
+
+    <string name="in_app_updater_preparing_download">Menyediakan muat turun…</string>
+    <string name="in_app_updater_downloading_update">Memuat turun kemas kini…</string>
+    <string name="in_app_updater_installing_update">Memasang kemas kini…</string>
+    <string name="in_app_updater_wait">Sila tunggu</string>
+    <string name="in_app_updater_progress">%d%% (%dKB / %dKB)</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

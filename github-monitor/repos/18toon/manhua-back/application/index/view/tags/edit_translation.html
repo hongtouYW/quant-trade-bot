@@ -1,0 +1,62 @@
+{include file="public/header" /}
+<div class="layui-tab layui-tab-brief" lay-filter="lang-tabs">
+    <blockquote class="layui-elem-quote">
+        请选择语言标签进行标签翻译内容编辑，点击下方的“保存”按钮即可保存该语言的翻译信息。
+    </blockquote>
+
+    <ul class="layui-tab-title">
+        {volist name="translations" id="tr"}
+        <li class="{if $i==1}layui-this{/if}">{$tr.lang_code|strtoupper}</li>
+        {/volist}
+    </ul>
+
+    <div class="layui-tab-content" style="padding: 20px;">
+        {volist name="translations" id="tr" key="k"}
+        <div class="layui-tab-item {if $k==1}layui-show{/if}">
+            <form class="layui-form translation-form" lay-filter="form_{$tr.id}" style="padding: 10px 0;">
+                <input type="hidden" name="id" value="{$tr.id}">
+                <input type="hidden" name="lang_code" value="{$tr.lang_code}">
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label" style="font-weight: bold;">标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" value="{$tr.name}" required class="layui-input">
+                        {if $tag.name}
+                            <div class="layui-form-mid layui-word-aux">原文: {$tag.name}</div>
+                        {/if}
+                    </div>
+                </div>
+
+                <div class="layui-form-item" style="text-align: right; margin-top: 20px;">
+                    <button class="layui-btn layui-btn-normal" onclick="submitTranslation(this)">保存翻译</button>
+                </div>
+            </form>
+        </div>
+        {/volist}
+    </div>
+</div>
+
+<script>
+    function submitTranslation(btn) {
+        const $btn = $(btn);
+        const $form = $btn.closest('form');
+
+        // 禁用按钮，显示 loading
+        $btn.prop('disabled', true).html('⏳ 保存中...');
+
+        $.post('/tags/save_translation', $form.serialize(), function (res) {
+            if (res.code === 0 || res.status === 'success') {
+                layer.msg(res.msg || '保存成功 ✅', { icon: 1 });
+            } else {
+                layer.msg(res.msg || '保存失败 ❌', { icon: 2 });
+            }
+        }).fail(function () {
+            layer.msg('网络错误，请稍后重试 ❌', { icon: 2 });
+        }).always(function () {
+            // 恢复按钮
+            $btn.prop('disabled', false).html('保存翻译');
+        });
+
+        return false; // 阻止表单跳转
+    }
+</script>

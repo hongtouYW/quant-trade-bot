@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"> <!-- Fixed height for consistent row spacing -->
+
+    <!-- Continuous background view with vertical margins for row gaps -->
+    <View
+        android:id="@+id/continuousBackgroundView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Round background view for single selections with margin on all sides -->
+    <View
+        android:id="@+id/roundBackgroundView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="4dp"
+        android:visibility="gone" />
+
+    <!-- Day text -->
+    <TextView
+        android:id="@+id/calendar_day_text"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:textSize="16sp"
+        tools:text="22" />
+</FrameLayout>

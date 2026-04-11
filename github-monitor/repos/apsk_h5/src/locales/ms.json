@@ -1,0 +1,1308 @@
+{
+  "welcome": "Selamat datang, ",
+  "vip": "VIP {level}",
+  "balance": "Baki",
+  "wallet": "Dompet",
+  "transactions": "Rekod",
+  "topup": "Deposit",
+  "withdraw": "Pengeluaran",
+  "vipPrivileges": "VIP",
+  "discount": "Promosi",
+  "bank": "Bank",
+  "promote": "Jana",
+  "bonusBadge": "Bonus {percent}%",
+  "nav": {
+    "home": "Laman",
+    "sport": "Sukan",
+    "all": "Semua",
+    "slot": "Slot",
+    "hot": "Hangat",
+    "app": "Aplikasi",
+    "electronic": "Elektronik",
+    "chess": "Catur",
+    "newMember": "Deposit Baharu",
+    "crypto": "Kripto",
+    "agent": "Ejen",
+    "hotActivity": "Hangat",
+    "other": "Lain",
+    "fishing": "Pancing",
+    "live": "Langsung",
+    "sports": "Sukan",
+    "lottery": "Loteri",
+    "cock": "Sabung"
+  },
+  "account": {
+    "switch": "Tukar Akaun"
+  },
+  "tabs": {
+    "hot": "Hangat",
+    "recent": "Terkini",
+    "favorite": "Kegemaran"
+  },
+  "footer": {
+    "home": "Laman",
+    "promo": "Promosi",
+    "cs": "Khidmat",
+    "me": "Saya"
+  },
+  "setting": {
+    "profile": "Profil",
+    "safety": "Keselamatan",
+    "contact": "Hubungi",
+    "contactNote": "Elak Sekat",
+    "download": "Muat Turun App",
+    "feedback": "Maklum Balas",
+    "help": "Bantuan",
+    "language": "Bahasa",
+    "logout": "Log Keluar",
+    "logoutConfirm": "Sahkan",
+    "logoutConfirmMessage": "Log keluar akaun?"
+  },
+  "findus": {
+    "common": {
+      "copied": "Disalin",
+      "copyFailed": "Gagal",
+      "openEmail": "Buka Emel"
+    },
+    "title": "Hubungi Kami",
+    "saveWebsite": "Simpan Pautan",
+    "websiteNote": "Sila simpan pautan rasmi kami:",
+    "homeLink1": "Pautan Utama 1",
+    "homeLink2": "Pautan Utama 2",
+    "officialLink": "Rasmi",
+    "saveImage": "Simpan Imej",
+    "saveEmail": "Simpan Emel",
+    "emailNote": "Emel rasmi kami"
+  },
+
+  "appdownload": {
+    "iosVersion": "iOS {version}",
+    "androidVersion": "Android {version}",
+    "title": "Muat Turun App",
+    "instruction": "Imbas atau klik untuk muat turun",
+    "clickNote": "(Klik)"
+  },
+  "language": {
+    "current": {
+      "zh": "简体中文",
+      "ms": "Melayu",
+      "en": "English"
+    },
+    "title": "Bahasa",
+    "cn": "Cina",
+    "zh": "Cina",
+    "ms": "Melayu",
+    "en": "Inggeris",
+    "th": "Thai",
+    "vi": "Vietnam",
+    "my": "Myanmar"
+  },
+
+  "help": {
+    "noSupportLink": "CS tidak tersedia. Cuba lagi.",
+    "noChild": "Tiada sub-item tersedia",
+    "detailTitle": "Butiran Bantuan",
+    "noAnswer": "Tiada kandungan",
+    "createdOn": "Tarikh",
+    "title": "Bantuan",
+    "tab": {
+      "faq": "FAQ",
+      "trade": "Transaksi",
+      "transfer": "Pindah",
+      "vip": "VIP"
+    },
+    "card": {
+      "title": "CS 24/7",
+      "subtitle": "CS sedia membantu",
+      "cs1": "CS 1",
+      "cs2": "CS 2",
+      "otherCS": "CS Lain"
+    },
+    "group": {
+      "wallet": "Dompet",
+      "game": "Permainan",
+      "promo": "Promosi",
+      "topup": "Deposit",
+      "withdraw": "Pengeluaran"
+    },
+    "q": {
+      "wallet": {
+        "1": "1. Dompet USDT",
+        "2": "2. Kelebihan kripto",
+        "3": "3. Cara guna kripto"
+      },
+      "game": {
+        "1": "1. Isu permainan"
+      },
+      "promo": {
+        "1": "1. Isu promosi"
+      },
+      "topup": {
+        "1": "1. Cara deposit"
+      },
+      "withdraw": {
+        "1": "1. Cara pengeluaran"
+      }
+    }
+  },
+  "msgCenter": {
+    "title": "Mesej",
+    "tabs": {
+      "cs": "CS",
+      "notice": "Notis",
+      "marquee": "Banner",
+      "appFeedback": "Maklum Balas"
+    },
+    "actions": {
+      "create": "Buat",
+      "mine": "Saya",
+      "submit": "Hantar"
+    },
+    "form": {
+      "topic": "Tajuk",
+      "topicPlaceholder": "Masalah",
+      "topic_bug": "Pepijat",
+      "topic_ui": "Paparan",
+      "topic_suggest": "Cadangan",
+      "topic_other": "Lain",
+      "content": "Butiran",
+      "placeholder": "Kongsi pendapat anda",
+      "mediaTitle": "Media",
+      "mediaNote": "Gambar ≤2MB, Video ≤20MB",
+      "topic_gameSpeed": "Kelajuan",
+      "topic_uiSmooth": "Kelancaran",
+      "topic_difficulty": "Kesukaran",
+      "topic_guide": "Panduan"
+    },
+    "toast": {
+      "submitted": "Dihantar",
+      "success": "Berjaya dihantar",
+      "error": "Gagal, cuba lagi"
+    },
+    "mine": {
+      "empty": "Tiada rekod"
+    },
+    "validation": {
+      "fillAll": "Lengkapkan semua",
+      "topicRequired": "Pilih tajuk",
+      "contentRequired": "Isi kandungan",
+      "missingMember": "Sila log masuk semula",
+      "imageRequired": "Sila muat naik sekurang-kurangnya satu gambar"
+    }
+  },
+  "profile": {
+    "title": "Profil",
+    "changeAvatar": "Tukar Avatar",
+    "username": "Nama",
+    "usernamePlaceholder": "Masukkan nama",
+    "userId": "ID",
+    "bindSocial": "Akaun Sosial",
+    "birthday": "Tarikh Lahir",
+    "saveSuccess": "Disimpan",
+    "saveFailed": "Gagal simpan",
+    "errors": {
+      "usernameRequired": "Nama diperlukan",
+      "socialRequired": "Akaun diperlukan",
+      "birthdayRequired": "Pilih tarikh",
+      "avatarRequired": "Muat naik avatar",
+      "userIdRequired": "ID diperlukan"
+    }
+  },
+  "common": {
+    "loadFailed": "Gagal muat",
+    "home": "Laman",
+    "confirmLogout": "Sahkan Log Keluar",
+    "sessionExpired": "Sesi Tamat",
+    "sessionExpiredMessage": "Sila log masuk semula",
+    "networkError": "Ralat rangkaian",
+    "select": "Pilih",
+    "success": "Berjaya",
+    "error": "Ralat",
+    "noData": "Tiada data",
+    "underMaintenanceTitle": "Penyelenggaraan",
+    "underMaintenanceMessage": "Fungsi belum tersedia",
+    "ok": "OK",
+    "save": "Simpan",
+    "loading": "Memuat...",
+    "saveSuccess": "Berjaya",
+    "noRecords": "Tiada rekod",
+    "noMore": "Tiada lagi",
+    "copy": "Salin",
+    "copySuccess": "Disalin",
+    "copyFailed": "Gagal",
+    "cancel": "Batal",
+    "confirm": "Sahkan",
+    "back": "Kembali",
+    "somethingWentWrong": "Ralat",
+    "copied": "Disalin",
+    "favorite": "Kegemaran",
+    "retry": "Cuba lagi",
+    "next": "Teruskan",
+    "credit": "Baki",
+    "points": "Poin",
+    "close": "Tutup",
+    "backHome": "Laman",
+    "link": "Pautan",
+    "downloadUrl": "Pautan App"
+  },
+  "vips": {
+    "invalidBonusType": "Bonus tidak sah",
+    "dailyBonusNotImplemented": "Bonus harian belum tersedia",
+    "max": "Tahap maksimum",
+    "title": "VIP",
+    "oneClickClaim": "Tuntut",
+    "claimRecords": "Rekod",
+    "upgradeNeed": "Perlu deposit",
+    "section": {
+      "normal": "Bonus Naik",
+      "weekly": "Bonus Mingguan",
+      "monthly": "Bonus Bulanan",
+      "firstbonus": "Bonus Naik",
+      "dailybonus": "Bonus Harian",
+      "weeklybonus": "Bonus Mingguan",
+      "monthlybonus": "Bonus Bulanan"
+    },
+    "col": {
+      "level": "Tahap",
+      "needNormal": "Perlu Deposit",
+      "needWeekly": "Bet Mingguan",
+      "needMonthly": "Bet Bulanan",
+      "reward": "Bonus"
+    },
+    "rules": {
+      "title": "Peraturan",
+      "item1": "Cukup syarat VIP untuk naik tahap dan dapat bonus.",
+      "item2": "Bonus harian: tuntut hari yang sama.",
+      "item3": "Bonus mingguan: tuntut minggu ini.",
+      "item4": "Bonus bulanan: tuntut bulan ini.",
+      "item5": "Bonus tamat jika tidak dituntut.",
+      "item6": "Bonus perlu 1x turnover untuk pengeluaran.",
+      "item7": "Penyalahgunaan akaun akan disekat dan bonus dirampas."
+    }
+  },
+  "transaction": {
+    "title": "Rekod",
+    "back": "Kembali",
+    "tabs": {
+      "credit": "Kredit",
+      "points": "Poin",
+      "bets": "Pertaruhan"
+    },
+    "tx": {
+      "qrPayment": "QR Keluaran {amount}",
+      "pointReload": "Tambah {amount}",
+      "topup": "Deposit {amount}",
+      "rebate": "Rebat {amount}",
+      "bonus": "Bonus {amount}",
+      "withdraw": "Pengeluaran {amount}",
+      "reload": "Tambah {amount}",
+      "pointWithdraw": "Poin Keluar {amount}",
+      "gameDeposit": "Game Masuk {amount}",
+      "gameWithdraw": "Game Keluar {amount}",
+      "deposit": "Deposit {amount}",
+      "unknown": "Transaksi {amount}"
+    },
+    "detail": {
+      "pTopup": "Deposit Kedai",
+      "provider": "Penyedia",
+      "notFound": "Tiada rekod",
+      "amount": "Amaun",
+      "bank": "Bank",
+      "time": "Masa",
+      "method": "Kaedah",
+      "id": "ID",
+      "status": "Status",
+      "game": "Permainan",
+      "bet": "Pertaruhan",
+      "win": "Menang",
+      "begin": "Baki Awal",
+      "end": "Baki Akhir"
+    },
+    "status": {
+      "success": "Berjaya",
+      "failed": "Gagal",
+      "pending": "Dalam Proses"
+    },
+    "actions": {
+      "filter": "Tapis"
+    },
+    "filter": {
+      "title": "Tapis",
+      "clear": "Kosongkan",
+      "rangeTitle": "Julat",
+      "searchByDate": "Tarikh",
+      "reset": "Tetap Semula",
+      "resultTitle": "Hasil",
+      "quick": {
+        "all": "Semua",
+        "today": "Hari Ini",
+        "yesterday": "Semalam",
+        "thisWeek": "Minggu Ini",
+        "lastWeek": "Minggu Lepas",
+        "thisMonth": "Bulan Ini",
+        "lastMonth": "Bulan Lepas",
+        "prevDay": "Sebelum",
+        "nextDay": "Seterusnya"
+      },
+      "date": "Tarikh",
+      "dateFrom": "Dari",
+      "dateTo": "Hingga",
+      "cancel": "Batal",
+      "apply": "Guna",
+      "preview": "Pratonton"
+    }
+  },
+  "safety": {
+    "title": "Keselamatan",
+    "items": {
+      "phone": "Telefon",
+      "email": "Emel",
+      "googleAuth": "Google Auth",
+      "face": "Face ID",
+      "fingerprint": "Cap Jari",
+      "changePassword": "Tukar Kata Laluan"
+    },
+    "status": {
+      "unbound": "Belum",
+      "unadded": "Tiada",
+      "bound": "Aktif"
+    },
+    "actions": {
+      "back": "Kembali"
+    }
+  },
+  "bindPhone": {
+    "title": "Telefon",
+    "heading": "Ikat Telefon",
+    "subtitle": "Untuk log masuk",
+    "placeholder": "Nombor telefon",
+    "verify": "Sahkan",
+    "boundTitle": "Telefon Aktif",
+    "boundSubtitle": "Digunakan untuk log masuk"
+  },
+
+  "otp": {
+    "title": "OTP",
+    "enterCode": "Masukkan kod",
+    "sentTo": "Kod dihantar ke {phone}",
+    "resend": "Hantar semula ({seconds}s)",
+    "verify": "Sahkan",
+    "bindSuccess": "Telefon berjaya diikat"
+  },
+  "bindEmail": {
+    "title": "Emel",
+    "heading": "Ikat Emel",
+    "subtitle": "Untuk log masuk",
+    "placeholder": "Masukkan emel",
+    "verify": "Sahkan",
+    "errors": {
+      "emailRequired": "Emel diperlukan",
+      "emailInvalid": "Format emel tidak sah"
+    }
+  },
+  "ga": {
+    "title": "Google Auth",
+    "h1Bind": "Ikat Google Auth",
+    "h1Unbind": "Nyahikat Google Auth",
+    "step1": "Langkah 1",
+    "download": "Muat turun",
+    "googleAuthenticator": "Google Authenticator",
+    "openTip": "Buka aplikasi",
+    "step2": "Langkah 2",
+    "addQrTip": "Imbas QR / masukkan kunci",
+    "copyPrefix": "Kunci",
+    "copy": "Salin",
+    "step3": "Langkah 3",
+    "enterSixDigits": "Masukkan 6 digit",
+    "enterSixDigitsToUnbind": "Masukkan 6 digit",
+    "actions": {
+      "bindNow": "Ikat",
+      "unbindNow": "Nyahikat"
+    },
+    "copied": "Disalin",
+    "enableSuccess": "Berjaya diikat",
+    "disableSuccess": "Berjaya nyahikat",
+    "errors": {
+      "sixDigits": "Perlu 6 digit",
+      "failed": "Gagal",
+      "noMember": "Sila log masuk semula"
+    }
+  },
+  "pwd": {
+    "title": "Tukar Kata Laluan",
+    "enterPwd": "Masukkan kata laluan",
+    "old": "Kata Laluan Lama",
+    "new": "Kata Laluan Baharu",
+    "confirm": "Sahkan Kata Laluan",
+    "strength": "Kekuatan",
+    "next": "Seterusnya",
+    "errors": {
+      "required": "Kata laluan diperlukan",
+      "min6": "Minimum 6 aksara",
+      "mix": "Huruf & nombor",
+      "mismatch": "Tidak sepadan",
+      "failed": "Gagal menukar"
+    },
+    "show": "Papar",
+    "hide": "Sembunyi"
+  },
+  "securityVerify": {
+    "success": "Kata laluan dikemas kini",
+    "successModal": {
+      "title": "Berjaya menukar kata laluan",
+      "message": "Anda boleh menggunakan kata laluan baharu semasa log masuk seterusnya",
+      "confirm": "Saya faham"
+    },
+    "errors": {
+      "invalidCode": "Kod 6 digit tidak sah",
+      "noMethod": "Tiada kaedah",
+      "failed": "Gagal sahkan"
+    },
+    "title": "Pengesahan",
+    "phone": {
+      "title": "Telefon",
+      "tip": "Masukkan kod telefon",
+      "switch": "Guna emel"
+    },
+    "email": {
+      "title": "Emel",
+      "tip": "Masukkan kod emel"
+    },
+    "ga": {
+      "title": "Google Auth",
+      "tip": "Masukkan kod GA"
+    },
+    "actions": {
+      "send": "Hantar",
+      "paste": "Tampal",
+      "verify": "Sahkan"
+    }
+  },
+  "bankDetail": {
+    "title": "Bank",
+    "addedTitle": "Bank Ditambah",
+    "desc": "Digunakan untuk deposit & bayaran",
+    "fastPay": "Bayar Pantas",
+    "addNewTitle": "Tambah Bank",
+    "addNewDesc": "Aktifkan bayaran pantas",
+    "addBankAccount": "Tambah Bank"
+  },
+  "bankAdd": {
+    "title": "Tambah Bank",
+    "addTitle": "Bank Baharu",
+    "username": {
+      "label": "Nama Akaun",
+      "placeholder": "Nama akaun",
+      "tip": "Mestilah sama"
+    },
+    "bank": {
+      "label": "Bank",
+      "placeholder": "Pilih bank"
+    },
+    "account": {
+      "label": "No Akaun",
+      "placeholder": "Masukkan nombor"
+    },
+    "fastPay": {
+      "label": "Bayar Pantas",
+      "note": "Untuk deposit pantas"
+    },
+    "actions": {
+      "submit": "Hantar"
+    },
+    "errors": {
+      "nameRequired": "Nama diperlukan",
+      "bankRequired": "Pilih bank",
+      "accountRequired": "No akaun diperlukan",
+      "accountDigitsOnly": "Nombor sahaja",
+      "accountMinLen": "Minimum 8 digit",
+      "accountMaxLen": "Maks {max} digit",
+      "invalidFormat": "Format tidak sah"
+    },
+    "toasts": {
+      "saving": "Menghantar…",
+      "saveSuccess": "Disimpan",
+      "saveFailed": "Gagal"
+    }
+  },
+  "bankPicker": {
+    "title": "Pilih Bank",
+    "searchPlaceholder": "Cari bank",
+    "search": "Cari",
+    "empty": "Tiada bank",
+    "noResults": "Tiada hasil"
+  },
+  "bankEdit": {
+    "header": "Bank Ditambah",
+    "title": "Edit Bank",
+    "actions": {
+      "delete": "Padam"
+    },
+    "deleteConfirm": {
+      "message": "Padam akaun bank?",
+      "confirm": "Teruskan"
+    },
+    "toast": {
+      "deleted": "Dipadam"
+    }
+  },
+  "withdraws": {
+    "accountCommission": "Akaun ini dikenakan komisen {value}%",
+    "chargeRate": "Caj perkhidmatan {value}%",
+    "finalAmount": "Jumlah diterima {value}",
+    "selectBank": "Tukar Bank",
+    "addBank": "Tambah Bank",
+    "title": "Pengeluaran",
+    "credit": "Baki",
+    "points": "Poin",
+    "myId": "ID",
+    "amount": "Amaun",
+    "all": "Semua",
+    "minAmount": "Min {value}",
+    "maxAmount": "Maks {value}",
+    "submitTransfer": "Hantar",
+    "qrPay": "QR Tunai",
+    "bank": "Bank",
+    "bankUsername": "Nama Akaun",
+    "bankAccount": "No Akaun",
+    "submit": "Teruskan",
+    "qrSubtitle": "QR:",
+    "qrInstruction": "Tunjuk QR",
+    "autoRefreshLabel": "Auto segar:",
+    "success": "Permintaan dihantar",
+    "errors": {
+      "amountRequired": "Isi amaun",
+      "amountGtZero": "> 0",
+      "amountMin": "Min {value}",
+      "amountMax": "Maks {value}",
+      "bankRequired": "Pilih bank"
+    }
+  },
+  "earn": {
+    "title": "Jana",
+    "tabs": {
+      "share": "Kongsi",
+      "stats": "Data",
+      "performance": "Prestasi",
+      "commission": "Komisen",
+      "downline": "Downline",
+      "backRatioTab": "Rebat",
+      "directMember": "Terus"
+    },
+    "share": {
+      "wechatTip": "Kongsi QR",
+      "invitaionCode": "Kod",
+      "toClaim": "Belum",
+      "myUpline": "Upline",
+      "oneClickReceive": "Tuntut",
+      "receiveHistory": "Rekod",
+      "agentMode": "Ejen",
+      "save": "Simpan",
+      "myLink": "Pautan",
+      "switch": "Tukar",
+      "shareTitle": "Kongsi dengan"
+    },
+    "tutorial": {
+      "title": "Tutorial",
+      "selfPerformance": "Prestasi",
+      "directCommission": "Komisen",
+      "otherCommission": "Lain",
+      "totalCommission": "Jumlah"
+    },
+    "note": "Lebih banyak, lebih baik",
+    "rules": {
+      "title": "Peraturan",
+      "r1": "Komisen ikut prestasi.",
+      "r2": "Komisen terus.",
+      "r3": "Kiraan automatik.",
+      "r4": "Ikut struktur.",
+      "r5": "Komisen harian."
+    },
+    "placeholders": {
+      "stats": "Data saya",
+      "performance": "Prestasi saya",
+      "commission": "Komisen saya",
+      "downline": "Info downline"
+    }
+  },
+
+  "myData": {
+    "title": "Data",
+    "filter": {
+      "today": "Hari Ini",
+      "yesterday": "Semalam",
+      "thisWeek": "Minggu Ini",
+      "lastWeek": "Minggu Lepas",
+      "thisMonth": "Bulan Ini",
+      "lastMonth": "Bulan Lepas"
+    },
+    "directData": {
+      "title": "Hari Ini",
+      "newMember": "Ahli Baharu",
+      "firstTopupAmount": "Deposit Pertama",
+      "firstTopupTotal": "Jumlah Pertama",
+      "firstTopupCount": "Bil Pertama",
+      "rechargeAmount": "Deposit",
+      "rechargeCount": "Bil Deposit",
+      "withdrawAmount": "Pengeluaran",
+      "withdrawCount": "Bil Pengeluaran",
+      "validBet": "Bet Sah",
+      "rewardClaimed": "Ganjaran",
+      "directWin": "Menang",
+      "directPerformance": "Prestasi",
+      "totalCommission": "Komisen"
+    },
+    "teamData": {
+      "title": "Jumlah",
+      "teamCount": "Pasukan",
+      "directCount": "Terus",
+      "otherCount": "Lain",
+      "totalPerformance": "Prestasi",
+      "directPerformance": "Prestasi Terus",
+      "otherPerformance": "Prestasi Lain",
+      "totalCommission": "Komisen",
+      "directCommission": "Komisen Terus",
+      "otherCommission": "Komisen Lain",
+      "commissionAccumulated": "Terkumpul",
+      "commissionReceived": "Diterima",
+      "commissionPending": "Belum",
+      "directRecharge": "Deposit Terus",
+      "directWithdraw": "Pengeluaran Terus",
+      "directReward": "Ganjaran",
+      "directValidBet": "Bet Sah",
+      "directWin": "Menang"
+    }
+  },
+  "myPerformance": {
+    "date": "Tarikh",
+    "totalCommission": "Komisen",
+    "people": "Orang"
+  },
+  "myCommission": {
+    "username": "Nama",
+    "userId": "ID",
+    "recharge": "Deposit",
+    "time": "Masa",
+    "commission": "Komisen"
+  },
+  "subInfo": {
+    "id": "ID",
+    "joined": "Sertai",
+    "invite": "Kod",
+    "inviteCode": "Kod",
+    "copy": "Salin"
+  },
+  "returnRatio": {
+    "valid": "Sah",
+    "performance": "Prestasi",
+    "rebate": "Rebat"
+  },
+  "directOpen": {
+    "accountPlaceholder": "Akaun",
+    "passwordPlaceholder": "Kata Laluan",
+    "showPwd": "Papar",
+    "hidePwd": "Sembunyi",
+    "go": "Teruskan"
+  },
+  "invite": {
+    "defaultUpdated": "Dikemas kini",
+    "createSuccess": "Berjaya",
+    "title": "Jana",
+    "myCode": "Kod Saya",
+    "default": "Lalai",
+    "rebateRate": "Rebat %",
+    "inviteCode": "Kod",
+    "inviteLink": "Pautan",
+    "inviteNow": "Jemput",
+    "more": "Lagi",
+    "myStats": "Stat",
+    "groupCount": "Pasukan",
+    "tradeCount": "Transaksi",
+    "myRebate": "Rebat",
+    "setAsDefault": "Set Lalai",
+    "noMore": "Tiada lagi",
+    "newCode": {
+      "desc": "Set sebagai lalai",
+      "title": "Kod Baharu",
+      "remarkPlaceholder": "Nota",
+      "friendRebate": "Rebat Rakan %",
+      "myRebate": "Rebat Saya %",
+      "setAsDefault": "Set Lalai"
+    }
+  },
+  "inviteRecords": {
+    "title": "Kod Saya",
+    "tabs": {
+      "friends": "Rakan",
+      "rebate": "Rebat"
+    },
+    "time": "Masa",
+    "invitedId": "ID",
+    "code": "Kod",
+    "invitedCount": "Bil",
+    "tradedCount": "Dagangan",
+    "totalAmount": "Jumlah",
+    "rebateAmount": "Rebat"
+  },
+
+  "topups": {
+    "redirect": {
+      "title": "Ke Pembayaran...",
+      "desc": "Sila tunggu",
+      "missingUrl": "Pautan tiada"
+    },
+    "title": "Deposit",
+    "tabs": {
+      "online": "Dalam Talian",
+      "crypto": "Kripto",
+      "ewallet": "eDompet",
+      "qr": "QR"
+    },
+    "payments": {
+      "empty": "Tiada kaedah",
+      "loadFailed": "Gagal dimuatkan"
+    },
+    "platform": "Platform {n}",
+    "amount": {
+      "title": "Amaun",
+      "other": "Tersuai",
+      "placeholder": "0",
+      "limits": "Min {min} / Maks {max}",
+      "limitsRange": "{min} - {max}",
+      "mustMatchAllowed": "Pilih amaun tetap",
+      "outOfRange": "Di luar julat",
+      "overMaxSplit": "Jumlah melebihi had. Sila buat pembayaran dalam dua kali."
+    },
+    "actions": {
+      "submit": "Deposit"
+    },
+    "success": {
+      "title": "Berjaya",
+      "desc": "Deposit diterima"
+    },
+    "cancel": {
+      "title": "Batal?",
+      "desc": "Hentikan menunggu?"
+    },
+    "keepWaiting": "Tunggu",
+    "status": {
+      "completedNow": "Selesai...",
+      "current": "Status: {status}",
+      "initializing": "Mencipta pesanan",
+      "error": "Gagal",
+      "failed": "Gagal",
+      "processing": "Dalam Proses"
+    }
+  },
+  "discounts": {
+    "claimSuccess": "Berjaya",
+    "claimAllSuccess": "Berjaya",
+    "claimFail": "Gagal",
+    "title": "Promosi",
+    "activity": "Aktiviti",
+    "vip": "VIP",
+    "return": "Rebat",
+    "record": "Rekod",
+    "noData": "Tiada data",
+    "validBet": "Pertaruhan Sah",
+    "returnRatio": "Kadar",
+    "claimable": "Boleh Dituntut",
+    "claim": "Tuntut",
+    "success": "Berjaya",
+    "oneClickClaim": "Tuntut",
+    "toClaimPoints": "+{points} poin",
+    "claimedIntoWallet": "+{points} poin"
+  },
+  "discountDetail": {
+    "title": "Butiran",
+    "noAnswer": "Tiada maklumat",
+    "noData": "Tiada promosi",
+    "headlinePrefix": "Deposit",
+    "headlineMid": "Dapat",
+    "rules": {
+      "title": "Peraturan",
+      "newbie": "Ahli baharu +200 poin",
+      "period": "Tempoh terhad"
+    },
+    "how": {
+      "title": "Cara",
+      "step1": "Penuhi syarat VIP",
+      "step2": "Bonus harian",
+      "step3": "Bonus mingguan",
+      "step4": "Bonus bulanan",
+      "step5": "Tamat jika luput",
+      "step6": "1x pusing ganti",
+      "step7": "Tiada penyalahgunaan"
+    },
+    "actions": {
+      "play": "Main",
+      "deposit": "Deposit"
+    }
+  },
+  "players": {
+    "invitationCode": "Kod",
+    "credentials": "Akaun",
+    "brand": "WL Live",
+    "selectTitle": "Pilih Pemain",
+    "points": "Poin",
+    "addNew": "Tambah",
+    "addTitle": "Pemain Baharu",
+    "myId": "ID Saya",
+    "password": "Kata Laluan",
+    "startGame": "Deposit & Main",
+    "delete": "Padam",
+    "setPassword": "Tetapkan Kata Laluan",
+    "addSuccess": "Berjaya",
+    "deleteConfirmTitle": "Sahkan",
+    "deleteConfirmDesc": "Padam PLAYER_ID?",
+    "deleteSuccess": "Dipadam",
+    "deleteFailed": "Gagal",
+    "errors": {
+      "idRequired": "ID diperlukan"
+    }
+  },
+  "wallets": {
+    "balance": "Baki Akaun",
+    "withdrawTitle": "Pengeluaran",
+    "loadingGameTitle2": "Memuatkan permainan...",
+    "pleaseWaitToContinue2": "Sila tunggu",
+    "popupBlockedNotice": "Pop-up disekat",
+    "openGameManually": "Buka secara manual",
+    "backToHome": "Laman Utama",
+    "tapToOpenGame": "Ketik untuk buka",
+    "providerPoints": "{{provider}} Poin",
+    "addBankRequired": "Tambah akaun bank",
+    "credit": "Kredit",
+    "points": "Poin",
+    "fromCredit": "Dari Kredit",
+    "toPoints": "Ke Poin",
+    "all": "Semua",
+    "convert": "Tukar",
+    "openGame": "Main",
+    "transferTitle": "Masuk",
+    "topup": "Deposit",
+    "transfer": "Pindah",
+    "confirmMessage": "Tukar Kredit ke Poin?",
+    "toCredit": "Ke Kredit",
+    "fromPoints": "Dari Poin",
+    "inputAmount": "Amaun",
+    "idLabel": "ID:{value}",
+    "transferSuccess": "Berjaya",
+    "confirmTitle": "Sahkan",
+    "confirmCreditToPoints": "Kredit → Poin?",
+    "confirmPointsToCredit": "Poin → Kredit?",
+    "enterAmount": "Masukkan amaun",
+    "redirectingTitle": "Mengalihkan...",
+    "redirecting": "Menyediakan pembayaran...",
+    "pleaseWait": "Sila tunggu",
+    "urlNotFound": "Pautan tiada",
+    "topupSuccess": "Dihantar",
+    "topupFailed": "Gagal",
+    "loading": "Memuatkan",
+    "amountInvalid": "Amaun tidak sah",
+    "selectPayment": "Pilih kaedah",
+    "confirmTopup": "Sahkan",
+    "topupNow": "Deposit",
+    "loadingGameTitle": "Memuatkan permainan...",
+    "loadingGame": "Memuatkan permainan...",
+    "pleaseWaitToContinue": "Pengalihan automatik",
+    "transferFailedTitle": "Gagal",
+    "transferFailedMessage": "Sila cuba lagi",
+    "transferFailed": "Gagal",
+    "loadingGameFailedTitle": "Tidak dapat dimuatkan",
+    "loadingGameFailedMessage": "Sila cuba lagi",
+    "loadingGameFailed": "Gagal",
+    "errorTitle": "Ralat",
+    "cannotLoadGame": "Tidak dapat memuatkan",
+    "cannotLoadGame2": "Tidak dapat memuatkan",
+    "close": "Tutup",
+    "redirectingSoon": "Kembali secara automatik",
+    "popupBlockedTryAgain": "Pop-up disekat"
+  },
+  "transfer": {
+    "noDeepLink": "Aplikasi tiada",
+    "tryOpen": "Membuka aplikasi...",
+    "appNotInstalled": "Belum dipasang",
+    "openSuccess": "Berjaya dibuka",
+    "processing": "Dalam proses...",
+    "failed": "Gagal",
+    "createPlayerFailed": "Gagal mencipta",
+    "generalError": "Ralat",
+    "title": "Tukar",
+    "success": "Berjaya",
+    "oneClick": "Tuntut",
+    "credit": "Kredit",
+    "points": "Poin",
+    "tip": "Masukkan Poin",
+    "table": {
+      "game": "Permainan",
+      "currentPoints": "Poin",
+      "toTransfer": "Pindah"
+    },
+    "quickSet": "Pantas",
+    "actions": {
+      "allIn": "Semua",
+      "clear": "Kosongkan"
+    },
+    "confirm": "Sahkan",
+    "transferSuccess": "Berjaya",
+    "transferFail": "Gagal",
+    "invalidAmount": "Amaun tidak sah",
+    "ipError": "Gagal mendapatkan IP"
+  },
+  "login": {
+    "invalidCredentials": "Maklumat tidak sah",
+    "title": "Log Masuk",
+    "subtitle": "Sila log masuk",
+    "phone": "Telefon",
+    "password": "Kata Laluan",
+    "forgot": "Lupa",
+    "submit": "Log Masuk",
+    "socialTitle": "Log Masuk Sosial",
+    "noAccount": "Tiada akaun?",
+    "register": "Daftar",
+    "phonePickerTitle": "Kod",
+    "searchCountry": "Cari",
+    "remember": "Ingat Saya",
+    "submitting": "Log masuk...",
+    "errors": {
+      "format": "Minimum 6",
+      "phoneRequired": "Telefon diperlukan",
+      "invalidPhone": "Telefon tidak sah",
+      "passwordRequired": "Kata laluan diperlukan",
+      "passwordMin": "Minimum 6"
+    }
+  },
+  "register": {
+    "agreement": {
+      "title": "Perjanjian",
+      "section1": "Setuju syarat",
+      "section2": "Maklumat sah",
+      "section3": "Akaun peribadi",
+      "section4": "Tiada penyalahgunaan",
+      "section5": "Data sistem",
+      "section6": "Kemas kini",
+      "section7": "Keputusan akhir",
+      "section8": "Terma sah",
+      "section9": "Perlindungan data",
+      "section10": "Risiko",
+      "section11": "18+ sahaja",
+      "section12": "Tiada jenayah",
+      "section13": "Keselamatan",
+      "section14": "Notifikasi",
+      "section15": "Penyelenggaraan",
+      "section16": "Perjanjian penuh"
+    },
+    "enterReferral": "Kod jemputan",
+    "referralCode": "Kod",
+    "agentCode": "Ejen",
+    "agentCodePlaceholder": "Kod ejen",
+    "agentCodeReadonly": "Kod ejen",
+    "agentCodeDelete": "Padam",
+    "title": "Daftar",
+    "confirmPassword": "Sahkan",
+    "subtitle": "Daftar akaun",
+    "phone": "Telefon",
+    "username": "Nama",
+    "password": "Kata Laluan",
+    "passwordRule": "Minimum 6",
+    "submit": "Daftar",
+    "agreePrefix": "Setuju",
+    "userAgreement": "Perjanjian",
+    "success": "Berjaya",
+    "errors": {
+      "passwordRequired": "Diperlukan",
+      "confirmPasswordRequired": "Sahkan",
+      "passwordMismatch": "Tidak sepadan",
+      "phoneRequired": "Telefon diperlukan",
+      "usernameRequired": "Nama diperlukan",
+      "agreementRequired": "Sila setuju",
+      "generic": "Gagal",
+      "passwordWeak": "Lemah"
+    }
+  },
+
+  "reset": {
+    "title": "Reset",
+    "subtitle": "Kod dihantar",
+    "subtitle2": "Masukkan telefon",
+    "phone": "Telefon",
+    "verify": "Sahkan"
+  },
+  "verify": {
+    "title": "Kod",
+    "subtitle": "Kod dihantar",
+    "subtitle2": "Sila masukkan kod pengesahan yang dihantar ke nombor telefon $phone",
+    "resendPhone": "Kod pengesahan telah dihantar ke telefon anda",
+    "resendEmail": "Kod pengesahan telah dihantar ke emel anda",
+    "resendGoogle": "Sila semak kod di Google Authenticator anda",
+    "googleTip": "Sila buka Google Authenticator untuk mendapatkan kod 6 digit",
+    "resend": "Hantar Semula",
+    "submit": "Sahkan",
+    "errors": {
+      "requiredAll": "Lengkapkan",
+      "sixDigits": "6 digit",
+      "invalidCode": "Tidak Sah"
+    },
+    "resendInSuffix": "s",
+    "resendSuccess": "Dihantar",
+    "resendError": "Gagal",
+    "resendIn": "Kiraan"
+  },
+  "resetPwd": {
+    "title": "Reset Kata Laluan",
+    "subtitle": "Kata laluan baharu",
+    "newPassword": "Baharu",
+    "confirmPassword": "Sahkan",
+    "rule": "6–16",
+    "submit": "Reset",
+    "errors": {
+      "passwordRequired": "Perlu",
+      "confirmRequired": "Sahkan",
+      "notMatch": "Tidak Sama",
+      "failed": "Gagal"
+    },
+    "players": {
+      "setPassword": "Tetapkan Kata Laluan"
+    }
+  },
+  "mega": {
+    "gameSeriesList": "Senarai Permainan",
+    "subtitle": "Log masuk mudah di telefon",
+    "steps": {
+      "1": { "title": "Langkah 1", "desc": "Muat turun & pasang aplikasi" },
+      "2": { "title": "Langkah 2", "desc": "Buka aplikasi" },
+      "3": { "title": "Langkah 3", "desc": "Klik Main / Log Masuk" },
+      "start": {
+        "title": "Buka Permainan",
+        "desc": "Klik mula, pastikan pop-up dibenarkan"
+      }
+    },
+    "credentials": {
+      "title": "Butiran Log Masuk",
+      "username": "Nama",
+      "password": "Kata Laluan"
+    },
+    "actions": { "copy": "Salin" }
+  },
+  "avatar": {
+    "title": "Pilih Avatar",
+    "confirmTitle": "Sahkan Avatar",
+    "confirmMsg": "Guna avatar ini?",
+    "confirmAction": "Sahkan",
+    "selectFirstTitle": "Perhatian",
+    "selectFirstMsg": "Pilih avatar dahulu",
+    "changeButton": "Tukar Avatar"
+  },
+  "feedback": {
+    "detailTitle": "Butiran Maklum Balas",
+    "noPhoto": "Tiada Gambar",
+    "notFound": "Tiada Rekod"
+  },
+  "download": {
+    "android": "Muat Turun Android",
+    "ios": "Muat Turun iOS"
+  },
+
+  "agent": {
+    "storeFailed": "Gagal simpan",
+    "title": "Muat Turun Ejen",
+    "copied": {
+      "ios": "Kod iOS disalin",
+      "android": "Kod Android disalin",
+      "web": "Pautan Web disalin"
+    },
+    "copyFailed": "Gagal salin",
+    "yourCode": "Kod Ejen",
+    "noCode": "Tiada Kod",
+    "tips": {
+      "clickButton": "Klik untuk salin kod",
+      "copiedHint": "Hantar kepada pengguna"
+    },
+    "buttons": {
+      "ios": "iOS",
+      "android": "Android",
+      "web": "Web"
+    },
+    "toast": {
+      "success": "Berjaya",
+      "fail": "Gagal"
+    }
+  },
+  "shop": {
+    "storeFailed": "Gagal menyimpan ID kedai",
+    "title": "Muat Turun Promosi Ejen",
+    "copied": {
+      "ios": "Kod jemputan iOS telah disalin!",
+      "android": "Kod jemputan Android telah disalin!",
+      "web": "Pautan jemputan Web telah disalin!"
+    },
+    "copyFailed": "Salinan gagal. Sila cuba lagi.",
+    "yourCode": "Kod SHOP Anda",
+    "noCode": "Kod SHOP tidak dijumpai",
+    "tips": {
+      "clickButton": "Tekan butang di bawah untuk menyalin kod promosi eksklusif anda",
+      "copiedHint": "Selepas disalin, hantar kepada pengguna untuk pendaftaran"
+    },
+    "buttons": {
+      "ios": "Muat Turun iOS",
+      "android": "Muat Turun Android",
+      "web": "Versi Web"
+    },
+    "toast": {
+      "success": "Berjaya disalin!",
+      "fail": "Salinan gagal. Sila cuba lagi."
+    }
+  },
+
+  "promotion": {
+    "title": "Promosi",
+    "newMember": "Ahli Baharu",
+    "crypto": "Kripto",
+    "agent": "Ejen",
+    "hotActivity": "Popular",
+    "other": "Lain",
+    "noData": "Tiada Data",
+    "loading": "Memuatkan..."
+  },
+  "gameMenu": {
+    "choose": "Pilih",
+    "refresh": "Muat Semula",
+    "withdraw": "Pengeluaran",
+    "exitGame": "Keluar",
+    "home": "Laman Utama"
+  },
+  "user": {
+    "referralCode": "Kod Rujukan",
+    "agentCode": "Kod Ejen",
+    "noCode": "Tiada Kod",
+    "storeFailed": "Gagal simpan",
+    "copyFailed": "Gagal salin",
+    "copied": {
+      "ios": "Kod disalin (iOS)",
+      "android": "Kod disalin (Android)",
+      "web": "Kod disimpan"
+    }
+  },
+  "noData": "Tiada Data",
+  "errorScreen": {
+    "subtitle": "Kembali dan cuba lagi",
+    "clickToGoBack": "Klik untuk kembali"
+  },
+  "landing": {
+    "announcement": {
+      "text": "Notis: Kemas kini terkini dipaparkan di sini"
+    },
+    "nav": {
+      "help": "Bantuan",
+      "privacy": "Privasi",
+      "terms": "Terma",
+      "home": "Laman Utama",
+      "electronic": "Elektronik",
+      "chess": "Catur",
+      "fishing": "Pancing",
+      "real": "Langsung",
+      "sports": "Sukan",
+      "lottery": "Loteri",
+      "service": "Khidmat",
+      "promo": "Promosi",
+      "app": "Aplikasi",
+      "login": "Log Masuk",
+      "register": "Daftar"
+    },
+    "download": {
+      "title": "Permainan Terbaik",
+      "desc": "Main bila-bila masa",
+      "qr": "QR",
+      "scan": "Imbas"
+    },
+    "games": {
+      "cardLine1": "Adil & Selamat",
+      "cardLine2": "Pelbagai Permainan",
+      "title": "Pusat Permainan",
+      "sub": "Banyak Pilihan",
+      "cardTitle": "Permainan Catur",
+      "cardDesc": "Menang Besar",
+      "cardTitle1": "Khidmat Profesional",
+      "cardLine1_1": "24 Jam",
+      "cardLine2_1": "Pantas",
+      "cardTitle2": "Selamat",
+      "cardLine1_2": "Sistem Canggih",
+      "cardLine2_2": "Data Dilindungi",
+      "cardTitle3": "Transaksi Pantas",
+      "cardLine1_3": "Deposit Cepat",
+      "cardLine2_3": "Pengeluaran Segera"
+    },
+    "live": {
+      "title": "Langsung",
+      "tab1": "Sedang Langsung",
+      "tab2": "Hari Ini",
+      "tab3": "Semua",
+      "cta": "Sertai",
+      "league1": "Liga 1",
+      "league2": "Liga 2",
+      "league3": "Liga 3",
+      "time1": "7:30 mlm",
+      "time2": "8:30 mlm",
+      "time3": "9:30 mlm",
+      "playingTeam": "Pasukan",
+      "odds": "Odds"
+    },
+    "service": {
+      "title": "Teknologi & Hiburan",
+      "sub": "Stabil & Selamat",
+      "cardTitle": "Khidmat Profesional",
+      "cardDesc": "24 Jam",
+      "cardFoot": "Pantas & Selamat",
+      "cardLine1": "Servis Pantas",
+      "cardLine2": "Sokongan 24/7"
+    },
+    "footer": {
+      "copy": "© Expro99",
+      "terms": "Terma",
+      "privacy": "Privasi",
+      "contact": "Bantuan"
+    }
+  },
+  "terms": {
+    "title": "Terma & Syarat",
+    "section1": { "title": "1. Terima", "desc": "Guna bermaksud setuju" },
+    "section2": { "title": "2. Umur", "desc": "18+ sahaja" },
+    "section3": { "title": "3. Akaun", "desc": "Jaga maklumat akaun" },
+    "section4": { "title": "4. Larangan", "desc": "Tiada penyalahgunaan" },
+    "section5": { "title": "5. Perubahan", "desc": "Boleh dikemas kini" }
+  },
+  "privacy": {
+    "title": "Privasi",
+    "section1": { "title": "1. Data", "desc": "Maklumat asas" },
+    "section2": {
+      "title": "2. Penggunaan",
+      "desc": "Untuk servis & keselamatan"
+    },
+    "section3": { "title": "3. Keselamatan", "desc": "Data dilindungi" },
+    "section4": { "title": "4. Perkongsian", "desc": "Hanya bila perlu" },
+    "section5": { "title": "5. Hak Anda", "desc": "Kemas kini data" }
+  },
+  "helps": {
+    "title": "Pusat Bantuan",
+    "section1": { "title": "1. Soalan Lazim", "desc": "Jawapan pantas" },
+    "section2": { "title": "2. Deposit", "desc": "Panduan deposit" },
+    "section3": { "title": "3. Pengeluaran", "desc": "Panduan pengeluaran" },
+    "section4": { "title": "4. Akaun", "desc": "Keselamatan akaun" },
+    "section5": { "title": "5. Khidmat", "desc": "Hubungi kami" }
+  },
+  "bind": {
+    "resendCode": "Hantar Semula Kod",
+    "title": "Pautkan Nombor Telefon",
+    "subtitle": "Sila pautkan nombor telefon. Selepas dipautkan, nombor rawak tidak lagi sah.",
+    "phone": "Masukkan nombor telefon",
+    "otp": "Kod Pengesahan",
+    "sendCode": "Hantar Semula Kod",
+    "confirm": "Sahkan Pautan",
+    "invalidCode": "Kod pengesahan tidak sah",
+    "errors": {
+      "phoneRequired": "Sila masukkan nombor telefon",
+      "otpRequired": "Sila masukkan kod pengesahan"
+    }
+  }
+}

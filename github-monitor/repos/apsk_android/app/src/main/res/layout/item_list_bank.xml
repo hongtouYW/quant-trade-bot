@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/panel_item"
+    android:layout_width="match_parent"
+    android:layout_height="132dp"
+    android:background="@drawable/bg_bank"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/textView_bank"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="2dp"
+        android:fontFamily="@font/pingfang_sc_regular"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/textView_account_no"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/pingfang_sc_regular"
+        android:textColor="@color/white_FFFFFF"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:fontFamily="@font/pingfang_sc_thin"
+                android:text="@string/bank_details_quick_pay"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchCompat_quick_pay"
+                android:layout_width="44dp"
+                android:layout_height="24dp"
+                android:showText="false"
+                android:switchPadding="0dp"
+                android:thumb="@drawable/switch_thumb_ios"
+                android:thumbTextPadding="0dp"
+                app:track="@drawable/switch_track_tint" />
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_chev_right_gradient" />
+    </LinearLayout>
+</LinearLayout>

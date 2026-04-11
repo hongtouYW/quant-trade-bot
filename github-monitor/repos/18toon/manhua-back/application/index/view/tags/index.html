@@ -1,0 +1,418 @@
+{include file="public/header" /}
+
+<body>
+  <style>
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 32px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      z-index: 999;
+      /* padding: 5px 0; */
+      min-width: 100px;
+    }
+
+    .dropdown-menu li {
+      padding: 8px 15px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .dropdown-menu li:hover {
+      background: #f2f2f2;
+    }
+
+    .dropdown-danger {
+      color: #ff4d4f;
+      font-weight: bold;
+    }
+
+    .dropdown-danger:hover {
+      background-color: #ffecec;
+    }
+  </style>
+<div class="layui-fluid">
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+      </a>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5" action="">
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="text" name="wd" placeholder="请输入标签名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+                        </div>
+                      <div class="layui-input-inline w150">
+                        <select name="status">
+                          <option value="">是否展示</option>
+                          <option value="0" {if condition="$param['status'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['status'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>
+                        <div class="layui-input-inline w150">
+                            <select name="is_top">
+                                <option value="">是否顶部</option>
+                                <option value="0" {if condition="$param['is_top'] eq '0'"}selected {/if}>否</option>
+                                <option value="1" {if condition="$param['is_top'] eq '1'"}selected {/if}>是</option>
+                            </select>
+                        </div>
+
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="submit" class="layui-btn"  value="搜索">
+                        </div>
+                    </form>
+                </div>
+
+              <div class="layui-card-header">
+                <button class="layui-btn" onclick="ser_add()">
+                  <i class="layui-icon"></i>添加
+                </button>
+                <button class="layui-btn layui-btn-normal" onclick="handleCount()">
+                    <i class="layui-icon"></i>同步漫画数量
+                </button>
+                <button class="layui-btn layui-btn-normal" onclick="clearTag()">
+                  <i class="layui-icon"></i>清除缓存
+                </button>
+              </div>
+                <div class="layui-card-body ">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>漫画数</th>
+                            <th width="80">文本翻译</th>
+                            <th>是否顶部</th>
+                            <th>状态</th>
+                            <th width="50">排序</th>
+                            <th width="100">可见区域</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {foreach $list as $k => $vo}
+                        <tr>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.name}</td>
+                            <td>{$vo.comic_count}</td>
+                            <td>
+                              {if $vo.translate_status == 0}
+                              未翻译
+                              {else /}
+                              已翻译
+                              {/if}
+                            </td>
+                            <td>
+                                <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="is_top" {if condition="$vo.is_top eq 1"} checked {/if}  value="{$vo['is_top']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" >
+                            </td>
+                            <td>
+                              <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="status" {if condition="$vo.status eq 1"} checked {/if}  value="{$vo['status']}" lay-skin="switch" lay-filter="modify" lay-text="开启|停用" >
+                            </td>
+                            <td><input  type="number" min="0" autocomplete="off" data-id="{$vo.id}" onchange="set_sort(this,this.value)" value="{$vo.sort}" class="layui-input sort"></td>
+                            <td>
+                              <select name="project_visibility" class="visibility-select" data-id="{$vo.id}" lay-filter="modifyStatus">
+                                  <option value="1" {if condition="$vo.project_visibility eq 1"}selected{/if}>全部可见</option>
+                                  <option value="2" {if condition="$vo.project_visibility eq 2"}selected{/if}>仅海外可见</option>
+                                  <option value="3" {if condition="$vo.project_visibility eq 3"}selected{/if}>仅国内可见</option>
+                              </select>
+                            </td>
+                            <td class="td-manage">
+                              <div class="layui-btn-group" style="position: relative;">
+                                <button class="layui-btn layui-btn-xs layui-btn-primary dropdown-trigger">操作<i
+                                    class="layui-icon layui-icon-down"></i></button>
+                                <ul class="dropdown-menu">
+                                  <li onclick="set_edit(this)" data-id="{$vo.id}"><i class="layui-icon">&#xe642;</i> 编辑</li>
+                                  <li onclick="edit_translation(this)" data-id="{$vo.id}"><i class="layui-icon">&#xe642;</i> 查看翻译
+                                  </li>
+                                  <li class="dropdown-danger" onclick="set_del(this)" data-id="{$vo.id}"><i
+                                      class="layui-icon">&#xe640;</i> 删除</li>
+                                </ul>
+                              </div>
+                            </td>
+                            <!-- <td class="td-manage">
+                              <button class="layui-btn layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                              <button class="layui-btn-danger layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                            </td> -->
+                        </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body ">
+
+                    <div id="pages" class="center">
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl = "{:url('index',$param)}";
+      layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          , count: {$total}
+          , limit: {$limit}
+          , limits: [10, 20, 50, 100]
+          , curr: {$page}
+          , layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          , jump: function (obj, first) {
+            if (!first) {
+              location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        if(this.checked){
+          status = 1;
+        }
+        var field = that.attr('name');
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field: field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+
+      form.on('select(modifyStatus)', function(data){
+        const $elem = $(data.elem);
+        const id = $elem.data('id');
+        const field = $elem.attr('name');
+        const value = data.value;
+
+        if (!id || !field) {
+          layer.msg("参数错误", { icon: 2 });
+          return;
+        }
+
+        // 可选：显示 loading
+        const index = layer.load(1, { shade: 0.2 });
+
+        $.post("{:url('modify')}", { id, field, value }, function(res){
+          layer.close(index);
+          if (res.code == 1) {
+            layer.msg(res.msg, { icon: 1 });
+            setTimeout(() => location.reload(), 1000);
+          } else {
+            layer.msg(res.msg, { icon: 2 });
+          }
+        }).fail(function(){
+          layer.close(index);
+          layer.msg("网络错误，请稍后重试", { icon: 2 });
+        });
+      });
+
+    });
+
+    /*
+    添加
+     */
+    function ser_add() {
+      var url='{:url("info")}';
+      layer.open({
+        type: 2,
+        title: '添加标签',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+
+    /*
+    编辑
+     */
+    function set_edit(t) {
+      var id=$(t).attr("data-id");
+      var url='{:url("info")}'+'?id='+id;
+      layer.open({
+        type: 2,
+        title: '修改标签',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+    /*
+    删除
+     */
+    function set_del(t) {
+      var id = $(t).attr("data-id");
+      layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+      }, function (index, layero) {
+        //按钮【按钮一】的回调
+        $.post('{:url("del")}', {'id': id}, function (data) {
+          if (data.code == 1) {
+            layer.msg(data.msg, {icon: 1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          } else {
+            layer.alert(data.msg, {icon: 2});
+          }
+        });
+
+      }, function (index) {
+        //按钮【按钮二】的回调
+      });
+    }
+
+
+    /*
+    排序
+     */
+    function set_sort(t,value) {
+      var id=$(t).attr("data-id");
+      $.ajax({
+        url: "{:url('modify')}",
+        type: "POST",
+        data: {
+          id:id,
+          field: 'sort',
+          value: value,
+        },
+        async: false,
+        success: function (data) {
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+
+    }
+
+
+function handleCount() {
+    layer.confirm('你确定要同步漫画数量么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+        var loadingIndex = layer.load(1, {
+            shade: [0.1, '#fff'] // 透明背景
+        });
+
+        //按钮【按钮一】的回调
+        $.post('{:url("handleCount")}',{},function(data){
+            layer.close(loadingIndex);
+
+            if(data.code==1){
+                layer.msg(data.msg,{icon:1});
+                setTimeout(function () {
+                    location.reload();
+                },1500);
+
+            }else{
+                layer.alert(data.msg,{icon:2});
+            }
+        });
+
+    }, function(index){
+        //按钮【按钮二】的回调
+    });
+}
+
+$(document).on('click', '.dropdown-trigger', function (e) {
+    e.stopPropagation(); // 阻止事件冒泡到 document
+    let $menu = $(this).siblings('.dropdown-menu');
+
+    // 关闭其它已打开的菜单
+    $('.dropdown-menu').not($menu).hide();
+
+    // 切换当前菜单
+    $menu.toggle();
+  });
+
+  // 点击其他地方自动关闭
+  $(document).on('click', function () {
+    $('.dropdown-menu').hide();
+  });
+
+  function edit_translation(obj) {
+    const tag_id = $(obj).data('id');
+    layer.open({
+      type: 2,
+      title: '编辑翻译内容',
+      area: ['800px', '600px'],
+      content: '/tags/edit_translation?id=' + tag_id
+    });
+  }
+
+  function clearTag() {
+    layer.confirm('你确定要清除标签缓存么？', {
+      btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+      //按钮【按钮一】的回调
+      $.post('{:url("clear")}',{},function(data){
+        if(data.code==1){
+          layer.msg(data.msg,{icon:1});
+          setTimeout(function () {
+            location.reload();
+          },1500);
+
+        }else{
+          layer.alert(data.msg,{icon:2});
+        }
+      });
+
+    }, function(index){
+      //按钮【按钮二】的回调
+    });
+  }
+</script>
+
+</html>
+

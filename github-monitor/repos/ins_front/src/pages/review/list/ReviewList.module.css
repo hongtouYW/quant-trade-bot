@@ -1,0 +1,89 @@
+.reviewContainerHeader {
+  margin-bottom: 20px;
+}
+
+.reviewContainerHeader p {
+  text-align: center;
+  background: var(--primary-color);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 40px;
+  border-radius: 5px;
+}
+
+.reviewItem {
+  display: flex;
+  gap: 20px;
+  margin: 15px 0px;
+  background: #191b27;
+}
+
+.reviewActorImg {
+  flex: 2;
+  width: 430px;
+  height: 280px;
+}
+
+.reviewActorImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.reviewActorContent {
+  flex: 3;
+  padding: 10px 20px 10px 5px;
+}
+
+.reviewActorContentTitle a{
+  font-size: 22px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.reviewActorContentTag {
+  display: flex;
+  gap: 10px;
+}
+
+.reviewActorContentTag a {
+  color: var(--primary-color);
+  font-size: 18px;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.reviewActorContentDesc {
+  font-size: 14px;
+  line-height: 25px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+@media screen and (max-width: 600px) {
+  .reviewContainer {
+    padding: 0px 10px;
+  }
+
+  .reviewItem {
+    flex-direction: column;
+    gap: 5px;
+    /* padding: 0px 10px; */
+  }
+
+  .reviewActorImg {
+    width: auto;
+    height: auto;
+  }
+
+  .reviewActorContent {
+    padding: 0px;
+  }
+
+  .reviewActorContentTitle {
+    text-wrap: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}

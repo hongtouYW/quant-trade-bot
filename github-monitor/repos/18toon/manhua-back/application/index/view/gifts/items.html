@@ -1,0 +1,65 @@
+{include file="public/header" /}
+<body>
+<div class="layui-card">
+  <div class="layui-card-header">
+    <button class="layui-btn" onclick="item_add({$gift_id})">
+      <i class="layui-icon"></i>添加赠品
+    </button>
+  </div>
+  <div class="layui-card-body">
+    <table class="layui-table">
+      <thead>
+      <tr>
+        <th>ID</th>
+        <th>赠品名称</th>
+        <th>类型</th>
+        <th>数值</th>
+        <th>状态</th>
+        <th>操作</th>
+      </tr>
+      </thead>
+      <tbody>
+      {foreach $items as $it}
+      <tr>
+        <td>{$it.id}</td>
+        <td>{$it.name}</td>
+        <td>{$it.pro_type}</td>
+        <td>{$it.value}</td>
+        <td>{if $it.status==1}<span class="layui-badge layui-bg-green">启用</span>{else/}<span class="layui-badge">停用</span>{/if}</td>
+        <td>
+          <button class="layui-btn layui-btn-xs" onclick="item_edit({$it.id},{$gift_id})">编辑</button>
+          <button class="layui-btn layui-btn-danger layui-btn-xs" onclick="item_del({$it.id})">删除</button>
+        </td>
+      </tr>
+      {/foreach}
+      </tbody>
+    </table>
+  </div>
+</div>
+</body>
+
+<script>
+function item_add(gid){
+  layer.open({
+    type:2,
+    title:'添加赠品',
+    area:['600px','400px'],
+    content:"{:url('gifts/item_form')}?gift_id="+gid
+  });
+}
+function item_edit(id,gid){
+  layer.open({
+    type:2,
+    title:'编辑赠品',
+    area:['600px','400px'],
+    content:"{:url('gifts/item_form')}?id="+id+"&gift_id="+gid
+  });
+}
+function item_del(id){
+  $.post("{:url('gifts/del_item')}",{id:id},function(res){
+    layer.msg(res.msg);
+    if(res.code==1) setTimeout(()=>location.reload(),1000);
+  });
+}
+</script>
+</html>

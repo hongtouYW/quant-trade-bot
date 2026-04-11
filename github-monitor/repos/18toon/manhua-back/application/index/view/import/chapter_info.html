@@ -1,0 +1,114 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <input type="hidden" name="manhua_id" value="{$info.manhua_id}">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">外部ID：</label>
+                <div class="layui-input-inline w500">
+                    <input type="text" name="external_id" value="{$info.external_id}" class="layui-input" disabled>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">封面图：</label>
+                <div class="layui-input-inline w500">
+                    <input type="text" name="image" value="{$info.image}" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序：</label>
+                <div class="layui-input-inline w500">
+                    <input type="number" name="sort" value="{$info.sort}" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">书币：</label>
+                <div class="layui-input-inline w500">
+                    <input type="number" name="score" value="{$info.score}" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">VIP：</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="isvip" value="1" title="是" {if $info.isvip==1}checked{/if}>
+                    <input type="radio" name="isvip" value="0" title="否" {if $info.isvip==0}checked{/if}>
+                </div>
+            </div>
+
+            <!-- ✅ 多语言翻译（包含 zh） -->
+            <fieldset class="layui-elem-field">
+                <legend>多语言翻译</legend>
+                <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+                    <ul class="layui-tab-title">
+                        {volist name="translations" id="lang"}
+                        <li {if $i==1}class="layui-this"{/if}>{$lang.lang_code|strtoupper}</li>
+                        {/volist}
+                    </ul>
+
+                    <div class="layui-tab-content">
+                        {volist name="translations" id="lang"}
+                        <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">标题 ({$lang.lang_code})</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="translations[{$lang.lang_code}][title]" value="{$lang.title ?? ''}" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item layui-form-text">
+                                <label class="layui-form-label">图片集 ({$lang.lang_code})</label>
+                                <div class="layui-input-block">
+                                    <textarea name="translations[{$lang.lang_code}][imagelist]" class="layui-textarea" placeholder="请输入图片列表，逗号分隔">{$lang.imagelist ?? ''}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        {/volist}
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="layui-form-item center">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="save">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+    var form = layui.form,
+        layer = layui.layer,
+        $ = layui.jquery;
+
+    form.on('submit(save)', function (data) {
+        layer.load(2, {shade: 0.2});
+        $.post("{:url('chapter_info')}", data.field, function (res) {
+            layer.closeAll('loading');
+            if (res.code == 1) {
+                layer.msg(res.msg, {icon: 1});
+                setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                }, 1200);
+            } else {
+                layer.msg(res.msg, {icon: 2});
+            }
+        }, 'json').fail(function() {
+            layer.closeAll('loading');
+            layer.msg("System Service Busy!", {offset: '200px'});
+        });
+        return false;
+    });
+});
+</script>
+</body>
+</html>

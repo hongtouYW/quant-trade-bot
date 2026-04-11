@@ -1,0 +1,261 @@
+.videoCardContainer {
+  width: 19%;
+}
+
+.videoOtherCardContainer {
+  width: 24%;
+}
+
+.videoCardImageContainer {
+  position: relative;
+  min-height: 150px;
+}
+
+.videoCardImage {
+  display: flex;
+  border-radius: 5px;
+  min-height: 325px;
+  min-width: 225px;
+}
+
+.videoOtherCardImage {
+  display: flex;
+  border-radius: 5px;
+  height: 180px;
+  min-width: 160px;
+}
+
+.videoCardImageSmall {
+  display: flex;
+  border-radius: 5px;
+  min-height: 280px;
+  min-width: 225px;
+}
+
+.videoOtherCardImageSmall {
+  display: flex;
+  border-radius: 5px;
+  height: 180px;
+  min-width: 160px;
+}
+
+.videoCardImageExSmall {
+  display: flex;
+  border-radius: 5px;
+  min-height: 225px;
+  min-width: 180px;
+}
+
+.videoOtherCardImageExSmall {
+  display: flex;
+  border-radius: 5px;
+  height: 160px;
+  min-width: 215px;
+}
+
+.videoCardImageVertical {
+  background-image: url("/video-card-loading.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.videoCardImageHorizontal {
+  background-image: url("/ins-loading.png");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.videoCardImg {
+  width: 100%;
+  /* aspect-ratio: 4/5; */
+  object-fit: cover;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.videoCardImgVertical {
+  width: 100%;
+  /* aspect-ratio: 4/5; */
+  object-fit: cover;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cnTag {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.vipTag {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 20px;
+}
+
+.vipTag img {
+  width: 100%;
+}
+
+.nameTag {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+  padding: 2px 8px;
+  background: rgba(100, 101, 102, 0.5411764706);
+  border-radius: 3px;
+}
+
+.nameTag a {
+  color: #fff;
+}
+
+.videoCardContent {
+  padding: 8px 0px;
+}
+
+.videoCardTitle p {
+  color: #fff;
+  font-weight: 700;
+  text-wrap: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.videoCardViewFavorite {
+  display: flex;
+  align-items: center;
+  /* justify-content: space-between; */
+  color: #fff;
+  margin: 10px 0px;
+}
+
+.videoCardView,
+.videoCardFavorite {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #999;
+  flex: 1;
+}
+
+@media screen and (max-width: 834px) {
+  .videoCardContainer {
+    width: 18.2%;
+  }
+
+  .videoCardImage {
+    min-height: 225px;
+    min-width: 155px;
+  }
+
+  .videoCardImageSmall {
+    min-width: 140px;
+    min-height: 180px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .videoCardImage {
+    min-height: 210px;
+    min-width: 140px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .videoCardImageContainer {
+    min-height: 115px;
+  }
+  
+  .videoCardContainer {
+    width: 48%;
+  }
+
+  .videoOtherCardContainer {
+    width: 48%;
+  }
+
+  .videoCardImage {
+    min-height: 110px;
+    min-width: 180px;
+  }
+
+  .videoOtherCardImage {
+    max-height: 110px;
+    max-width: none;
+  }
+
+  .videoCardImageSmall {
+    min-width: 110px;
+    min-height: 170px;
+  }
+
+  .videoOtherCardImageSmall {
+    max-width: none;
+    max-height: 110px;
+  }
+
+  .videoCardImageExSmall {
+    min-width: 110px;
+    min-height: 155px;
+  }
+
+  .videoOtherCardImageExSmall {
+    min-width: 110px;
+    height: 110px;
+  }
+
+  /* .videoCardImg {
+    aspect-ratio: 3/2;
+  }
+
+  .videoCardImgVertical {
+    aspect-ratio: 18/25;
+  } */
+
+  .videoCardContainerFirst:first-child {
+    width: 100%;
+  }
+
+  .videoCardContainerFirst:first-child .videoOtherCardImage {
+    max-width: none;
+    height: 225px;
+    max-height: 225px;
+  }
+
+  /* .videoCardContainerFirst:first-child .videoCardImg {
+    aspect-ratio: 16/9;
+  } */
+
+  .videoCardView,
+  .videoCardFavorite {
+    font-size: 14px;
+  }
+}
+
+/* @media screen and (max-width: 375px) {
+  .videoCardImage {
+    min-height: 110px;
+    min-width: 170px;
+  }
+} */
+
+@media screen and (max-width: 375px) {
+  .videoCardImage {
+    min-height: 110px;
+    min-width: 170px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .videoCardImageSmall {
+    min-width: 95px;
+    min-height: 150px;
+  }
+}

@@ -1,0 +1,227 @@
+{include file="public/header" /}
+{include file="public/date" /}
+<body>
+  <style>
+  .video-title:hover,
+  .review-content:hover {
+    cursor: default;
+  }
+  
+  .star-rating {
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+  }
+</style>
+<div class="layui-fluid">
+
+  <div class="x-nav">
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+      <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+    </a>
+  </div>
+
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5" action="">
+            <div class="layui-input-inline w150">
+              <select name="status">
+                <option value="">选择状态</option>
+                <option value="0" {if condition="$param['status'] eq '0'"}selected {/if}>未审核</option>
+                <option value="1" {if condition="$param['status'] eq '1'"}selected {/if}>已审核</option>
+                <option value="2" {if condition="$param['status'] eq '1'"}selected {/if}>已拒绝</option>
+              </select>
+            </div>
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="submit" class="layui-btn"  value="搜索">
+            </div>
+          </form>
+        </div>
+        
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>用户</th>
+              <th>影片</th>
+              <th>评分</th>
+              <th>评语</th>
+              <th>发布时间</th>
+              <th>是否审核</th>
+              <th>操作</th></tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.user_id}</td>
+              <td>
+                <span class="video-title" style="display: inline-block; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{$vo.video_id}">
+                  {$vo.video_id}
+                </span>
+              </td>
+              <td>
+                {if condition="$vo.rating !== null"}
+                  <div class="star-rating">
+                    {for start="1" end="6"}
+                      {if $i <= $vo.rating}
+                        <i class="layui-icon layui-icon-rate-solid" style="color: #FFB800;"></i>
+                      {else}
+                        <i class="layui-icon layui-icon-rate" style="color: #FFB800;"></i>
+                      {/if}
+                    {/for}
+                  </div>
+                {/if}
+              </td>
+              <td>
+                <span class="review-content" style="display: inline-block; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{$vo.review}">
+                  {$vo.review}
+                </span>
+              </td>
+              <td>{$vo.updated_at}</td>
+              <td class="td-manage">
+                {if condition="$vo.status eq 2"}
+                  <span class="layui-badge layui-bg-gray">已拒绝</span>
+                {else}
+                  <input type="checkbox" name="status" data-id="{$vo.id}" {if condition="$vo.status eq 1"}checked{/if} value="{$vo.status}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                {/if}
+              </td>
+              <td class="td-manage">
+                {if condition="$vo.status != 2"}
+                  <button class="layui-btn layui-btn layui-btn-primary" data-id="{$vo.id}" onclick="reject(this)" >拒绝</button>
+                {/if}
+                <button class="layui-btn-danger layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_del(this)">删除</button>
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl="{:url('index',$param)}";
+      layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          ,count: {$total}
+          ,limit: {$limit}
+          ,limits:[10,20,50,100]
+          ,curr: {$page}
+          ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          ,jump: function(obj,first){
+            if(!first){
+              location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        if(this.checked){
+          status = 1;
+        }
+        var field = that.attr('name');
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field:field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+    });
+
+
+
+/*
+拒绝
+ */
+function reject(t) {
+  var id=$(t).attr("data-id");
+  layer.confirm('你确定要拒绝么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("reject")}',{'id':id},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+}
+
+/*
+删除
+ */
+function set_del(t) {
+  var id=$(t).attr("data-id");
+  layer.confirm('你确定要删除么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("del")}',{'id':id},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+}
+
+</script>
+</html>

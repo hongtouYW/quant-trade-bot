@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black_1D1D1D"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView_action"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4sp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:padding="16dp"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="24sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="10dp"
+                android:background="@drawable/dj_bg_phone"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="14dp"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:gravity="center"
+                            android:text="@string/google_authentication_step_1"
+                            android:textColor="@color/white_FFFFFF"
+                            android:textSize="14sp" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="4dp"
+                            android:gravity="bottom"
+                            android:orientation="horizontal"
+                            tools:ignore="UseCompoundDrawables">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginEnd="4dp"
+                                android:contentDescription="@string/cd_icon"
+                                android:src="@drawable/ic_google_authenticator" />
+
+                            <TextView
+                                android:id="@+id/textView_app"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:fontFamily="@font/pingfang_sc_semi_bold"
+                                android:text="@string/google_authentication_app"
+                                android:textColor="@color/orange_F8AF07"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:gravity="center"
+                            android:text="@string/google_authentication_click"
+                            android:textColor="@color/gray_BCBCBC"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/panel_store"
+                        android:layout_width="wrap_content"
+                        android:layout_height="37dp"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="16dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:id="@+id/imageView_google"
+                            android:layout_width="123dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="@string/cd_image"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/img_play_store" />
+
+                        <ImageView
+                            android:id="@+id/imageView_apple"
+                            android:layout_width="123dp"
+                            android:layout_height="wrap_content"
+                            android:adjustViewBounds="true"
+                            android:contentDescription="@string/cd_image"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/img_app_store" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_step_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:background="@color/black_2C2D2D" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="16dp"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:gravity="center"
+                            android:text="@string/google_authentication_step_2"
+                            android:textColor="@color/white_FFFFFF"
+                            android:textSize="14sp" />
+
+                        <com.google.android.material.imageview.ShapeableImageView
+                            android:id="@+id/imageView_qr"
+                            android:layout_width="98dp"
+                            android:layout_height="98dp"
+                            android:layout_gravity="center"
+                            android:layout_marginBottom="10dp"
+                            android:background="@color/white_FFFFFF"
+                            android:contentDescription="@string/cd_image"
+                            app:shapeAppearanceOverlay="@style/Radius10ImageView" />
+
+                        <LinearLayout
+                            android:id="@+id/panel_copy"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            tools:ignore="UseCompoundDrawables">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="4dp"
+                                android:fontFamily="@font/pingfang_sc_regular"
+                                android:text="@string/google_authentication_copy"
+                                android:textColor="@color/orange_F8AF07"
+                                android:textSize="14sp" />
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:contentDescription="@string/cd_icon"
+                                android:src="@drawable/ic_copy" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/black_2C2D2D" />
+
+                <TextView
+                    android:id="@+id/textView_step_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:gravity="center"
+                    android:padding="16dp"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:id="@+id/panel_otp"
+                    android:layout_width="match_parent"
+                    android:layout_height="47dp"
+                    android:layout_marginHorizontal="8dp"
+                    android:layout_marginBottom="16dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/editText_otp_1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:maxLength="1"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/editText_otp_2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:maxLength="1"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/editText_otp_3"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:maxLength="1"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/editText_otp_4"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:maxLength="1"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/editText_otp_5"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="16dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:maxLength="1"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+
+                    <EditText
+                        android:id="@+id/editText_otp_6"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:inputType="number"
+                        android:lines="1"
+                        android:maxLength="1"
+                        android:maxLines="1"
+                        android:singleLine="true"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <com.dj.user.widget.BlackTextButton
+                android:id="@+id/button_next"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="20dp"
+                android:text="@string/google_authentication_proceed" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

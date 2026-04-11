@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="8dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_weight="1"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:text="@string/vip_current_level"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/textView_one_click"
+            android:layout_width="60dp"
+            android:layout_height="38dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/bg_button_vip"
+            android:fontFamily="@font/pingfang_sc_medium"
+            android:gravity="center"
+            android:paddingHorizontal="6dp"
+            android:text="@string/vip_redeem_all"
+            android:textColor="@color/black_000000"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/textView_history"
+            android:layout_width="60dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_button_vip"
+            android:fontFamily="@font/pingfang_sc_medium"
+            android:gravity="center"
+            android:paddingHorizontal="6dp"
+            android:text="@string/vip_redeem_history"
+            android:textColor="@color/black_000000"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="67dp"
+        android:layout_marginHorizontal="10dp"
+        android:background="@drawable/bg_vip_progress"
+        android:orientation="horizontal"
+        android:paddingHorizontal="21dp"
+        android:paddingTop="12dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_member_vip" />
+
+            <ImageView
+                android:id="@+id/imageView_vip_from"
+                android:layout_width="39dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/cd_icon" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:layout_marginHorizontal="2dp"
+            android:layout_marginBottom="18dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/panel_distance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/vip_redeem_distance"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/textView_distance"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="4dp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/placeholder_amount"
+                    android:textColor="@color/orange_FFC000"
+                    android:textSize="15sp" />
+
+                <ImageView
+                    android:id="@+id/imageView_refresh"
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_refresh_vip" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/orange_F8AF07" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_member_vip" />
+
+            <ImageView
+                android:id="@+id/imageView_vip_to"
+                android:layout_width="39dp"
+                android:layout_height="18dp"
+                android:contentDescription="@string/cd_icon" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout_vip"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        app:tabGravity="center"
+        app:tabIndicatorHeight="0dp"
+        app:tabMode="fixed" />
+
+    <View
+        android:id="@+id/tabIndicator"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:layout_marginTop="-2dp"
+        android:background="@color/orange_F8AF07" />
+
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager_vip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="8dp" />
+</LinearLayout>

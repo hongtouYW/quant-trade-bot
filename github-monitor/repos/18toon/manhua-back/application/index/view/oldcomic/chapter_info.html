@@ -1,0 +1,126 @@
+{include file="public/header" /}
+<style>
+
+    .x-admin-sm .layui-btn-xs {
+        height: 22px;
+        line-height: 22px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
+</style>
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>名称：
+                </label>
+                <div class="layui-input-inline w500">
+                    <input type="text"  required="" lay-verify="required" value="{$info.title}" required class="layui-input"  placeholder="" name="title">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>封面图：
+                </label>
+                <div class="layui-input-inline w500">
+                    <input type="text"  required="" lay-verify="required" value="{$info.image}" required class="layui-input"  placeholder="" name="image">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>排序：
+                </label>
+                <div class="layui-input-inline w500">
+                    <input type="number" value="{$info.sort}" required class="layui-input"  placeholder="" name="sort">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>书币：
+                </label>
+                <div class="layui-input-inline w500">
+                    <input type="number" value="{$info.score}" required class="layui-input"  placeholder="" name="score">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="switch"  lay-filter="switch" value="1" title="正常" {if condition="$info.switch eq 1 "}checked{/if}>
+                    <input type="radio" name="switch" lay-filter="switch" value="0" title="下架" {if condition="$info.switch eq 0 "}checked{/if}>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>是否VIP</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is"  lay-filter="switch" value="1" title="正常" {if condition="$info.switch eq 1 "}checked{/if}>
+                    <input type="radio" name="switch" lay-filter="switch" value="0" title="下架" {if condition="$info.switch eq 0 "}checked{/if}>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label for="imagelist" class="layui-form-label">图片集</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入内容" id="imagelist" name="imagelist" class="layui-textarea">{$info.imagelist}</textarea>
+                </div>
+            </div>
+            <div class="layui-form-item center">
+                <div class="layui-input-block">
+                    <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </form>
+        </div>
+        </div>
+
+<script>
+    layui.use(['form', 'layer'], function () {
+    // 操作对象
+    var form = layui.form
+        , layer = layui.layer
+        , $ = layui.jquery
+        , upload = layui.upload;;
+
+    // 验证
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(sub)', function (data) {
+            console.log(data.field);
+            $.ajax({
+                url: "{:url('chapter_info')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+
+</script>
+
+</body>
+
+</html>

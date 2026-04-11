@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'select' => '选择推广教程',
+    'recruittutorial_list' => '推广教程列表',
+    'add_new_recruittutorial' => '新增推广教程',
+    'recruittutorial_added_successfully' => '推广教程添加成功！',
+    'recruittutorial_updated_successfully' => '推广教程更新成功！',
+    'recruittutorial_deleted_successfully' => '推广教程删除成功！',
+    'title' => '标题',
+    'desc' => '内容',
+    'picture' => '图片',
+    'slogan' => '口号',
+    'url' => '链接',
+    'status' => '状态',
+    'active' => '激活',
+    'inactive' => '未激活',
+    'never' => '从不',
+    'edit_recruittutorial' => '编辑推广教程',
+    'delete_recruittutorial' => '删除推广教程',
+    'confirm_delete_recruittutorial' => '您确定要删除推广教程吗？',
+    'no_data_found' => '未找到推广教程。',
+    'leave_blank_for_no_change' => '留空表示不更改',
+    'active_status' => '激活',
+];

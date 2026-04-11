@@ -1,0 +1,372 @@
+{include file="public/header" /}
+
+<body>
+<style>
+  .dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 32px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    z-index: 999;
+    /* padding: 5px 0; */
+    min-width: 100px;
+  }
+
+  .dropdown-menu li {
+    padding: 8px 15px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .dropdown-menu li:hover {
+    background: #f2f2f2;
+  }
+
+  .dropdown-danger {
+    color: #ff4d4f;
+    font-weight: bold;
+  }
+
+  .dropdown-danger:hover {
+    background-color: #ffecec;
+  }
+</style>
+<div class="layui-fluid">
+
+  <div class="x-nav">
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"
+      onclick="location.reload()" title="刷新">
+      <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+    </a>
+  </div>
+
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <!-- 搜索 -->
+        <div class="layui-card-body">
+          <div style="margin-bottom: 15px;">
+            <button class="layui-btn layui-btn-danger" id="convertAllBtn">
+              批量转换所有未转换漫画及章节
+            </button>
+            <button class="layui-btn layui-btn-normal" id="rehandleImagesBtn">
+              重新处理未转换图片
+            </button>
+          </div>
+          <form class="layui-form layui-col-space5" method="get" action="{:url('index')}">
+            <div class="layui-input-inline">
+              <input type="text" name="id" placeholder="ID" value="{$param.id}" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+              <input type="text" name="external_id" placeholder="外部ID" value="{$param.external_id}" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+              <input type="text" name="title" placeholder="标题" value="{$param.title}" class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+              <select name="status">
+                <option value="">状态</option>
+                <option value="0" {if condition="$param.status eq '0'"}selected{/if}>下架</option>
+                <option value="1" {if condition="$param.status eq '1'"}selected{/if}>正常</option>
+              </select>
+            </div>
+            <div class="layui-input-inline">
+              <select name="mhstatus">
+                <option value="">进度</option>
+                <option value="0" {if condition="$param.mhstatus eq '0'"}selected{/if}>连载</option>
+                <option value="1" {if condition="$param.mhstatus eq '1'"}selected{/if}>完结</option>
+              </select>
+            </div>
+            <div class="layui-input-inline">
+              <select name="incomplete">
+                <option value="">是否全部转换</option>
+                <option value="1" {if condition="$param.incomplete eq '1'"}selected{/if}>已转换但章节未全转换</option>
+              </select>
+            </div>
+            <div class="layui-input-inline">
+              <select name="untranslated">
+                <option value="">是否有未翻译内容</option>
+                <option value="1" {if condition="$param.untranslated eq '1'"}selected{/if}>存在未翻译</option>
+              </select>
+            </div>
+            <div class="layui-input-inline">
+              <div class="layui-input-inline layui-show-xs-block">
+                <input type="submit" class="layui-btn" value="搜索">
+              </div>
+              <div class="layui-input-inline layui-show-xs-block">
+                <a href="{:url('import/index')}" class="layui-btn layui-btn-primary">重置</a>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- 表格 -->
+        <div class="layui-card-body">
+          <table class="layui-table layui-form">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>外部ID</th>
+                <th>标题</th>
+                <th>封面图</th>
+                <th>题材</th>
+                <th>作者</th>
+                <th>来源</th>
+                <th>章节</th> 
+                <th>转换状态</th> 
+                <th width="100">状态</th>
+                <th width="100">进度</th>
+                <th width="100">转换ID</th>
+                <th>创建时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+              <tr>
+                <td>{$vo.id}</td>
+                <td>{$vo.external_id}</td>
+                <td>{$vo.title}</td>
+                <td>
+                  <div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)"><img
+                      style="width: 100%;height: 100%" src="{$img_domain}{$vo.image}"></div>
+                </td>
+                <td>{$vo.ticai_name}</td>
+                <td>{$vo.author}</td>
+                <td>{$vo.from_source}</td>
+                <td>{$vo.converted_chapter_count}/{$vo.chapter_count}</td>
+                <td>
+                  {if $vo.is_converted == 1}✅ 已转换{else /}❌ 未转换{/if}
+                </td>
+                <td>
+                  <select name="status" data-id="{$vo.id}" lay-filter="modifyStatus" 
+                          {if $vo.is_converted == 1}disabled{/if}>
+                    <option value="1" {if condition="$vo.status eq 1"}selected{/if}>正常</option>
+                    <option value="0" {if condition="$vo.status eq 0"}selected{/if}>下架</option>
+                  </select>
+                </td>
+                <td>
+                  <select name="mhstatus" data-id="{$vo.id}" lay-filter="modifyStatus" 
+                          {if $vo.is_converted == 1}disabled{/if}>
+                    <option value="0" {if condition="$vo.mhstatus eq 0"}selected{/if}>连载</option>
+                    <option value="1" {if condition="$vo.mhstatus eq 1"}selected{/if}>完结</option>
+                  </select>
+                </td>
+                <td>
+                  {if $vo.is_converted == 1}
+                    <span >{$vo.converted_id}</span>
+                  {else /}
+                    {if $vo.is_converted == 1}✅ 已转换{else /}❌ 未转换{/if}
+                  {/if}
+                </td>
+                <td>{:date('Y-m-d H:i',$vo.create_time)}</td>
+                <td class="td-manage">
+                  <div class="layui-btn-group" style="position: relative;">
+                    <!-- 章节管理 -->
+                    <button class="layui-btn layui-btn-xs" onclick="chapter(this)" data-id="{$vo.id}">章节</button>
+                    <button class="layui-btn layui-btn-xs" onclick="convertData(this)" data-id="{$vo.id}">转换</button>
+                    <!-- 下拉操作 -->
+                    <button class="layui-btn layui-btn-xs layui-btn-primary dropdown-trigger">
+                      操作<i class="layui-icon layui-icon-down"></i>
+                    </button>
+
+                    <ul class="dropdown-menu">
+                      <!-- 编辑 -->
+                      <li onclick="set_edit(this)" data-id="{$vo.id}">
+                        <i class="layui-icon">&#xe642;</i> 编辑
+                      </li>
+                      <!-- 删除 -->
+                      <li class="dropdown-danger" onclick="set_del(this)" data-id="{$vo.id}">
+                        <i class="layui-icon">&#xe640;</i> 删除
+                      </li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['form','jquery'], function(){
+  var form = layui.form, $ = layui.jquery;
+
+  // 修改状态/进度
+  form.on('select(modifyStatus)', function(data){
+    var id = $(data.elem).data('id');
+    var field = data.elem.name;
+    var value = data.value;
+    $.post("{:url('modify')}", {id, field, value}, function(res){
+      if(res.code === 1 || res.code === undefined){
+        layer.msg(res.msg || '保存成功',{icon:1});
+      } else {
+        layer.msg(res.msg,{icon:2});
+      }
+    });
+  });
+
+  var curUrl = "{:url('index', $param)}";
+
+  layui.use(['laypage', 'layer'], function () {
+    var laypage = layui.laypage, layer = layui.layer;
+    laypage.render({
+      elem: 'pages',
+      count: "{$total}",
+      limit: "{$limit}",
+      limits: [10, 20, 50, 100],
+      curr: "{$page}", 
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function (obj, first) {
+        if (!first) {
+          location.href = curUrl
+            .replace('%7Bpage%7D', obj.curr)
+            .replace('%7Blimit%7D', obj.limit);
+        }
+      }
+    });
+  });
+
+});
+
+// 删除
+function set_del(t){
+  var id = $(t).data('id');
+  layer.confirm('确定删除吗?', function(index){
+    $.post('{:url("del")}', {id}, function(res){
+      if(res.code === 1){
+        layer.msg(res.msg,{icon:1});
+        setTimeout(()=>location.reload(),1000);
+      } else {
+        layer.msg(res.msg,{icon:2});
+      }
+    });
+  });
+}
+
+// 打开章节管理
+  function chapter(t) {
+    var id = $(t).attr("data-id");
+    var url = '{:url("chapter")}' + '?comic_id=' + id;
+    var edit = layer.open({
+      type: 2,
+      title: '漫画章节',
+      area: ['100%', '100%'],
+      content: url, //iframe的url
+      end: function() {
+        location.reload();
+      }
+    });
+    layer.full(edit);
+  }
+
+// 编辑
+function set_edit(t){
+  var id = $(t).data('id');
+  var url = '{:url("info")}' + '?id=' + id;
+  var edit = layer.open({
+    type: 2,
+    title: '编辑导入漫画',
+    area: ['100%', '100%'],
+    content: url
+  });
+  layer.full(edit);
+}
+
+function convertData(t){
+  var id = $(t).data('id');
+  layer.confirm('确定要将此导入漫画转换到正式表吗？', function(index){
+    layer.close(index);
+    var loading = layer.load(2, {shade: 0.3});
+    $.post('{:url("convert")}', {id: id}, function(res){
+      layer.close(loading);
+      if(res.code === 1){
+        layer.msg(res.msg || '转换成功', {icon:1});
+        setTimeout(()=>location.reload(),1000);
+      } else {
+        layer.msg(res.msg || '转换失败', {icon:2});
+      }
+    });
+  });
+}
+
+//图片显示
+function show_img(t) {
+  var t = $(t).find("img");
+  //页面层
+  layer.open({
+    type: 1,
+    skin: 'layui-layer-rim', //加上边框
+    area: ['75%', '85%'], //宽高
+    shadeClose: true, //开启遮罩关闭
+    end: function (index, layero) {
+      return false;
+    },
+    content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+  });
+}
+
+$(document).on('click', '.dropdown-trigger', function (e) {
+  e.stopPropagation(); // 阻止事件冒泡到 document
+  let $menu = $(this).siblings('.dropdown-menu');
+
+  // 关闭其它已打开的菜单
+  $('.dropdown-menu').not($menu).hide();
+
+  // 切换当前菜单
+  $menu.toggle();
+});
+
+// 点击其他地方自动关闭
+$(document).on('click', function () {
+  $('.dropdown-menu').hide();
+});
+
+$('#convertAllBtn').click(function () {
+  layer.confirm('确定要批量转换所有未转换漫画及章节吗？', function(index){
+    layer.close(index);
+    var loading = layer.load(2, {shade: 0.3});
+
+    $.post('{:url("convert_all")}', {}, function(res){
+      layer.close(loading);
+      if(res.code === 1){
+        layer.msg(res.msg || '批量转换完成', {icon: 1});
+        setTimeout(() => location.reload(), 1000);
+      } else {
+        layer.msg(res.msg || '批量转换失败', {icon: 2});
+      }
+    });
+  });
+});
+
+$('#rehandleImagesBtn').click(function () {
+  layer.confirm('确定要重新处理所有未转换的图片吗？', function(index){
+    layer.close(index);
+    var loading = layer.load(2, {shade: 0.3});
+
+    $.post('{:url("rehandle_images")}', {}, function(res){
+      layer.close(loading);
+      if(res.code === 1){
+        layer.msg(res.msg || '任务推送成功', {icon: 1});
+      } else {
+        layer.msg(res.msg || '任务推送失败', {icon: 2});
+      }
+    });
+  });
+});
+
+</script>
+</body>

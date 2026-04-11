@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>测试播放</title>
+  <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+  <meta http-equiv="content-language" content="zh-CN" />
+  <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+  <meta http-equiv="pragma" content="no-cache" />
+  <meta http-equiv="expires" content="0" />
+  <meta name="referrer" content="never" />
+  <meta name="renderer" content="webkit" />
+  <meta name="msapplication-tap-highlight" content="no" />
+  <meta name="HandheldFriendly" content="true" />
+  <meta name="x5-page-mode" content="app" />
+  <meta name="Viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=0" />
+  <link rel="stylesheet" href="__STATIC__/dplayer/DPlayer.min.css">
+  <script src="__STATIC__/dplayer/flv.min.js"></script>
+  <script src="__STATIC__/dplayer/hls.min.js"></script>
+  <script src="__STATIC__/dplayer/dash.all.min.js"></script>
+  <script src="__STATIC__/dplayer/webtorrent.min.js"></script>
+  <script src="__STATIC__/dplayer/pearplayer.js"></script>
+  <script src="__STATIC__/dplayer/DPlayer.min.js"></script>
+  <style type="text/css">
+    body,html{width:100%;height:100%;background:#000;padding:0;margin:0;overflow-x:hidden;overflow-y:hidden}
+    *{margin:0;border:0;padding:0;text-decoration:none}
+    #dplayer{position:inherit}
+  </style>
+</head>
+<body>
+<div id="dplayer"></div>
+<script>
+  var dp = new DPlayer({
+    element: document.getElementById('dplayer'),
+    autoplay: false,                                                   // 可选，自动播放视频，不支持移动浏览器
+    theme: '#FADFA3',                                                  // 可选，主题颜色，默认: #b7daff
+    loop: true,                                                        // 可选，循环播放音乐，默认：true
+    lang: 'zh',                                                        // 可选，语言，`zh'用于中文，`en'用于英语，默认：Navigator language
+    screenshot: true,                                                  // 可选，启用截图功能，默认值：false，注意：如果设置为true，视频和视频截图必须启用跨域
+    hotkey: true,                                                      // 可选，绑定热键，包括左右键和空格，默认值：true
+    preload: 'auto',                                                   // 可选，预加载的方式可以是'none''metadata''auto'，默认值：'auto'
+    video: {
+      url: "{$url|raw}",
+      type: 'auto'
+    }
+  });
+  dp.play();
+  dp.on('error', function() {
+    console.log('Video load failed');
+  });
+</script>
+
+</body>
+</html>

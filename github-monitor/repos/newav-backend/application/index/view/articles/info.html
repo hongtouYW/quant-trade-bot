@@ -1,0 +1,211 @@
+{include file="public/header" /}
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"> </script>
+<style>
+
+  .x-admin-sm .layui-btn-xs {
+    height: 22px;
+    line-height: 22px;
+    padding: 0 5px;
+    font-size: 12px;
+  }
+</style>
+
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>标题：
+        </label>
+        <div class="layui-input-inline w500">
+          <input type="text"  required="" lay-verify="required" value="{$info.title}" required class="layui-input"  placeholder="" name="title">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>英文标题
+        </label>
+        <div class="layui-input-inline">
+          <input type="text"  name="title_en" value="{$info.title_en}" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <!-- <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>俄语标题
+        </label>
+        <div class="layui-input-inline">
+          <input type="text"  name="title_ru" value="{$info.title_ru}" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div> -->
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">对应视频ID：</label>
+        <div class="layui-input-inline">
+          <input type="text" id="vid" class="layui-input" value="{$info.vid}" placeholder="视频id" name="vid">
+          <input type="hidden" id="mash" class="layui-input" value="{$info.mash}" placeholder="视频番号" name="mash">
+        </div>
+        <div class="layui-input-inline">
+          <a class="layui-btn selectVideo"  title="查询视频">查询视频</a>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">对应演员ID：</label>
+        <div class="layui-input-inline">
+          <input type="text" id="aid" class="layui-input" value="{$info.aid}" placeholder="演员id" name="aid">
+          <input type="hidden" id="actor" class="layui-input" value="{$info.actor}" placeholder="演员名称" name="actor">
+        </div>
+        <div class="layui-input-inline">
+          <a class="layui-btn selectActor"  title="查询演员">查询演员</a>
+        </div>
+      </div>
+
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">内容</label>
+        <div  class="layui-input-block">
+          <textarea  id="content" placeholder="请输入内容" class="ckeditor">{$info.content}</textarea>
+        </div>
+      </div>
+
+
+      <div class="layui-form-item layui-form-text" style="width: 1200px">
+        <label class="layui-form-label">英文内容</label>
+        <div class="layui-input-block">
+          <textarea id="content_en" placeholder="请输入英文内容" class="ckeditor">{$info.content_en}</textarea>
+        </div>
+      </div>
+<!-- 
+      <div class="layui-form-item layui-form-text" style="width: 1200px">
+        <label class="layui-form-label">俄语内容</label>
+        <div class="layui-input-block">
+          <textarea id="content_ru" placeholder="请输入俄语内容" class="ckeditor">{$info.content_ru}</textarea>
+        </div>
+      </div> -->
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>是否展示</label>
+        <div class="layui-input-block">
+          <input type="radio" name="status" value="0" title="否" {if condition="$info.status eq 0 "}checked{/if}>
+          <input type="radio" name="status" value="1" title="是" {if condition="$info.status eq 1 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item center">
+        <div class="layui-input-block">
+          <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+            保存
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  CKEDITOR.replace('content', { height: '400px', width: '1200px' });
+
+  layui.use(['form', 'layer'], function () {
+    // 操作对象
+    var form = layui.form
+            , layer = layui.layer
+            , $ = layui.jquery
+            , upload = layui.upload;;
+
+    // 验证
+    form.verify({
+      required: [/[\S]+/, "必填项不能为空"],
+    });
+
+    form.on('submit(sub)', function (data) {
+      var content = CKEDITOR.instances['content'].getData();
+      data.field.content_en = CKEDITOR.instances['content_en'].getData();
+      data.field.content_ru = CKEDITOR.instances['content_ru'].getData();
+      data.field.content = content;
+      $.ajax({
+        url: "{:url('info')}",
+        type: "POST",
+        data: data.field,
+        async: false,
+        success: function (data) {
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              parent.layer.closeAll();
+              parent.location.reload();
+            },1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+      return false;
+    });
+  });
+
+
+  function show_video() {
+    var url='{:url("video_list")}';
+    layer.open({
+      type: 2,
+      title: '视频列表',
+      shadeClose: true,
+      shade: 0.8,
+      area: ['90%', '90%'],
+      content: url, //iframe的url
+    });
+  }
+
+  function show_actor() {
+    var url='{:url("actor_list")}';
+    layer.open({
+      type: 2,
+      title: '演员列表',
+      shadeClose: true,
+      shade: 0.8,
+      area: ['90%', '90%'],
+      content: url, //iframe的url
+    });
+  }
+
+  // 选择标签
+  $('.selectVideo').click(function () {
+    show_video();
+  })
+
+  // 选择标签
+  $('.selectActor').click(function () {
+    show_actor();
+  })
+
+  /**
+   * 获取子页面传递过来的分类参数
+   * @param obj  分类id
+   */
+  function GetValue(vid,mash){
+    $('#vid').val(vid);
+    $('#mash').val(mash);
+  }
+
+  /**
+   * 获取子页面传递过来的分类参数
+   * @param obj  分类id
+   */
+  function GetValue1(aid,actor){
+    $('#aid').val(aid);
+    $('#actor').val(actor);
+  }
+
+</script>
+
+</body>
+
+</html>

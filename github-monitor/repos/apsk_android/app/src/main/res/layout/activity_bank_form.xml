@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/bank_form_add_bank"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="24sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/bank_form_account_holder"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <com.dj.user.widget.RoundedEditTextView
+                android:id="@+id/editText_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:lineSpacingExtra="4sp"
+                android:text="@string/bank_form_account_holder_desc"
+                android:textColor="@color/gray_BCBCBC"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/bank_form_bank_name"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/panel_bank"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_edit_text_transparent"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp">
+
+                <TextView
+                    android:id="@+id/textView_bank"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/bank_form_choose_bank"
+                    android:textColor="@color/orange_F8AF07"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_chev_down" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/bank_form_bank_account_number"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <com.dj.user.widget.RoundedEditTextView
+                android:id="@+id/editText_account_no"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/bank_form_quick_pay"
+                    android:textColor="@color/gray_BCBCBC"
+                    android:textSize="14sp" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/switchCompat_quick_pay"
+                    android:layout_width="44dp"
+                    android:layout_height="24dp"
+                    android:showText="false"
+                    android:switchPadding="0dp"
+                    android:thumb="@drawable/switch_thumb_ios"
+                    android:thumbTextPadding="0dp"
+                    app:track="@drawable/switch_track_tint" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:lineSpacingExtra="4sp"
+                android:text="@string/bank_form_disclaimer"
+                android:textColor="@color/gray_BCBCBC"
+                android:textSize="14sp" />
+
+            <com.dj.user.widget.BlackTextButton
+                android:id="@+id/button_add"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:layout_marginBottom="20dp"
+                android:text="@string/bank_form_add" />
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/button_delete"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginHorizontal="4dp"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_button_red"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/bank_form_delete"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

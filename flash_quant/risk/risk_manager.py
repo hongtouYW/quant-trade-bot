@@ -66,11 +66,13 @@ class RiskManager:
                 f"circuit_breaker: {reason}"
             )
 
-        # 3. 最大持仓数 (FR-030)
-        if self._open_positions_count >= MAX_CONCURRENT_POSITIONS:
+        # 3. 最大持仓数 (FR-030) — 从 DB 实时读
+        from models.db_ops import count_open_trades, get_open_symbols
+        current_count = count_open_trades()
+        if current_count >= MAX_CONCURRENT_POSITIONS:
             return RiskCheckResult(
                 False, 0, 0, 0,
-                f"max_positions_{MAX_CONCURRENT_POSITIONS}"
+                f"max_positions_{current_count}/{MAX_CONCURRENT_POSITIONS}"
             )
 
         # 4. 同币冷却 (FR-034)
@@ -81,8 +83,9 @@ class RiskManager:
                 f"symbol_cooldown_{remaining}min"
             )
 
-        # 5. 同币已有持仓
-        if symbol in self._open_symbols:
+        # 5. 同币已有持仓 — 从 DB 实时读
+        open_symbols = get_open_symbols()
+        if symbol in open_symbols:
             return RiskCheckResult(
                 False, 0, 0, 0,
                 f"symbol_already_open"

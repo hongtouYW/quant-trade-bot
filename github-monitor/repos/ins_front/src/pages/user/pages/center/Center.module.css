@@ -1,0 +1,79 @@
+.centerContainer {
+  padding: 10px;
+}
+
+.personalInfoContainer {
+  background: #181b2c;
+  padding: 15px 20px;
+  display: flex;
+  gap: 10px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.username {
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.71);
+  margin-bottom: 10px;
+}
+
+.editInfo {
+  display: flex;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.editInfo span {
+  font-size: 12px;
+}
+
+.editInfo a {
+  color: rgba(255, 255, 255, 0.3);
+}
+.becomeVipContainer {
+  /* background-image: url("/bg-vip-green.png"); */
+  min-height: 150px;
+  max-height: 250px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  border-radius: 8px;
+  padding: 20px 10px;
+}
+
+.becomeVipBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.becomeVipBody p {
+  color: var(--button-text-color);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.becomeVipBody span {
+  color: var(--button-text-color);
+  font-size: 12px;
+}
+
+.centerUserMenu {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .centerContainerHeader {
+    display: none;
+  }
+
+  .centerUserMenu {
+    display: block;
+  }
+
+  .becomeVipBody p {
+    font-size: 14px;
+  }
+}

@@ -1,0 +1,53 @@
+.buttonContainer button {
+  color: var(--button-text-color);
+  font-weight: 700;
+  display: block;
+  width: 100%;
+  text-align: center;
+  line-height: 45px;
+  border-radius: 4px;
+  margin: 5px 0px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fontSizeSmall {
+  font-size: 13px;
+}
+
+.fontSizeLarge {
+  font-size: 18px;
+}
+
+.backgroundLight {
+  background: var(--primary-color-light);
+}
+
+.backgroundPrimary {
+  background-color: var(--primary-color);
+}
+.backgroundPrimaryGradient {
+  background: linear-gradient(
+    106.42deg,
+    var(--primary-gradient-color-1) 37.32%,
+    var(--primary-gradient-color-2) 85.5%
+  );
+}
+
+.backgroundSecondary {
+  background: transparent;
+  color: #fff !important;
+  border: 1px solid #333 !important;
+  padding: 0px 16px;
+}
+
+.buttonContainer button:disabled {
+  background: rgba(255, 255, 255, 0.3);
+  color: #999;
+  cursor: not-allowed;
+}

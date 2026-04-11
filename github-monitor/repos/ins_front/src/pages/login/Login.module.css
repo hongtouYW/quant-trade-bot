@@ -1,0 +1,47 @@
+.loginContainer {
+  max-width: 500px;
+  min-height: 500px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.loginHeader {
+  margin: 50px 0px 15px 0px;
+}
+
+.loginHeaderTitle {
+  font-size: 36px;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+.loginHeaderDesc {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.loginFormContainer {
+  margin-bottom: 20px;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.loginFooter {
+  display: flex;
+  justify-content: space-between;
+}
+.registerLink a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.forgetPasswordLink p,
+.registerLink p {
+  font-weight: 500;
+  color: #fff;
+}

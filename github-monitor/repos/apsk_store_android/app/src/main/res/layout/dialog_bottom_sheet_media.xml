@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="30dp">
+
+    <TextView
+        android:id="@+id/textView_gallery"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/bg_media_option_top"
+        android:fontFamily="@font/sf_pro_text_regular"
+        android:gravity="center"
+        android:text="@string/profile_feedback_upload_gallery"
+        android:textColor="@color/blue_007AFF"
+        android:textSize="18sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/gray_D8D8D8" />
+
+    <TextView
+        android:id="@+id/textView_camera"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/bg_media_option_bottom"
+        android:fontFamily="@font/sf_pro_text_regular"
+        android:gravity="center"
+        android:text="@string/profile_feedback_upload_camera"
+        android:textColor="@color/blue_007AFF"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/textView_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/bg_media_cancel"
+        android:fontFamily="@font/sf_pro_text_bold"
+        android:gravity="center"
+        android:text="@string/profile_feedback_upload_cancel"
+        android:textColor="@color/blue_007AFF"
+        android:textSize="18sp" />
+</LinearLayout>

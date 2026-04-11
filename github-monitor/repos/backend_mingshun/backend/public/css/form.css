@@ -1,0 +1,225 @@
+select[readonly].select2-hidden-accessible+.select2-container {
+    pointer-events: none;
+    touch-action: none;
+}
+
+select[readonly].select2-hidden-accessible+.select2-container .select2-selection,
+input:not([type="file"]):read-only,
+textarea:read-only {
+    background: #ddd;
+    box-shadow: none;
+}
+
+select[readonly].select2-hidden-accessible+.select2-container .select2-selection__arrow,
+select[readonly].select2-hidden-accessible+.select2-container .select2-selection__clear {
+    display: none;
+}
+
+.select2-container--default .select2-selection--single {
+    border: 1px solid black !important;
+    height: 38px;
+}
+
+.select2-container--default .select2-selection--multiple {
+    border: 1px solid black !important;
+}
+
+label {
+    padding-top: 8px;
+}
+
+input:focus-visible {
+    outline-offset: 0px;
+}
+
+input:not([type="file"]):not(.select2-search__field) {
+    border: 1px solid black;
+    border-radius: 4px;
+    height: 38px;
+    vertical-align: middle;
+}
+
+textarea{
+    border: 1px solid black;
+    border-radius: 4px;
+}
+
+input[type="file"] {
+    padding-top: 8px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    top: 5px !important;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-top: 5px !important;
+}
+
+.create-container input:not([type="checkbox"]),
+.create-container textarea {
+    width: 100%;
+}
+
+.create-container {
+    margin: 20px 0;
+}
+
+.back-button:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.back-button {
+    margin-bottom: 20px;
+    background-color: #77619e;
+    color: white;
+    text-decoration: none;
+    display: inline-block;
+    padding: 8px 16px;
+}
+
+.btn-submit {
+    background-color: #77619e;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.submit-button {
+    text-align: right;
+}
+
+.round {
+    border-radius: 50%;
+}
+
+#generate-img, .upload-img {
+    max-height: 100px;
+    max-width: 100%;
+    padding-top: 10px;
+}
+
+.important-label{
+    color:red;
+}
+
+.view-table, .view-table td, .view-table th{
+    border: 1px solid;
+}
+
+.create_input{
+    margin-top:20px;
+}
+
+.multiple-trash-table{
+    color:red;
+    cursor: pointer;
+}
+
+.multiple-container input{
+    margin-bottom:10px;
+}
+
+.multiple_add_btn{
+    margin-bottom:10px;
+}
+
+button[id^="insertFiles-"] {
+    display: none;
+  }
+
+  .multiple-info-container{
+    margin-bottom:10px;
+  }
+
+  .img-container-wrapper {
+    position: relative;
+    display: inline-block;
+  }
+  .img-container-close:before {
+    content: '✕';
+    padding-left: 3px;
+  }
+  .img-container-close {
+    position: absolute;
+    top: 10px;
+    right: 0;
+    cursor: pointer;
+    background-color: white;
+    border-radius: 50px;
+    height: 20px;
+    width: 20px;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 34px;
+  }
+  
+  .switch input { 
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    -webkit-transition: .4s;
+    transition: .4s;
+  }
+  
+  input:checked + .slider {
+    background-color: #2196F3;
+  }
+  
+  input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+  }
+  
+  input:checked + .slider:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+  }
+  
+  /* Rounded sliders */
+  .slider.round {
+    border-radius: 34px;
+  }
+  
+  .slider.round:before {
+    border-radius: 50%;
+  }
+
+  .clickable-img{
+    cursor: pointer;
+  }
+
+  #modal-image-inside{
+    width:100%;
+    height:100%;
+  }

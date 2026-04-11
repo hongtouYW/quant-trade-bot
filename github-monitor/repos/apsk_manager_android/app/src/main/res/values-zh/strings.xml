@@ -1,0 +1,416 @@
+<resources>
+    <string name="app_name">Expro99 Manager</string>
+    <string name="copyright">Expro99 Manager 2025</string>
+    <string name="exit_tap_twice">连续按两次返回键退出</string>
+    <string name="no_data">查无记录</string>
+    <string name="whoops_something_went_wrong">发生错误！</string>
+    <string name="new_notification">您收到了一条新通知。</string>
+    <string name="search_hint">搜索</string>
+    <string name="copied">已复制到剪贴板</string>
+    <string name="common_okay">确定</string>
+
+    <string name="session_expired_title">登录已过期</string>
+    <string name="session_expired_desc">您的登录已过期，请重新登录</string>
+    <string name="session_expired_okay">好的</string>
+
+    <string name="splash_version_title">升级到最新版本？</string>
+    <string name="splash_version_desc">当前版本 v%s\n请安装最新版本 v%s</string>
+    <string name="splash_version_confirm">立即安装</string>
+    <string name="splash_version_cancel">跳过</string>
+
+    <string name="onboarding_change_language">切换语言</string>
+    <string name="onboarding_login">登入</string>
+
+    <string name="login_title">登入</string>
+    <string name="login_hint_username">用户名</string>
+    <string name="login_hint_password">密码</string>
+    <string name="login_forgot_password">忘记密码？</string>
+    <string name="login_button">登入</string>
+    <string name="login_invalid_credentials">用户名或密码不正确</string>
+
+    <string name="forgot_password_title">忘记密码?</string>
+    <string name="forgot_password_desc">密码重置只能由管理员完成。\n请联系管理员以获取帮助。</string>
+    <string name="forgot_password_okay">好的</string>
+
+    <string name="dashboard_balance">店铺总收入</string>
+    <string name="dashboard_capital">店铺本金</string>
+    <string name="dashboard_shop_count">店铺数量</string>
+    <string name="dashboard_search_hint">店铺或用户名</string>
+    <string name="dashboard_point_history">POINT历史</string>
+    <string name="dashboard_point_go">前往 ></string>
+    <string name="dashboard_point_all">查看所有订单详情</string>
+    <string name="dashboard_shop_management">店铺管理</string>
+    <string name="dashboard_shop_management_all">查看所有店铺</string>
+    <string name="dashboard_shop_management_desc">查看和管理所有店铺</string>
+    <string name="dashboard_user_management">用户管理</string>
+    <string name="dashboard_user_management_user">查看和管理所有用户</string>
+    <string name="dashboard_notification">信息通知</string>
+    <string name="dashboard_notification_all">查看全部</string>
+    <string name="dashboard_system_log">系统Log</string>
+    <string name="dashboard_yxi_log">游戏Log</string>
+    <string name="dashboard_qr_scan">扫描</string>
+    <string name="dashboard_profile_settings">个人设置</string>
+
+    <string name="dashboard_search_title">搜索结果</string>
+    <string name="dashboard_search_filter_all">全部</string>
+    <string name="dashboard_search_filter_member">用户</string>
+    <string name="dashboard_search_filter_shop">店铺</string>
+    <string name="dashboard_search_no_result_template">查无与 %s 相关的记录</string>
+    <string name="dashboard_search_no_result_desc">请尝试另一个关键字</string>
+    <string name="dashboard_search_result_count">\'%s\' - %d个搜寻结果</string>
+
+    <string name="notification_title">信息通知</string>
+    <string name="notification_latest">最新</string>
+    <string name="notification_today">今天</string>
+    <string name="notification_yesterday">昨天</string>
+    <string name="notification_earlier">更早</string>
+    <string name="notification_details_current_version">当前版本 : v.%s_%s</string>
+    <string name="notification_details_latest_version">当前已是最新版本</string>
+
+    <string name="profile_settings_title">个人设置</string>
+    <string name="profile_settings_shop_management">店铺详情</string>
+    <string name="profile_settings_change_password">修改密码</string>
+    <string name="profile_settings_logout">登出</string>
+    <string name="profile_settings_logout_title">确定登出?</string>
+    <string name="profile_settings_logout_confirm">确定</string>
+    <string name="profile_settings_logout_cancel">取消</string>
+
+    <string name="change_password_title">修改密码</string>
+    <string name="change_password_hint_old">输入旧密码</string>
+    <string name="change_password_hint_new">输入新密码</string>
+    <string name="change_password_hint_confirm">输入多一次新密码</string>
+    <string name="change_password_mismatch">新密码与确认密码不匹配</string>
+    <string name="change_password_success">密码已更新!</string>
+    <string name="change_password_submit">提交</string>
+
+    <string name="profile_language_settings">语言设定</string>
+
+    <string name="shop_list_title">店铺管理</string>
+    <string name="shop_list_hint_search">搜索店铺名,用户名或店铺国家地区</string>
+    <string name="shop_list_tab_all">所有店铺</string>
+    <string name="shop_list_tab_active">活跃店铺</string>
+    <string name="shop_list_tab_closed">关闭店铺</string>
+    <string name="shop_list_registered_user">注册用户</string>
+    <string name="shop_list_yxi">店铺游戏</string>
+    <string name="shop_list_balance">当前现金</string>
+    <string name="shop_list_income">店铺收入</string>
+
+    <string name="shop_details_title">店铺详情</string>
+    <string name="shop_details_settlement_success">店铺清账成功!</string>
+    <string name="shop_details_status_updated">店铺状态已更新!</string>
+    <string name="shop_details_country">店铺地区</string>
+    <string name="shop_details_password">店铺密码</string>
+    <string name="shop_details_shop_username">店铺用户名字</string>
+    <string name="shop_details_opening_balance">开店金额</string>
+    <string name="shop_details_current_balance">当前总金额</string>
+    <string name="shop_details_status">店铺状态</string>
+    <string name="shop_details_settlement">店铺清账</string>
+    <string name="shop_details_change_password">修改店铺密码</string>
+    <string name="shop_details_change_balance">修改店铺金额</string>
+    <string name="shop_details_transactions">店铺流水记录</string>
+    <string name="shop_details_permissions">权限设置</string>
+
+    <string name="shop_new_title">添加新店铺</string>
+    <string name="shop_new_country">国家:</string>
+    <string name="shop_new_state">洲属:</string>
+    <string name="shop_new_area">地区:</string>
+    <string name="shop_new_choose_country">选择店铺国家</string>
+    <string name="shop_new_choose_state">选择店铺洲</string>
+    <string name="shop_new_choose_area">选择店铺地区</string>
+    <string name="shop_new_hint_name">输入店铺名字</string>
+    <string name="shop_new_hint_username">输入店铺用户名字</string>
+    <string name="shop_new_hint_password">输入店铺密码</string>
+    <string name="shop_new_hint_amount">金额</string>
+    <string name="shop_new_choose_country_first">请先选择店铺国家</string>
+    <string name="shop_new_choose_state_first">请先选择店铺洲</string>
+    <string name="shop_new_submit">提交</string>
+    <string name="shop_new_success_title">成功添加新店铺</string>
+    <string name="shop_new_success_desc">新店铺已经准备就绪</string>
+    <string name="shop_new_success_back">回到店铺管理</string>
+
+    <string name="shop_balance_title">修改店铺金额</string>
+    <string name="shop_balance_current">当前金额</string>
+    <string name="shop_balance_existing_settings">被设置金额</string>
+    <string name="shop_balance_modify">更改金额</string>
+    <string name="shop_balance_settings">设置店铺金额</string>
+    <string name="shop_balance_amount_settings_chosen">金额设置 :  RM %s</string>
+    <string name="shop_balance_min_settings">最低金额通知提醒</string>
+    <string name="shop_balance_100">RM100</string>
+    <string name="shop_balance_200">RM200</string>
+    <string name="shop_balance_2000">RM2000</string>
+    <string name="shop_balance_5000">RM5000</string>
+    <string name="shop_balance_update">更新设置</string>
+    <string name="shop_balance_update_success">被设置金额已更新!</string>
+
+    <string name="shop_change_password_title">修改店铺密码</string>
+    <string name="shop_change_password_new_hint">输入新密码</string>
+    <string name="shop_change_password_confirm_hint">输入多一次新密码</string>
+    <string name="shop_change_password_mismatch">新密码与确认密码不匹配</string>
+    <string name="shop_change_password_updated">店铺密码已更新!</string>
+    <string name="shop_change_password_submit">提交</string>
+
+    <string name="shop_transaction_title">店铺流水记录</string>
+    <string name="shop_transaction_type_all">全部</string>
+    <string name="shop_transaction_type_top_up">用户充值</string>
+    <string name="shop_transaction_type_withdraw">用户提现</string>
+    <string name="shop_transaction_type_manager_settlement">Manager清账</string>
+    <string name="shop_transaction_type_manager_top_up">Manager增加额度</string>
+
+    <string name="shop_transaction_details_title">交易明细</string>
+    <string name="shop_transaction_details_date">交易日期</string>
+    <string name="shop_transaction_details_id">账号ID</string>
+    <string name="shop_transaction_details_phone">手机号码</string>
+    <string name="shop_transaction_details_player">游戏账号ID</string>
+    <string name="shop_transaction_details_manager">Manager ID</string>
+    <string name="shop_transaction_details_method">交易方式</string>
+    <string name="shop_transaction_details_status">交易状态</string>
+    <string name="shop_transaction_details_remarks">备注</string>
+
+    <string name="shop_permission_title">权限设置</string>
+    <string name="shop_permission_top_up">可以充值</string>
+    <string name="shop_permission_withdraw">可以提现支付</string>
+    <string name="shop_permission_create_user">可以创建账号</string>
+    <string name="shop_permission_block_user">可以拉黑账号</string>
+    <string name="shop_permission_alarm">警报系统开关</string>
+    <string name="shop_permission_income">显示店铺总收入</string>
+    <string name="shop_permission_settlement">显示清账记录</string>
+    <string name="shop_permission_view_credentials">显示用户登陆凭证</string>
+    <string name="shop_permission_withdrawal_fee">提现抽成</string>
+    <string name="shop_permission_updated">店铺权限已更新!</string>
+
+    <string name="user_list_title">用户管理</string>
+    <string name="user_list_hint_search">搜索店铺名,用户名或店铺国家地区</string>
+    <string name="user_list_tab_all">所有用户</string>
+    <string name="user_list_tab_active">活跃用户</string>
+    <string name="user_list_tab_blocked">屏蔽用户</string>
+    <string name="user_list_tab_deleted">删除用户</string>
+    <string name="user_list_created_from">创建于</string>
+    <string name="user_list_created_shop">店铺</string>
+    <string name="user_list_created_online">线上</string>
+
+    <string name="user_details_title">用户详情</string>
+    <string name="user_details_delete">删除账号</string>
+    <string name="user_details_block_success">用户已被拉黑!</string>
+    <string name="user_details_delete_success">用户已被删除!</string>
+    <string name="user_details_country">国家</string>
+    <string name="user_details_id">账号ID</string>
+    <string name="user_details_password">用户密码</string>
+    <string name="user_details_status">用户状态</string>
+    <string name="user_details_created_by">店铺ID</string>
+    <string name="user_details_current_balance">当前总金额</string>
+    <string name="user_details_current_point">当前总Point</string>
+    <string name="user_details_current_exp">当前经验</string>
+    <string name="user_details_last_login">最后登录时间</string>
+    <string name="user_details_change_password">修改密码</string>
+    <string name="user_details_all_yxi">所有游戏</string>
+    <string name="user_details_block">拉黑</string>
+
+    <string name="user_change_password_title">修改用户密码</string>
+    <string name="user_change_password_id">账号ID</string>
+    <string name="user_change_password_desc">点击确认进行修改密码</string>
+    <string name="user_change_password_confirm">确定</string>
+    <string name="user_change_password_desc_random">*新密码将以随机密码取代</string>
+    <string name="user_change_password_success">修改密码成功</string>
+    <string name="user_change_password_phone">手机号码</string>
+    <string name="user_change_password_password">密码</string>
+    <string name="user_change_password_back">回到用户详情</string>
+
+    <string name="yxi_title">所有游戏</string>
+    <string name="yxi_select_yxi">请选择游戏</string>
+    <string name="yxi_hint_search">搜索游戏</string>
+    <string name="yxi_next">下一步</string>
+
+    <string name="yxi_player_search_hint">搜索游戏账号</string>
+    <string name="yxi_player_all">所有游戏账号</string>
+    <string name="yxi_player_add">添加游戏账号</string>
+
+    <string name="yxi_player_details_title">游戏账号详情</string>
+    <string name="yxi_player_details_delete">删除账号</string>
+    <string name="yxi_player_details_id">游戏账号ID</string>
+    <string name="yxi_player_details_password">游戏账号密码</string>
+    <string name="yxi_player_details_point">游戏Point</string>
+    <string name="yxi_player_details_status">游戏账号状态</string>
+    <string name="yxi_player_details_reset_password">重置密码</string>
+    <string name="yxi_player_reset_title">确定重置密码?</string>
+    <string name="yxi_player_reset_confirm">确定</string>
+    <string name="yxi_player_reset_cancel">取消</string>
+    <string name="yxi_player_reset_success">游戏账号密码已更新!</string>
+    <string name="yxi_player_delete_title">确定删除账号?</string>
+    <string name="yxi_player_delete_confirm">确定</string>
+    <string name="yxi_player_delete_cancel">取消</string>
+
+    <string name="point_history_title">Point历史</string>
+    <string name="point_history_hint_search">搜索店铺名,用户名</string>
+
+    <string name="point_details_title">订单详情</string>
+    <string name="point_details_fail">失败</string>
+    <string name="point_details_by_shop">来源店铺</string>
+    <string name="point_details_account_id">账号ID</string>
+    <string name="point_details_created_on">创造时间</string>
+    <string name="point_details_phone">手机号码</string>
+    <string name="point_details_created_by">创造于</string>
+    <string name="point_details_operated_by">操作人员</string>
+    <string name="point_details_operated_by_user">用户</string>
+    <string name="point_details_ip">IP地址</string>
+    <string name="point_details_shop_before_balance">原本店铺金额</string>
+    <string name="point_details_shop_after_balance">修改后店铺金额</string>
+    <string name="point_details_account_before_balance">原本账号金额</string>
+    <string name="point_details_account_after_balance">修改后账号金额</string>
+
+    <string name="point_filter_title">筛选</string>
+    <string name="point_filter_reset">消除选项</string>
+    <string name="point_filter_list_title">列表显示</string>
+    <string name="point_filter_list_all">全部</string>
+    <string name="point_filter_list_shop">店铺列表</string>
+    <string name="point_filter_list_game">游戏列表</string>
+    <string name="point_filter_transaction_title">交易分类</string>
+    <string name="point_filter_transaction_all">全部</string>
+    <string name="point_filter_transaction_bonus">Bonus</string>
+    <string name="point_filter_transaction_reward">Reward</string>
+    <string name="point_filter_transaction_top_up">充值</string>
+    <string name="point_filter_transaction_withdraw">提现</string>
+    <string name="point_filter_status_title">交易状态</string>
+    <string name="point_filter_status_all">全部</string>
+    <string name="point_filter_status_success">成功</string>
+    <string name="point_filter_status_fail">失败</string>
+    <string name="point_filter_date_title">交易创造时间</string>
+    <string name="point_filter_date_all">全部</string>
+    <string name="point_filter_date_choose">选择日期</string>
+    <string name="point_filter_choose_list_first">请先选择列表显示</string>
+    <string name="point_filter_confirm">确定</string>
+
+    <string name="log_title">系统Log</string>
+    <string name="log_filter_title">筛选</string>
+    <string name="log_filter_choose_shop">选择店铺</string>
+    <string name="log_filter_choose_manager">选择Manager</string>
+    <string name="log_filter_chosen_template">已选 %d %s</string>
+    <string name="log_filter_shop_manager">显示所有店铺和Manager</string>
+    <string name="log_filter_shop">只显示店铺</string>
+    <string name="log_filter_shop_unit">间</string>
+    <string name="log_filter_shop_search_hint">搜索店铺名</string>
+    <string name="log_filter_shop_chosen">已选择店铺 (%d)</string>
+    <string name="log_filter_manager">只显示Manager</string>
+    <string name="log_filter_manager_unit">位</string>
+    <string name="log_filter_manager_search_hint">搜索Manager</string>
+    <string name="log_filter_manager_chosen">已选择Manager (%d)</string>
+    <string name="log_filter_all">全部</string>
+    <string name="log_filter_confirm">确定</string>
+
+    <string name="yxi_log_title">游戏Log</string>
+    <string name="yxi_log_bet">投注 %s</string>
+    <string name="yxi_log_win">赢取 %s</string>
+    <string name="yxi_log_begin">开始余额 RM%s</string>
+    <string name="yxi_log_end">结束余额 RM%s</string>
+    <string name="yxi_log_filter_title">筛选</string>
+    <string name="yxi_log_filter_choose_shop">选择店铺</string>
+    <string name="yxi_log_filter_choose_yxi">选择游戏</string>
+    <string name="yxi_log_filter_chosen_template">已选 %d %s</string>
+    <string name="yxi_log_filter_shop_yxi">显示全部</string>
+    <string name="yxi_log_filter_shop">只显示店铺</string>
+    <string name="yxi_log_filter_shop_unit">间</string>
+    <string name="yxi_log_filter_shop_search_hint">搜索店铺名</string>
+    <string name="yxi_log_filter_shop_chosen">已选择店铺 (%d)</string>
+    <string name="yxi_log_filter_yxi">只显示游戏</string>
+    <string name="yxi_log_filter_yxi_unit">个</string>
+    <string name="yxi_log_filter_yxi_search_hint">搜索游戏</string>
+    <string name="yxi_log_filter_yxi_chosen">已选择游戏 (%d)</string>
+    <string name="yxi_log_filter_all">全部</string>
+    <string name="yxi_log_filter_confirm">确定</string>
+
+    <string name="qr_scan_title">扫描二维码</string>
+    <string name="qr_scan_camera_permission">需要相机权限</string>
+    <string name="qr_scan_gallery_permission">需要存储权限以访问图片</string>
+    <string name="qr_scan_no_code">二维码无效</string>
+    <string name="qr_scan_failed_to_load">加载图片失败</string>
+
+    <string name="placeholder_currency">RM</string>
+    <string name="placeholder_currency_amount">RM0.00</string>
+    <string name="placeholder_currency_amount_space">RM 0.00</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_amount_add">+0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_password_masked">•••••••••</string>
+
+    <string name="template_s">\'%s\'</string>
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_s_dashed">%s - %s</string>
+    <string name="template_bracket_s">(%s)</string>
+    <string name="template_currency_amount">RM%s</string>
+    <string name="template_currency_amount_space">RM %s</string>
+
+    <string name="language_english">English</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_malay">Malay</string>
+
+    <string name="cd_icon">Icon</string>
+    <string name="cd_image">Image</string>
+
+    <string name="user_status_active">活跃</string>
+    <string name="user_status_blocked">屏蔽</string>
+    <string name="user_status_deleted">删除</string>
+    <string name="user_status_action_block">拉黑</string>
+    <string name="user_status_action_unblock">解除拉黑</string>
+
+    <string name="player_status_active">活跃</string>
+    <string name="player_status_blocked">屏蔽</string>
+    <string name="player_status_deleted">删除</string>
+
+    <string name="shop_status_active">活跃</string>
+    <string name="shop_status_closed">关闭</string>
+    <string name="shop_status_deleted">删除</string>
+    <string name="shop_status_action_close">关闭店铺</string>
+    <string name="shop_status_action_open">开启店铺</string>
+
+    <string name="transaction_type_top_up">用户充值</string>
+    <string name="transaction_type_top_up_yxi">游戏账号充值</string>
+    <string name="transaction_type_withdraw">用户提现</string>
+    <string name="transaction_type_withdraw_yxi">游戏账号提现</string>
+    <string name="transaction_type_manager_settlement">Manager清账</string>
+    <string name="transaction_type_manager_top_up">Manager增加额度</string>
+    <string name="transaction_type_close_shop">关闭店铺</string>
+    <string name="transaction_type_unknown">未知</string>
+
+    <string name="transaction_status_success">成功</string>
+    <string name="transaction_status_failed">失败</string>
+
+    <string name="notification_action_shop_details">前往店铺详情</string>
+    <string name="notification_action_app_update">立即更新</string>
+    <string name="notification_action_remove_alarm">解除警报</string>
+
+    <string name="point_type_bonus">Bonus</string>
+    <string name="point_type_reward">Reward</string>
+    <string name="point_type_top_up">充值</string>
+    <string name="point_type_withdraw">提现</string>
+
+    <string name="reason_action_close_shop">关闭店铺</string>
+    <string name="reason_action_block_user">拉黑用户</string>
+    <string name="reason_action_delete_user">删除用户</string>
+    <string name="reason_action_submit">提交</string>
+
+    <string name="time_ago_just_now">刚刚</string>
+    <string name="time_ago_mins">分钟前</string>
+    <string name="time_ago_mins_template">%d分钟前</string>
+    <string name="time_ago_hours">小时前</string>
+    <string name="time_ago_hours_template">%d小时前</string>
+    <string name="time_ago_days">%d天前</string>
+
+    <string name="month_jan">一</string>
+    <string name="month_feb">二</string>
+    <string name="month_mar">三</string>
+    <string name="month_apr">四</string>
+    <string name="month_may">五</string>
+    <string name="month_jun">六</string>
+    <string name="month_jul">七</string>
+    <string name="month_aug">八</string>
+    <string name="month_sep">九</string>
+    <string name="month_oct">十</string>
+    <string name="month_nov">十一</string>
+    <string name="month_dec">十二</string>
+
+    <string name="in_app_updater_preparing_download">正在准备下载…</string>
+    <string name="in_app_updater_downloading_update">正在下载更新…</string>
+    <string name="in_app_updater_installing_update">正在安装更新…</string>
+    <string name="in_app_updater_wait">请稍候</string>
+    <string name="in_app_updater_progress">%d%%（%dKB / %dKB）</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

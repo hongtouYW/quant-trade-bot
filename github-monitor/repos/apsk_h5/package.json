@@ -1,0 +1,41 @@
+{
+  "name": "apsk-h5",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "gen:images": "node scripts/generateImageConstants.js",
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@reduxjs/toolkit": "^2.9.0",
+    "crypto-js": "^4.2.0",
+    "html2canvas": "^1.4.1",
+    "moment": "^2.30.1",
+    "next": "^15.5.3",
+    "next-intl": "^4.3.5",
+    "qrcode.react": "^4.2.0",
+    "react": "^19.1.2",
+    "react-dom": "^19.1.2",
+    "react-fast-marquee": "^1.6.5",
+    "react-hot-toast": "^2.6.0",
+    "react-lazy-load-image-component": "^1.6.3",
+    "react-multi-carousel": "^2.8.6",
+    "react-qr-code": "^2.0.18",
+    "react-redux": "^9.2.0",
+    "react-spinners": "^0.17.0",
+    "react-use-draggable-scroll": "^0.4.7",
+    "sweetalert2": "^11.22.5",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "^15.5.3",
+    "tailwindcss": "^4"
+  }
+}

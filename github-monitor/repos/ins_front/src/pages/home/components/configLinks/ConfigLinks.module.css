@@ -1,0 +1,119 @@
+.friendlyRecommendation {
+  display: flex;
+  align-items: center;
+  gap: 80px;
+  /* padding: 0px 10px; */
+}
+
+/* .friendlyRecommendationImg {
+  width: 100px;
+} */
+
+.friendlyRecommendationLabel {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 10px;
+}
+
+.friendlyRecommendationImg img {
+  width: 100px;
+}
+
+.friendlyRecommendationList {
+  display: flex;
+  align-items: stretch;
+  gap: 50px;
+  overflow-x: scroll;
+}
+
+.friendlyRecommendationItem {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  min-width: 160px;
+}
+
+.friendlyRecommendationItem p {
+  color: #fff;
+  text-align: center;
+}
+
+.friendlyRecommendationItemImg {
+  min-width: 70px;
+  width: 70px;
+}
+
+.friendlyRecommendationItemImg img {
+  width: 100%;
+}
+
+.friendlyArrowLeft, .friendlyArrowRight {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .friendlyRecommendationLabel {
+    font-size: 18px;
+    padding: 0px 10px;
+  }
+
+  .friendlyRecommendation {
+    gap: 10px;
+  }
+
+  .friendlyArrowLeft, .friendlyArrowRight {
+    display: block;
+  }
+
+  .friendlyArrowLeft {
+    color: #fff;
+    opacity: 0.3;
+    font-size: 12px;
+    margin-bottom: 25px;
+  }
+
+  .friendlyArrowRight {
+    color: #fff;
+    opacity: 0.3;
+    font-size: 12px;
+    margin-bottom: 25px;
+    transform: rotate(180deg);
+  }
+
+  .friendlyRecommendationList {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 15px;
+    width: 100%;
+    overflow-x: hidden;
+    padding: 0px 5px;
+    /* gap: 10px; */
+    /* padding: 0 15px;
+    box-shadow: inset 5px 0 5px -5px #888, inset -5px 0 5px -5px #888; */
+  }
+
+  .friendlyRecommendationItem {
+    display: block;
+    min-width: 40px;
+    margin: 0 auto;
+  }
+
+  .friendlyRecommendationItem p {
+    font-size: 10px;
+    text-align: center;
+  }
+
+  /* .friendlyRecommendationImg {
+    width: 60px;
+  } */
+
+  .friendlyRecommendationImg img {
+    width: 60px;
+  }
+
+  .friendlyRecommendationItemImg {
+    min-width: 40px;
+    width: 40px;
+  }
+}

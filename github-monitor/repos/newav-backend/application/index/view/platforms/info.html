@@ -1,0 +1,171 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"  name="name" value="{$info.name}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>英文名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"   name="name_en" value="{$info.name_en}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>俄语名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"   name="name_ru" value="{$info.name_ru}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>备注
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"  name="remark" value="{$info.remark}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>KEY
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" lay-verify="required"  name="key_name" value="{$info.key_name}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>支付方式</label>
+                <div class="layui-input-inline">
+                    <select name="type" required="" lay-verify="required">
+                        <option value="">支付方式</option>
+                        <option value="1" {if condition="$info['type'] eq 1"}selected {/if}>支付宝</option>
+                        <option value="2" {if condition="$info['type'] eq 2"}selected {/if}>微信</option>
+                        <option value="3" {if condition="$info['type'] eq 3"}selected {/if}>数字货币</option>
+                    </select>
+                </div>
+            </div>
+            <div class="layui-form-item" >
+                <label class="layui-form-label">
+                    金额
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text"  name="amounts" value="{$info.amounts}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item" >
+                <label class="layui-form-label">
+                    支付请求地址
+                </label>
+                <div class="layui-input-inline w400">
+                    <input type="text"  name="pay_url" value="{$info.pay_url}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    支付编码
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text"  name="pay_code" value="{$info.pay_code}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    三方参数
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text"  name="val1" value="{$info.val1}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status" value="1" title="开启" {if condition="$info.status eq 1 "}checked{/if}>
+                    <input type="radio" name="status" value="0" title="停用" {if condition="$info.status eq 0 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>排序</label>
+                <div class="layui-input-inline">
+                    <input type="number"min="0" name="sort"  edit="text" autocomplete="off" value="{$info.sort}" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <span class="x-red"></span>不填默认为99
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(sub)', function (data) {
+            $.ajax({
+                url: "{:url('info')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    console.log(data);
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+
+
+</script>
+</body>
+
+</html>

@@ -1,0 +1,126 @@
+{include file="public/header" /}
+<style>
+    .x-admin-sm .layui-btn-xs {
+        height: 22px;
+        line-height: 22px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
+</style>
+
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row">
+            <form class="layui-form">
+                <input type="hidden" name="id" value="{$info.id}">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>漫画文本翻译</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="mh_text_trans" value="0" title="否" lay-verify="required">
+                        <input type="radio" name="mh_text_trans" value="1" title="是" lay-verify="required">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>章节文本翻译</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="cp_text_trans" value="0" title="否" lay-verify="required">
+                        <input type="radio" name="cp_text_trans" value="1" title="是" lay-verify="required">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>章节图片翻译</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="cp_img_trans" value="0" title="否" lay-verify="required">
+                        <input type="radio" name="cp_img_trans" value="1" title="是" lay-verify="required">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>角色介绍翻译</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="mh_actor_trans" value="0" title="否" lay-verify="required">
+                        <input type="radio" name="mh_actor_trans" value="1" title="是" lay-verify="required">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>选择语言</label>
+                    <div class="layui-input-block">
+                        <input type="checkbox" name="languages[]" value="en" title="英文" lay-skin="primary"
+                            lay-verify="languageRequired">
+                        <!-- <input type="checkbox" name="languages[]" value="vi" title="越南" lay-skin="primary" lay-verify="languageRequired"> -->
+                    </div>
+                </div>
+
+                <div class="layui-form-item center">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit="sub" lay-filter="sub">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        layui.use(['form', 'layer'], function () {
+            // 操作对象
+            var form = layui.form
+                , layer = layui.layer
+                , $ = layui.jquery
+                , upload = layui.upload;
+
+            // 验证
+            form.verify({
+                required: function (value, item) {
+                    if (!$(item).closest('.layui-input-block').find('input[name="' + item.name + '"]:checked').length) {
+                        return '必须选择一个选项';
+                    }
+                },
+
+                languageRequired: function (value, item) {
+                    if (!$('input[name="languages[]"]:checked').length) {
+                        return '必须至少选择一个语言';
+                    }
+                },
+            });
+
+            form.on('submit(sub)', function (data) {
+                console.log(data.field);
+                $.ajax({
+                    url: "{:url('translate')}",
+                    type: "POST",
+                    data: data.field,
+                    async: false,
+                    success: function (data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, { icon: 1 });
+                            setTimeout(function () {
+                                parent.layer.closeAll();
+                                parent.location.reload();
+                            }, 1500);
+                        } else {
+                            layer.msg(data.msg, { icon: 2 });
+                        }
+                    },
+                    error: function () {
+                        layer.msg("System Service Busy!", { offset: '200px' });
+                    }
+                });
+                return false;
+            });
+
+        });
+
+    </script>
+
+</body>
+
+</html>

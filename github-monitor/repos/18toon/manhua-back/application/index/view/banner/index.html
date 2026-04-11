@@ -1,0 +1,357 @@
+{include file="public/header" /}
+<body>
+  <style>
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      right: 0;
+      top: 32px;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      z-index: 999;
+      /* padding: 5px 0; */
+      min-width: 100px;
+    }
+
+    .dropdown-menu li {
+      padding: 8px 15px;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .dropdown-menu li:hover {
+      background: #f2f2f2;
+    }
+
+    .dropdown-danger {
+      color: #ff4d4f;
+      font-weight: bold;
+    }
+
+    .dropdown-danger:hover {
+      background-color: #ffecec;
+    }
+  </style>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+  </a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5" action="">
+            <div class="layui-input-inline layui-show-xs-block">
+              <select name="position">
+                <option value="">位置</option>
+                {volist name="position" id="vo"}
+                <option value="{$key}" {if condition="$param['position'] eq $key"}selected{/if}>{$vo}</option>
+                {/volist}
+              </select>
+            </div>
+            <div class="layui-input-inline layui-show-xs-block">
+              <select name="status">
+                <option value="">是否展示</option>
+                <option value="0" {if condition="$param['status'] eq '0'"}selected {/if}>否</option>
+                <option value="1" {if condition="$param['status'] eq '1'"}selected {/if}>是</option>
+              </select>
+            </div>
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="submit" class="layui-btn"  value="搜索">
+            </div>
+          </form>
+        </div>
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="set_add()">
+            <i class="layui-icon"></i>添加</button>
+          <button class="layui-btn layui-btn-normal" onclick="clearBanner()">
+            <i class="layui-icon"></i>清除缓存
+          </button>
+        </div>
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th width="70">ID</th>
+              <th>位置</th>
+              <th>标题</th>
+              <th>对应漫画</th>
+              <th width="100">缩略图</th>
+              <th width="150">跳转url</th>
+              <th width="100">状态</th>
+              <th width="50">排序</th>
+              <th width="250">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>{$position[$vo.position]}</td>
+              <td>{$vo.title}</td>
+              <td>{$vo.mid}</td>
+              <td><div style="height:50px;width:50px;cursor:pointer;" onclick="show_img(this)"><img style="width: 100%;height: 100%" src="{$img_domain}{$vo.image}"></div></td>
+              <td>{$vo.link}</td>
+              <td>
+                <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="status" {if condition="$vo.status eq 1"} checked {/if}  value="{$vo['status']}" lay-skin="switch" lay-filter="modify" lay-text="展示|隐藏" >
+              </td>
+              <td><input  type="number" min="0" autocomplete="off" data-id="{$vo.id}" onchange="set_sort(this,this.value)" value="{$vo.sort}" class="layui-input sort"></td>
+              <td class="td-manage">
+                <div class="layui-btn-group" style="position: relative;">
+                  <button class="layui-btn layui-btn-xs layui-btn-primary dropdown-trigger">操作<i
+                      class="layui-icon layui-icon-down"></i></button>
+                  <ul class="dropdown-menu">
+                    <li onclick="set_edit(this,'{$vo.id}')"><i class="layui-icon">&#xe642;</i> 编辑</li>
+                    <li onclick="edit_translation(this)" data-id="{$vo.id}"><i class="layui-icon">&#xe642;</i> 查看翻译
+                    </li>
+                    <li class="dropdown-danger" onclick="set_del(this,'{$vo.id}')" data-id="{$vo.id}"><i
+                        class="layui-icon">&#xe640;</i> 删除</li>
+                  </ul>
+                </div>
+              </td>
+              <!-- <td class="td-manage">
+                <button class="layui-btn layui-btn layui-btn-xs"  onclick="set_edit(this,'{$vo.id}')" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                <button class="layui-btn-danger layui-btn layui-btn-xs"  onclick="set_del(this,'{$vo.id}')" ><i class="layui-icon">&#xe640;</i>删除</button>
+              </td> -->
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl = "{:url('banner/index',$param)}";
+      layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          , count: {$total}
+          , limit: {$limit}
+          , limits: [10, 20, 50, 100]
+          , curr: {$page}
+          , layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          , jump: function (obj, first) {
+            if (!first) {
+              location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        if(this.checked){
+          status = 1;
+        }
+        var field = that.attr('name');
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field: field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+    });
+
+
+/*
+添加
+ */
+function set_add() {
+  var url='{:url("info")}';
+  var add = layer.open({
+    type: 2,
+    title: '添加广告',
+    area: ['100%', '100%'],
+    content: url, //iframe的url
+  });
+  layer.full(add)
+}
+
+/*
+编辑
+ */
+function set_edit(obj,id) {
+  var url='{:url("info")}'+'?id='+id;
+  var edit = layer.open({
+    type: 2,
+    title: '编辑广告',
+    area: ['100%', '100%'],
+    content: url, //iframe的url
+  });
+  layer.full(edit)
+}
+
+/*
+删除
+ */
+function set_del(obj,id) {
+  layer.confirm('你确定要删除么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("del")}',{'id':id},function(data){
+      if(data.code==1){
+
+        $(obj).parents("tr").remove();
+        layer.msg(data.msg,{icon:1,time:1000});
+
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+
+}
+
+
+/*
+排序
+ */
+function set_sort(t,value) {
+  var id=$(t).attr("data-id");
+  $.ajax({
+    url: "{:url('banner/modify')}",
+    type: "POST",
+    data: {
+      id:id,
+      field: 'sort',
+      value: value,
+    },
+    async: false,
+    success: function (data) {
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        }, 1500);
+      }else{
+        layer.msg(data.msg,{icon:2});
+      }
+    },
+    error: function () {
+      layer.msg("System Service Busy!", {offset: '200px'});
+    }
+  });
+
+}
+
+//图片显示
+function show_img(t) {
+  var t = $(t).find("img");
+  //页面层
+  layer.open({
+    type: 1,
+    skin: 'layui-layer-rim', //加上边框
+    area: ['75%', '75%'], //宽高
+    shadeClose: true, //开启遮罩关闭
+    end: function (index, layero) {
+      $('body,html,iframe').css({
+        "overflow-x": "auto",
+        "overflow-y": "auto"
+      });
+      return false;
+    },
+    content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+  });
+  $('body,html,iframe').css({
+    "overflow-x": "hidden",
+    "overflow-y": "hidden"
+  });
+}
+
+
+function clearBanner() {
+  layer.confirm('你确定要清除Banner缓存么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("clear")}',{},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+}
+
+  $(document).on('click', '.dropdown-trigger', function (e) {
+    e.stopPropagation(); // 阻止事件冒泡到 document
+    let $menu = $(this).siblings('.dropdown-menu');
+
+    // 关闭其它已打开的菜单
+    $('.dropdown-menu').not($menu).hide();
+
+    // 切换当前菜单
+    $menu.toggle();
+  });
+
+  // 点击其他地方自动关闭
+  $(document).on('click', function () {
+    $('.dropdown-menu').hide();
+  });
+
+  function edit_translation(obj) {
+    const banner_id = $(obj).data('id');
+    layer.open({
+      type: 2,
+      title: '编辑翻译内容',
+      area: ['800px', '600px'],
+      content: '/banner/edit_translation?id=' + banner_id
+    });
+  }
+</script>
+
+</html>

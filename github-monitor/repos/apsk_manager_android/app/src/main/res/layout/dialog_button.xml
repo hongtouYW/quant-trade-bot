@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_dialog"
+    android:elevation="4dp"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/textView_dialog_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="@font/poppins_semi_bold"
+                android:gravity="center"
+                android:textColor="@color/black_192D51"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/textView_dialog_message"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center"
+                android:lineSpacingExtra="4sp"
+                android:textColor="@color/black_192D51"
+                android:textSize="14sp" />
+
+            <com.dj.manager.widget.CustomButton
+                android:id="@+id/button_dialog_positive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="16sp" />
+            <!--            <androidx.appcompat.widget.AppCompatButton-->
+            <!--                android:id="@+id/button_dialog_positive"-->
+            <!--                android:layout_width="match_parent"-->
+            <!--                android:layout_height="56dp"-->
+            <!--                android:background="@drawable/bg_positive_button"-->
+            <!--                android:backgroundTint="@null"-->
+            <!--                android:fontFamily="@font/poppins_semi_bold"-->
+            <!--                android:textColor="@color/gold_D4AF37"-->
+            <!--                android:textSize="16sp" />-->
+        </LinearLayout>
+    </RelativeLayout>
+</LinearLayout>

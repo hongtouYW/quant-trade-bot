@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp">
+
+            <ImageView
+                android:id="@+id/imageView_vip"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="10dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/img_affiliate_level_0" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <LinearLayout
+                    android:id="@+id/panel_pending"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginBottom="6dp"
+                    android:layout_toStartOf="@id/textView_redeem"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:visibility="invisible">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:layout_weight="0.1"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/affiliate_share_to_redeem"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.2"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/placeholder_dash"
+                        android:textColor="@color/white_FFFFFF_50a"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/panel_pending"
+                    android:layout_marginEnd="16dp"
+                    android:layout_toStartOf="@id/textView_redeem"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="10dp"
+                        android:layout_weight="0.1"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/affiliate_share_upline"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/textView_upline"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.2"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/placeholder_dash"
+                        android:textColor="@color/white_FFFFFF_50a"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textView_redeem"
+                    android:layout_width="60dp"
+                    android:layout_height="38dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="16dp"
+                    android:layout_toStartOf="@id/textView_history"
+                    android:background="@drawable/bg_button_vip"
+                    android:fontFamily="@font/pingfang_sc_medium"
+                    android:gravity="center"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/affiliate_share_one_click_redeem"
+                    android:textColor="@color/black_000000"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/textView_history"
+                    android:layout_width="60dp"
+                    android:layout_height="38dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_marginVertical="2dp"
+                    android:background="@drawable/bg_button_vip"
+                    android:fontFamily="@font/pingfang_sc_medium"
+                    android:gravity="center"
+                    android:paddingHorizontal="6dp"
+                    android:text="@string/affiliate_share_redeem_history"
+                    android:textColor="@color/black_000000"
+                    android:textSize="12sp" />
+            </RelativeLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:text="@string/affiliate_share_agent_mode"
+                android:textColor="@color/gray_BCBCBC"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/blue_354B9C" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/panel_save_qr"
+                    android:layout_width="98dp"
+                    android:layout_height="120dp"
+                    android:layout_marginEnd="16dp"
+                    android:orientation="vertical">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/imageView_qr"
+                        style="@style/TopRadius10ImageView"
+                        android:layout_width="match_parent"
+                        android:layout_height="98dp"
+                        android:contentDescription="@string/cd_image"
+                        android:scaleType="centerCrop" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_bottom_rounded_gradient"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:gravity="center"
+                        android:text="@string/affiliate_share_save"
+                        android:textColor="@color/black_000000"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/pingfang_sc_semi_bold"
+                            android:text="@string/affiliate_share_link"
+                            android:textColor="@color/white_FFFFFF"
+                            android:textSize="14sp" />
+
+                        <TextView
+                            android:id="@+id/textView_change"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/pingfang_sc_semi_bold"
+                            android:text="@string/affiliate_share_change_link"
+                            android:textColor="@color/orange_F8AF07"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/panel_link"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:id="@+id/textView_link"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:ellipsize="marquee"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:marqueeRepeatLimit="marquee_forever"
+                            android:scrollHorizontally="true"
+                            android:singleLine="true"
+                            android:textColor="@color/white_FFFFFF"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@string/cd_icon"
+                            android:src="@drawable/ic_copy" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="4dp"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:text="@string/affiliate_share_invitation_code"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:id="@+id/panel_code"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:id="@+id/textView_code"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:lines="1"
+                            android:maxLines="1"
+                            android:singleLine="true"
+                            android:textColor="@color/white_FFFFFF"
+                            android:textSize="14sp" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@string/cd_icon"
+                            android:src="@drawable/ic_copy" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:text="@string/affiliate_share_share"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="36dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:id="@+id/panel_wechat"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_bordered"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_wechat" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_wa"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_bordered"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_wa" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_fb"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_bordered"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_fb" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/panel_telegram"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_bordered"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:layout_width="25dp"
+                        android:layout_height="25dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_telegram" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:paddingHorizontal="16dp"
+            android:text="@string/affiliate_share_tutorial"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_top_rounded_blue"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:layout_width="62dp"
+                    android:layout_height="70dp"
+                    android:layout_marginEnd="16dp"
+                    android:contentDescription="@string/cd_image"
+                    android:src="@drawable/img_affiliate_a" />
+
+                <TextView
+                    android:id="@+id/textView_calculation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="40dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <!--                <LinearLayout-->
+                <!--                    android:layout_width="match_parent"-->
+                <!--                    android:layout_height="wrap_content"-->
+                <!--                    android:orientation="vertical">-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_marginBottom="3dp"-->
+                <!--                        android:gravity="center_vertical"-->
+                <!--                        android:orientation="horizontal">-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_semi_bold"-->
+                <!--                            android:text="直属业绩"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_regular"-->
+                <!--                            android:text="500+3000+2000=5500"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+                <!--                    </LinearLayout>-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_marginBottom="3dp"-->
+                <!--                        android:gravity="center_vertical"-->
+                <!--                        android:orientation="horizontal">-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_semi_bold"-->
+                <!--                            android:text="直属佣金"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_regular"-->
+                <!--                            android:text="5,500 x 10%=550"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+                <!--                    </LinearLayout>-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_marginBottom="3dp"-->
+                <!--                        android:gravity="center_vertical"-->
+                <!--                        android:orientation="horizontal">-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_semi_bold"-->
+                <!--                            android:text="其他佣金"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_regular"-->
+                <!--                            android:text="30+60+600=690"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+                <!--                    </LinearLayout>-->
+
+                <!--                    <LinearLayout-->
+                <!--                        android:layout_width="match_parent"-->
+                <!--                        android:layout_height="wrap_content"-->
+                <!--                        android:layout_marginBottom="3dp"-->
+                <!--                        android:gravity="center_vertical"-->
+                <!--                        android:orientation="horizontal">-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_semi_bold"-->
+                <!--                            android:text="本期佣金"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+
+                <!--                        <TextView-->
+                <!--                            android:layout_width="wrap_content"-->
+                <!--                            android:layout_height="wrap_content"-->
+                <!--                            android:layout_marginEnd="4dp"-->
+                <!--                            android:fontFamily="@font/pingfang_sc_regular"-->
+                <!--                            android:text="550+690=1240"-->
+                <!--                            android:textColor="@color/white_FFFFFF"-->
+                <!--                            android:textSize="14sp" />-->
+                <!--                    </LinearLayout>-->
+                <!--                </LinearLayout>-->
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/imageView_tutorial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/cd_image"
+                android:scaleType="fitCenter" />
+
+            <ImageView
+                android:layout_width="62dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="8dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/cd_image"
+                android:scaleType="fitCenter"
+                android:src="@drawable/img_affiliate_n" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="76dp"
+                android:layout_marginTop="-40dp"
+                android:layout_marginBottom="10dp"
+                android:background="@drawable/bg_rounded_blue"
+                android:padding="16dp"
+                android:translationZ="-9999dp">
+
+                <TextView
+                    android:id="@+id/textView_slogan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:gravity="center"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/affiliate_share_example"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="10sp"
+                    android:visibility="gone"
+                    tools:ignore="SmallSp" />
+
+                <TextView
+                    android:id="@+id/textView_html"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="40dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="10sp"
+                    tools:ignore="SmallSp" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

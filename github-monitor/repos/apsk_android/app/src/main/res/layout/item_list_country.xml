@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/panel_item"
+    android:layout_width="match_parent"
+    android:layout_height="56dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="0dp"
+    android:paddingEnd="16dp"
+    tools:ignore="UseCompoundDrawables">
+
+    <TextView
+        android:id="@+id/textView_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_weight="1"
+        android:fontFamily="@font/pingfang_sc_regular"
+        android:textColor="@color/orange_F8AF07"
+        android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/imageView_radio"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@string/cd_icon"
+        android:src="@drawable/ic_radio" />
+</LinearLayout>

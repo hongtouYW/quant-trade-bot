@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>视频片段烧录</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/static/xadmin/css/font.css">
+  <link rel="stylesheet" href="/static/xadmin/css/xadmin.css">
+  <script src="/static/xadmin/lib/layui/layui.js" charset="utf-8"></script>
+  <script src="/static/xadmin/jquery/jquery-3.2.1.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { background: #f2f2f2; margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+
+    .trimmer-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    }
+
+    h2 { color: #333; margin: 0 0 16px; font-size: 18px; }
+
+    #dl_video {
+      width: 100%;
+      max-height: 380px;
+      background: #000;
+      border-radius: 6px;
+      display: block;
+    }
+
+    #dl_current_time {
+      text-align: center;
+      font-size: 28px;
+      font-weight: bold;
+      color: #1890ff;
+      padding: 10px 0 6px;
+      letter-spacing: 2px;
+    }
+
+    /* ── Trim timeline ── */
+    #dl_timeline_wrap {
+      position: relative;
+      height: 40px;
+      background: #e8e8e8;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      margin: 8px 0 4px;
+    }
+    #dl_range_hl {
+      position: absolute; top: 0; bottom: 0;
+      background: rgba(24,144,255,0.2);
+      border: 2px solid #1890ff;
+      pointer-events: none;
+    }
+    #dl_playhead {
+      position: absolute; top: 0; bottom: 0;
+      width: 2px; background: #e94560;
+      pointer-events: none; z-index: 3;
+    }
+    .dl-handle {
+      position: absolute; top: 50%;
+      width: 14px; height: 32px;
+      background: #1890ff; border-radius: 4px;
+      transform: translateY(-50%) translateX(-50%);
+      cursor: ew-resize; z-index: 4;
+      box-shadow: 0 0 6px rgba(24,144,255,0.5);
+    }
+    .tl-labels {
+      display: flex; justify-content: space-between;
+      font-size: 11px; color: #999; margin-top: 3px;
+    }
+
+    /* ── Time inputs ── */
+    .time-inputs {
+      display: flex; gap: 16px; margin: 14px 0;
+    }
+    .time-inputs > div { flex: 1; }
+    .time-inputs label {
+      display: block; font-size: 12px; color: #666; margin-bottom: 5px;
+    }
+    .time-inputs input {
+      background: #fff; border: 1px solid #d9d9d9;
+      color: #333; border-radius: 4px;
+      padding: 8px 10px; width: 100%; font-size: 15px;
+      letter-spacing: 1px; outline: none;
+    }
+    .time-inputs input:focus { border-color: #1890ff; }
+
+    /* ── Section blocks ── */
+    .section-block {
+      margin: 14px 0;
+      padding: 12px 14px;
+      background: #f9f9f9;
+      border-radius: 6px;
+      border: 1px solid #e8e8e8;
+    }
+    .section-block .section-title {
+      font-size: 13px; font-weight: bold; color: #333; margin-bottom: 10px;
+    }
+    .section-block select,
+    .section-block input[type="text"],
+    .section-block input[type="number"] {
+      border: 1px solid #d9d9d9; border-radius: 4px;
+      padding: 7px 10px; font-size: 13px; outline: none;
+      background: #fff; color: #333;
+    }
+    .section-block select:focus,
+    .section-block input:focus { border-color: #1890ff; }
+    .section-block select { width: 100%; margin-bottom: 8px; }
+    .section-block input[type="text"] { width: 100%; }
+    .custom-coords { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+    .custom-coords > div { flex: 1; min-width: 60px; }
+    .custom-coords label { display: block; font-size: 11px; color: #888; margin-bottom: 3px; }
+    .custom-coords input { width: 100%; }
+
+    /* ── Burn button ── */
+    .dl-btn {
+      display: block; width: 200px; margin: 16px auto 0;
+      background: #ff7a00; color: #fff; border: none;
+      border-radius: 6px; padding: 11px 0; font-size: 15px;
+      cursor: pointer; text-align: center;
+    }
+    .dl-btn:hover { background: #d46300; }
+
+    #dl_status { text-align: center; color: #666; font-size: 13px; margin-top: 10px; min-height: 20px; }
+
+    /* ── Result section ── */
+    #dl_result_section {
+      margin-top: 20px;
+      padding: 16px;
+      background: #f6ffed;
+      border: 1px solid #b7eb8f;
+      border-radius: 6px;
+      text-align: center;
+    }
+    #dl_result_section .result-title { font-size: 15px; color: #389e0d; margin-bottom: 12px; font-weight: bold; }
+    .result-dl-btn {
+      display: inline-block;
+      padding: 10px 28px;
+      background: #52c41a;
+      color: #fff;
+      border-radius: 6px;
+      font-size: 14px;
+      text-decoration: none;
+    }
+    .result-dl-btn:hover { background: #389e0d; color: #fff; }
+    .wm-pos-cell {
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; border: 2px solid #ddd; border-radius: 6px;
+      cursor: pointer; font-size: 12px; color: #555; text-align: center;
+      transition: all 0.15s; user-select: none;
+    }
+    .wm-pos-cell:hover { border-color: #1890ff; color: #1890ff; }
+    .wm-pos-cell.active { border-color: #1890ff; background: #e6f7ff; color: #1890ff; font-weight: bold; }
+  </style>
+</head>
+<body>
+<div class="trimmer-wrap">
+  <h2>✂ 视频片段烧录</h2>
+
+  <video id="dl_video" controls preload="metadata"></video>
+
+  <div id="dl_current_time">00:00:00</div>
+
+  <div id="dl_timeline_wrap">
+    <div id="dl_range_hl"></div>
+    <div id="dl_playhead"></div>
+    <div id="dl_handle_s" class="dl-handle"></div>
+    <div id="dl_handle_e" class="dl-handle"></div>
+  </div>
+  <div class="tl-labels">
+    <span>00:00:00</span><span id="dl_dur_label">--:--:--</span>
+  </div>
+
+  <div class="time-inputs">
+    <div>
+      <label>开始时间 (HH:MM:SS)</label>
+      <input type="text" id="dl_start" value="00:00:00" oninput="dlSyncFromInput('start')">
+    </div>
+    <div>
+      <label>结束时间 (HH:MM:SS)</label>
+      <input type="text" id="dl_end" value="00:05:00" oninput="dlSyncFromInput('end')">
+    </div>
+  </div>
+
+  <!-- Subtitle section -->
+  <div class="section-block">
+    <div class="section-title">字幕烧入 <span style="font-weight:normal; color:#aaa; font-size:12px;">（不选则仅下载片段）</span></div>
+    <div id="dl_zimu_has" style="display:none;">
+      <select id="dl_zimu_select" style="width:100%; margin-bottom:8px;">
+        <option value="">-- 不烧入字幕 --</option>
+      </select>
+    </div>
+    <input type="hidden" id="dl_zimu_manual" value="">
+  </div>
+
+  <!-- Delogo section -->
+  <!-- <div class="section-block">
+    <div class="section-title">去水印 <span style="font-weight:normal; color:#aaa; font-size:12px;">（不选则保留原水印）</span></div>
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+      <label style="font-size:13px; font-weight:bold; color:#333; cursor:pointer;">
+        <input type="checkbox" id="dl_delogo_check" style="margin-right:5px;">
+        去水印
+      </label>
+    </div>
+    <div id="dl_delogo_options" style="display:none;">
+      <div style="margin-bottom:8px;">
+        <label style="font-size:12px; color:#666; display:block; margin-bottom:4px;">水印位置</label>
+        <select id="dl_delogo_preset" style="width:100%;">
+          <option value="both-top">左上角 + 右上角（默认）</option>
+          <option value="top-left">仅左上角</option>
+          <option value="top-right">仅右上角</option>
+          <option value="bottom-left">左下角</option>
+          <option value="bottom-right">右下角</option>
+          <option value="custom">自定义坐标</option>
+        </select>
+      </div>
+      <div id="dl_custom_coords" style="display:none; margin-top:8px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+          <div><label style="font-size:11px; color:#888;">X</label><input type="number" id="dl_cx" value="0" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:4px;"></div>
+          <div><label style="font-size:11px; color:#888;">Y</label><input type="number" id="dl_cy" value="0" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:4px;"></div>
+          <div><label style="font-size:11px; color:#888;">宽</label><input type="number" id="dl_cw" value="200" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:4px;"></div>
+          <div><label style="font-size:11px; color:#888;">高</label><input type="number" id="dl_ch" value="36" style="width:100%; border:1px solid #ddd; border-radius:4px; padding:4px;"></div>
+        </div>
+      </div>
+    </div>
+  </div> -->
+
+  <button class="dl-btn" id="dl_btn" onclick="doBurn()">⬇ 下载片段</button>
+  <div id="dl_status"></div>
+
+  <!-- Progress modal template (hidden) -->
+  <div id="dl_progress_modal" style="display:none; padding:30px 40px; width:400px; text-align:center;">
+    <div style="font-size:15px; color:#333; margin-bottom:16px;" id="dl_progress_title">正在烧录，请稍候...</div>
+    <div style="background:#e8e8e8; border-radius:6px; overflow:hidden; height:12px; margin-bottom:10px;">
+      <div id="dl_progress_bar" style="height:100%; width:0%; background:#ff7a00; transition:width 0.3s;"></div>
+    </div>
+    <div style="display:flex; justify-content:space-between; font-size:12px; color:#888;">
+      <span id="dl_progress_text">处理中...</span>
+      <span id="dl_progress_eta"></span>
+    </div>
+  </div>
+
+  <!-- Result section (hidden initially) -->
+  <div id="dl_result_section" style="display:none;">
+    <div class="result-title">✅ 烧录完成！</div>
+    <a id="dl_result_link" href="#" target="_blank" class="result-dl-btn">⬇ 下载烧录视频</a>
+  </div>
+
+  <!-- Direct download section -->
+  <div id="direct_section" style="margin-top:20px; display:none;">
+    <div style="color:#aaa; font-size:13px; margin-bottom:8px;">直接下载</div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px;">
+      <a id="dl_mp4_btn" href="#" target="_blank" style="display:none; padding:8px 16px; background:#0f3460; color:#00b4d8; border:1px solid #00b4d8; border-radius:4px; font-size:13px; text-decoration:none;">⬇ 完整视频 (.mp4)</a>
+      <div id="vtt_btns" style="display:flex; flex-wrap:wrap; gap:8px;"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var _dlDuration = 0;
+var _dlStartSec = 0;
+var _dlEndSec   = 300;
+var _dlDragging = null;
+var _dlVideoUrl = '{$video_url|raw}';
+var _dlMp4Url   = '{$mp4_url|raw}';
+var _dlHlsUrl   = '{$hls_url|raw}';
+var _dlMash     = '{$video_mash|raw}';
+var _dlVideoId  = {:intval($video_id ?? 0)};
+var _zimuList   = <?php echo !empty($zimu_list) ? $zimu_list : '[]'; ?>;
+var _dlLayerIdx = null;
+var _progressTimer = null;
+console.log('[debug] id:<?php echo $video_id ?? 0; ?> zimuList:', _zimuList, '| mp4:', _dlMp4Url);
+
+layui.use(['layer'], function() {
+  var layer = layui.layer;
+  var $     = window.jQuery;
+
+  function secToHms(s) {
+    s = Math.max(0, Math.floor(s));
+    var h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+    return (h<10?'0':'')+h+':'+(m<10?'0':'')+m+':'+(sec<10?'0':'')+sec;
+  }
+  function hmsToSec(t) {
+    var p = (t||'').split(':');
+    if (p.length !== 3) return 0;
+    return parseInt(p[0]||0)*3600 + parseInt(p[1]||0)*60 + parseInt(p[2]||0);
+  }
+  function dlUpdateHandles() {
+    var dur  = _dlDuration || 10800;
+    var sPct = (_dlStartSec / dur) * 100;
+    var ePct = (_dlEndSec   / dur) * 100;
+    $('#dl_handle_s').css('left', sPct + '%');
+    $('#dl_handle_e').css('left', ePct + '%');
+    $('#dl_range_hl').css({ left: sPct + '%', width: (ePct - sPct) + '%' });
+  }
+
+  window.dlSyncFromInput = function(type) {
+    if (type === 'start') _dlStartSec = hmsToSec($('#dl_start').val());
+    else                  _dlEndSec   = hmsToSec($('#dl_end').val());
+    dlUpdateHandles();
+  };
+
+  $(function() {
+  var video = document.getElementById('dl_video');
+  video.src = _dlVideoUrl;
+  video.load();
+
+  video.onloadedmetadata = function() {
+    _dlDuration = video.duration;
+    _dlEndSec   = Math.min(300, _dlDuration);
+    $('#dl_end').val(secToHms(Math.floor(_dlEndSec)));
+    $('#dl_dur_label').text(secToHms(Math.floor(_dlDuration)));
+    dlUpdateHandles();
+  };
+  video.onerror = function() {
+    $('#dl_dur_label').text('无法预览，请手动输入时间');
+  };
+  video.ontimeupdate = function() {
+    $('#dl_current_time').text(secToHms(Math.floor(video.currentTime)));
+    if (_dlDuration > 0)
+      $('#dl_playhead').css('left', (video.currentTime / _dlDuration * 100) + '%');
+  };
+
+  // Click timeline to seek
+  $('#dl_timeline_wrap').on('click', function(e) {
+    if (_dlDragging) return;
+    var rect = this.getBoundingClientRect();
+    var pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    if (_dlDuration > 0) video.currentTime = pct * _dlDuration;
+  });
+
+  // Drag handles
+  $('#dl_handle_s, #dl_handle_e').on('mousedown', function(e) {
+    _dlDragging = $(this).attr('id') === 'dl_handle_s' ? 'start' : 'end';
+    e.preventDefault(); e.stopPropagation();
+  });
+  $(document).on('mousemove', function(e) {
+    if (!_dlDragging) return;
+    var wrap = document.getElementById('dl_timeline_wrap');
+    var rect = wrap.getBoundingClientRect();
+    var pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    var sec  = Math.floor(pct * (_dlDuration || 10800));
+    if (_dlDragging === 'start') {
+      _dlStartSec = Math.min(sec, _dlEndSec - 1);
+      $('#dl_start').val(secToHms(_dlStartSec));
+      if (_dlDuration > 0) video.currentTime = _dlStartSec;
+    } else {
+      _dlEndSec = Math.max(sec, _dlStartSec + 1);
+      $('#dl_end').val(secToHms(_dlEndSec));
+      if (_dlDuration > 0) video.currentTime = _dlEndSec;
+    }
+    dlUpdateHandles();
+  }).on('mouseup', function() { _dlDragging = null; });
+
+  dlUpdateHandles();
+
+  // Populate subtitle dropdown
+  if (_zimuList && _zimuList.length > 0) {
+    $('#dl_zimu_has').show();
+    $.each(_zimuList, function(i, item) {
+      $('#dl_zimu_select').append($('<option>').val(item.url).text(item.label));
+    });
+  }
+
+  // Update button label based on subtitle selection
+  function updateBtnLabel() {
+    var sub = $.trim($('#dl_zimu_manual').val()) || $('#dl_zimu_select').val() || '';
+    $('#dl_btn').text(sub ? '🔥 开始烧录' : '⬇ 下载片段');
+  }
+  $('#dl_zimu_select').on('change', updateBtnLabel);
+  $('#dl_zimu_manual').on('input', updateBtnLabel);
+
+  // Watermark toggle
+  $('#dl_delogo_check').on('change', function() {
+    $('#dl_delogo_options').toggle(this.checked);
+  });
+
+
+
+  // Show/hide custom coords
+  $('#dl_delogo_preset').on('change', function() {
+    $('#dl_custom_coords').toggle($(this).val() === 'custom');
+  });
+
+  // Full video MP4 button
+  if (_dlMp4Url) {
+    $('#dl_mp4_btn').attr('href', _dlMp4Url).attr('target', '_blank').show();
+  }
+
+  // VTT download buttons — clipped to selected time range
+  $.each(_zimuList, function(i, item) {
+    var btn = $('<a>')
+      .attr('href', '#')
+      .attr('data-url', item.url)
+      .attr('data-label', item.label)
+      .css({
+        display: 'inline-block', padding: '8px 16px',
+        background: '#0f3460', color: '#00b4d8',
+        border: '1px solid #00b4d8', borderRadius: '4px',
+        fontSize: '13px', textDecoration: 'none', cursor: 'pointer'
+      })
+      .text('⬇ 下载' + item.label)
+      .on('click', function(e) {
+        e.preventDefault();
+        downloadVtt($(this).attr('data-url'), $(this).attr('data-label'));
+      });
+    $('#vtt_btns').append(btn);
+  }); // end vtt each
+
+  }); // end $(function)
+
+  function dlReset() {
+    $('#dl_btn').prop('disabled', false).css('opacity', '1');
+    if (_progressTimer) { clearInterval(_progressTimer); _progressTimer = null; }
+    if (_dlLayerIdx) { layer.close(_dlLayerIdx); _dlLayerIdx = null; }
+  }
+
+  function dlOpenProgressModal(title) {
+    $('#dl_progress_bar').css('width', '0%');
+    $('#dl_progress_text').text('处理中...');
+    $('#dl_progress_eta').text('');
+    $('#dl_progress_title').text(title || '正在处理，请稍候...');
+    _dlLayerIdx = layer.open({
+      type: 1, title: false, closeBtn: 0, shadeClose: false,
+      shade: [0.5, '#000'], area: ['420px', 'auto'],
+      content: $('#dl_progress_modal')
+    });
+    var pct = 0;
+    _progressTimer = setInterval(function() {
+      pct = Math.min(pct + Math.random() * 2, 90);
+      $('#dl_progress_bar').css('width', pct.toFixed(1) + '%');
+      $('#dl_progress_text').text(pct.toFixed(0) + '%');
+    }, 800);
+  }
+
+  window.downloadVtt = function(url, label) {
+    var start = $.trim($('#dl_start').val());
+    var end   = $.trim($('#dl_end').val());
+    if (!/^\d{2}:\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}:\d{2}$/.test(end)) {
+      layer.msg('请先设置有效的开始/结束时间', {icon: 2}); return;
+    }
+    window.open('{:url("downloadVttClip")}' +
+      '?url='   + encodeURIComponent(url) +
+      '&start=' + encodeURIComponent(start) +
+      '&end='   + encodeURIComponent(end) +
+      '&label=' + encodeURIComponent(label), '_blank');
+  };
+
+  window.doBurn = function() {
+    var start = $.trim($('#dl_start').val());
+    var end   = $.trim($('#dl_end').val());
+    if (!/^\d{2}:\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}:\d{2}$/.test(end)) {
+      $('#dl_status').css('color','#e94560').text('时间格式错误，请使用 HH:MM:SS'); return;
+    }
+    if (hmsToSec(start) >= hmsToSec(end)) {
+      $('#dl_status').css('color','#e94560').text('结束时间必须大于开始时间'); return;
+    }
+
+    var srcUrl      = _dlMp4Url || _dlVideoUrl;
+    var subtitleUrl = $.trim($('#dl_zimu_manual').val()) || $('#dl_zimu_select').val() || '';
+    var delogoEnabled = $('#dl_delogo_check').is(':checked');
+
+    $('#dl_status').text('');
+    $('#dl_result_section').hide();
+    $('#dl_btn').prop('disabled', true).css('opacity', '0.6');
+    dlOpenProgressModal(subtitleUrl || delogoEnabled ? '正在烧录，请稍候...' : '正在处理，请稍候...');
+
+    // No subtitle and no delogo — use local ffmpeg clip (blob download)
+    if (!subtitleUrl && !delogoEnabled) {
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '{:url("downloadClip")}', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.responseType = 'blob';
+      xhr.timeout = 600000;
+      xhr.onload = function() {
+        var ct = this.getResponseHeader('Content-Type') || '';
+        if (ct.indexOf('json') !== -1 || this.status !== 200) {
+          var reader = new FileReader();
+          reader.onload = function() {
+            dlReset();
+            try { var d = JSON.parse(this.result); $('#dl_status').css('color','#e94560').text('错误: ' + d.msg); }
+            catch(e) { $('#dl_status').css('color','#e94560').text('处理失败 (HTTP ' + xhr.status + ')'); }
+          };
+          reader.readAsText(this.response); return;
+        }
+        var blob = new Blob([this.response], {type: 'video/mp4'});
+        var url  = URL.createObjectURL(blob);
+        var a    = document.createElement('a');
+        a.href = url;
+        a.download = _dlMash + '_' + start.replace(/:/g,'-') + '_to_' + end.replace(/:/g,'-') + '.mp4';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); URL.revokeObjectURL(url);
+        dlReset();
+        $('#dl_status').css('color','#1890ff').text('下载完成！');
+      };
+      xhr.ontimeout = function() { dlReset(); $('#dl_status').css('color','#e94560').text('请求超时，请缩短时间范围后重试'); };
+      xhr.onerror   = function() { dlReset(); $('#dl_status').css('color','#e94560').text('网络错误，请重试'); };
+      xhr.send('url=' + encodeURIComponent(srcUrl) + '&start_time=' + encodeURIComponent(start) + '&end_time=' + encodeURIComponent(end));
+      return;
+    }
+
+    // Collect delogo param
+    var delogo = '';
+    if (delogoEnabled) {
+      var preset = $('#dl_delogo_preset').val();
+      delogo = preset === 'custom'
+        ? JSON.stringify({ x: parseInt($('#dl_cx').val())||0, y: parseInt($('#dl_cy').val())||0, w: parseInt($('#dl_cw').val())||200, h: parseInt($('#dl_ch').val())||36 })
+        : JSON.stringify({ preset: preset });
+    }
+
+    var subtitleLabel = subtitleUrl ? ($('#dl_zimu_select option:selected').text() || '字幕') : '';
+    var postData = { video_url: srcUrl, start: start, end: end, video_id: _dlVideoId, subtitle_label: subtitleLabel, subtitle_url: subtitleUrl };
+    if (delogo) postData.delogo = delogo;
+
+    $.ajax({
+      url: '{:url("burnSubtitleProxy")}', type: 'POST', data: postData, timeout: 660000,
+      success: function(data) {
+        if (_progressTimer) { clearInterval(_progressTimer); _progressTimer = null; }
+        $('#dl_btn').prop('disabled', false).css('opacity', '1');
+        if (data.ok) {
+          $('#dl_progress_bar').css('width', '100%');
+          $('#dl_progress_text').text('100%');
+          $('#dl_progress_title').text('烧录完成！');
+          setTimeout(function() { if (_dlLayerIdx) { layer.close(_dlLayerIdx); _dlLayerIdx = null; } }, 1200);
+          $('#dl_result_link').attr('href', data.download_url);
+          $('#dl_result_section').show();
+          $('#dl_status').css('color','#52c41a').text('烧录完成！');
+        } else {
+          if (_dlLayerIdx) { layer.close(_dlLayerIdx); _dlLayerIdx = null; }
+          $('#dl_status').css('color','#e94560').text('错误: ' + (data.error || data.msg || '未知错误'));
+        }
+      },
+      error: function(xhr) {
+        dlReset();
+        try {
+          var d = JSON.parse(xhr.responseText);
+          $('#dl_status').css('color','#e94560').text('错误: ' + (d.error || d.msg || '请求失败'));
+        } catch(e) {
+          $('#dl_status').css('color','#e94560').text('请求失败 (HTTP ' + xhr.status + ')，请重试');
+        }
+      }
+    });
+  };
+
+}); // end layui.use
+</script>
+</body>
+</html>

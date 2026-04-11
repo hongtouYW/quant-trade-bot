@@ -1,0 +1,225 @@
+{include file="public/header" /}
+<body>
+  <div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+      <div class="layui-col-md12">
+        <div class="layui-card">
+          <div class="layui-card-header">
+            <button class="layui-btn" onclick="ser_add()">
+              <i class="layui-icon"></i>添加
+            </button>
+          </div>
+          <div class="layui-card-body ">
+            <table class="layui-table layui-form">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>名称</th>
+                  <th>封面</th>
+                  <th>钻石数量</th>
+                  <th>赠送点卷</th>
+                  <th>原价</th>
+                  <th>现价</th>
+                  <th>是否展示</th>
+                  <th>是否折扣</th>
+                  <th>是否热门</th>
+                  <th>是否推荐</th>
+                  <th>排序</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {volist name="list" id="vo"}
+                  <tr>
+                    <td>{$vo.id}</td>
+                    <td>{$vo.title}</td>
+                    <td>
+                      {notempty name="vo.thumb"}
+                      <div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)"><img style="width: 100%;height: 100%" src="{$img_url}{$vo.thumb}"></div>
+                      {else /}
+                      暂无图片
+                      {/notempty}
+                    </td>
+                    <td>{$vo.diamonds}</td>
+                    <td>{$vo.points}</td>
+                    <td>{$vo.cost}</td>
+                    <td>{$vo.money}</td>
+                    <td>
+                      <input type="checkbox" name="status" data-id="{$vo.id}" {if condition="$vo.status eq 1"} checked {/if} value="{$vo.['status']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                    </td>
+                    <td>
+                      <input type="checkbox" name="is_sale" data-id="{$vo.id}" {if condition="$vo.is_sale eq 1"} checked {/if} value="{$vo.['is_sale']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                    </td>
+                    <td>
+                      <input type="checkbox" name="hot" data-id="{$vo.id}" {if condition="$vo.hot eq 1"} checked {/if} value="{$vo.['hot']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                    </td>
+                    <td>
+                      <input type="checkbox" name="recommend" data-id="{$vo.id}" {if condition="$vo.recommend eq 1"} checked {/if} value="{$vo.['recommend']}" lay-skin="switch" lay-filter="modify" lay-text="是|否">
+                    </td>
+                    <td>
+                      <input  type="number" min="0" autocomplete="off" data-id="{$vo.id}" onchange="set_sort(this,this.value)" value="{$vo.sort}" class="layui-input sort">
+                    </td>
+                    <td class="td-manage">
+                        <button class="layui-btn layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                        <button class="layui-btn-danger layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                    </td>
+                  </tr>
+                {/volist}
+              </tbody>
+            </table>
+          </div>
+          <div class="layui-card-body ">
+              <div id="pages" class="center"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+layui.use(['form'], function() {
+  var form = layui.form;
+  var $ = layui.$;
+
+  // Initialize form elements (makes checkboxes appear as switches)
+  form.render();
+  
+  // Handle changes for BOTH switches
+  form.on('switch(modify)', function(data) {
+    var field = $(this).attr('name');
+    var value = this.checked ? 1 : 0;
+    
+    $.ajax({
+      url: "{:url('coin/modify')}",
+      type: "POST",
+      data: {
+        id: $(this).data('id'),
+        field: field,  // Passes which field is being changed
+        value: value
+      },
+      success: function(res) {
+        layer.msg(res.msg, {icon: res.code == 1 ? 1 : 2});
+        if(res.code != 1) {
+          // Revert if failed
+          $(data.elem).prop('checked', !data.elem.checked);
+          form.render('checkbox');
+        }
+      },
+      error: function() {
+        layer.msg("请求失败", {icon: 2});
+        $(data.elem).prop('checked', !data.elem.checked);
+        form.render('checkbox');
+      }
+    });
+  });
+});
+
+/*
+添加
+  */
+function ser_add() {
+  var url='{:url("info")}';
+  layer.open({
+    type: 2,
+    title: '添加系列',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['80%', '80%'],
+    content: url, //iframe的url
+  });
+}
+
+/*
+编辑
+  */
+function set_edit(t) {
+  var id=$(t).attr("data-id");
+  var url='{:url("info")}'+'?id='+id;
+  var edit = layer.open({
+    type: 2,
+    title: '编辑系列',
+    area: ['100%', '100%'],
+    content: url, //iframe的url
+  });
+  layer.full(edit);
+}
+
+/*
+删除
+  */
+function set_del(t) {
+  var id=$(t).attr("data-id");
+  layer.confirm('你确定要删除么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("del")}',{'id':id},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+}
+
+function show_img(t) {
+  var t = $(t).find("img");
+  //页面层
+  layer.open({
+    type: 1,
+    skin: 'layui-layer-rim', //加上边框
+    area: ['75%', '75%'], //宽高
+    shadeClose: true, //开启遮罩关闭
+    end: function (index, layero) {
+      $('body,html,iframe').css({
+        "overflow-x": "auto",
+        "overflow-y": "auto"
+      });
+      return false;
+    },
+    content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+  });
+  $('body,html,iframe').css({
+    "overflow-x": "hidden",
+    "overflow-y": "hidden"
+  });
+}
+
+/*
+排序
+ */
+function set_sort(t,value) {
+  var id=$(t).attr("data-id");
+  $.ajax({
+    url: "{:url('modify')}",
+    type: "POST",
+    data: {
+      id:id,
+      field: 'sort',
+      value: value,
+    },
+    async: false,
+    success: function (data) {
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        }, 1500);
+      }else{
+        layer.msg(data.msg,{icon:2});
+      }
+    },
+    error: function () {
+      layer.msg("System Service Busy!", {offset: '200px'});
+    }
+  });
+}
+</script>
+</html>

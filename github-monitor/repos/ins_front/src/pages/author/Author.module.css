@@ -1,0 +1,62 @@
+.authorList {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.authorListKeyword {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.authorListKeyword span {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+
+.authorItem {
+  text-align: center;
+  min-width: 33%;
+  margin: 10px 0px;
+  padding-left: 10%;
+}
+
+.authorItemLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.authorItem p {
+  color: #fff;
+  line-height: 35px;
+}
+
+.authorItemImg {
+  width: 50px;
+  height: 50px;
+}
+
+.authorItemImg img {
+  width: 100%;
+  border-radius: 50%;
+}
+
+@media screen and (max-width: 600px) {
+  .authorListContainer {
+    padding: 10px 10px 50px 10px;
+  }
+
+  .authorItem {
+    min-width: 40%;
+    width: 40%;
+    text-align: left;
+    padding-left: 0px;
+  }
+
+  .authorItem p {
+    font-size: 14px;
+    line-height: 25px;
+  }
+}

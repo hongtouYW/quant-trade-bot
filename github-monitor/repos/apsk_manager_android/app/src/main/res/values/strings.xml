@@ -1,0 +1,418 @@
+<resources>
+    <string name="notify_channel_id" translatable="false">General</string>
+
+    <string name="app_name">Expro99 Manager</string>
+    <string name="copyright">Expro99 Manager 2025</string>
+    <string name="exit_tap_twice">Tap twice to exit</string>
+    <string name="no_data">No records found</string>
+    <string name="whoops_something_went_wrong">Whoops something went wrong!</string>
+    <string name="new_notification">You received a new notification.</string>
+    <string name="search_hint">Search</string>
+    <string name="copied">Copied to clipboard</string>
+    <string name="common_okay">Okay</string>
+
+    <string name="session_expired_title">Session Expired</string>
+    <string name="session_expired_desc">Your session has expired. Please log in again</string>
+    <string name="session_expired_okay">Okay</string>
+
+    <string name="splash_version_title">Upgrade to latest?</string>
+    <string name="splash_version_desc">Current version v%s\nPlease install the lastest version v%s</string>
+    <string name="splash_version_confirm">Confirm</string>
+    <string name="splash_version_cancel">Skip</string>
+
+    <string name="onboarding_change_language">Change language</string>
+    <string name="onboarding_login">Login</string>
+
+    <string name="login_title">Login</string>
+    <string name="login_hint_username">Username</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_forgot_password">Forgot Password？</string>
+    <string name="login_button">Login</string>
+    <string name="login_invalid_credentials">Invalid username or password</string>
+
+    <string name="forgot_password_title">Forgot Password?</string>
+    <string name="forgot_password_desc">Password reset can only be done by admin.\nPlease contact admin for assistance.</string>
+    <string name="forgot_password_okay">Okay</string>
+
+    <string name="dashboard_balance">Shop Total Income</string>
+    <string name="dashboard_capital">Shop Capital</string>
+    <string name="dashboard_shop_count">Shop</string>
+    <string name="dashboard_search_hint">Shop or username</string>
+    <string name="dashboard_point_history">POINT History</string>
+    <string name="dashboard_point_go">GO ></string>
+    <string name="dashboard_point_all">View all orders</string>
+    <string name="dashboard_shop_management">Shop Management</string>
+    <string name="dashboard_shop_management_all">View All Shops</string>
+    <string name="dashboard_shop_management_desc">View and manage shops</string>
+    <string name="dashboard_user_management">User Management</string>
+    <string name="dashboard_user_management_user">View and manage users</string>
+    <string name="dashboard_notification">Notifications</string>
+    <string name="dashboard_notification_all">View All</string>
+    <string name="dashboard_system_log">System Log</string>
+    <string name="dashboard_yxi_log">Game Log</string>
+    <string name="dashboard_qr_scan">QR Scan</string>
+    <string name="dashboard_profile_settings">Profile Settings</string>
+
+    <string name="dashboard_search_title">Search Result</string>
+    <string name="dashboard_search_filter_all">All</string>
+    <string name="dashboard_search_filter_member">User</string>
+    <string name="dashboard_search_filter_shop">Shop</string>
+    <string name="dashboard_search_no_result_template">No records found related to %s</string>
+    <string name="dashboard_search_no_result_desc">Please try another keyword</string>
+    <string name="dashboard_search_result_count">\'%s\' - %d Result(s)</string>
+
+    <string name="notification_title">Notification</string>
+    <string name="notification_latest">Latest</string>
+    <string name="notification_today">Today</string>
+    <string name="notification_yesterday">Yesterday</string>
+    <string name="notification_earlier">Earlier</string>
+    <string name="notification_details_current_version">Current version : v.%s_%s</string>
+    <string name="notification_details_latest_version">You already have the latest version</string>
+
+    <string name="profile_settings_title">Profile Settings</string>
+    <string name="profile_settings_shop_management">Shop Management</string>
+    <string name="profile_settings_change_password">Change Password</string>
+    <string name="profile_settings_logout">Logout</string>
+    <string name="profile_settings_logout_title">Confirm Logout?</string>
+    <string name="profile_settings_logout_confirm">Confirm</string>
+    <string name="profile_settings_logout_cancel">Cancel</string>
+
+    <string name="change_password_title">Change Password</string>
+    <string name="change_password_hint_old">Enter old password</string>
+    <string name="change_password_hint_new">Enter new password</string>
+    <string name="change_password_hint_confirm">Re-enter new password</string>
+    <string name="change_password_mismatch">New and confirm password do not match</string>
+    <string name="change_password_success">Password updated!</string>
+    <string name="change_password_submit">Submit</string>
+
+    <string name="profile_language_settings">Language Settings</string>
+
+    <string name="shop_list_title">Shop</string>
+    <string name="shop_list_hint_search">Search shop name, username or shop country area</string>
+    <string name="shop_list_tab_all">All</string>
+    <string name="shop_list_tab_active">Active</string>
+    <string name="shop_list_tab_closed">Closed</string>
+    <string name="shop_list_registered_user">User(s)</string>
+    <string name="shop_list_yxi">Game(s)</string>
+    <string name="shop_list_balance">Cash</string>
+    <string name="shop_list_income">Income</string>
+
+    <string name="shop_details_title">Shop Details</string>
+    <string name="shop_details_settlement_success">Shop settlement success!</string>
+    <string name="shop_details_status_updated">Shop status is updated!</string>
+    <string name="shop_details_country">Location</string>
+    <string name="shop_details_password">Password</string>
+    <string name="shop_details_shop_username">Username</string>
+    <string name="shop_details_opening_balance">Opening Balance</string>
+    <string name="shop_details_current_balance">Current Balance</string>
+    <string name="shop_details_status">Status</string>
+    <string name="shop_details_settlement">Shop Settlement</string>
+    <string name="shop_details_change_password">Change Shop Password</string>
+    <string name="shop_details_change_balance">Change Shop Balance</string>
+    <string name="shop_details_transactions">Shop\'s Transactions</string>
+    <string name="shop_details_permissions">Permission Settings</string>
+
+    <string name="shop_new_title">Add New Shop</string>
+    <string name="shop_new_country">Country:</string>
+    <string name="shop_new_state">State:</string>
+    <string name="shop_new_area">Area:</string>
+    <string name="shop_new_choose_country">Choose country</string>
+    <string name="shop_new_choose_state">Choose state</string>
+    <string name="shop_new_choose_area">Choose area</string>
+    <string name="shop_new_hint_name">Enter shop name</string>
+    <string name="shop_new_hint_username">Enter shop username</string>
+    <string name="shop_new_hint_password">Enter shop password</string>
+    <string name="shop_new_hint_amount">Amount</string>
+    <string name="shop_new_choose_country_first">Please choose country first</string>
+    <string name="shop_new_choose_state_first">Please choose state first</string>
+    <string name="shop_new_submit">Submit</string>
+    <string name="shop_new_success_title">New shop added Successfully</string>
+    <string name="shop_new_success_desc">New shop is ready now</string>
+    <string name="shop_new_success_back">Back to Shop Management</string>
+
+    <string name="shop_balance_title">Modify Amount</string>
+    <string name="shop_balance_current">Current Balance</string>
+    <string name="shop_balance_existing_settings">Amount Settings</string>
+    <string name="shop_balance_modify">Modify Amount</string>
+    <string name="shop_balance_settings">Amount Settings</string>
+    <string name="shop_balance_amount_settings_chosen">Amount settings :  RM %s</string>
+    <string name="shop_balance_min_settings">Minimum Amount Alert</string>
+    <string name="shop_balance_100">RM100</string>
+    <string name="shop_balance_200">RM200</string>
+    <string name="shop_balance_2000">RM2000</string>
+    <string name="shop_balance_5000">RM5000</string>
+    <string name="shop_balance_update">Update Settings</string>
+    <string name="shop_balance_update_success">Amount settings updated successfully!</string>
+
+    <string name="shop_change_password_title">Change Shop Password</string>
+    <string name="shop_change_password_new_hint">Enter new password</string>
+    <string name="shop_change_password_confirm_hint">Enter new password again</string>
+    <string name="shop_change_password_mismatch">New and confirm password do not match</string>
+    <string name="shop_change_password_updated">Shop password has been updated!</string>
+    <string name="shop_change_password_submit">Submit</string>
+
+    <string name="shop_transaction_title">Shop\'s Transaction</string>
+    <string name="shop_transaction_type_all">All</string>
+    <string name="shop_transaction_type_top_up">User Top Up</string>
+    <string name="shop_transaction_type_withdraw">User Withdraw</string>
+    <string name="shop_transaction_type_manager_settlement">Manager Settlement</string>
+    <string name="shop_transaction_type_manager_top_up">Manager Top Up</string>
+
+    <string name="shop_transaction_details_title">Transaction Details</string>
+    <string name="shop_transaction_details_date">Transaction Date</string>
+    <string name="shop_transaction_details_id">Account ID</string>
+    <string name="shop_transaction_details_phone">Phone Number</string>
+    <string name="shop_transaction_details_player">Player ID</string>
+    <string name="shop_transaction_details_manager">Manager</string>
+    <string name="shop_transaction_details_method">Payment Method</string>
+    <string name="shop_transaction_details_status">Status</string>
+    <string name="shop_transaction_details_remarks">Remarks</string>
+
+    <string name="shop_permission_title">Permission Settings</string>
+    <string name="shop_permission_top_up">Can top up</string>
+    <string name="shop_permission_withdraw">Can withdraw</string>
+    <string name="shop_permission_create_user">Can create account</string>
+    <string name="shop_permission_block_user">Can block account</string>
+    <string name="shop_permission_alarm">Enable/Disable alarm</string>
+    <string name="shop_permission_income">Show shop\'s income</string>
+    <string name="shop_permission_settlement">Show manager settlements</string>
+    <string name="shop_permission_view_credentials">Show user\'s login credentials</string>
+    <string name="shop_permission_withdrawal_fee">Withdrawal fee</string>
+    <string name="shop_permission_updated">Shop\'s permission has been updated!</string>
+
+    <string name="user_list_title">User</string>
+    <string name="user_list_hint_search">Search shop name, username or shop country area</string>
+    <string name="user_list_tab_all">All</string>
+    <string name="user_list_tab_active">Active</string>
+    <string name="user_list_tab_blocked">Blocked</string>
+    <string name="user_list_tab_deleted">Deleted</string>
+    <string name="user_list_created_from">Created by</string>
+    <string name="user_list_created_shop">Shop</string>
+    <string name="user_list_created_online">Online</string>
+
+    <string name="user_details_title">User Details</string>
+    <string name="user_details_delete">Delete</string>
+    <string name="user_details_block_success">User has been blocked successfully!</string>
+    <string name="user_details_delete_success">User has been deleted successfully!</string>
+    <string name="user_details_country">Country</string>
+    <string name="user_details_id">Account ID</string>
+    <string name="user_details_password">Password</string>
+    <string name="user_details_status">Status</string>
+    <string name="user_details_created_by">Shop ID</string>
+    <string name="user_details_current_balance">Balance</string>
+    <string name="user_details_current_point">Point</string>
+    <string name="user_details_current_exp">Experience</string>
+    <string name="user_details_last_login">Last Login</string>
+    <string name="user_details_change_password">Change Password</string>
+    <string name="user_details_all_yxi">All Games</string>
+    <string name="user_details_block">Block</string>
+
+    <string name="user_change_password_title">Change User Password</string>
+    <string name="user_change_password_id">Account ID</string>
+    <string name="user_change_password_desc">Click Confirm to proceed to change password</string>
+    <string name="user_change_password_confirm">Confirm</string>
+    <string name="user_change_password_desc_random">*New password will be generated randomly</string>
+    <string name="user_change_password_success">Password Change Successfully</string>
+    <string name="user_change_password_phone">Phone Number</string>
+    <string name="user_change_password_password">Password</string>
+    <string name="user_change_password_back">Back to User Details</string>
+
+    <string name="yxi_title">All Games</string>
+    <string name="yxi_select_yxi">Please select a game</string>
+    <string name="yxi_hint_search">Search game</string>
+    <string name="yxi_next">Next</string>
+
+    <string name="yxi_player_search_hint">Search player ID</string>
+    <string name="yxi_player_all">All players</string>
+    <string name="yxi_player_add">Add Players</string>
+
+    <string name="yxi_player_details_title">Player Details</string>
+    <string name="yxi_player_details_delete">Delete</string>
+    <string name="yxi_player_details_id">Player ID</string>
+    <string name="yxi_player_details_password">Password</string>
+    <string name="yxi_player_details_point">Game Point</string>
+    <string name="yxi_player_details_status">Status</string>
+    <string name="yxi_player_details_reset_password">Reset Password</string>
+    <string name="yxi_player_reset_title">Confirm Reset Password?</string>
+    <string name="yxi_player_reset_confirm">Confirm</string>
+    <string name="yxi_player_reset_cancel">Cancel</string>
+    <string name="yxi_player_reset_success">Player password has been updated!</string>
+    <string name="yxi_player_delete_title">Confirm Delete Player?</string>
+    <string name="yxi_player_delete_confirm">Confirm</string>
+    <string name="yxi_player_delete_cancel">Cancel</string>
+
+    <string name="point_history_title">Point History</string>
+    <string name="point_history_hint_search">Search shop name, user name</string>
+
+    <string name="point_details_title">Order Details</string>
+    <string name="point_details_fail">Failed</string>
+    <string name="point_details_by_shop">Shop</string>
+    <string name="point_details_account_id">Account ID</string>
+    <string name="point_details_created_on">Created on</string>
+    <string name="point_details_phone">Phone Number</string>
+    <string name="point_details_created_by">Created by</string>
+    <string name="point_details_operated_by">Operated by</string>
+    <string name="point_details_operated_by_user">User</string>
+    <string name="point_details_ip">IP Address</string>
+    <string name="point_details_shop_before_balance">Shop Before Balance</string>
+    <string name="point_details_shop_after_balance">Shop After Balance</string>
+    <string name="point_details_account_before_balance">Account Before Balance</string>
+    <string name="point_details_account_after_balance">Account After Balance</string>
+
+    <string name="point_filter_title">Filter</string>
+    <string name="point_filter_reset">Reset</string>
+    <string name="point_filter_list_title">List Type</string>
+    <string name="point_filter_list_all">All</string>
+    <string name="point_filter_list_shop">Shop</string>
+    <string name="point_filter_list_game">Game</string>
+    <string name="point_filter_transaction_title">Transaction Type</string>
+    <string name="point_filter_transaction_all">All</string>
+    <string name="point_filter_transaction_bonus">Bonus</string>
+    <string name="point_filter_transaction_reward">Reward</string>
+    <string name="point_filter_transaction_top_up">Top Up</string>
+    <string name="point_filter_transaction_withdraw">Withdraw</string>
+    <string name="point_filter_status_title">Transaction Status</string>
+    <string name="point_filter_status_all">All</string>
+    <string name="point_filter_status_success">Success</string>
+    <string name="point_filter_status_fail">Failed</string>
+    <string name="point_filter_date_title">Transaction Date</string>
+    <string name="point_filter_date_all">All</string>
+    <string name="point_filter_date_choose">Choose date</string>
+    <string name="point_filter_choose_list_first">Please choose list option first</string>
+    <string name="point_filter_confirm">Confirm</string>
+
+    <string name="log_title">System Log</string>
+    <string name="log_filter_title">Filter</string>
+    <string name="log_filter_choose_shop">Choose Shop</string>
+    <string name="log_filter_choose_manager">Choose Manager</string>
+    <string name="log_filter_chosen_template">Chosen %d %s</string>
+    <string name="log_filter_shop_manager">Show all shops and managers</string>
+    <string name="log_filter_shop">Show shop only</string>
+    <string name="log_filter_shop_unit"> </string>
+    <string name="log_filter_shop_search_hint">Search shop name</string>
+    <string name="log_filter_shop_chosen">Shop selected (%d)</string>
+    <string name="log_filter_manager">Show manager only</string>
+    <string name="log_filter_manager_unit"> </string>
+    <string name="log_filter_manager_search_hint">Search manager</string>
+    <string name="log_filter_manager_chosen">Manager selected (%d)</string>
+    <string name="log_filter_all">All</string>
+    <string name="log_filter_confirm">Confirm</string>
+
+    <string name="yxi_log_title">Game Log</string>
+    <string name="yxi_log_bet">Bet RM%s</string>
+    <string name="yxi_log_win">Win RM%s</string>
+    <string name="yxi_log_begin">Begin RM%s</string>
+    <string name="yxi_log_end">End RM%s</string>
+    <string name="yxi_log_filter_title">Filter</string>
+    <string name="yxi_log_filter_choose_shop">Choose Shop</string>
+    <string name="yxi_log_filter_choose_yxi">Choose Game</string>
+    <string name="yxi_log_filter_chosen_template">Chosen %d %s</string>
+    <string name="yxi_log_filter_shop_yxi">Show all</string>
+    <string name="yxi_log_filter_shop">Show shop only</string>
+    <string name="yxi_log_filter_shop_unit"> </string>
+    <string name="yxi_log_filter_shop_search_hint">Search shop name</string>
+    <string name="yxi_log_filter_shop_chosen">Shop selected (%d)</string>
+    <string name="yxi_log_filter_yxi">Show game only</string>
+    <string name="yxi_log_filter_yxi_unit"> </string>
+    <string name="yxi_log_filter_yxi_search_hint">Search game</string>
+    <string name="yxi_log_filter_yxi_chosen">Game selected (%d)</string>
+    <string name="yxi_log_filter_all">All</string>
+    <string name="yxi_log_filter_confirm">Confirm</string>
+
+    <string name="qr_scan_title">QR Scan</string>
+    <string name="qr_scan_camera_permission">Camera permission is required</string>
+    <string name="qr_scan_gallery_permission">Storage permission is required to access images</string>
+    <string name="qr_scan_no_code">Invalid QR code</string>
+    <string name="qr_scan_failed_to_load">Failed to load QR code image</string>
+
+    <string name="placeholder_currency">RM</string>
+    <string name="placeholder_currency_amount">RM0.00</string>
+    <string name="placeholder_currency_amount_space">RM 0.00</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_amount_add">+0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_password_masked">•••••••••</string>
+
+    <string name="template_s">\'%s\'</string>
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_s_dashed">%s - %s</string>
+    <string name="template_bracket_s">(%s)</string>
+    <string name="template_currency_amount">RM%s</string>
+    <string name="template_currency_amount_space">RM %s</string>
+
+    <string name="language_english">English</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_malay">Malay</string>
+
+    <string name="cd_icon">Icon</string>
+    <string name="cd_image">Image</string>
+
+    <string name="user_status_active">Active</string>
+    <string name="user_status_blocked">Blocked</string>
+    <string name="user_status_deleted">Deleted</string>
+    <string name="user_status_action_block">Block</string>
+    <string name="user_status_action_unblock">Unblock</string>
+
+    <string name="player_status_active">Active</string>
+    <string name="player_status_blocked">Blocked</string>
+    <string name="player_status_deleted">Deleted</string>
+
+    <string name="shop_status_active">Active</string>
+    <string name="shop_status_closed">Closed</string>
+    <string name="shop_status_deleted">Deleted</string>
+    <string name="shop_status_action_close">Close Shop</string>
+    <string name="shop_status_action_open">Open Shop</string>
+
+    <string name="transaction_type_top_up">User Top Up</string>
+    <string name="transaction_type_top_up_yxi">Game Top Up</string>
+    <string name="transaction_type_withdraw">User Withdraw</string>
+    <string name="transaction_type_withdraw_yxi">Game Withdraw</string>
+    <string name="transaction_type_manager_settlement">Manager Settlement</string>
+    <string name="transaction_type_manager_top_up">Manager Top Up</string>
+    <string name="transaction_type_close_shop">Close Shop</string>
+    <string name="transaction_type_unknown">Unknown</string>
+
+    <string name="transaction_status_success">Success</string>
+    <string name="transaction_status_failed">Failed</string>
+
+    <string name="notification_action_shop_details">Go to Shop Details</string>
+    <string name="notification_action_app_update">Update Now</string>
+    <string name="notification_action_remove_alarm">Deactivate Alarm</string>
+
+    <string name="point_type_bonus">Bonus</string>
+    <string name="point_type_reward">Reward</string>
+    <string name="point_type_top_up">Top Up</string>
+    <string name="point_type_withdraw">Withdraw</string>
+
+    <string name="reason_action_close_shop">Close Shop</string>
+    <string name="reason_action_block_user">Block User</string>
+    <string name="reason_action_delete_user">Delete User</string>
+    <string name="reason_action_submit">Submit</string>
+
+    <string name="time_ago_just_now">Just now</string>
+    <string name="time_ago_mins">min(s) ago</string>
+    <string name="time_ago_mins_template">%d min(s) ago</string>
+    <string name="time_ago_hours">hour(s) ago</string>
+    <string name="time_ago_hours_template">%d hour(s) ago</string>
+    <string name="time_ago_days">%d day(s) ago</string>
+
+    <string name="month_jan">Jan</string>
+    <string name="month_feb">Feb</string>
+    <string name="month_mar">Mar</string>
+    <string name="month_apr">Apr</string>
+    <string name="month_may">May</string>
+    <string name="month_jun">Jun</string>
+    <string name="month_jul">Jul</string>
+    <string name="month_aug">Aug</string>
+    <string name="month_sep">Sep</string>
+    <string name="month_oct">Oct</string>
+    <string name="month_nov">Nov</string>
+    <string name="month_dec">Dec</string>
+
+    <string name="in_app_updater_preparing_download">Preparing download…</string>
+    <string name="in_app_updater_downloading_update">Downloading update…</string>
+    <string name="in_app_updater_installing_update">Installing update…</string>
+    <string name="in_app_updater_wait">Please wait</string>
+    <string name="in_app_updater_progress">%d%% (%dKB / %dKB)</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

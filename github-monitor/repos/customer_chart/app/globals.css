@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+@keyframes flash {
+  0% {
+    background-color: #ffeaa7;
+  }
+  100% {
+    background-color: inherit;
+  }
+}
+.unreadHighlight {
+  background-color: #fff7c2 !important; /* brighter */
+  border-left: 8px solid #ffcc00 !important;
+  animation: unreadFlash 1s ease-out;
+  position: relative;
+}
+
+.unreadBadge {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  background: #ffcc00;
+  color: #000;
+  font-size: 11px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes unreadFlash {
+  from {
+    background-color: #ffe89b;
+  }
+  to {
+    background-color: #fff7c2;
+  }
+}

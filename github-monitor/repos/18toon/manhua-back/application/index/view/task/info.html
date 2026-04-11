@@ -1,0 +1,718 @@
+{include file="public/header" /}
+<style>
+    .x-admin-sm .layui-btn-xs {
+        height: 22px;
+        line-height: 22px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
+</style>
+
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row">
+            <form class="layui-form">
+                <input type="hidden" name="id" value="{$info.id}">
+                <!-- <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>标题
+                    </label>
+                    <div class="layui-input-inline w500">
+                        <input type="text" required="" lay-verify="required" value="{$info.title}" required
+                            class="layui-input" placeholder="" name="title">
+                    </div>
+                </div> -->
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>题材</label>
+                    <div class="layui-input-inline">
+                        <select name="ticai_id">
+                            <option value="">选择题材</option>
+                            {volist name="ticaiList" id="vo"}
+                            <option value="{$vo.id}" {if condition="$info['ticai_id'] eq $vo.id" }selected {/if}>
+                                {$vo.name}</option>
+                            {/volist}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- HTML 中 -->
+                <div class="layui-form-item">
+                    <label class="layui-form-label">标签</label>
+                    <div class="layui-input-block">
+                        <div id="tag-select"></div>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>状态</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="status" lay-filter="status" value="1" title="正常" {if
+                            condition="$info.status eq 1 " }checked{/if}>
+                        <input type="radio" name="status" lay-filter="status" value="0" title="下架" {if
+                            condition="$info.status eq 0 " }checked{/if}>
+                    </div>
+                </div>
+
+                <!-- <div class="layui-form-item layui-form-text">
+                    <label for="desc" class="layui-form-label">描述</label>
+                    <div class="layui-input-block">
+                        <textarea placeholder="请输入内容" id="desc" name="desc"
+                            class="layui-textarea">{$info.desc}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>封面图(直图)
+                    </label>
+                    <div class="layui-input-inline w500">
+                        <input type="text" required="" lay-verify="required" value="{$info.image}" required
+                            class="layui-input" placeholder="" name="image" id="image-input">
+                        <div style="margin-top:10px;">
+                            <img id="image-preview" src="{$img_domain}{$info.image}"
+                                style="max-width: 120px; height: auto; display: {$info.image ? 'block' : 'none'};">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>封面图(横图)
+                    </label>
+                    <div class="layui-input-inline w500">
+                        <input type="text" value="{$info.cover_horizontal}" class="layui-input" placeholder=""
+                            name="cover_horizontal" id="cover-horizontal-input">
+                        <div style="margin-top:10px;">
+                            <img id="cover-horizontal-preview" src="{$img_domain}{$info.cover_horizontal}"
+                                style="max-width: 120px; height: auto; display: {$info.cover_horizontal ? 'block' : 'none'};">
+                        </div>
+                    </div>
+                </div> -->
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>进度</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="mhstatus" value="0" title="连载" {if condition="$info.mhstatus eq 0 "
+                            }checked{/if}>
+                        <input type="radio" name="mhstatus" value="1" title="完结" {if condition="$info.mhstatus eq 1 "
+                            }checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>重磅推荐</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="isjingpin" value="0" title="否" {if condition="$info.isjingpin eq 0 "
+                            }checked{/if}>
+                        <input type="radio" name="isjingpin" value="1" title="是" {if condition="$info.isjingpin eq 1 "
+                            }checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>独家热门</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="issole" value="0" title="否" {if condition="$info.issole eq 0 "
+                            }checked{/if}>
+                        <input type="radio" name="issole" value="1" title="是" {if condition="$info.issole eq 1 "
+                            }checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red"></span>限免</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="xianmian" value="0" title="否" {if condition="$info.xianmian eq 0 "
+                            }checked{/if}>
+                        <input type="radio" name="xianmian" value="1" title="是" {if condition="$info.xianmian eq 1 "
+                            }checked{/if}>
+                    </div>
+                </div>
+
+                <fieldset class="layui-elem-field">
+                    <legend>精彩片段</legend>
+                    <div id="highlight-list" class="layui-row layui-col-space10">
+                        {volist name="highlights" id="vo" key="k"}
+                        <div class="layui-col-md6 highlight-item">
+                            <div class="layui-card">
+                                <div class="layui-card-body">
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">片段名</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="highlights[{$k}][name]" value="{$vo.name}"
+                                                placeholder="片段名" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">图片</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="highlights[{$k}][img]" value="{$vo.img}"
+                                                placeholder="图片地址" class="layui-input img-url-input">
+                                            <img src="{$vo.img}" class="img-preview"
+                                                style="max-height:80px;margin-top:5px;"
+                                                onerror="this.style.display='none'">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="highlights[{$k}][id]" value="{$vo.id}">
+                                    <button type="button" class="layui-btn layui-btn-danger layui-btn-sm"
+                                        onclick="removeItem(this)">删除</button>
+                                </div>
+                            </div>
+                        </div>
+                        {/volist}
+                        <!-- {volist name="highlights" id="vo" key="k"}
+                        <div class="layui-col-md6 highlight-item" data-index="{$k}">
+                            <div class="layui-card">
+                                <div class="layui-card-body">
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">片段名</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="highlights[{$k}][name]" value="{$vo.name}"
+                                                placeholder="片段名" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">图片</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="highlights[{$k}][img]" value="{$vo.img}"
+                                                placeholder="图片地址" class="layui-input img-url-input highlight-img-{$k}" readonly>
+                                            <button type="button" class="layui-btn layui-btn-sm upload-btn"
+                                                data-type="highlight" data-idx="{$k}">
+                                                <i class="layui-icon">&#xe67c;</i> 上传图片
+                                            </button>
+                                            <img src="{$vo.img}" class="img-preview highlight-preview-{$k}"
+                                                style="max-height:80px;margin-top:5px;{empty name='vo.img'}display:none;{/empty}"
+                                                onerror="this.style.display='none'">
+                                            <button type="button" class="layui-btn layui-btn-danger layui-btn-xs remove-img-btn" onclick="removeImage({$k})" style="margin-top:5px;">
+                                                <i class="layui-icon">&#x1006;</i> 删除图片
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="highlights[{$k}][id]" value="{$vo.id}">
+                                    <button type="button" class="layui-btn layui-btn-danger layui-btn-sm"
+                                        onclick="removeItem(this)">删除</button>
+                                </div>
+                            </div>
+                        </div>
+                        {/volist} -->
+                    </div>
+                    <div class="layui-form-item">
+                        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm"
+                            onclick="addHighlight()">添加片段</button>
+                    </div>
+                </fieldset>
+
+                <!-- 多语言翻译 TAB -->
+                <div class="layui-form-item">
+                    <label class="layui-form-label">全部语言</label>
+                    <div class="layui-input-block">
+                        <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+                            <ul class="layui-tab-title">
+                                {volist name="translations" id="lang"}
+                                <li {if $i==1}class="layui-this" {/if} lay-id="{$lang.lang_code}">
+                                    {$lang.lang_code|strtoupper}
+                                </li>
+                                {/volist}
+                            </ul>
+                            <div class="layui-tab-content">
+                                {volist name="translations" id="lang"}
+                                <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">标题 ({$lang.lang_code})</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="translations[{$lang.lang_code}][title]"
+                                                value="{$lang.title|default=''}" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label">简介 ({$lang.lang_code})</label>
+                                        <div class="layui-input-block">
+                                            <textarea name="translations[{$lang.lang_code}][desc]"
+                                                class="layui-textarea">{$lang.desc|default=''}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label">封面图(直图) ({$lang.lang_code})</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="translations[{$lang.lang_code}][image]"
+                                                value="{$lang.image|default=''}" class="layui-input">
+                                            {if !empty($lang.image)}
+                                                <img src="{$img_domain}{$lang.image}" alt="封面图直图" class="preview-img" style="max-height: 80px; max-width: 200px;margin-top:5px;">
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label">封面图(横图) ({$lang.lang_code})</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="translations[{$lang.lang_code}][cover_horizontal]"
+                                                value="{$lang.cover_horizontal|default=''}" class="layui-input">
+                                            {if !empty($lang.cover_horizontal)}
+                                                <img src="{$img_domain}{$lang.cover_horizontal}" alt="封面图横图" class="preview-img" style="max-height: 80px; max-width: 200px;margin-top:5px;">
+                                            {/if}
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label">关键词 ({$lang.lang_code})</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="translations[{$lang.lang_code}][keyword]"
+                                                value="{$lang.keyword|default=''}" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item layui-form-text">
+                                        <label class="layui-form-label">最新章节标题 ({$lang.lang_code})</label>
+                                        <div class="layui-input-block">
+                                            <input type="text"
+                                                name="translations[{$lang.lang_code}][last_chapter_title]"
+                                                value="{$lang.last_chapter_title|default=''}" class="layui-input">
+                                        </div>
+                                    </div>
+                                </div>
+                                {/volist}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <fieldset class="layui-elem-field">
+                    <legend>角色信息及翻译</legend>
+                    <div id="actor-list" class="layui-row layui-col-space10">
+                        {volist name="actors" id="actor" key="k"}
+                        <div class="layui-col-md6 actor-item">
+                            <div class="layui-card">
+                                <div class="layui-card-header">角色：{$actor.name|default='新角色'}</div>
+                                <div class="layui-card-body">
+                                    <!-- 原始角色信息 -->
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">角色名</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="actors[{$k}][name]" value="{$actor.name}"
+                                                placeholder="角色名" class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">图片</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="actors[{$k}][img]" value="{$actor.img|default=''}"
+                                                placeholder="图片地址" class="layui-input img-url-input">
+                                            <img src="{$actor.img}" class="img-preview"
+                                                style="max-height:80px;margin-top:5px;"
+                                                onerror="this.style.display='none'">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" name="actors[{$k}][id]" value="{$actor.id|default=''}">
+
+                                    <!-- 翻译信息 -->
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">翻译</label>
+                                        <div class="layui-input-block">
+                                            <div class="layui-tab layui-tab-brief" lay-filter="actor-lang-tab-{$k}">
+                                                <ul class="layui-tab-title">
+                                                    {volist name="langList" id="lang"}
+                                                    <li {if $i==1}class="layui-this" {/if}>{$lang.lang_code|strtoupper}
+                                                    </li>
+                                                    {/volist}
+                                                </ul>
+                                                <div class="layui-tab-content">
+                                                    {volist name="langList" id="lang"}
+                                                    <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                                                        <div class="layui-form-item">
+                                                            <label class="layui-form-label">名称
+                                                                ({$lang.lang_code})</label>
+                                                            <div class="layui-input-block">
+                                                                <input type="text"
+                                                                    name="actors[{$k}][trans][{$lang.lang_code}][name]"
+                                                                    value="{$actor.trans[$lang.lang_code]['name']|default=''}"
+                                                                    class="layui-input">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {/volist}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 删除按钮 -->
+                                    <button type="button" class="layui-btn layui-btn-danger layui-btn-sm"
+                                        onclick="removeItem(this)">删除</button>
+                                </div>
+                            </div>
+                        </div>
+                        {/volist}
+                    </div>
+                    <div class="layui-form-item">
+                        <button type="button" class="layui-btn layui-btn-normal layui-btn-sm"
+                            onclick="addActor()">添加角色</button>
+                    </div>
+                </fieldset>
+
+                <div class="layui-form-item center">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit="sub" lay-filter="sub">
+                            保存
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        layui.use('upload', function () {
+            const upload = layui.upload;
+
+            // 初始化页面已有的上传按钮
+            $('.upload-btn').each(function () {
+                const idx = $(this).data('idx');
+
+                upload.render({
+                    elem: `.upload-btn[data-idx="${idx}"]`,
+                    url: '{:url("task/upload")}',
+                    field: 'file',
+                    accept: 'images',
+                    exts: 'jpg|jpeg|png|gif',
+                    size: 5120,
+                    done: function (res) {
+                        if (res.code === 1) {
+                            const url = res.data.src;
+                            $(`.highlight-img-${idx}`).val(url);
+                            $(`.highlight-preview-${idx}`).attr('src', url).show();
+                        } else {
+                            layer.msg(res.msg || '上传失败');
+                        }
+                    },
+                    error: function () {
+                        layer.msg('上传错误');
+                    }
+                });
+            });
+        });
+
+        layui.use(['form', 'layer'], function () {
+            // 操作对象
+            var form = layui.form
+                , layer = layui.layer
+                , $ = layui.jquery;
+
+            // 验证
+            form.verify({
+                required: [/[\S]+/, "必填项不能为空"],
+            });
+
+            form.on('submit(sub)', function (data) {
+                // 校验角色
+                var valid = true;
+                $('#actor-list .actor-item').each(function () {
+                    var name = $(this).find('input[name*="[name]"]').val().trim();
+                    var img = $(this).find('input[name*="[img]"]').val().trim();
+                    if (!name || !img) {
+                        layer.msg('请填写完整的角色名和图片');
+                        valid = false;
+                        return false; // break each
+                    }
+                });
+
+                if (!valid) return false;
+
+                // 校验精彩片段
+                $('#highlight-list .highlight-item').each(function () {
+                    var name = $(this).find('input[name*="[name]"]').val().trim();
+                    var img = $(this).find('input[name*="[img]"]').val().trim();
+                    if (!name || !img) {
+                        layer.msg('请填写完整的精彩片段名和图片');
+                        valid = false;
+                        return false;
+                    }
+                });
+
+                if (!valid) return false;
+
+                $.ajax({
+                    url: "{:url('info')}",
+                    type: "POST",
+                    data: data.field,
+                    async: false,
+                    success: function (data) {
+                        if (data.code == 1) {
+                            layer.msg(data.msg, { icon: 1 });
+                            setTimeout(function () {
+                                parent.layer.closeAll();
+                                parent.location.reload();
+                            }, 1500);
+                        } else {
+                            layer.msg(data.msg, { icon: 2 });
+                        }
+                    },
+                    error: function () {
+                        layer.msg("System Service Busy!", { offset: '200px' });
+                    }
+                });
+                return false;
+            });
+
+        });
+
+    </script>
+
+    <script>
+        let actorIndex = {$actors|count} + 1;
+        let highlightIndex = {$highlights|count} + 1;
+
+        function addActor() {
+            if ($('#actor-list .actor-item').length >= 5) {
+                layer.msg('最多添加5个角色');
+                return;
+            }
+
+            $('#actor-list').append(`
+                <div class="layui-col-md6 actor-item">
+                    <div class="layui-card">
+                        <div class="layui-card-header">新角色</div>
+                        <div class="layui-card-body">
+                            <!-- 原始角色信息 -->
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">角色名</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="actors[${actorIndex}][name]" placeholder="角色名" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">图片</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="actors[${actorIndex}][img]" placeholder="图片地址" class="layui-input img-url-input">
+                                    <img class="img-preview" style="max-height:80px;margin-top:5px;display:none;">
+                                </div>
+                            </div>
+
+                            <!-- 翻译 -->
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">翻译</label>
+                                <div class="layui-input-block">
+                                    <div class="layui-tab layui-tab-brief" lay-filter="actor-lang-tab-${actorIndex}">
+                                        <ul class="layui-tab-title">
+                                            <li class="layui-this">EN</li>
+                                        </ul>
+                                        <div class="layui-tab-content">
+                                            <div class="layui-tab-item layui-show">
+                                                <div class="layui-form-item">
+                                                    <label class="layui-form-label">名称 (en)</label>
+                                                    <div class="layui-input-block">
+                                                        <input type="text" name="actors[${actorIndex}][trans][en][name]" class="layui-input">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 删除按钮 -->
+                            <button type="button" class="layui-btn layui-btn-danger layui-btn-sm" onclick="removeItem(this)">删除</button>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            actorIndex++;
+        }
+
+        function addHighlight() {
+            if ($('#highlight-list .highlight-item').length >= 5) {
+                layer.msg('最多添加5个精彩片段');
+                return;
+            }
+            $('#highlight-list').append(`
+                <div class="layui-col-md6 highlight-item">
+                    <div class="layui-card">
+                        <div class="layui-card-body">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">片段名</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="highlights[${highlightIndex}][name]" placeholder="片段名" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">图片</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="highlights[${highlightIndex}][img]" placeholder="图片地址" class="layui-input img-url-input">
+                                    <img class="img-preview" style="max-height:80px;margin-top:5px;display:none;">
+                                </div>
+                            </div>
+                            <button type="button" class="layui-btn layui-btn-danger layui-btn-sm" onclick="removeItem(this)">删除</button>
+                        </div>
+                    </div>
+                </div>`);
+            highlightIndex++;
+        }
+
+        // function addHighlight() {
+        //     if ($('#highlight-list .highlight-item').length >= 5) {
+        //         layer.msg('最多添加5个精彩片段');
+        //         return;
+        //     }
+
+        //     const idx = highlightIndex;
+
+        //     $('#highlight-list').append(`
+        //     <div class="layui-col-md6 highlight-item" data-index="${idx}">
+        //         <div class="layui-card">
+        //             <div class="layui-card-body">
+        //                 <div class="layui-form-item">
+        //                     <label class="layui-form-label">片段名</label>
+        //                     <div class="layui-input-block">
+        //                         <input type="text" name="highlights[${idx}][name]" placeholder="片段名" class="layui-input">
+        //                     </div>
+        //                 </div>
+        //                 <div class="layui-form-item">
+        //                     <label class="layui-form-label">图片</label>
+        //                     <div class="layui-input-block">
+        //                         <input type="text" name="highlights[${idx}][img]" placeholder="图片地址" class="layui-input img-url-input highlight-img-${idx}" readonly>
+        //                         <button type="button" class="layui-btn layui-btn-sm upload-btn" data-type="highlight" data-idx="${idx}">
+        //                             <i class="layui-icon">&#xe67c;</i>上传图片
+        //                         </button>
+        //                         <img class="img-preview highlight-preview-${idx}" style="max-height:80px;margin-top:5px;display:none;">
+        //                         <button type="button" class="layui-btn layui-btn-danger layui-btn-xs remove-img-btn" onclick="removeImage(${idx})" style="margin-top:5px;">
+        //                             <i class="layui-icon">&#x1006;</i> 删除图片
+        //                         </button>
+        //                     </div>
+        //                 </div>
+        //                 <button type="button" class="layui-btn layui-btn-danger layui-btn-sm" onclick="removeItem(this)">删除</button>
+        //             </div>
+        //         </div>
+        //     </div>
+        // `);
+
+        //     bindHighlightUpload(idx); // ⬅️ 动态绑定上传逻辑
+        //     highlightIndex++;
+        // }
+
+        function removeItem(btn) {
+            $(btn).closest('.layui-col-md6').remove();
+        }
+
+        function removeImage(idx) {
+            $(`.highlight-img-${idx}`).val('');
+            $(`.highlight-preview-${idx}`).attr('src', '').hide();
+        }
+
+        function bindHighlightUpload(idx) {
+            layui.use('upload', function () {
+                const upload = layui.upload;
+
+                upload.render({
+                    elem: `.upload-btn[data-idx="${idx}"]`,
+                    url: '{:url("task/upload")}',
+                    field: 'file',
+                    accept: 'images',
+                    exts: 'jpg|jpeg|png|gif',
+                    size: 5120,
+                    done: function (res) {
+                        if (res.code === 1) {
+                            const url = res.data.src;
+                            $(`.highlight-img-${idx}`).val(url);
+                            $(`.highlight-preview-${idx}`).attr('src', url).show();
+                        } else {
+                            layer.msg(res.msg || '上传失败');
+                        }
+                    },
+                    error: function () {
+                        layer.msg('上传错误');
+                    }
+                });
+            });
+        }
+    </script>
+
+    <!-- 引入 xm-select -->
+    <script src="/static/js/xm-select.js"></script>
+    <!-- 初始化 -->
+    <script>
+        var defaultTags = {$selectedTags|json_encode|raw};
+
+        xmSelect.render({
+            el: '#tag-select',
+            name: 'tags[]',
+            filterable: true,
+            remoteSearch: true,
+            remoteMethod: function (val, cb) {
+                if (!val) {
+                    return cb([]);
+                }
+                $.ajax({
+                    url: '/task/search',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { wd: val },
+                    success: function (res) {
+                        cb(res.list || []);
+                    },
+                    error: function () {
+                        cb([]);
+                    }
+                });
+            },
+            initValue: defaultTags,
+        });
+    </script>
+
+    <script>
+        function submitTranslation(btn) {
+            const $btn = $(btn);
+            const $form = $btn.closest('form');
+
+            // 禁用按钮，显示 loading
+            $btn.prop('disabled', true).html('⏳ 保存中...');
+
+            $.post('/task/save_translation', $form.serialize(), function (res) {
+                if (res.code === 0 || res.status === 'success') {
+                    layer.msg(res.msg || '保存成功 ✅', { icon: 1 });
+                } else {
+                    layer.msg(res.msg || '保存失败 ❌', { icon: 2 });
+                }
+            }).fail(function () {
+                layer.msg('网络错误，请稍后重试 ❌', { icon: 2 });
+            }).always(function () {
+                // 恢复按钮
+                $btn.prop('disabled', false).html('保存翻译');
+            });
+
+            return false; // 阻止表单跳转
+        }
+    </script>
+
+    <script>
+        const imgDomain = "{$img_domain}";
+        $('#image-input').on('input', function () {
+            const val = $(this).val().trim();
+            const $preview = $('#image-preview');
+
+            if (val) {
+                const fullUrl = val.startsWith('http') ? val : imgDomain + val;
+                $preview.attr('src', fullUrl).show();
+            } else {
+                $preview.hide();
+            }
+        });
+
+        $('#cover-horizontal-input').on('input', function () {
+            const val = $(this).val().trim();
+            const $preview = $('#cover-horizontal-preview');
+
+            if (val) {
+                const fullUrl = val.startsWith('http') ? val : imgDomain + val;
+                $preview.attr('src', fullUrl).show();
+            } else {
+                $preview.hide();
+            }
+        });
+    </script>
+</body>
+
+</html>

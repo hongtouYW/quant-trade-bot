@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'performance_list' => 'Performance History',
+    'id' => 'ID',
+    'upline' => 'Upline',
+    'downline' => 'Downline',
+    'sales_amount' => 'Sales Amount',
+    'commission_amount' => 'Commission Amount',
+    'performance_date' => 'Performance Date',
+    'before_balance' => 'Before Balance',
+    'after_balance' => 'After Balance',
+    'notes' => 'Performance Record',
+    'status' => 'Status',
+    'active' => 'Approve',
+    'pending' => 'Pending',
+    'inactive' => 'Transaction Already Reject',
+    'mydata' => 'My Data',
+    'invitecode' => 'Invite Code',
+    'invitecode_no_data' => 'Current Invite Code Not found',
+    'duplicateinvitecode' => 'Invite Code has been used.',
+    'invitecode_addsuccess' => 'Invite Code has been added.',
+    'invitecode_editsuccess' => 'Invite Code has been edited.',
+    'no_data_found' => 'No performance records found.',
+];

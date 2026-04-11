@@ -1,0 +1,33 @@
+.userContainer {
+  display: flex;
+  /* align-items: center; */
+  gap: 10px;
+  margin: 10px 0px;
+  overflow-x: hidden;
+}
+
+.userSideMenu {
+  flex: 1;
+  min-width: 238px;
+  background: rgb(97 97 97 / 20%);
+}
+
+.userOutlet {
+  flex: 4;
+  background: rgb(97 97 97 / 20%);
+}
+
+@media screen and (max-width: 600px) {
+  .userContainer {
+    flex-direction: column-reverse;
+  }
+
+  .userSideMenu {
+    display: none;
+  }
+
+  .userOutlet {
+    width: 100%;
+    background: none;
+  }
+}

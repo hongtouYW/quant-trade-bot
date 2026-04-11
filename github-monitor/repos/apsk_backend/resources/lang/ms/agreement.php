@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'select' => 'Pilih Perjanjian',
+    'agreement_list' => 'Senarai Perjanjian',
+    'add_new_agreement' => 'Tambah Perjanjian Baru',
+    'agreement_added_successfully' => 'Perjanjian berjaya ditambah!',
+    'agreement_updated_successfully' => 'Perjanjian berjaya dikemaskini!',
+    'agreement_deleted_successfully' => 'Perjanjian berjaya dipadam!',
+    'title' => 'Tajuk',
+    'desc' => 'Penerangan',
+    'picture' => 'Gambar',
+    'url' => 'Pautan',
+    'status' => 'Status',
+    'active' => 'Aktif',
+    'inactive' => 'Tidak Aktif',
+    'never' => 'Tidak Pernah',
+    'edit_agreement' => 'Kemaskini Perjanjian',
+    'delete_agreement' => 'Padam Perjanjian',
+    'confirm_delete_agreement' => 'Adakah anda pasti ingin memadam Perjanjian ini?',
+    'no_data_found' => 'Tiada Perjanjian dijumpai.',
+    'leave_blank_for_no_change' => 'Biarkan kosong jika tiada perubahan',
+    'active_status' => 'Status Aktif',
+    'agent_name' => 'Nama Agent',
+];

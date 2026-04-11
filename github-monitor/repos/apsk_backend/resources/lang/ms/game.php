@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'select' => 'Pilih Permainan',
+    'game_list' => 'Senarai Permainan',
+    'add_new_game' => 'Tambah Permainan Baharu',
+    'game_added_successfully' => 'Permainan ":game_name" berjaya ditambah!',
+    'game_updated_successfully' => 'Permainan ":game_name" berjaya dikemas kini!',
+    'game_deleted_successfully' => 'Permainan ":game_name" berjaya dipadam!',
+    'game_name' => 'Nama Permainan',
+    'game_desc' => 'Keterangan',
+    'icon' => 'Ikon',
+    'icon_zh' => 'Ikon - Cina',
+    'api' => 'API',
+    'status' => 'Status',
+    'active' => 'Aktif',
+    'inactive' => 'Tidak Aktif',
+    'never' => 'Tidak Pernah',
+    'edit_game' => 'Kemaskini Permainan',
+    'delete_game' => 'Padam Permainan',
+    'confirm_delete_game' => 'Adakah anda pasti mahu memadam Permainan ":game_name"?',
+    'no_data_found' => 'Tiada Permainan ditemui.',
+    'leave_blank_for_no_change' => 'Biarkan kosong jika tiada perubahan',
+    'active_status' => 'Status Aktif',
+    'no_platform_found' => 'Tiada Platform Permainan ditemui.',
+    'platform' => 'Platform Permainan',
+    'platformselect' => 'Pilih Platform Permainan',
+];

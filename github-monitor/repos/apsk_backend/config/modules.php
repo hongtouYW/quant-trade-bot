@@ -1,0 +1,27 @@
+<?php
+return [
+    'restrict' => [
+        'agent_management',
+        'agentcredit_management',
+        'country_management',
+        'state_management',
+        'role_management',
+        'access_management',
+        'song_management',
+        'genre_management',
+        'artist_management',
+        'bank_management',
+        'payment_management',
+        'gameplatform_management',
+        'gameplatformaccess_management',
+        'provider_management',
+        'game_management',
+        'gamebookmark_management',
+        'gametype_management',
+        'message_management',
+        'log_management',
+        'application_management',
+        'commissionrank_management',
+        'ipblock_management',
+    ],
+];

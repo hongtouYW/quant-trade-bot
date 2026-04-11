@@ -1,0 +1,74 @@
+{include file="public/header" /}
+<body>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+  </a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>日期</th>
+              <th>操作总数</th>
+              <th>有码数</th>
+              <th>无码数</th>
+              <th>动漫数</th>
+              <th>4k数</th>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.date}</td>
+              <td>{$vo.num}</td>
+              <td>{$vo.youma}</td>
+              <td>{$vo.wuma}</td>
+              <td>{$vo.dongman}</td>
+              <td>{$vo.4k}</td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+              layer = layui.layer;
+
+      var curUrl = "{:url('video_handle',$param)}";
+      layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+                , layer = layui.layer,
+                $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          , count: {$total}
+          , limit: {$limit}
+          , limits: [10, 20, 50, 100]
+          , curr: {$page}
+          , layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          , jump: function (obj, first) {
+            if (!first) {
+              location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+            }
+          }
+        });
+      });
+    });
+</script>
+
+</html>

@@ -1,0 +1,170 @@
+.collectSection {
+  position: relative;
+  max-width: 952px;
+}
+
+.collectContainer {
+  padding: 0px 10px;
+  max-height: 480px;
+  min-height: 430px;
+  overflow-y: auto;
+}
+
+.collectEdit {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  max-width: 60px;
+}
+
+.collectEdit p{
+  word-break: break-all;
+ }
+.collectVideoList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.collectVideoItemLi {
+  width: 19%;
+  position: relative;
+}
+
+.collectOtherVideoItemLi {
+  width: 24%;
+  position: relative;
+}
+
+.collectVideoItemLi > div {
+  width: 100%;
+}
+
+.collectOtherVideoItemLi > div {
+  width: 100%;
+}
+
+.collectVideoLabel {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  cursor: pointer;
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  z-index: 10;
+}
+
+.collectVideoLabelFooter {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  cursor: pointer;
+}
+
+.collectVideoLabel input[type="checkbox"] {
+  visibility: hidden;
+}
+
+.collectVideoLabelFooter input[type="checkbox"] {
+  visibility: hidden;
+}
+
+.collectVideoLabelSpan {
+  color: #fff;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+/* Checked effect */
+.collectVideoLabel input:checked ~ .checkboxContainer {
+  background-color: black;
+}
+
+.collectVideoLabelFooter input:checked ~ .checkboxContainer {
+  background-color: black;
+}
+
+.checkboxContainer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 25px;
+  width: 25px;
+  background-color: #000;
+  border-radius: 20px;
+}
+
+/* Checkmark */
+.checkboxContainer::after {
+  content: "";
+  position: absolute;
+  display: none;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+/* Display checkmark when checked */
+.collectVideoLabel input:checked ~ .checkboxContainer::after {
+  display: block;
+}
+
+.collectVideoLabelFooter input:checked ~ .checkboxContainer::after {
+  display: block;
+}
+
+.collectFooter {
+  width: 100%;
+  padding: 0px 20px;
+  /* position: absolute;
+  right: 0;
+  bottom: 0; */
+}
+
+.collectFooterDelete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.deleteBtn {
+  width: 80px;
+}
+
+@media screen and (max-width: 600px) {
+  .collectVideoList {
+    padding-left: 10px;
+  }
+
+  .collectContainer {
+    padding: 0px;
+  }
+
+  .collectVideoItemLi {
+    width: 30%;
+  }
+
+  .collectOtherVideoItemLi {
+    width: 48%;
+  }
+
+  .collectFooter {
+    position: fixed;
+    bottom: 10px;
+    background: #121420;
+  }
+
+  .paginationCollectContainer {
+    margin-bottom: 100px;
+  }
+}

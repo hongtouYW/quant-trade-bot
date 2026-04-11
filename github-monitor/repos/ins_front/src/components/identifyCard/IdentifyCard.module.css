@@ -1,0 +1,185 @@
+.identifyBackgroundImg {
+  width: 100%;
+  min-height: 590px;
+}
+
+.identifyContent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 20px;
+}
+
+.identifyHeader {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 38px;
+}
+
+.identifyHeaderLogo {
+  width: 90px;
+}
+
+.identifyHeaderLogo img {
+  width: 100%;
+}
+
+.identifyHeaderText {
+  margin-top: 3px;
+}
+
+.headerLogoTag {
+  font-size: 13px;
+  font-weight: 500;
+  color: #121212;
+  background: #fff;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+
+.identifyBody {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.identifyBodyTitle {
+  text-align: center;
+}
+
+.bodyTitleAddress {
+  letter-spacing: 1px;
+  font-size: 12px;
+  color: var(--secondary-color);
+  margin-bottom: 3px;
+}
+
+.bodyTitleCertificate {
+  letter-spacing: 2px;
+  margin: 8px 0px;
+}
+
+.bodyTitleIdentifyCard {
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 4px;
+}
+
+.identifyBodyQrcode {
+  width: 160px;
+  height: 160px;
+  /* background-image: url("/qrcode-bg-green.png"); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+  margin: 8px auto 12px auto;
+}
+
+.identifyBodyQrcodeImg {
+  width: 80%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.personalLoginInfo {
+  background: var(--identity-bg-color);
+  border: 2px solid var(--identity-border-color);
+  padding: 5px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.personalAddressInfo {
+  font-size: 12px;
+  color: var(--secondary-color);
+  margin: 10px 0px;
+  text-align: center;
+}
+
+.identifyFooter {
+  color: #121212;
+  font-size: 13px;
+  /* background-image: url("/background-light-green.png"); */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  min-height: 180px;
+}
+
+.identifyFooterHint {
+  padding: 15px 10px;
+}
+
+.identifyFooterHintInstructions {
+  margin-bottom: 8px;
+}
+
+.instructionsTitle,
+.tipsTitle {
+  font-weight: 700;
+}
+
+.instructionsContent,
+.tipsContent {
+  color: #777;
+}
+
+.identifyFooterHintWarning {
+  color: #fc5e2c;
+  font-size: 12px;
+}
+
+.identifyScreenshotButton {
+  margin-top: 10px;
+}
+
+.identifyBtn a {
+  border-radius: 10px;
+}
+
+@media screen and (max-width: 600px) {
+  .identifyBackgroundImg {
+    min-height: 550px;
+  }
+
+  .identifyHeader {
+    margin-bottom: 32px;
+  }
+
+  .bodyTitleIdentifyCard {
+    font-size: 20px;
+  }
+
+  .identifyBodyQrcode {
+    width: 140px;
+    height: 140px;
+  }
+
+  .identifyContent {
+    padding: 20px 15px;
+  }
+
+  .identifyHeaderLogo {
+    width: 75px;
+  }
+
+  .identifyHeaderText {
+    margin-top: 0px;
+  }
+
+  .headerLogoTag {
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+
+  .personalLoginInfo {
+    font-size: 12px;
+  }
+  .personalAddressInfo {
+    margin: 6px 0px;
+  }
+}

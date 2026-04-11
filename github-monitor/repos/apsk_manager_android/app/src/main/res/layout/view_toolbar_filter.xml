@@ -1,0 +1,47 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="96dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="24dp">
+
+        <!-- Left Icon -->
+        <ImageView
+            android:id="@+id/imageView_left_icon"
+            android:layout_width="24dp"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_chev_left" />
+
+        <!-- Title (center X and vertically aligned to left icon) -->
+        <TextView
+            android:id="@+id/textView_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/poppins_semi_bold"
+            android:gravity="center"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="20sp" />
+
+        <!-- Right Icon -->
+        <ImageView
+            android:id="@+id/imageView_right_icon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="@string/cd_icon" />
+
+        <!-- Selected Right Icon -->
+        <ImageView
+            android:id="@+id/imageView_right_icon_selected"
+            android:layout_width="30dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/cd_icon" />
+    </LinearLayout>
+</RelativeLayout>

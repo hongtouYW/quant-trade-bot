@@ -1,0 +1,84 @@
+{include file="public/header" /}
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+
+            <div class="layui-form-item">
+                <label for="role_name" class="layui-form-label">
+                    <span class="x-red">*</span>角色名称
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="role_name" name="role_name" required="" lay-verify="required"
+                           placeholder="请输入角色名称"  autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label for="desc" class="layui-form-label">
+                    <span class="x-red">*</span>备注
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" id="desc" name="desc" required="" lay-verify="required"
+                           placeholder="请输入角色备注"  autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+
+
+            <div class="layui-form-item">
+                <label for="role_name" class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="add"  lay-filter="add">
+                    增加
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(add)', function (data) {
+            var role_name=$("#role_name").val();
+            var desc=$("#desc").val();
+            $.ajax({
+                url: "{:url('authrole/add')}",
+                type: "POST",
+                data: {
+                    role_name: role_name,
+                    desc: desc
+                },
+                async: false,
+                success: function (data) {
+                    console.log(data);
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+</script>
+</body>
+
+</html>

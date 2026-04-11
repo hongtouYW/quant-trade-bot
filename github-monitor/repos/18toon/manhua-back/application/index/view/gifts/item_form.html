@@ -1,0 +1,82 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <form class="layui-form" id="itemForm" style="margin:20px;">
+    <input type="hidden" name="id" value="{$info.id|default=''}">
+    <input type="hidden" name="gift_id" value="{$gift_id|default=''}">
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">赠品名称</label>
+      <div class="layui-input-block">
+        <input type="text" name="name" value="{$info.name|default=''}" required lay-verify="required" placeholder="请输入赠品名称" class="layui-input">
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">类型</label>
+      <div class="layui-input-block">
+        <select name="pro_type" required lay-verify="required">
+          <option value="">请选择</option>
+          <option value="coin"
+            {if isset($info.pro_type) && $info.pro_type=='coin'}selected{/if}
+            {if in_array('coin',$usedTypes) && (!isset($info.pro_type) || $info.pro_type!='coin')}disabled{/if}
+          >金币</option>
+          <option value="vip"
+            {if isset($info.pro_type) && $info.pro_type=='vip'}selected{/if}
+            {if in_array('vip',$usedTypes) && (!isset($info.pro_type) || $info.pro_type!='vip')}disabled{/if}
+          >VIP</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">数值</label>
+      <div class="layui-input-block">
+        <input type="text" name="value" value="{$info.value|default=''}" required lay-verify="required" placeholder="赠品数值" class="layui-input">
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <label class="layui-form-label">状态</label>
+      <div class="layui-input-block">
+        <input type="radio" name="status" value="1" title="启用" {if $info.status==1}checked{/if}>
+        <input type="radio" name="status" value="0" title="停用" {if $info.status==0}checked{/if}>
+      </div>
+    </div>
+
+    <div class="layui-form-item">
+      <div class="layui-input-block">
+        <button class="layui-btn" lay-submit lay-filter="itemSubmit">保存</button>
+        <button type="button" class="layui-btn layui-btn-primary" onclick="layer.closeAll()">取消</button>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+layui.use(['form','jquery'], function(){
+  var form = layui.form, $ = layui.jquery;
+
+  form.on('submit(itemSubmit)', function(data){
+    var $btn = $("button[lay-filter='itemSubmit']");
+    $btn.prop("disabled", true).addClass("layui-btn-disabled").text("保存中..."); // 禁用按钮并修改文字
+
+    $.post("{:url('gifts/save_item')}", data.field, function(res){
+      layer.msg(res.msg);
+      if(res.code === 1){
+        setTimeout(()=>parent.location.reload(),1000);
+      } else {
+        // 保存失败，恢复按钮
+        $btn.prop("disabled", false).removeClass("layui-btn-disabled").text("保存");
+      }
+    }).fail(function(){
+      layer.msg('请求失败，请稍后重试');
+      $btn.prop("disabled", false).removeClass("layui-btn-disabled").text("保存");
+    });
+
+    return false;
+  });
+});
+</script>
+</body>
+</html>

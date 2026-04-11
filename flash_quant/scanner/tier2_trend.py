@@ -120,59 +120,57 @@ class Tier2TrendScanner(ScannerBase):
         volumes = [k.volume for k in klines]
         latest = klines[-1]
 
-        # 3. MACD 柱状图转色
+        # 3. MACD 柱状图
         _, _, hist = macd(closes)
-        if len(hist) < 2:
-            return None
-
         macd_cross = False
-        direction = None
-        if hist[-2] <= 0 and hist[-1] > 0:
-            macd_cross = True
-            direction = 'long'
-        elif hist[-2] >= 0 and hist[-1] < 0:
-            macd_cross = True
-            direction = 'short'
+        macd_direction = None
+        if len(hist) >= 2:
+            if hist[-2] <= 0 and hist[-1] > 0:
+                macd_cross = True
+                macd_direction = 'long'
+            elif hist[-2] >= 0 and hist[-1] < 0:
+                macd_cross = True
+                macd_direction = 'short'
 
-        if not macd_cross:
-            return None
-
-        # 4. RSI 确认
+        # 4. RSI
         rsi_values = rsi(closes)
-        if not rsi_values:
-            return None
-        current_rsi = rsi_values[-1]
-
         rsi_confirm = False
-        if direction == 'long' and current_rsi >= TIER2_RSI_LONG:
-            rsi_confirm = True
-        elif direction == 'short' and current_rsi <= TIER2_RSI_SHORT:
-            rsi_confirm = True
-
-        if not rsi_confirm:
-            return None
+        rsi_direction = None
+        if rsi_values:
+            current_rsi = rsi_values[-1]
+            if current_rsi >= TIER2_RSI_LONG:
+                rsi_confirm = True
+                rsi_direction = 'long'
+            elif current_rsi <= TIER2_RSI_SHORT:
+                rsi_confirm = True
+                rsi_direction = 'short'
+        else:
+            current_rsi = 50
 
         # 5. EMA9/EMA21 穿越
         cross = ema_cross(closes, 9, 21)
-        ema_confirm = False
-        if direction == 'long' and cross == 'golden_cross':
-            ema_confirm = True
-        elif direction == 'short' and cross == 'death_cross':
-            ema_confirm = True
+        ema_confirm = cross in ('golden_cross', 'death_cross')
+        ema_direction = 'long' if cross == 'golden_cross' else ('short' if cross == 'death_cross' else None)
 
-        if not ema_confirm:
+        # 需要至少 2/3 条件满足 (验证模式) + 方向一致
+        conditions = [macd_cross, rsi_confirm, ema_confirm]
+        directions = [d for d in [macd_direction, rsi_direction, ema_direction] if d]
+        met = sum(conditions)
+
+        if met < 2:
             return None
 
-        # 6. 1H 成交量确认 (用 15min 近 4 根 vs 前 16 根)
-        if len(volumes) >= 20:
-            recent_4 = sum(volumes[-4:])
-            prev_16 = sum(volumes[-20:-4]) / 4  # 平均每 4 根
-            vol_ok = recent_4 > prev_16 * TIER2_VOLUME_MULTIPLIER if prev_16 > 0 else False
+        # 方向取多数
+        if not directions:
+            return None
+        long_count = directions.count('long')
+        short_count = directions.count('short')
+        if long_count > short_count:
+            direction = 'long'
+        elif short_count > long_count:
+            direction = 'short'
         else:
-            vol_ok = True  # 数据不够时跳过
-
-        if not vol_ok:
-            return None
+            return None  # 方向矛盾
 
         # 7. Wick 过滤
         wick_passed, body_ratio = wick_filter(

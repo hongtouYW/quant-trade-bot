@@ -1,0 +1,66 @@
+.orderListTable {
+  overflow-y: auto;
+  height: 595px;
+}
+
+.orderTable {
+  width: 100%;
+  text-align: center;
+  line-height: 35px;
+}
+
+.orderTable th {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+}
+
+.orderTable td {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 14px;
+}
+
+.orderRecord {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .orderListTable {
+    display: none;
+  }
+
+  .orderTable {
+    display: none;
+  }
+
+  .orderRecord {
+    display: block;
+  }
+
+  .orderRecordList {
+    padding: 0px 15px 15px 15px;
+  }
+
+  .orderRecordItem {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    padding: 15px 0px;
+    border-bottom: 1px solid #333;
+  }
+
+  .orderRecordLabel {
+    min-width: 65px;
+  }
+
+  .orderRecordLabel p {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 700;
+    line-height: 25px;
+  }
+
+  .orderRecordValue p {
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 14px;
+    line-height: 25px;
+  }
+}

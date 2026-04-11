@@ -1,0 +1,19 @@
+.label {
+  color: #fff;
+  font-weight: 500;
+  line-height: 40px;
+}
+
+.input {
+  height: 40px;
+  line-height: 40px;
+  padding: 0 5px;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.6392156863);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.195);
+}
+
+.input:disabled {
+  background-color: #8e8e8e;
+}

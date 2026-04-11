@@ -1,0 +1,101 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+      </a>
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right;margin-right:10px; padding-top:5px" href="{:url('video/burnHistory')}">
+        <i class="layui-icon layui-icon-return"></i> 返回
+      </a>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-header">下载记录统计</div>
+                <div class="layui-card-body">
+                    <form class="layui-form layui-col-space5" action="" id="searchForm">
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="text" name="date" value="{$date}" class="layui-input" id="date" placeholder="yyyy-MM-dd">
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <button type="submit" class="layui-btn" id="searchBtn">
+                                <i class="layui-icon layui-icon-search"></i> 搜索
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="layui-card-body">
+                    <table class="layui-table">
+                        <thead>
+                            <tr>
+                                <th width="80">视频ID</th>
+                                <th width="120">番号</th>
+                                <th>视频标题</th>
+                                <th width="120">字幕类型</th>
+                                <th width="120">下载次数</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>{$vo.video_id}</td>
+                            <td>{$vo.mash}</td>
+                            <td title="{$vo.title}">{:mb_substr($vo.title, 0, 40, 'UTF-8')}{if condition="mb_strlen($vo.title, 'UTF-8') gt 40"}...{/if}</td>
+                            <td>{$vo.subtitle_label ?: '无字幕'}</td>
+                            <td><span class="layui-badge layui-bg-orange">{$vo.download_count}</span></td>
+                        </tr>
+                        {/volist}
+                        {if condition="empty($list)"}
+                        <tr><td colspan="5" style="text-align:center; color:#aaa;">暂无下载记录</td></tr>
+                        {/if}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body">
+                    <div id="pages" class="center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form', 'jquery'], function() {
+    var $ = layui.jquery;
+    var laydate = layui.laydate;
+
+    laydate.render({
+        elem: '#date',
+        format: 'yyyy-MM-dd'
+    });
+
+    $('#searchForm').on('submit', function(e) {
+        e.preventDefault();
+        this.submit();
+        return false;
+    });
+
+    var curUrl = "{:url('video/burnDownloadStats', $param)}";
+    layui.use(['laypage'], function() {
+        var laypage = layui.laypage;
+        laypage.render({
+            elem:   'pages',
+            count:  {$total},
+            limit:  {$limit},
+            curr:   {$page},
+            limits: [20, 50, 100],
+            layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+            jump: function(obj, first) {
+                if (!first) {
+                    location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+                }
+            }
+        });
+    });
+});
+</script>
+</html>

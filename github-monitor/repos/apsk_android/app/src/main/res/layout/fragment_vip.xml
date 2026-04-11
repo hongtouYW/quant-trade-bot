@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.dj.user.widget.ExpandableHeightListView
+                android:id="@+id/listView_vip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/blue_122346"
+                android:divider="@color/blue_354B9C"
+                android:dividerHeight="1dp"
+                android:listSelector="@android:color/transparent"
+                android:paddingStart="16dp"
+                android:paddingEnd="0dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="规则说明"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="1.晋级标准：满足VIP晋级要求（即充值或有效投注都满足条件），即可晋级相应VIP等级，获得相应晋级奖金，如连续晋级多级，可获得全部等级晋级奖金，今日00:00:00以后才可领取；
+\n\n2.日俸禄：每日充值及有效投注满足当前等级日俸禄要求，可获得对应日俸禄奖金，如连续晋级多级，仅可获得当前等级日俸禄奖金，今日00:00:00以后才可领取，当天未领取，奖励过期；
+\n\n3.周俸禄：每周充值及有效投注满足当前等级周俸禄要求，可获得对应周俸禄奖金，如连续晋级多级，仅可获得当前等级周俸禄奖金，今日00:00:00以后才可领取，本周未领取，奖励过期；
+\n\n4.月俸禄：每月充值及有效投注满足当前等级月俸禄要求，可获得对应月俸禄奖金，如连续晋级多级，仅可获得当前等级月俸禄奖金，今日00:00:00以后才可领取，本月未领取，奖励过期；
+\n\n5.奖励过期说明：奖励过期直接作废，请在领取倒计时结束前进行领取；
+\n\n6.稽核说明：VIP所赠送的奖金需1倍流水（即稽核、打码或有效投注）才能提现，打码不限游戏平台；
+\n\n7.活动声明：本功能仅限账号本人进行正常游戏投注，禁止租借账号、无风险投注(对赌、对刷、低赔刷水)、恶意套利、使用外挂程式、机器人、利用协议、漏洞、接口、群控或其他技术手段参与，一经查核属实，本平台有权终止会员登录、暂停会员使用网站、及没收奖金和不当盈利的权利，无需特别通知；"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="10sp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

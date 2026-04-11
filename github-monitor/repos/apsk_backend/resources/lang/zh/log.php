@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'log_type' => '日志类型',
+    'log_text' => '关键词',
+    'log_desc' => '日志详情',
+    'shop' => '店铺',
+    'member' => '会员',
+    'manager' => '经理',
+    'player' => '游戏账号',
+    'login' => '%s登入了账号%s',
+    'logout' => '%s登出了账号%s',
+    'create_account' => '%s创建了账号%s',
+    'create_random_account' => '%s创建了随机账号 %s',
+    'deposit' => '%s对账号%s进行了存款',
+    'withdraw' => '%s对账号%s进行了提现',
+    'active_alarm' => '%s对账号%s启动了警报模式',
+    'deactive_alarm' => '%s对账号%s解除了警报模式',
+    'changepassword' => '%s对账号%s进行了更改密码',
+    'block' => '%s对账号%s进行了拉黑',
+    'unblock' => '%s对账号%s解除了拉黑',
+    'create_player_account' => '%s创建了玩家%s',
+    'gamedeposit' => '%s对游戏账号%s进行了游戏提现',
+    'gamewithdraw' => '%s对游戏账号%s进行了游戏提现',
+];

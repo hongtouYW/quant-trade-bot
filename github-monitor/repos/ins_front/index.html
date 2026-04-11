@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- <link rel="icon" href="%PUBLIC_URL%/favicon.ico" /> -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <meta name="google" content="notranslate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Cache-Control" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>INS</title>
+  </head>
+  <!-- <script type="text/javascript" language="javascript">
+    function noCopy() {
+      alert("禁止使用Ctrl+C进行复制操作!");
+      event.returnValue = false;
+    }
+  </script> -->
+  <body
+    leftmargin="0"
+    topmargin="0"
+    οncοntextmenu="return false"
+    οndragstart="return false"
+    οncοpy="document.selection.empty()"
+    onbeforecopy="return false"
+    οnmοuseup="document.selection.empty()"
+  >
+    <noscript><iframe src="*.htm"></iframe></noscript>
+    <div id="img-dialog-bottom"></div>
+    <div id="img-dialog-center"></div>
+    <div id="alert-dialog"></div>
+    <div id="dialog"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+  <script>
+    const ignoreDebugger = localStorage.getItem("devTool");
+    if (ignoreDebugger !== "123456") {
+      // 检测浏览器类型
+      let userAgent = navigator.userAgent;
+      if (userAgent.indexOf("Firefox") > -1) {
+        // Firefox浏览器特定操作
+        let checkStatus;
+        let devtools = /./;
+        devtools.toString = function () {
+          checkStatus = "on";
+        };
+        setInterval(function () {
+          checkStatus = "off";
+          console.log(devtools);
+          console.log(checkStatus);
+          console.clear();
+          if (checkStatus === "on") {
+            try {
+              window.open("about:blank", "_self");
+            } catch (err) {
+              let a = document.createElement("button");
+              a.onclick = function () {
+                window.open("about:blank", "_self");
+              };
+              a.click();
+            }
+          }
+        }, 200);
+      } else {
+        // 非Firefox浏览器特定操作
+        let ConsoleManager = {
+          onOpen: function () {
+            alert("Console is opened");
+          },
+          onClose: function () {
+            alert("Console is closed");
+          },
+          init: function () {
+            let self = this;
+            let x = document.createElement("div");
+            let isOpening = false,
+              isOpened = false;
+            Object.defineProperty(x, "id", {
+              get: function () {
+                if (!isOpening) {
+                  self.onOpen();
+                  isOpening = true;
+                }
+                isOpened = true;
+                return true;
+              },
+            });
+            setInterval(function () {
+              isOpened = false;
+              console.info(x);
+              console.clear();
+              if (!isOpened && isOpening) {
+                self.onClose();
+                isOpening = false;
+              }
+            }, 200);
+          },
+        };
+        ConsoleManager.onOpen = function () {
+          // 打开控制台，跳转
+          try {
+            window.open("about:blank", "_self");
+          } catch (err) {
+            let a = document.createElement("button");
+            a.onclick = function () {
+              window.open("about:blank", "_self");
+            };
+            a.click();
+          }
+        };
+        ConsoleManager.onClose = function () {
+          alert("Console is closed!");
+        };
+        ConsoleManager.init();
+      }
+      // 定时检测函数
+      setInterval(function () {
+        check();
+      }, 1000);
+      var check = function () {
+        /* stopDebugger(); */
+        function doCheck(a) {
+          if (("" + a / a)["length"] !== 1 || a % 20 === 0) {
+            (function () {})["constructor"]("debugger")();
+          } else {
+            (function () {})["constructor"]("debugger")();
+          }
+          doCheck(++a);
+        }
+        try {
+          doCheck(0);
+        } catch (err) {}
+      };
+      check();
+    }
+
+    function stopDebugger() {
+      window.onresize = function () {
+        if (
+          window.outerHeight - window.innerHeight > 100 ||
+          window.outerWidth - window.innerWidth > 100
+        ) {
+          // api here
+          let postObj = {
+            page_url: window.location.pathname,
+          };
+          let post = JSON.stringify(postObj);
+          const url = "https://statistics.abbws.com/index/suspiciousIp";
+          let xhr = new XMLHttpRequest();
+          xhr.open("POST", url, true);
+          xhr.setRequestHeader(
+            "Content-type",
+            "application/json; charset=UTF-8"
+          );
+          xhr.send(post);
+          xhr.onload = function () {
+            if (xhr.status === 200) {
+              console.log("Post successfully created!");
+            }
+          };
+        }
+      };
+    }
+  </script>
+</html>

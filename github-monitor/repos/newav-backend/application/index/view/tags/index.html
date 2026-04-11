@@ -1,0 +1,320 @@
+{include file="public/header" /}
+
+<body>
+<div class="layui-fluid">
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+      </a>
+    </div>
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5" action="">
+                      <div class="layui-input-inline layui-show-xs-block">
+                        <input type="text" name="id" placeholder="请输入标签id"  value="{$param['id']}" autocomplete="off" class="layui-input">
+                      </div>
+                      <div class="layui-input-inline w150">
+                        <select name="is_show">
+                          <option value="">是否展示</option>
+                          <option value="0" {if condition="$param['is_show'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['is_show'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>
+                      <div class="layui-input-inline w150">
+                        <select name="is_menu">
+                          <option value="">是否显示首页</option>
+                          <option value="0" {if condition="$param['is_menu'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['is_menu'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>
+                      <div class="layui-input-inline w150">
+                        <select name="is_top">
+                          <option value="">是否置顶</option>
+                          <option value="0" {if condition="$param['is_top'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['is_top'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="text" name="wd" placeholder="请输入标签名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="submit" class="layui-btn"  value="搜索">
+                        </div>
+                    </form>
+                </div>
+
+              <div class="layui-card-header">
+                <button class="layui-btn layui-btn-normal" onclick="clearCache()">
+                  <i class="layui-icon"></i>清除缓存
+                </button>
+                <button class="layui-btn" onclick="ser_add()">
+                  <i class="layui-icon"></i>添加
+                </button>
+              </div>
+                <div class="layui-card-body ">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>名称</th>
+                            <th>图片</th>
+                            <th>状态</th>
+                            <th>显示首页</th>
+                            <th>置顶</th>
+                            <th width="50">排序</th>
+                            <th>影片总数</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {foreach $list as $k => $vo}
+                        <tr>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.name}</td>
+                            <td>
+                              {notempty name="vo.image"}
+                              <div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)"><img style="width: 100%;height: 100%" src="{$img_url}{$vo.image}"></div>
+                              {else /}
+                              暂无图片
+                              {/notempty}
+                            </td>
+                            <td>
+                              <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="is_show" {if condition="$vo.is_show eq 1"} checked {/if}  value="{$vo['is_show']}" lay-skin="switch" lay-filter="modify" lay-text="开启|停用" >
+                            </td>
+                            <td>
+                              <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="is_menu" {if condition="$vo.is_menu eq 1"} checked {/if}  value="{$vo['is_menu']}" lay-skin="switch" lay-filter="modify" lay-text="开启|停用" >
+                            </td>
+                            <td>
+                              <input type="checkbox" data-id="{$vo.id}" type="checkbox" name="is_top" {if condition="$vo.is_top eq 1"} checked {/if}  value="{$vo['is_top']}" lay-skin="switch" lay-filter="modify" lay-text="开启|停用" >
+                            </td>
+                            <td><input  type="number" min="0" autocomplete="off" data-id="{$vo.id}" onchange="set_sort(this,this.value)" value="{$vo.sort}" class="layui-input sort"></td>
+                            <td>{$vo.video_count}</td>
+                            <td class="td-manage">
+                              <button class="layui-btn layui-btn layui-btn-primary" data-id="{$vo.id}" onclick="set_translate(this, 'tag')">进行翻译</button>
+                              <button class="layui-btn layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                              <button class="layui-btn-danger layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                            </td>
+                        </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body ">
+
+                    <div id="pages" class="center">
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl = "{:url('index',$param)}";
+      layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          , count: {$total}
+          , limit: {$limit}
+          , limits: [10, 20, 50, 100]
+          , curr: {$page}
+          , layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          , jump: function (obj, first) {
+            if (!first) {
+              location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+            }
+          }
+        });
+      });
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        if(this.checked){
+          status = 1;
+        }
+        var field = that.attr('name');
+        var id = that.attr('data-id');
+        if (field === 'is_top' && status === 1) {
+            // Count current enabled is_top
+            var enabledCount = $("input[name='is_top']:checked").length;
+            if (enabledCount > 20) {
+                layer.msg("最多只能开启20个置顶！",{icon:2});
+                that.prop('checked', false); // revert toggle
+                form.render('checkbox'); // re-render switch
+                return false;
+            }
+        }
+        
+        $.ajax({
+          url: "{:url('modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field: field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+    });
+
+    /*
+    添加
+     */
+    function ser_add() {
+      var url='{:url("info")}';
+      layer.open({
+        type: 2,
+        title: '添加标签',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+
+    /*
+    编辑
+     */
+    function set_edit(t) {
+      var id=$(t).attr("data-id");
+      var url='{:url("info")}'+'?id='+id;
+      layer.open({
+        type: 2,
+        title: '修改标签',
+        shadeClose: true,
+        shade: 0.8,
+        area: ['80%', '80%'],
+        content: url, //iframe的url
+      });
+    }
+    /*
+    删除
+     */
+    function set_del(t) {
+      var id = $(t).attr("data-id");
+      layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+      }, function (index, layero) {
+        //按钮【按钮一】的回调
+        $.post('{:url("del")}', {'id': id}, function (data) {
+          if (data.code == 1) {
+            layer.msg(data.msg, {icon: 1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          } else {
+            layer.alert(data.msg, {icon: 2});
+          }
+        });
+
+      }, function (index) {
+        //按钮【按钮二】的回调
+      });
+    }
+
+
+    /*
+    排序
+     */
+    function set_sort(t,value) {
+      var id=$(t).attr("data-id");
+      $.ajax({
+        url: "{:url('modify')}",
+        type: "POST",
+        data: {
+          id:id,
+          field: 'sort',
+          value: value,
+        },
+        async: false,
+        success: function (data) {
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            }, 1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+    }
+
+  /*
+  翻译
+  */
+ function set_translate(t, modelType) {
+    var id = $(t).attr("data-id");
+    var loadingIndex = layer.load(1, { shade: [0.3, '#000'] });
+    
+    // Call universal translate controller with model_type parameter
+    $.post('{:url("translate/translate")}', { 
+        id: id, 
+        model_type: modelType  // 'publisher', 'actor', 'tag', etc.
+    }, function (data) {
+        layer.close(loadingIndex);
+        if (data.code == 1) {
+            layer.msg(data.msg, { icon: 1 });
+            setTimeout(function () {
+                location.reload();
+            }, 1500);
+        } else {
+            layer.alert(data.msg, { icon: 2 });
+        }
+    }, 'json');
+  }
+
+  function clearCache() {
+    layer.confirm('你确定要清除标签缓存么？', {
+      btn: ['确定', '取消'] //可以无限个按钮
+    }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("clearCache")}',{},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },1500);
+        }else{
+          layer.alert(data.msg,{icon:2});
+        }
+      });
+
+    }, function(index){
+  });
+}
+</script>
+
+</html>
+

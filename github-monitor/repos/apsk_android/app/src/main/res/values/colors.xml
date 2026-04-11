@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white_FFFFFF">#FFFFFF</color>
+    <color name="white_FFFFFF_90a">#E6FFFFFF</color>
+    <color name="white_FFFFFF_80a">#CCFFFFFF</color>
+    <color name="white_FFFFFF_50a">#80FFFFFF</color>
+    <color name="white_FFFFFF_30a">#4DFFFFFF</color>
+
+    <color name="black_000000">#000000</color>
+    <color name="black_222222_80a">#CC222222</color>
+    <color name="black_000000_70a">#B3000000</color>
+    <color name="black_000000_50a">#80000000</color>
+    <color name="black_161F30">#161F30</color>
+    <color name="black_0E0E0F">#0E0E0F</color>
+    <color name="black_1D1D1D">#1D1D1D</color>
+    <color name="black_232323">#232323</color>
+    <color name="black_2C2C2C">#2C2C2C</color>
+    <color name="black_2C2D2D">#2C2D2D</color>
+    <color name="black_2D2D2D">#2D2D2D</color>
+
+    <color name="gray_BCBCBC">#BCBCBC</color>
+    <color name="gray_505A7B">#505A7B</color>
+    <color name="gray_6E6E6E">#6E6E6E</color>
+    <color name="gray_C4CDD2">#C4CDD2</color>
+    <color name="gray_D9D9D9">#D9D9D9</color>
+    <color name="gray_797B86">#797B86</color>
+    <color name="gray_ABB0BD">#ABB0BD</color>
+    <color name="gray_505050">#505050</color>
+    <color name="gray_CECECE">#CECECE</color>
+    <color name="gray_E4E4E4">#E4E4E4</color>
+    <color name="gray_A49A81">#A49A81</color>
+    <color name="gray_E9E9E9">#E9E9E9</color>
+
+    <color name="yellow_FFFC86">#FFFC86</color>
+    <color name="yellow_FFFC86_50a">#80FFFC86</color>
+    <color name="yellow_FFFFD6">#FFFFD6</color>
+    <color name="yellow_FBD86A">#FBD86A</color>
+
+    <color name="orange_F8AF07">#F8AF07</color>
+    <color name="orange_F8AF07_50a">#80F8AF07</color>
+    <color name="orange_FFD470">#FFD470</color>
+    <color name="orange_FFBC00">#FFBC00</color>
+    <color name="orange_FFC000">#FFC000</color>
+    <color name="orange_C2993B">#C2993B</color>
+    <color name="orange_FDB71B">#FDB71B</color>
+    <color name="orange_FFD01B">#FFD01B</color>
+    <color name="orange_FE9121">#FE9121</color>
+
+    <color name="gold_FFCB22">#FFCB22</color>
+
+    <color name="blue_1C3B7C">#1C3B7C</color>
+    <color name="blue_1B2D72">#1B2D72</color>
+    <color name="blue_00143D">#00143D</color>
+    <color name="blue_354B9C">#354B9C</color>
+    <color name="blue_122346">#122346</color>
+    <color name="blue_6F8EFF">#6F8EFF</color>
+    <color name="blue_001E5B">#001E5B</color>
+    <color name="blue_002B84">#002B84</color>
+    <color name="blue_8192D0">#8192D0</color>
+
+    <color name="green_9EEE69">#9EEE69</color>
+    <color name="green_00FF3C">#00FF3C</color>
+    <color name="green_2AC000">#2AC000</color>
+    <color name="green_075800">#075800</color>
+    <color name="green_ACFF35">#ACFF35</color>
+    <color name="green_00DDC0">#00DDC0</color>
+
+    <color name="red_EE698C">#EE698C</color>
+    <color name="red_DE1212">#DE1212</color>
+    <color name="red_C40909">#C40909</color>
+    <color name="red_FF7073">#FF7073</color>
+    <color name="red_FF0000">#FF0000</color>
+
+    <color name="purple_4B0086">#4B0086</color>
+    <color name="purple_390462">#390462</color>
+    <color name="purple_210536">#210536</color>
+    <color name="purple_00143D">#00143D</color>
+</resources>

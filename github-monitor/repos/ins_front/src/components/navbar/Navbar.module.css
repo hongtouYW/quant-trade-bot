@@ -1,0 +1,288 @@
+.show {
+  display: flex !important;
+}
+.hide {
+  display: none !important;
+}
+
+.navbar {
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
+  background: #121420;
+  z-index: 100;
+}
+
+.navbarCard {
+  min-height: 65px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.navbarContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.navbarLeft {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 2;
+}
+
+.navLogoContainer {
+  position: relative;
+  padding: 5px 10px;
+  min-width: 190px;
+}
+
+.navLogo {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.navLogoDropdown {
+  position: absolute;
+  background: #121420;
+  width: 100%;
+  padding: 5px 10px;
+  left: 0px;
+  transition: all 0.3s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.navProduct {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.navProductText {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.navProductContainer {
+  position: relative;
+}
+
+.navProductDropdown {
+  position: absolute;
+  background: #333;
+  width: 100%;
+  padding: 10px;
+  left: 0px;
+  top: 25px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  width: 338px;
+  flex-wrap: wrap;
+  border-radius: 4px;
+  gap: 5px;
+}
+
+.navProductDropdown a {
+  width: 75px;
+  margin: 6px 0px;
+}
+
+.navProductDropdown p {
+  color: #fff;
+  /* font-size: 18px; */
+  font-weight: 500;
+  text-align: center;
+  word-break: break-all;
+}
+
+.navProductDropdownActive p {
+  color: var(--primary-color);
+}
+
+.navReviewContainer {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.navReviewContainer p {
+  color: #fff;
+}
+
+.navbarCenter {
+  flex: 2;
+}
+
+.navbarSearchBar {
+  width: 65%;
+  margin: 0 auto;
+}
+
+.navbarRight {
+  display: flex;
+  justify-content: flex-end;
+  /* flex: 1; */
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bxLanguage select {
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  border: 0;
+  font-size: 13px;
+  text-align: center;
+  cursor: pointer;
+  margin-bottom: 3px;
+  width: 50px;
+}
+
+.bxLanguage select:focus-visible {
+  border: none;
+  outline: none;
+}
+
+.bxLanguage option {
+  color: #333;
+}
+
+.navLogoOthers {
+  display: none;
+}
+
+.navContainerMobile {
+  display: none;
+}
+
+.menuListMobile {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .navbarCard {
+    min-height: 120px;
+    margin: 5px 0px;
+  }
+
+  .navbarContainer {
+    padding: 8px 5px;
+  }
+
+  .navbarLeft {
+    /* flex: 3; */
+    flex-grow: 1;
+    overflow: auto;
+  }
+
+  .navbarRight {
+    /* width: 80px; */
+  }
+  .navLogoContainer {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .navLogoOthers {
+    display: flex;
+    gap: 10px;
+    overflow: scroll;
+  }
+
+  .navLogoOthers p {
+    width: max-content;
+  }
+
+  .navLogoOthers a {
+    color: #fff;
+    font-size: 13px;
+    width: max-content;
+  }
+
+  .navProductContainer,
+  .navReviewContainer {
+    display: none;
+  }
+
+  .navLogoIcon {
+    display: none;
+  }
+
+  .navLogoDropdown {
+    display: none;
+  }
+
+  .navbarCenter {
+    display: none;
+  }
+
+  .navContainerMobile {
+    display: block;
+    padding: 0px 10px;
+  }
+
+  .menuListMobile {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+    width: 100%;
+    overflow-y: hidden;
+    overflow-x: scroll;
+    padding: 0px 5px;
+  }
+
+  .menuMobile {
+    color: rgba(255, 255, 255, 0.8);
+    position: relative;
+    /* padding: 0px 18px; */
+    white-space: nowrap;
+    font-size: 14px;
+    line-height: 45px;
+  }
+
+  .menuActive {
+    color: var(--primary-color);
+  }
+
+  .menuActive:after {
+    position: absolute;
+    content: "";
+    height: 4px;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    bottom: 5px;
+    width: 40%;
+    background: var(--primary-color);
+    border-radius: 50px;
+  }
+
+  .profile {
+    gap: 3px;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .navLogoContainer {
+    gap: 5px;
+  }
+
+  .navLogoOthers {
+    gap: 5px;
+  }
+}

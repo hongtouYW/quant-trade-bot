@@ -1,0 +1,33 @@
+.headerContainer {
+  padding: 15px 0px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.03);
+  margin-bottom: 10px;
+}
+
+.headerContainer p {
+  color: #ffffffa3;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.headerBackBtn {
+  display: none;
+}
+
+@media screen and (max-width: 600px) {
+  .headerContainer {
+    display: flex;
+    align-items: center;
+  }
+
+  .headerBackBtn {
+    display: inline-block;
+    width: 50px;
+  }
+
+  .headerText {
+    flex: 1;
+    padding-right: 40px;
+  }
+}

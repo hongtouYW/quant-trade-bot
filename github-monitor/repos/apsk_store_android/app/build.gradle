@@ -1,0 +1,89 @@
+plugins {
+    alias(libs.plugins.android.application)
+    id 'com.google.gms.google-services'
+    id 'com.google.firebase.crashlytics'
+}
+
+android {
+    namespace 'com.dj.shop'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "com.dj.shop"
+        minSdk 21
+        targetSdk 36
+        versionCode 20260309
+        versionName "1.4"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildFeatures {
+        viewBinding true
+    }
+    bundle {
+        language {
+            enableSplit = false
+        }
+    }
+    flavorDimensions "default"
+    productFlavors {
+        dev {
+            applicationId "com.dj.shop.dev"
+            resValue "string", "app_display_name", "Expro99 Store DEV"
+            resValue "string", "image_base_url", "https://apitest.apsk.cc/storage/"
+            resValue "string", "api_base_url", "https://apitest.apsk.cc/api/"
+        }
+        prod {
+            applicationId "com.dj.shop"
+            resValue "string", "app_display_name", "Expro99 Store"
+            resValue "string", "image_base_url", "https://api.apsk.cc/storage/"
+            resValue "string", "api_base_url", "https://api.apsk.cc/api/"
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    implementation project(':notify')
+
+    implementation libs.appcompat
+    implementation libs.material
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+
+    implementation libs.constraintlayout
+    implementation libs.swiperefreshlayout
+
+    implementation libs.retrofit
+    implementation libs.retrofit2.converter.gson
+    implementation libs.okhttp
+    implementation libs.logging.interceptor
+
+    // CameraX
+    implementation libs.camera.core
+    implementation libs.camera.camera2
+    implementation libs.camera.lifecycle
+    implementation libs.camera.view
+    implementation libs.camera.extensions
+
+    // ZXing
+    implementation libs.core
+
+    implementation libs.picasso
+    implementation libs.android.spinkit
+
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.crashlytics
+    implementation libs.firebase.analytics
+    implementation libs.firebase.messaging
+}

@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'performance_list' => '业绩记录',
+    'id' => 'ID',
+    'upline' => '上线',
+    'downline' => '下线',
+    'sales_amount' => '业绩金额',
+    'commission_amount' => '佣金金额',
+    'performance_date' => '业绩日期',
+    'before_balance' => '交易前余额',
+    'after_balance' => '交易后余额',
+    'notes' => '业绩记录',
+    'status' => '状态',
+    'active' => '交易已批准',
+    'pending' => '待处理',
+    'inactive' => '交易已经拒绝',
+    'mydata' => '直属数据',
+    'invitecode' => '邀请码',
+    'invitecode_no_data' => '邀请码不存在',
+    'duplicateinvitecode' => '邀请码已被使用',
+    'invitecode_addsuccess' => '邀请码已新增',
+    'invitecode_editsuccess' => '邀请码已编辑',
+    'no_data_found' => '未找到业绩记录。',
+];

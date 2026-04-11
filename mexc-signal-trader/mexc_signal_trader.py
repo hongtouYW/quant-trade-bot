@@ -40,9 +40,9 @@ PAPER_INITIAL_CAPITAL = 10000
 TG_API_ID = 37356394
 TG_API_HASH = '02b91c774b0ae70701daaff905cbd295'
 TG_GROUPS = {
-    'LUKE加密集中营策略群': {'priority': 1, 'parser': 'luke', 'notify_chat_id': '-5294992522'},  # Primary
-    'vip點位策略': {'priority': 2, 'parser': 'vip'},
-    'Sias加密起飛': {'priority': 3, 'parser': 'sias'},
+    'LUKE加密集中营策略群': {'priority': 1, 'parser': 'luke', 'notify_chat_id': '-5294992522'},
+    # 'vip點位策略': {'priority': 2, 'parser': 'vip'},      # 暂停
+    # 'Sias加密起飛': {'priority': 3, 'parser': 'sias'},     # 暂停
 }
 TG_SESSION_PATH = os.environ.get('TG_SESSION_PATH',
     os.path.join(os.path.dirname(os.path.abspath(__file__)), 'tg_session'))
@@ -866,9 +866,20 @@ def auto_open_trade(signal_id):
             conn.close()
             return False
 
-        position_size = float(config.get('position_size_usdt', 200))
+        # Classify coin: major vs small
+        MAJOR_COINS = ['BTC', 'ETH', 'SOL', 'XRP', 'BNB', 'ADA', 'DOGE', 'AVAX', 'DOT', 'LINK',
+                       'XAG', 'MATIC', 'UNI', 'LTC', 'ATOM', 'FIL', 'APT', 'ARB', 'OP', 'SUI']
+        base_coin = signal['symbol'].upper().replace('USDT', '').replace('/', '').replace('_', '')
+        is_major = base_coin in MAJOR_COINS
 
-        # Skip if price deviated too far (>10%), otherwise market order
+        if is_major:
+            position_size = 400  # 300-500U range, use 400
+            lev_min, lev_max = 50, 100
+        else:
+            position_size = 200  # 100-300U range, use 200
+            lev_min, lev_max = 10, 30
+
+        # Skip if price deviated too far (>10%)
         entry_price_check = signal['entry_price']
         current_price_check = get_exchange_price(signal['symbol'])
         if entry_price_check and entry_price_check > 0 and current_price_check:
@@ -879,24 +890,20 @@ def auto_open_trade(signal_id):
                 conn.close()
                 return False
 
-        # Skip if current price already past TP (too close or already hit)
+        # Skip if current price already past TP
         tp_check = signal['take_profit']
         if tp_check and tp_check > 0 and current_price_check:
             direction = signal['direction']
-            # Only skip if price already PAST TP (not just near)
             if direction == 'LONG' and current_price_check >= tp_check:
                 print(f"[Auto-Trade] Price {current_price_check} already past TP {tp_check}, skip", flush=True)
-                add_log(f"跳过 {signal['symbol']}: 价格已超过止盈 {tp_check}", 'WARN')
                 conn.close()
                 return False
             elif direction == 'SHORT' and current_price_check <= tp_check:
                 print(f"[Auto-Trade] Price {current_price_check} already past TP {tp_check}, skip", flush=True)
-                add_log(f"跳过 {signal['symbol']}: 价格已超过止盈 {tp_check}", 'WARN')
                 conn.close()
                 return False
 
-        # Dynamic leverage based on SL distance (like the group owner's strategy)
-        # SL < 1% → 100x, SL 1-2% → 75x, SL 2-3% → 50x, SL 3-5% → 30x, SL > 5% → 20x
+        # Dynamic leverage based on SL distance, within tier limits
         entry_price = signal['entry_price']
         sl_price = signal['stop_loss']
         if entry_price and sl_price and entry_price > 0:
@@ -911,7 +918,9 @@ def auto_open_trade(signal_id):
                 leverage = 30
             else:
                 leverage = 20
-            # Ensure -20% ROI hard stop won't liquidate: leverage * sl_dist < 50%
+            # Cap within tier limits
+            leverage = max(min(leverage, lev_max), lev_min)
+            # Safety: leverage * sl_dist < 50%
             max_safe_lev = int(50 / sl_dist_pct) if sl_dist_pct > 0 else 100
             leverage = min(leverage, max_safe_lev, MAX_LEVERAGE)
             leverage = max(leverage, MIN_LEVERAGE)
@@ -1070,9 +1079,24 @@ def close_trade(trade_id, exit_price, reason):
         pnl_pct = ((entry - exit_price) / entry) * leverage * 100
     pnl = size * (pnl_pct / 100)
 
-    # Estimate fees (0.06% maker+taker per side for MEXC futures)
-    fees = size * leverage * 0.0006 * 2
+    # Estimate fees: Bitget taker 0.06% per side (open + close)
+    notional = size * leverage
+    trading_fees = notional * 0.0006 * 2  # open + close
 
+    # Estimate funding fees: ~0.01% per 8h, based on holding time
+    opened_at = trade['opened_at']
+    if opened_at:
+        try:
+            open_time = datetime.fromisoformat(opened_at.replace('Z', '+00:00'))
+            hold_hours = (datetime.now(timezone.utc) - open_time).total_seconds() / 3600
+            funding_periods = hold_hours / 8
+            funding_fees = notional * 0.0001 * funding_periods  # 0.01% per 8h
+        except:
+            funding_fees = 0
+    else:
+        funding_fees = 0
+
+    fees = round(trading_fees + funding_fees, 4)
     pnl_after_fees = pnl - fees
 
     conn.execute('''
@@ -1620,14 +1644,56 @@ def api_positions():
         if price:
             entry = t['entry_price']
             direction = t['direction']
-            leverage = t['leverage']
+            leverage = t['leverage'] or 20
+            margin = t['position_size'] or 300
+            notional = margin * leverage
+            amount = t['amount'] or 0
+
+            # PnL
             if direction == 'LONG':
                 unrealized_pct = ((price - entry) / entry) * leverage * 100
             else:
                 unrealized_pct = ((entry - price) / entry) * leverage * 100
+            unrealized_pnl = margin * (unrealized_pct / 100)
+
+            # Estimated liquidation price (simplified: when loss = margin)
+            if direction == 'LONG':
+                liq_price = round(entry * (1 - 1/leverage * 0.9), 6)
+            else:
+                liq_price = round(entry * (1 + 1/leverage * 0.9), 6)
+
+            # MMR (maintenance margin rate) ~ 0.5-1% for most pairs
+            mmr = 0.005
+            maintenance_margin = round(notional * mmr, 2)
+
+            # Fees estimate
+            trading_fees = round(notional * 0.0006 * 2, 2)
+            hold_hours = 0
+            if t['opened_at']:
+                try:
+                    ot = datetime.fromisoformat(t['opened_at'].replace('Z', '+00:00'))
+                    hold_hours = round((datetime.now(timezone.utc) - ot).total_seconds() / 3600, 1)
+                except:
+                    pass
+            funding_fees = round(notional * 0.0001 * (hold_hours / 8), 2)
+
             td['current_price'] = price
-            td['unrealized_pnl'] = round(t['position_size'] * (unrealized_pct / 100), 2)
+            td['mark_price'] = price  # Paper mode: mark = last
+            td['unrealized_pnl'] = round(unrealized_pnl, 2)
             td['unrealized_pct'] = round(unrealized_pct, 2)
+            td['margin'] = round(margin, 2)
+            td['notional'] = round(notional, 2)
+            td['liq_price'] = liq_price
+            td['mmr'] = mmr
+            td['maintenance_margin'] = maintenance_margin
+            td['avg_price'] = entry
+            td['trading_fees'] = trading_fees
+            td['funding_fees'] = funding_fees
+            td['total_fees'] = round(trading_fees + funding_fees, 2)
+            td['hold_hours'] = hold_hours
+            td['real_pnl'] = round(unrealized_pnl - trading_fees - funding_fees, 2)
+            td['sl'] = t['sl']
+            td['tp'] = t['tp']
         result.append(td)
     return jsonify(result)
 

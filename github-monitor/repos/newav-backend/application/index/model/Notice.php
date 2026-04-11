@@ -1,0 +1,57 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: Joker
+ * Date: 2023/1/13
+ * Time: 2:07
+ */
+
+namespace app\index\model;
+
+
+use think\Model;
+
+class Notice extends Model
+{
+    public function getAddTimeAttr($value){
+        return date('Y-m-d H:i:s',$value);
+    }
+
+    public function getUpdateTimeAttr($value){
+        return date('Y-m-d H:i:s',$value);
+    }
+    
+    public function saveData($data)
+    {
+        $time = time();
+        if(!empty($data['id'])){
+            $where               = [];
+            $where[]             = ['id','=',$data['id']];
+            $data['update_time'] = $time;
+            $res = $this->where($where)->update($data);
+        }
+        else{
+            $data['add_time'] = $data['update_time'] = time();
+            $res              = $this->insert($data);
+        }
+        if(false === $res){
+            return ['code'=>0,'msg'=>'保存失败'.$this->getError() ];
+        }
+        return ['code'=>1,'msg'=>'保存成功'];
+    }
+
+
+    public function infoData($where,$field='*')
+    {
+        if(empty($where) || !is_array($where)){
+            return ['code'=>0,'msg'=>'参数错误'];
+        }
+        $info = $this->field($field)->where($where)->find();
+        if (empty($info)) {
+            return ['code' => 0, 'msg' => '获取失败'];
+        }
+        return ['code'=>1,'msg'=>'获取成功','info'=>$info];
+    }
+
+
+}

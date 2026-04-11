@@ -1,0 +1,6 @@
+// recent error query
+SELECT * FROM `video_chooses` WHERE cut_callback_msg LIKE '%error%' AND sync_callback_msg IS NULL ORDER BY cut_at DESC LIMIT 100
+
+SELECT * FROM `video_chooses` WHERE status = 3 AND cut_at > '2024-07-02 11:00:00';
+
+SELECT * FROM `video_chooses` WHERE status = 3 AND cut_at > '2024-07-07 01:00:00' AND cut_callback_msg LIKE '%download%';

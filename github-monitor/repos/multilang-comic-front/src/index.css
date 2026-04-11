@@ -1,0 +1,292 @@
+@import "tailwindcss";
+@import './fonts.css';
+
+@theme {
+  --color-primary: #F981A9;
+  --color-primary-100: #FEE0EA;
+  --color-primary-200: #F86294;
+  --color-primary-300: #FEA1C6;
+  --color-primary-500: #F981A9;
+  --color-primary-600: #F86294;
+  --color-primary-dark: #F86294;
+  --color-white-smoke: #FAFAFA;
+  --color-greyscale-50: #FAFAFA;
+  --color-greyscale-100: #F5F5F5;
+  --color-greyscale-200: #EEEEEE;
+  --color-greyscale-300: #E0E0E0;
+  --color-greyscale-400: #BDBDBD;
+  --color-greyscale-500: #9E9E9E;
+  --color-greyscale-600: #757575;
+  --color-greyscale-700: #616161;
+  --color-greyscale-800: #424242;
+  --color-greyscale-900: #212121;
+  --color-secondary-gold-100: #FDF1E1;
+  --color-secondary-gold-600: #C29553;
+
+  --breakpoint-sm: 835px;
+  --breakpoint-xs: 445px;
+  --breakpoint-xxs: 361px;
+  --breakpoint-xxxs: 321px;
+}
+
+:root {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  --toastify-color-success: #34C759;
+}
+
+/* Home */
+.navbarSelected::after {
+  position: absolute;
+  content: "";
+  height: 8px;
+  margin: 0 auto;
+  left: 50%;
+  /* right: 0; */
+  transform: translate(-50%, 0%);
+  bottom: -3px;
+  width: 70px;
+  background: linear-gradient(
+    90deg,
+    var(--color-primary) 20%,
+    rgba(252, 189, 146, 0.05) 100%
+  );
+  border-top-left-radius: 50px;
+  border-bottom-right-radius: 50px;
+
+  @media only screen and (max-width: 835px) {
+    left: auto;
+    transform: translate(-60%, 0%);
+    width: 60px;
+  }
+
+  @media only screen and (max-width: 600px) {
+    left: 50%;
+    transform: translate(-50%, 0%);
+    width: 150%;
+  }
+}
+
+.bannerSwiper .swiper-pagination {
+  position: relative;
+}
+
+.bannerSwiper .swiper-pagination-bullets {
+  bottom: -5px !important;
+}
+
+.bannerSwiper .swiper-pagination-bullet-active {
+  width: 25px;
+  border-radius: 20px;
+  background: linear-gradient(
+    106.42deg,
+    var(--color-primary) 37.32%,
+    var(--color-primary) 85.5%
+  );
+}
+
+
+.latestSwiperContainer .swiper-slide:not(.swiper-slide-active){
+  transform: scale(0.88) !important;
+}
+
+/* .latestSwiperContainer .swiper-slide:not(.swiper-slide-active, .swiper-slide-prev){
+  margin-right: -20px !important;
+} */
+.latestSwiperContainer .swiper-slide-prev,
+.latestSwiperContainer .swiper-slide-active {
+  margin-right: -5px !important;
+}
+
+
+.pagination_prevPageItem,
+.pagination_nextPageItem {
+  min-width: 32px;
+  min-height: 32px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pagination_pageItem {
+  min-width: 32px;
+  min-height: 32px;
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid #E0E0E0;
+  cursor: pointer;
+}
+
+.pagination_active {
+  border-radius: 50%;
+  line-height: 32px;
+  text-align: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: white;
+  cursor: pointer;
+}
+
+
+.pagination_disabled {
+  cursor: not-allowed;
+  color: rgba(155, 155, 155, 0.3);
+}
+
+.number-appearance-none input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+
+.number-appearance-none input[type="number"]::-webkit-inner-spin-button,
+.number-appearance-none input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none; /* Chrome, Safari, Edge, Opera */
+  margin: 0;
+}
+
+@keyframes spin-once {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-once {
+  animation: spin-once 1s linear 1;
+}
+
+/* global.css or tailwind.css */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+/* :root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+} */
+
+@media (width < 40rem) {
+  * {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+
+  *::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, and Opera */
+  }
+}
+
+/* ### React Toastify ### */
+/** Used to define container behavior: width, position: fixed etc... **/
+.Toastify__toast-container {
+  padding: 1rem;
+}
+/** Classes for the displayed toast **/
+.Toastify__toast {
+  border-radius: 12px;
+  padding: 14px 16px;
+  min-height: 48px;
+}
+
+/** Used to position the icon **/
+.Toastify__toast-icon {
+  display: none;
+}
+
+/** Classes for the close button. Better use your own closeButton **/
+.Toastify__close-button {
+  top: 25%;
+  right: 16px;
+  opacity: 1;
+}
+.Toastify__close-button > svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+@media (width >= 64rem) {
+  .Toastify__toast-container--top-right {
+    top: calc(100px + 0.5rem); /* header height + padding */
+  }
+}
+
+/* ### Pages ### */
+#main-content:has(#topup-page) + footer, #main-content:has(#content-page) + footer, #main-content:has(#favorite-page) + footer {
+  padding-bottom: 80px;
+}

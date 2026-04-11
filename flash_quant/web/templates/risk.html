@@ -4,7 +4,9 @@
 <div class="cards">
     <div class="card">
         <div class="label">断路器</div>
-        <div class="value green">未激活</div>
+        <div class="value {{ 'red' if risk.consecutive_losses >= 5 else 'yellow' if risk.consecutive_losses >= 3 else 'green' }}">
+            {{ '暂停' if risk.consecutive_losses >= 5 else '减仓' if risk.consecutive_losses >= 3 else '正常' }}
+        </div>
     </div>
     <div class="card">
         <div class="label">黑天鹅监控</div>
@@ -12,30 +14,57 @@
     </div>
     <div class="card">
         <div class="label">连续亏损</div>
-        <div class="value">0</div>
+        <div class="value {{ 'red' if risk.consecutive_losses >= 5 else 'yellow' if risk.consecutive_losses >= 3 else '' }}">{{ risk.consecutive_losses }}</div>
         <div class="sub">3笔减仓 / 5笔暂停</div>
     </div>
     <div class="card">
-        <div class="label">日盈亏</div>
-        <div class="value green">0.00 U</div>
-        <div class="sub">限额 -300 U (-3%)</div>
+        <div class="label">持仓数</div>
+        <div class="value">{{ risk.open_positions }} / {{ risk.max_positions }}</div>
     </div>
 </div>
 
 <div class="section">
-    <h2>风控规则</h2>
+    <h2>风控规则 (实时状态)</h2>
     <table>
         <thead><tr><th>规则</th><th>阈值</th><th>当前</th><th>状态</th></tr></thead>
         <tbody>
-            <tr><td>连亏暂停</td><td>5 笔</td><td>0</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>连亏减仓</td><td>3 笔 → 仓位减半</td><td>0</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>日亏损限额</td><td>-3% (-300 U)</td><td>0%</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>周亏损限额</td><td>-8% (-800 U)</td><td>0%</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>月亏损限额</td><td>-15% (-1500 U)</td><td>0%</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>黑天鹅 (5min &gt;5%)</td><td>5%</td><td>正常</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>最大持仓数</td><td>5</td><td>0</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>同币冷却</td><td>平仓后 2h</td><td>-</td><td><span class="badge executed">正常</span></td></tr>
-            <tr><td>周末减仓</td><td>仓位 ×50%</td><td>-</td><td><span class="badge executed">正常</span></td></tr>
+            {% set cl = risk.consecutive_losses %}
+            <tr>
+                <td>连亏暂停</td><td>5 笔</td><td>{{ cl }}</td>
+                <td><span class="badge {{ 'blocked' if cl >= 5 else 'filtered' if cl >= 3 else 'executed' }}">{{ '暂停!' if cl >= 5 else '减仓' if cl >= 3 else '正常' }}</span></td>
+            </tr>
+            <tr>
+                <td>连亏减仓</td><td>3 笔 → 仓位减半</td><td>{{ cl }}</td>
+                <td><span class="badge {{ 'filtered' if cl >= 3 else 'executed' }}">{{ '已减半' if cl >= 3 else '正常' }}</span></td>
+            </tr>
+            <tr>
+                <td>日亏损限额</td><td>-{{ risk.daily_limit }}%</td><td>{{ "%+.2f"|format(risk.daily_pct) }}%</td>
+                <td><span class="badge {{ 'blocked' if risk.daily_pct <= -risk.daily_limit else 'executed' }}">{{ '暂停!' if risk.daily_pct <= -risk.daily_limit else '正常' }}</span></td>
+            </tr>
+            <tr>
+                <td>周亏损限额</td><td>-{{ risk.weekly_limit }}%</td><td>-</td>
+                <td><span class="badge executed">正常</span></td>
+            </tr>
+            <tr>
+                <td>月亏损限额</td><td>-{{ risk.monthly_limit }}%</td><td>-</td>
+                <td><span class="badge executed">正常</span></td>
+            </tr>
+            <tr>
+                <td>黑天鹅 (5min &gt;5%)</td><td>5%</td><td>正常</td>
+                <td><span class="badge executed">正常</span></td>
+            </tr>
+            <tr>
+                <td>最大持仓数</td><td>{{ risk.max_positions }}</td><td>{{ risk.open_positions }}</td>
+                <td><span class="badge {{ 'blocked' if risk.open_positions >= risk.max_positions else 'executed' }}">{{ '已满!' if risk.open_positions >= risk.max_positions else '正常' }}</span></td>
+            </tr>
+            <tr>
+                <td>同币冷却</td><td>平仓后 2h</td><td>-</td>
+                <td><span class="badge executed">正常</span></td>
+            </tr>
+            <tr>
+                <td>周末减仓</td><td>仓位 ×50%</td><td>-</td>
+                <td><span class="badge executed">正常</span></td>
+            </tr>
         </tbody>
     </table>
 </div>
@@ -55,9 +84,8 @@
 
 <div class="section">
     <h2>紧急操作</h2>
-    <p style="margin-bottom:12px;color:#8b949e">部署到服务器后可用</p>
-    <a href="#" class="btn danger" onclick="alert('需要服务器引擎')">全部平仓</a>
-    <a href="#" class="btn" onclick="alert('需要服务器引擎')">暂停交易</a>
-    <a href="#" class="btn" onclick="alert('需要服务器引擎')">恢复交易</a>
+    <a href="#" class="btn danger" onclick="alert('需要服务器引擎支持')">全部平仓</a>
+    <a href="#" class="btn" onclick="alert('需要服务器引擎支持')">暂停交易</a>
+    <a href="#" class="btn" onclick="alert('需要服务器引擎支持')">恢复交易</a>
 </div>
 {% endblock %}

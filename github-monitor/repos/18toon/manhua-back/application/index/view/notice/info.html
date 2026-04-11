@@ -1,0 +1,224 @@
+{include file="public/header" /}
+
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"> </script>
+</head>
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>标题
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" required="" name="title" lay-verify="required" value="{$info.title}"
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">描述</label>
+                <div class="layui-input-block">
+                    <textarea id="content" placeholder="请输入内容" class="ckeditor">{$info.content}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>图片
+                </label>
+                <div class="layui-input-inline">
+                    <input type="text" name="image" id="image" value="{$info.image}" style="width: 400px" class="layui-input" onclick="change()">
+                    <img alt style="max-width: 200px" class="image" id="img1" src="{$info.image}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">手机端图片</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="mobile_image" id="mobile_image" value="{$info.mobile_image}" style="width: 400px" class="layui-input" onclick="change()">
+                    <img alt style="max-width: 200px" class="image" id="img_mobile" src="{$info.mobile_image}" />
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">开始时间</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="start_time" id="start_time" value="{$info.start_time}" placeholder="请选择开始时间" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">结束时间</label>
+                <div class="layui-input-inline">
+                    <input type="text" name="end_time" id="end_time" value="{$info.end_time}" placeholder="请选择结束时间" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">跳转链接</label>
+                <div class="layui-input-inline" style="width: 400px">
+                    <input type="text" name="url" id="url" value="{$info.url}" placeholder="请输入跳转链接"
+                        autocomplete="off" class="layui-input">
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is_show" value="1" title="开启" {if condition="$info.is_show eq 1 "}checked{/if}>
+                    <input type="radio" name="is_show" value="0" title="停用" {if condition="$info.is_show eq 0 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>必须登入</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="request_login" value="1" title="开启" {if condition="$info.request_login eq 1 "}checked{/if}>
+                    <input type="radio" name="request_login" value="0" title="停用" {if condition="$info.request_login eq 0 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>排序</label>
+                <div class="layui-input-inline">
+                    <input type="number"min="0" name="sort"  edit="text" autocomplete="off" value="{$info.sort}" class="layui-input">
+                </div>
+                <div class="layui-form-mid layui-word-aux">
+                    <span class="x-red"></span>不填默认为99
+                </div>
+            </div>
+
+            <!-- 多语言翻译 TAB -->
+            <div class="layui-form-item">
+                <label class="layui-form-label">其它语言</label>
+                <div class="layui-input-block">
+                    <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+                        <ul class="layui-tab-title">
+                            {volist name="translations" id="lang"}
+                            <li {if $i==1}class="layui-this" {/if} lay-id="{$lang.lang_code}">
+                                {$lang.lang_code|strtoupper}
+                            </li>
+                            {/volist}
+                        </ul>
+                        <div class="layui-tab-content">
+                            {volist name="translations" id="lang"}
+                            <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">标题 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][title]"
+                                            value="{$lang.title|default=''}" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item layui-form-text">
+                                    <label class="layui-form-label">描述 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <textarea name="translations[{$lang.lang_code}][content]"
+                                            class="layui-textarea">{$lang.content|default=''}</textarea>
+                                    </div>
+                                </div>
+                                <div class="layui-form-item layui-form-text">
+                                    <label class="layui-form-label">图片 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][image]"
+                                            value="{$lang.image|default=''}" class="layui-input">
+                                    </div>
+                                </div>
+                                <div class="layui-form-item layui-form-text">
+                                    <label class="layui-form-label">手机端图片 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][mobile_image]"
+                                            value="{$lang.mobile_image|default=''}" class="layui-input">
+                                    </div>
+                                </div>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+layui.use(['form', 'layer', 'laydate'], function() {
+    $ = layui.jquery;
+    var form = layui.form,
+        layer = layui.layer,
+        laydate = layui.laydate;
+
+    // 时间选择器
+    laydate.render({
+        elem: '#start_time',
+        type: 'date',
+        format: 'yyyy-MM-dd'
+    });
+    laydate.render({
+        elem: '#end_time',
+        type: 'date',
+        format: 'yyyy-MM-dd'
+    });
+
+    form.verify({
+        required: [/[\S]+/, "必填项不能为空"],
+    });
+
+    form.on('submit(sub)', function (data) {
+        var content = CKEDITOR.instances['content'].getData();
+        if (!content){
+            layer.msg("请输入内容", { icon: 5 });
+            return false;
+        }
+        data.field.content = content;
+        if (data.field.start_time) {
+            data.field.start_time = data.field.start_time + ' 00:00:00';
+        }
+        if (data.field.end_time) {
+            data.field.end_time = data.field.end_time + ' 23:59:59';
+        }
+        $.ajax({
+            url: "{:url('info')}",
+            type: "POST",
+            data: data.field,
+            async: false,
+            success: function (data) {
+                if(data.code==1){
+                    layer.msg(data.msg,{icon:1});
+                    setTimeout(function () {
+                        parent.layer.closeAll();
+                        parent.location.reload();
+                    },1500);
+                }else{
+                    layer.msg(data.msg,{icon:2});
+                }
+            },
+            error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+            }
+        });
+        return false;
+    });
+
+});
+</script>
+
+</body>
+
+</html>

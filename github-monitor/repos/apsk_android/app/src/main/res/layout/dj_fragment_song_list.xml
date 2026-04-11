@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/panel_data"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ListView
+            android:id="@+id/listView_song"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@color/black_2C2C2C"
+            android:dividerHeight="1dp"
+            android:listSelector="@android:color/transparent" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageView_filter"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:contentDescription="@string/cd_icon"
+        android:src="@drawable/dj_ic_filter" />
+
+    <include
+        android:id="@+id/panel_no_data"
+        layout="@layout/view_no_data"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/panel_loading"
+        layout="@layout/view_loading"
+        android:visibility="gone" />
+</FrameLayout>

@@ -1,0 +1,124 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+
+      <div class="layui-form-item">
+        <label for="role_id" class="layui-form-label">
+          <span class="x-red"></span>所属角色</label>
+        <div class="layui-input-inline">
+          <select id="role_id" lay-verify="required" class="valid">
+            <option value="">=选择角色=</option>
+            {volist name="role" id="vo"}
+            <option value="{$vo.role_id}">{$vo.role_name}</option>
+            {/volist}
+          </select>
+        </div>
+      </div>
+
+
+      <div class="layui-form-item">
+        <label for="username" class="layui-form-label">
+          <span class="x-red">*</span>管理员名称
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="username" name="username" placeholder="请输入管理员名称" required="" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="password" class="layui-form-label">
+          <span class="x-red">*</span>密码
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="password" placeholder="请输入密码" required="" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="password_confirm" class="layui-form-label">
+          <span class="x-red">*</span>确认密码
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="password_confirm" placeholder="确认密码" required="" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red">*</span>状态</label>
+        <div class="layui-input-block">
+          <input type="radio" value="1" name="status"  title="开启" checked >
+          <input type="radio" value="2" name="status"  title="关闭">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="password" class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="add"  lay-filter="add">
+          增加
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>layui.use(['form', 'layer'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+                  layer = layui.layer;
+
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+          });
+
+          form.on('submit(add)', function (data) {
+            var username=$("#username").val();
+            var role_id=$("#role_id").val();
+            var password=$("#password").val();
+            var password_confirm=$("#password_confirm").val();
+            var status = $('input[name=status]:checked').val();
+
+            if(password_confirm!==password){
+              layer.msg('两次密码输入不一致',{icon:2});
+              return false;
+            }
+
+            $.ajax({
+              url: "{:url('admin/add')}",
+              type: "POST",
+              data: {
+                role_id: role_id,
+                username: username,
+                password: password,
+                status: status,
+              },
+              async: false,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+</script>
+</body>
+
+</html>

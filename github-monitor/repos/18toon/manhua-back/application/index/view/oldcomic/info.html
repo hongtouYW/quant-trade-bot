@@ -1,0 +1,150 @@
+{include file="public/header" /}
+<style>
+
+    .x-admin-sm .layui-btn-xs {
+        height: 22px;
+        line-height: 22px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
+</style>
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>名称：
+                </label>
+                <div class="layui-input-inline w500">
+                    <input type="text"  required="" lay-verify="required" value="{$info.title}" required class="layui-input"  placeholder="" name="title">
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red">*</span>题材</label>
+                <div class="layui-input-inline">
+                    <select name="ticai_id">
+                        <option value="">选择题材</option>
+                        {volist name="ticaiList" id="vo"}
+                        <option value="{$vo.id}" {if condition="$info['ticai_id'] eq $vo.id"}selected {/if}>{$vo.name}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+<!--            <div class="layui-form-item">
+                <label class="layui-form-label">扩展分类：</label>
+                <div class="layui-input-block">
+                    {volist name="tagList" id="vo"}
+                    <input type="checkbox" name="tags[]" value="{$vo.id}"  {in name="vo.id" value="$info.tags"} checked="checked"{/in} lay-skin="primary"  title="{$vo.name}">
+                    {/volist}
+                </div>
+            </div>-->
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="status"  lay-filter="status" value="1" title="正常" {if condition="$info.status eq 1 "}checked{/if}>
+                    <input type="radio" name="status" lay-filter="status" value="0" title="下架" {if condition="$info.status eq 0 "}checked{/if}>
+                </div>
+            </div>
+            <div class="layui-form-item layui-form-text">
+                <label for="desc" class="layui-form-label">描述</label>
+                <div class="layui-input-block">
+                    <textarea placeholder="请输入内容" id="desc" name="desc" class="layui-textarea">{$info.desc}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>进度</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="mhstatus" value="0" title="连载" {if condition="$info.mhstatus eq 0 "}checked{/if}>
+                    <input type="radio" name="mhstatus" value="1" title="完结" {if condition="$info.mhstatus eq 1 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>重磅推荐</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="isjingpin" value="0" title="否" {if condition="$info.isjingpin eq 0 "}checked{/if}>
+                    <input type="radio" name="isjingpin" value="1" title="是" {if condition="$info.isjingpin eq 1 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>独家热门</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="issole" value="0" title="否" {if condition="$info.issole eq 0 "}checked{/if}>
+                    <input type="radio" name="issole" value="1" title="是" {if condition="$info.issole eq 1 "}checked{/if}>
+                </div>
+            </div>
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                    <span class="x-red"></span>限免</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="xianmian" value="0" title="否" {if condition="$info.xianmian eq 0 "}checked{/if}>
+                    <input type="radio" name="xianmian" value="1" title="是" {if condition="$info.xianmian eq 1 "}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item center">
+                <div class="layui-input-block">
+                    <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                        保存
+                    </button>
+                </div>
+            </div>
+        </form>
+        </div>
+        </div>
+
+<script>
+    layui.use(['form', 'layer'], function () {
+    // 操作对象
+    var form = layui.form
+        , layer = layui.layer
+        , $ = layui.jquery
+        , upload = layui.upload;;
+
+    // 验证
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(sub)', function (data) {
+            console.log(data.field);
+            $.ajax({
+                url: "{:url('info')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+
+</script>
+
+</body>
+
+</html>

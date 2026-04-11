@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="35dp">
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:layout_width="112dp"
+                android:layout_height="112dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="48dp"
+                android:contentDescription="@string/cd_image"
+                android:src="@drawable/placeholder"
+                app:shapeAppearanceOverlay="@style/CircularImageView" />
+
+            <TextView
+                android:id="@+id/textView_username"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="@font/poppins_semi_bold"
+                android:gravity="center"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="27sp" />
+
+            <TextView
+                android:id="@+id/textView_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="90dp"
+                android:fontFamily="@font/poppins_regular"
+                android:gravity="center"
+                android:textColor="@color/gray_7B7B7B"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:id="@+id/panel_shops"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="23dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_profile_shop" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="@string/profile_settings_shop_management"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_chev_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panel_password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="23dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_profile_password" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="@string/profile_settings_change_password"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="16dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_chev_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panel_language"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="40dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_marginEnd="23dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_profile_language" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="@string/profile_language_settings"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/textView_language"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:fontFamily="@font/poppins_medium"
+                    android:text="@string/language_chinese"
+                    android:textColor="@color/gray_ADADAD"
+                    android:textSize="18sp" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <com.dj.manager.widget.CustomButton
+                android:id="@+id/button_logout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="48dp"
+                android:text="@string/profile_settings_logout" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

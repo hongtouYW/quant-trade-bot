@@ -1,0 +1,469 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "keen-slider/keen-slider.min.css";
+@import "swiper/css";
+@import "swiper/css/navigation";
+@import "swiper/css/pagination";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+    /*font-family: "PingFang SC", system-ui, Avenir, Helvetica, Arial, sans-serif;*/
+    line-height: 1.5;
+    font-weight: 400;
+
+    color-scheme: light dark;
+    color: rgba(255, 255, 255, 0.87);
+    background-color: #242424;
+
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --radius: 0.5rem;
+
+    /* Light mode colors from Figma - converted to OKLCH */
+    --background: oklch(1 0 0); /* #FFFFFF */
+    --foreground: oklch(0.205 0 0); /* #212121 */
+    --card: oklch(1 0 0); /* #FFFFFF */
+    --card-foreground: oklch(0.205 0 0); /* #212121 */
+    --popover: oklch(1 0 0); /* #FFFFFF */
+    --popover-foreground: oklch(0.205 0 0); /* #212121 */
+    --primary: oklch(0.638 0.304 321.8); /* #E126FC - Brand purple */
+    --primary-foreground: oklch(1 0 0); /* #FFFFFF */
+    --secondary: oklch(0.977 0.015 321.8); /* #FCE9FF - Light purple */
+    --secondary-foreground: oklch(0.205 0 0); /* #212121 */
+    --muted: oklch(0.952 0 0); /* #F3F3F3 - WCAG AA compliant with muted-foreground */
+    --muted-foreground: oklch(0.379 0 0); /* #424242 - Maintains 4.5:1 contrast ratio */
+    --accent: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --accent-foreground: oklch(0.205 0 0); /* #212121 */
+    --destructive: oklch(0.576 0.214 27.33); /* #F54336 - Red for notifications */
+    --border: oklch(0.922 0 0); /* #757575 */
+    --input: oklch(0.922 0 0); /* #757575 */
+    --ring: oklch(0.638 0.304 321.8); /* #E126FC */
+
+    /* Custom brand colors from Figma */
+    --brand-purple: oklch(0.638 0.304 321.8); /* #E126FC */
+    --brand-light-purple: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --brand-gold: oklch(0.814 0.125 79.65); /* #F3BA68 - VIP color */
+    --divider: oklch(0.916 0 0); /* #E0E0E0 */
+
+    /* VIP colors from Figma */
+    --vip-background: oklch(0.973 0.026 79.65); /* #FDF1E1 */
+    --vip-border: oklch(0.814 0.125 79.65); /* #F3BA68 */
+    --vip-text: oklch(0.205 0 0); /* #212121 */
+    --vip-text-secondary: oklch(0.445 0 0); /* #616161 */
+
+    /* Chart colors (keeping existing) */
+    --chart-1: oklch(0.646 0.222 41.116);
+    --chart-2: oklch(0.6 0.118 184.704);
+    --chart-3: oklch(0.398 0.07 227.392);
+    --chart-4: oklch(0.828 0.189 84.429);
+    --chart-5: oklch(0.769 0.188 70.08);
+
+    /* Sidebar colors using Figma light mode */
+    --sidebar: oklch(1 0 0); /* #FFFFFF */
+    --sidebar-foreground: oklch(0.205 0 0); /* #212121 */
+    --sidebar-primary: oklch(0.638 0.304 321.8); /* #E126FC */
+    --sidebar-primary-foreground: oklch(0.985 0 0); /* #FFFFFF */
+    --sidebar-accent: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --sidebar-accent-foreground: oklch(0.205 0 0); /* #212121 */
+    --sidebar-border: oklch(0.922 0 0); /* #757575 */
+    --sidebar-ring: oklch(0.638 0.304 321.8); /* #E126FC */
+
+    /* Brand accent + elevated surfaces */
+    --brand-accent: #EC67FF;
+    --brand-accent-foreground: #1A0626;
+    --surface-overlay: rgba(255, 255, 255, 0.6);
+
+    /* Plan card palette */
+    --plan-card-bg: #FFFCEF;
+    --plan-card-border: #DAC7A0;
+    --plan-card-foreground: #6E340D;
+    --plan-card-cta: #FCF0CE;
+    --plan-card-cta-foreground: #6E340D;
+}
+
+@theme inline {
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --color-chart-1: var(--chart-1);
+    --color-chart-2: var(--chart-2);
+    --color-chart-3: var(--chart-3);
+    --color-chart-4: var(--chart-4);
+    --color-chart-5: var(--chart-5);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@theme {
+    --font-pingFang: "system-ui", "Noto Sans SC", "sans-serif";
+    --font-yaHei: "Microsoft YaHei", "sans-serif";
+
+    /* Custom brand colors for Tailwind */
+    --color-brand-purple: var(--brand-purple);
+    --color-brand-light-purple: var(--brand-light-purple);
+    --color-brand-gold: var(--brand-gold);
+    --color-divider: var(--divider);
+
+    /* VIP colors for Tailwind */
+    --color-vip-background: var(--vip-background);
+    --color-vip-border: var(--vip-border);
+    --color-vip-text: var(--vip-text);
+    --color-vip-text-secondary: var(--vip-text-secondary);
+
+    --color-brand-gradient: linear-gradient(348.3deg,#FFFFFF 20.15%,#FA7154 64.54%,#F9176D 83.98%,#F308CF 98.71%);
+}
+
+.dark {
+    /* Dark mode colors from Figma - converted to OKLCH */
+    --background: oklch(0.184 0.059 321.9); /* #1A0626 */
+    --foreground: oklch(0.985 0 0); /* #FAFAFA */
+    --card: oklch(0.226 0.064 321.9); /* #1E0223 - Modal background */
+    --card-foreground: oklch(0.985 0 0); /* #FAFAFA */
+    --popover: oklch(0.226 0.064 321.9); /* #1E0223 */
+    --popover-foreground: oklch(0.985 0 0); /* #FAFAFA */
+    --primary: oklch(0.638 0.304 321.8); /* #E126FC - Same brand purple */
+    --primary-foreground: oklch(0.985 0 0); /* #FAFAFA */
+    --secondary: oklch(0.226 0.064 321.9); /* #1E0223 */
+    --secondary-foreground: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --muted: oklch(0.226 0.064 321.9); /* #1E0223 */
+    --muted-foreground: oklch(0.892 0 0); /* #E0E0E0 */
+    --accent: oklch(0.226 0.064 321.9); /* #1E0223 */
+    --accent-foreground: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --destructive: oklch(0.576 0.214 27.33); /* #F54336 */
+    --border: oklch(0.556 0 0); /* #757575 - Lighter border */
+    --input: oklch(0.556 0 0); /* #757575 */
+    --ring: oklch(0.638 0.304 321.8); /* #E126FC */
+
+    /* Custom brand colors for dark mode */
+    --brand-purple: oklch(0.638 0.304 321.8); /* #E126FC */
+    --brand-light-purple: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --brand-gold: oklch(0.814 0.125 79.65); /* #F3BA68 */
+    --divider: oklch(0.817 0.151 321.8); /* #F4A8FF */
+
+    /* VIP colors for dark mode from Figma */
+    --vip-background: rgba(243, 186, 104, 0.3); /* rgba(243,186,104,0.3) */
+    --vip-border: oklch(0.814 0.125 79.65); /* #F3BA68 */
+    --vip-text: oklch(0.985 0 0); /* #FAFAFA */
+    --vip-text-secondary: oklch(0.892 0 0); /* #E0E0E0 */
+
+    /* Chart colors (keeping existing dark variants) */
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+
+    /* Sidebar colors using Figma dark mode */
+    --sidebar: oklch(0.184 0.059 321.9); /* #1A0626 */
+    --sidebar-foreground: oklch(0.985 0 0); /* #FAFAFA */
+    --sidebar-primary: oklch(0.638 0.304 321.8); /* #E126FC */
+    --sidebar-primary-foreground: oklch(0.985 0 0); /* #FAFAFA */
+    --sidebar-accent: oklch(0.226 0.064 321.9); /* #1E0223 */
+    --sidebar-accent-foreground: oklch(0.977 0.015 321.8); /* #FCE9FF */
+    --sidebar-border: oklch(0 0 0 / 0); /* transparent */
+    --sidebar-ring: oklch(0 0 0 / 0); /* transparent */
+
+    /* Brand accent + elevated surfaces */
+    --brand-accent: #EC67FF;
+    --brand-accent-foreground: #FAFAFA;
+    --surface-overlay: rgba(18, 5, 28, 0.65);
+
+    /* Plan card palette */
+    --plan-card-bg: #2C123E;
+    --plan-card-border: #6B4E88;
+    --plan-card-foreground: #F9EFFF;
+    --plan-card-cta: #3B1E4D;
+    --plan-card-cta-foreground: #F9EFFF;
+}
+
+
+@layer base {
+    * {
+        @apply border-border outline-ring/50;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        /*font-family: "PingFang SC", system-ui, sans-serif;*/
+    }
+
+    button:not([disabled]),
+    [role="button"]:not([disabled]) {
+        cursor: pointer;
+    }
+}
+
+@font-face {
+    font-family: "PingFang SC";
+    src: url("/fonts/PingFangSC-Thin.woff2") format("woff2");
+    font-weight: 100;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PingFang SC";
+    src: url("/fonts/PingFangSC-Light.woff2") format("woff2");
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PingFang SC";
+    src: url("/fonts/PingFangSC-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PingFang SC";
+    src: url("/fonts/PingFangSC-Medium.woff2") format("woff2");
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: "PingFang SC";
+    src: url("/fonts/PingFangSC-Semibold.woff2") format("woff2");
+    font-weight: 600;
+    font-style: normal;
+}
+
+.swiper {
+    width: 100%;
+    height: 100%;
+}
+
+.swiper-slide {
+    text-align: center;
+    font-size: 18px;
+    background: #444;
+
+    /* Center slide text vertically */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.swiper-slide img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.player[data-media-player][data-layout='video']:not([data-fullscreen]) {
+    --video-border-radius: 16px;
+    /*--video-border: 1px solid transparent !important;*/
+    --video-bg: transparent;
+}
+
+.player[data-view-type="video"] .vds-poster {
+    border-radius: 16px;
+}
+
+/* Custom poster styling to prevent stretching */
+.custom-poster,
+.custom-poster img,
+.vds-poster img,
+.player .vds-poster img {
+    object-fit: contain !important;
+    object-position: center !important;
+    background-color: black !important;
+}
+
+.custom-poster {
+    border-radius: 16px;
+    background-color: black !important;
+}
+
+.player[data-view-type="video"] .vds-poster.custom-poster {
+    background-color: black !important;
+}
+
+/* Subtitle caption styling - force sans-serif font */
+.player[data-media-player] .vds-captions {
+    font-family: sans-serif !important;
+}
+
+/* TODO - this is a dirty fix for now to only show first child at the moment, please fix the subtitles instead to fix it */
+/*.player[data-view-type="video"] .vds-captions [data-part="cue-display"]:not(:first-child) {*/
+/*    display: none !important;*/
+/*}*/
+
+/* Remove all border radius on mobile for edge-to-edge video */
+@media (max-width: 639px) {
+    .player[data-media-player][data-layout='video']:not([data-fullscreen]) {
+        --video-border-radius: 0px !important;
+    }
+
+    .player[data-view-type="video"] .vds-poster {
+        border-radius: 0 !important;
+    }
+
+    .custom-poster,
+    .custom-poster img,
+    .vds-poster img,
+    .player .vds-poster img {
+        border-radius: 0 !important;
+    }
+
+    .player {
+        border-radius: 0 !important;
+    }
+}
+
+:where( [data-media-player][data-load='play']:not([data-started]) .vds-video-layout[data-match] .vds-load-container ) {
+    z-index: 2;
+}
+
+/* Keen-slider performance optimizations */
+.keen-slider {
+    /* Enable hardware acceleration */
+    transform: translateZ(0);
+    /* Optimize rendering during scroll */
+    will-change: transform;
+    /* Smooth scrolling experience */
+    -webkit-overflow-scrolling: touch;
+    /* Reduce layout thrashing */
+    contain: layout style paint;
+    /* Ensure container doesn't clip content */
+    overflow: visible !important;
+    /* Add padding to prevent last item cutoff */
+    padding-right: 2rem !important;
+    /* Ensure proper box sizing */
+    box-sizing: border-box;
+}
+
+.keen-slider__slide {
+    /* Force hardware acceleration for slides */
+    transform: translateZ(0);
+    /* Optimize rendering */
+    backface-visibility: hidden;
+    /* Reduce repaints during scroll */
+    will-change: transform;
+}
+
+/* Optimize image rendering in slides */
+.keen-slider__slide img {
+    /* Prevent layout shifts */
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimizeSpeed;
+    /* Hardware acceleration */
+    transform: translateZ(0);
+}
+
+/* Spacer-based solution for keen-slider last item visibility */
+.keen-slider {
+    /* Ensure container doesn't clip content */
+    overflow: visible !important;
+    /* Add minimal padding as backup */
+    padding-right: 1rem !important;
+    /* Ensure proper box-sizing */
+    box-sizing: border-box;
+}
+
+/* Ensure slides render properly */
+.keen-slider__slide {
+    /* Prevent clipping within slides */
+    overflow: visible;
+}
+
+/* Make sure spacer slides don't interfere with layout */
+.keen-slider__slide[aria-hidden="true"] {
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Embla carousel lazy loading styles */
+.embla__lazy-load {
+    position: relative;
+    height: 100%;
+}
+
+.embla__lazy-load__spinner {
+    border: 2px solid oklch(var(--color-muted));
+    border-left: 2px solid oklch(var(--color-primary));
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: embla-spin 1s linear infinite;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1;
+}
+
+.embla__lazy-load__img {
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.embla__lazy-load--has-loaded .embla__lazy-load__img {
+    opacity: 1;
+}
+
+.embla__lazy-load--has-loaded .embla__lazy-load__spinner {
+    display: none;
+}
+
+@keyframes embla-spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* Hide scrollbar while maintaining scroll functionality */
+.hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+/* Hide play and seek buttons when loading */
+.player.is-loading .vds-play-button,
+.player.is-loading .vds-button {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Hide play and seek buttons when loading */
+.player.is-loading .vds-play-button,
+.player.is-loading .vds-button {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}

@@ -1,0 +1,7 @@
+.editProfileForm {
+    max-width: 50%;
+    margin: 20px auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }

@@ -1,0 +1,426 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+
+  <div class="x-nav">
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right"
+       onclick="location.reload()" title="刷新">
+      <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+    </a>
+  </div>
+
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <!-- 搜索表单 -->
+        <div class="layui-card-body">
+          {if $manhua_converted}
+          <div class="layui-input-inline" style="margin-bottom: 15px;">
+              <button type="button" class="layui-btn layui-btn-warm"
+                      onclick="convertChapter({$comic_id})">
+                  转换章节到正式漫画
+              </button>
+          </div>
+          {/if}
+          <form class="layui-form layui-col-space5" action="">
+            <input type="hidden" name="comic_id" value="{$comic_id}">
+            <div class="layui-input-inline">
+              <input type="text" name="title" placeholder="章节标题" value="{$param.title ?? ''}" autocomplete="off"
+                     class="layui-input">
+            </div>
+            <div class="layui-input-inline">
+              <select name="untranslated">
+                <option value="">是否有未翻译内容</option>
+                <option value="1" {if isset($param.untranslated) && $param.untranslated == 1}selected{/if}>存在未翻译</option>
+              </select>
+            </div>
+            <div class="layui-input-inline">
+              <button class="layui-btn" type="submit">搜索</button>
+              <a href="{:url('chapter', ['comic_id'=>$comic_id])}" class="layui-btn layui-btn-primary">重置</a>
+            </div>
+          </form>
+        </div>
+
+        <!-- 数据表格 -->
+        <div class="layui-card-body">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>外部ID</th>
+              <th>标题</th>
+              <th>封面图</th>
+              <th>是否VIP</th>
+              <th>书币</th>
+              <th>排序</th>
+              <th>转换状态</th> 
+              <th>创建时间</th>
+              <th style="width: 220px;">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>{$vo.external_id}</td>
+              <td>{$vo.title}</td>
+              <td>
+                {if !empty($vo.image)}
+                <div style="width:100%;height:100%;cursor:pointer" onclick="show_img(this)">
+                  <img src="{$img_domain}{$vo.image}" style="width:100%;height:100%;object-fit:cover;">
+                </div>
+                {/if}
+              </td>
+              <td>{if $vo.isvip == 1}是{else /}否{/if}</td>
+              <td>{$vo.score}</td>
+              <td>{$vo.sort}</td>
+              <td>
+                  {if $vo.is_converted == 1 && $vo.trans_unconverted_count == 0}
+                      <span style="color:green;">已转换</span>
+                  {else /}
+                      <span style="color:#FF5722;">
+                          未转换
+                          {if $vo.trans_unconverted_count > 0}
+                              （翻译剩余：{$vo.trans_unconverted_count}）
+                          {/if}
+                      </span>
+                  {/if}
+              </td>
+              <td>{$vo.create_time|date='Y-m-d H:i:s'}</td>
+              <td class="td-manage">
+                <button class="layui-btn layui-btn-xs" data-id="{$vo.id}" onclick="chooseLang(this)">图集</button>
+                <button class="layui-btn layui-btn-xs" onclick="viewDetail({$vo.id})">详情</button>
+                <button class="layui-btn layui-btn-danger layui-btn-xs" onclick="delChapter({$vo.id})">删除</button>
+                {if $vo.is_converted == 0 || $vo.trans_unconverted_count > 0}
+                  <button class="layui-btn layui-btn-normal layui-btn-xs" onclick="convertSingleChapter({$vo.id})">转换</button>
+                {/if}
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 分页 -->
+        <div class="layui-card-body">
+          <div id="pages" class="center"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+layui.use(['laypage', 'layer', 'jquery'], function() {
+  var laypage = layui.laypage;
+  var layer = layui.layer;
+  var $ = layui.jquery;
+
+  // 分页
+  var curUrl = "{:url('chapter', $param)}";
+
+  layui.use(['laypage', 'layer', 'jquery'], function() {
+    var laypage = layui.laypage;
+    var layer = layui.layer;
+    var $ = layui.jquery;
+
+    laypage.render({
+      elem: 'pages',
+      count: {$total},
+      limit: {$limit},
+      curr: {$page},
+      layout: ['count', 'prev', 'page', 'next', 'limit', 'skip'],
+      jump: function(obj, first) {
+        if(!first){
+          location.href = curUrl
+            .replace('%7Bpage%7D', obj.curr)
+            .replace('%7Blimit%7D', obj.limit);
+        }
+      }
+    });
+  });
+});
+
+
+// 图片预览
+function show_img(t){
+  var imgSrc = $(t).find("img").attr("src");
+  layer.open({
+    type: 1,
+    shadeClose: true,
+    title: false,
+    area: ['60%', '80%'],
+    content: '<div style="text-align:center"><img src="'+imgSrc+'" style="max-width:100%;max-height:100%"></div>'
+  });
+}
+
+// 查看详情
+function viewDetail(id){
+  var url = '{:url("chapter_info")}' + '?id=' + id;
+  layer.open({
+    type: 2,
+    title: '章节详情',
+    area: ['90%', '90%'],
+    content: url
+  });
+}
+
+// 删除章节
+function delChapter(id){
+  layer.confirm('确定删除此章节吗？', {icon: 3, title: '提示'}, function(index){
+    $.post('{:url("chapter_del")}', {id:id}, function(res){
+      if(res.code === 1){
+        layer.msg(res.msg, {icon:1});
+        setTimeout(()=>location.reload(), 1200);
+      }else{
+        layer.msg(res.msg, {icon:2});
+      }
+    }, 'json');
+    layer.close(index);
+  });
+}
+
+function convertChapter(comic_id){
+    layer.confirm('确定将导入章节转换到正式漫画吗？', {icon: 3, title: '提示'}, function(index){
+        $.post('{:url("convert_chapter")}', {id: comic_id}, function(res){
+            if(res.code === 1){
+                layer.msg(res.msg, {icon:1});
+                setTimeout(()=>location.reload(), 1200);
+            } else {
+                layer.msg(res.msg, {icon:2});
+            }
+        }, 'json');
+        layer.close(index);
+    });
+}
+
+function convertSingleChapter(id){
+  layer.confirm('确定转换此章节吗？', {icon: 3, title:'提示'}, function(index){
+    $.post('{:url("convert_single_chapter")}', {id:id}, function(res){
+      if(res.code === 1){
+        layer.msg(res.msg, {icon:1});
+        setTimeout(()=>location.reload(), 1200);
+      } else {
+        layer.msg(res.msg, {icon:2});
+      }
+    }, 'json');
+    layer.close(index);
+  });
+}
+
+function chooseLang(t) {
+    var id = $(t).attr("data-id");
+
+    var langSelectHTML = `
+        <div style="padding: 20px; text-align: center;">
+            <label for="lang">请选择语言：</label>
+            <select id="lang" style="margin-top: 10px; padding: 5px 10px;">
+                <option value="zh">中文</option>
+                <option value="en">英文</option>
+            </select>
+        </div>
+    `;
+
+    layer.open({
+        title: '选择语言',
+        area: ['300px', '220px'],
+        content: langSelectHTML,
+        btn: ['确定', '取消'],
+        yes: function(index, layero){
+            var selectedLang = $('#lang').val();
+            loadPhotos(id, selectedLang);
+            layer.close(index);
+        }
+    });
+}
+
+function loadPhotos(id, lang) {
+    $.post('{:url("photos")}', {'id': id, 'lang': lang}, function(data){
+        if (data.code == 1) {
+            let html = `
+                  <style>
+                    .photo-list {
+                        max-height: 420px;
+                        overflow-y: auto;
+                        padding: 10px;
+                        margin-top: 10px;
+                        border-top: 1px solid #ccc;
+                    }
+                    .photo-item {
+                        display: flex;
+                        justify-content: center; /* 水平居中图片和复选框 */
+                        align-items: center; /* 垂直居中 */
+                        margin-bottom: 15px;
+                        padding: 10px;
+                        border: 1px solid #eee;
+                        border-radius: 6px;
+                        transition: background 0.2s;
+                    }
+                    .photo-item:hover {
+                        background-color: #f5f7fa;
+                    }
+                    .photo-item.selected {
+                        background-color: #409EFF; /* 选中变蓝 */
+                        color: white;
+                    }
+                    .photo-checkbox {
+                        appearance: none;
+                        width: 20px;
+                        height: 20px;
+                        border: 2px solid #ccc;
+                        border-radius: 4px;
+                        margin-right: 15px;
+                        position: relative;
+                        cursor: pointer;
+                        transition: border-color 0.2s, background-color 0.2s;
+                        flex-shrink: 0;
+                    }
+                    .photo-checkbox:checked {
+                        background-color: white;
+                        border-color: white;
+                    }
+                    .photo-checkbox:checked::after {
+                        content: "";
+                        position: absolute;
+                        left: 5px;
+                        top: 1px;
+                        width: 6px;
+                        height: 12px;
+                        border: solid #409EFF; /* 蓝色勾勾 */
+                        border-width: 0 2px 2px 0;
+                        transform: rotate(45deg);
+                    }
+                    .photo-img {
+                        max-width: 300px;
+                        max-height: 400px;
+                        height: auto;
+                        border-radius: 4px;
+                        object-fit: cover;
+                    }
+                    .photo-toolbar {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 10px;
+                    }
+                    .photo-toolbar button {
+                        padding: 6px 12px;
+                        background: #409EFF;
+                        color: white;
+                        border: none;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        margin-right: 10px;
+                    }
+                    .photo-toolbar span {
+                        font-size: 14px;
+                        color: #666;
+                    }
+                </style>
+
+                <div class="photo-toolbar">
+                    <div>
+                        <button type="button" id="selectAllBtn">全选</button>
+                        <button type="button" id="unselectAllBtn">取消全选</button>
+                    </div>
+                    <span>已选择 <strong id="selected-count">0</strong> 张</span>
+                </div>
+
+                <div class="photo-list">
+            `;
+
+            data.data.forEach((img, index) => {
+                html += `
+                    <div class="photo-item">
+                        <input type="checkbox" class="photo-checkbox" name="photo[]" value="${img.src}" data-index="${index}">
+                        <img src="${img.src}" class="photo-img">
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+
+            layer.open({
+                type: 1,
+                title: '图片列表（语言：' + lang + '）',
+                area: ['100%', '600px'],
+                content: html,
+                btn: ['确定', '取消'],
+                success: function(layero) {
+                    const $layer = $(layero);
+
+                    // 全选
+                    $layer.find('#selectAllBtn').click(function () {
+                        $layer.find("input[name='photo[]']").prop('checked', true).trigger('change');
+                    });
+
+                    // 取消全选
+                    $layer.find('#unselectAllBtn').click(function () {
+                        $layer.find("input[name='photo[]']").prop('checked', false).trigger('change');
+                    });
+
+                    // 点击整行选择/取消
+                    $layer.on('click', '.photo-item', function(e) {
+                        // 避免点击复选框本身重复触发
+                        if (!$(e.target).hasClass('photo-checkbox')) {
+                            const $checkbox = $(this).find('.photo-checkbox');
+                            $checkbox.prop('checked', !$checkbox.prop('checked')).trigger('change');
+                        }
+                    });
+
+                    // 更新选中数量
+                    $layer.on('change', "input[name='photo[]']", function () {
+                        const count = $layer.find("input[name='photo[]']:checked").length;
+                        $layer.find("#selected-count").text(count);
+
+                        // 选中时加 selected 类
+                        $(this).closest('.photo-item').toggleClass('selected', this.checked);
+                    });
+                },
+                yes: function(index, layero){
+                    const $layer = $(layero);
+                    const selected = [];
+
+                    $layer.find("input[name='photo[]']:checked").each(function(){
+                        const index = parseInt($(this).attr("data-index"));
+                        selected.push(index);
+                    });
+
+                    selected.sort((a, b) => a - b);
+
+                    // 检查是否是连续的
+                    let isContinuous = true;
+                    for (let i = 1; i < selected.length; i++) {
+                        if (selected[i] !== selected[i - 1] + 1) {
+                            isContinuous = false;
+                            break;
+                        }
+                    }
+
+                    if (!isContinuous) {
+                        layer.msg("请选择连续的图片", {icon: 2});
+                        return;
+                    }
+
+                    const start = selected[0] + 1; // 页面从 1 开始而不是 index 0
+                    const end = selected[selected.length - 1] + 1;
+
+                    const chapterId = id; // id 就是传入的章节 ID
+                    const url = `http://213.144.200.241:13031/?chapter_id=${chapterId}&page_input=${start}-${end}`;
+
+                    console.log("跳转链接：", url);
+                    window.open(url, "_blank"); // 新标签打开
+
+                    layer.close(index);
+                }
+            });
+        } else {
+            layer.alert(data.msg, {icon: 2});
+        }
+    });
+}
+</script>
+</body>
+</html>

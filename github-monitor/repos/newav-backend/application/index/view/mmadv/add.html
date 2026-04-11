@@ -1,0 +1,128 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5" action="">
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="text" name="id" placeholder="视频id"  value="{$param['id']}" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="text" name="wd" placeholder="请输入视频名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+            </div>
+            <div class="layui-input-inline w150">
+              <select name="private">
+                <option value="">视频权限</option>
+                <option value="0" {if condition="$param['private'] eq '0'"}selected {/if}>免费观看</option>
+                <option value="2" {if condition="$param['private'] eq '2'"}selected {/if}>VIP观看</option>
+              </select>
+            </div>
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="submit" class="layui-btn"  value="搜索">
+            </div>
+          </form>
+        </div>
+
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th width="25"></th>
+              <th>ID</th>
+              <th>视频名称</th>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td><input type="checkbox" name="ids[]"  data-thumb="{$thumb_url}{$vo.thumb}" data-title="{$vo.title}" data-video-url="{$vo.video_url}" value="{$vo.id}" class="layui-checkbox checkbox-ids" lay-skin="primary">
+                <div class="layui-unselect layui-form-checkbox" lay-skin="primary"><i class="layui-icon"></i></div>
+              </td>
+              <td>{$vo.id}</td>
+              <td>{$vo.title}</td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+
+          <div id="pages" class="center"></div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+
+  var curUrl="{:url('add',$param)}";
+  layui.use(['laypage', 'layer'], function() {
+    var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+    laypage.render({
+      elem: 'pages'
+      ,count: {$total}
+      ,limit: {$limit}
+      ,limits:[10,20,50,100]
+      ,curr: {$page}
+      ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+      ,jump: function(obj,first){
+        if(!first){
+          location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+        }
+      }
+    });
+  });
+
+
+  layui.use(['laypage', 'layer','form','jquery'], function() {
+    var laypage = layui.laypage
+            , layer = layui.layer,
+            form = layui.form
+            ,$ = layui.jquery;
+
+    $(document).on('click','.layui-form-checkbox',function(){
+      var vid = $(this).parent('td').find('input').val();
+      var title = $(this).parent('td').find('input').attr('data-title');
+      var thumb = $(this).parent('td').find('input').attr('data-thumb');
+      var video_url = $(this).parent('td').find('input').attr('data-video-url');
+
+
+      $.ajax({
+        url: "{:url('add_adv')}",
+        type: "POST",
+        data: {
+          vid: vid,
+          title: title,
+          thumb:thumb,
+          video_url:video_url
+        },
+        async: false,
+        success: function (data) {
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              parent.layer.closeAll();
+              parent.location.reload();
+            },1500);
+          }else{
+            layer.msg(data.msg,{icon:2});
+          }
+        },
+        error: function () {
+          layer.msg("System Service Busy!", {offset: '200px'});
+        }
+      });
+
+    })
+  });
+
+
+</script>
+
+</html>

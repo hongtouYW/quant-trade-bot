@@ -1,0 +1,82 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>标题
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" {notempty name="info.id"} disabled {/notempty} required="" lay-verify="required"  placeholder="请输入name" {empty name="info.id"} name="name" {/empty} value="{$info.name}"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>Value
+        </label>
+        <div class="layui-input-block">
+          <textarea  required=""  name="value" placeholder="请输入Value" class="layui-textarea">{$info.value}</textarea>
+        </div>
+      </div>
+
+      <div class="layui-form-item layui-form-text">
+        <label class="layui-form-label">描述</label>
+        <div class="layui-input-block">
+          <textarea placeholder="请输入内容"  name="remark" class="layui-textarea">{$info.remark}</textarea>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+          保存
+        </button>
+        <button class="layui-btn layui-btn-warm" type="reset">重置</button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>layui.use(['form', 'layer'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+                  layer = layui.layer;
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+          });
+
+          form.on('submit(sub)', function (data) {
+            $.ajax({
+              url: "{:url('info')}",
+              type: "POST",
+              data: data.field,
+              async: false,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+</script>
+</body>
+
+</html>

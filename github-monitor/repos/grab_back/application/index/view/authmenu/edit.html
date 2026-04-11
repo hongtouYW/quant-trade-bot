@@ -1,0 +1,131 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" id="id" value="{$find.id}">
+      <div class="layui-form-item">
+        <label for="parent_id" class="layui-form-label">
+          <span class="x-red">*</span>父级菜单
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="parent_id" disabled  value="{$find.parent_name}"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label for="name" class="layui-form-label">
+          <span class="x-red">*</span>菜单名称
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="name"  required="" value="{$find.name}" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="name" class="layui-form-label">
+          <span class="x-red">*</span>路由
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="url"  required="" value="{$find.url}"  lay-verify="required"
+                 autocomplete="off" class="layui-input">
+          <span class="help-block m-b-none">如：/user/add</span>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="ico" class="layui-form-label">
+          <span class="x-red"></span>图标样式
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" id="ico" placeholder="输入菜单名称前显示的CSS样式" value="{$find.ico}"
+                 autocomplete="off" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          <a href="http://fontawesome.dashgame.com/" target="_black">选择图标</a> 如fa-user
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red">*</span>状态</label>
+        <div class="layui-input-block">
+          <input type="radio" value="1" name="status" lay-skin="primary" title="开启" {if condition="$find.status eq 1 "}checked{/if}>
+          <input type="radio" value="0" name="status" lay-skin="primary" title="关闭" {if condition="$find.status eq 0 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="sort" class="layui-form-label">
+          <span class="x-red"></span>排序
+        </label>
+        <div class="layui-input-inline">
+          <input type="number" id="sort"  min="0" required="" value="{$find.sort}" placeholder="输入排序,不填默认为99" autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label for="sort" class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="edit"  lay-filter="edit">
+          修改
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  layui.use(['form', 'layer'],
+          function() {
+            $ = layui.jquery;
+            var form = layui.form,
+                    layer = layui.layer;
+
+            form.verify({
+              required: [/[\S]+/, "必填项不能为空"],
+            });
+
+            form.on('submit(edit)', function (data) {
+              var id=$("#id").val();
+              var name=$("#name").val();
+              var url=$("#url").val();
+              var ico=$("#ico").val();
+              var sort=$("#sort").val();
+              var status = $('input[name=status]:checked').val();
+              $.ajax({
+                url: "{:url('authmenu/edit')}",
+                type: "POST",
+                data: {
+                  id: id,
+                  name: name,
+                  url: url,
+                  ico: ico,
+                  sort: sort,
+                  status: status
+                },
+                async: false,
+                success: function (data) {
+                  console.log(data);
+                  if(data.code==1){
+                    layer.msg(data.msg,{icon:1});
+                    setTimeout(function () {
+                      parent.layer.closeAll();
+                      parent.location.reload();
+                    },1500);
+                  }else{
+                    layer.msg(data.msg,{icon:2});
+                  }
+                },
+                error: function () {
+                  layer.msg("System Service Busy!", {offset: '200px'});
+                }
+              });
+              return false;
+            });
+
+          });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'log_type' => 'Log Type',
+    'log_text' => 'Log Text',
+    'log_desc' => 'Log Description',
+    'shop' => ' shop ',
+    'member' => ' member ',
+    'manager' => ' manager ',
+    'player' => ' player ',
+    'login' => '%s login to account %s',
+    'logout' => '%s logout from account %s',
+    'create_account' => '%s created for account %s',
+    'create_random_account' => '%s created random for account %s',
+    'deposit' => '%s deposit to %s',
+    'withdraw' => '%s withdraw to %s',
+    'active_alarm' => '%s active alarm for account %s',
+    'deactive_alarm' => '%s deactive alarm for account %s',
+    'changepassword' => '%s change password for account %s',
+    'block' => '%s block for account %s',
+    'unblock' => '%s unblock for account %s',
+    'create_player_account' => '%s created player for account %s',
+    'gamedeposit' => '%s reload game point for account %s',
+    'gamewithdraw' => '%s withdraw game point for account %s',
+];

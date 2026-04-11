@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <WebView
+        android:id="@+id/webView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none" />
+
+    <LinearLayout
+        android:id="@+id/panel_home"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="56dp"
+        android:background="@drawable/bg_button_home"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginBottom="4dp"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_home_white" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/pingfang_sc_regular"
+            android:gravity="center"
+            android:text="@string/yxi_lobby_home"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <include
+        android:id="@+id/panel_loading"
+        layout="@layout/view_loading"
+        android:clickable="false"
+        android:focusable="false"
+        android:visibility="gone" />
+</FrameLayout>

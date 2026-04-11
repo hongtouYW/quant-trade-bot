@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/panel_item"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp">
+
+    <ImageView
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/cd_icon"
+        android:src="@drawable/ic_user" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="0dp"
+        android:paddingEnd="16dp">
+
+        <TextView
+            android:id="@+id/textView_username"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/pingfang_sc_regular"
+            android:textColor="@color/orange_F8AF07"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/textView_id"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@id/imageView_cta"
+            android:layout_toEndOf="@id/textView_username"
+            android:fontFamily="@font/pingfang_sc_regular"
+            android:textColor="@color/gray_6E6E6E"
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
+
+        <TextView
+            android:id="@+id/textView_join_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textView_id"
+            android:layout_marginEnd="8dp"
+            android:layout_toStartOf="@id/imageView_cta"
+            android:fontFamily="@font/pingfang_sc_regular"
+            android:textColor="@color/gray_6E6E6E"
+            android:textSize="10sp"
+            tools:ignore="SmallSp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/textView_join_date"
+            android:layout_marginEnd="10dp"
+            android:layout_toStartOf="@id/imageView_cta"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            tools:ignore="UseCompoundDrawables">
+
+            <TextView
+                android:id="@+id/textView_invitation_link"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:lines="1"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:textColor="@color/gray_6E6E6E"
+                android:textSize="10sp"
+                tools:ignore="SmallSp" />
+
+            <ImageView
+                android:id="@+id/imageView_copy"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_copy"
+                android:visibility="gone" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageView_cta"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_alignBottom="@id/textView_join_date"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="@string/cd_icon"
+            android:src="@drawable/ic_chev_right_white"
+            android:visibility="gone" />
+    </RelativeLayout>
+</LinearLayout>

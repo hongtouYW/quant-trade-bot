@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'select' => 'Pilih Slaid',
+    'slider_list' => 'Senarai Slaid',
+    'add_new_slider' => 'Tambah Slaid Baharu',
+    'slider_added_successfully' => 'Slaid :title berjaya ditambah!',
+    'slider_updated_successfully' => 'Slaid :title berjaya dikemas kini!',
+    'slider_deleted_successfully' => 'Slaid :title berjaya dipadam!',
+    'title' => 'Tajuk',
+    'slider_desc' => 'Keterangan',
+    'url' => 'URL',
+    'status' => 'Status',
+    'active' => 'Aktif',
+    'inactive' => 'Tidak Aktif',
+    'never' => 'Tidak Pernah',
+    'edit_slider' => 'Edit Slaid',
+    'delete_slider' => 'Padam Slaid',
+    'confirm_delete_slider' => 'Adakah anda pasti mahu memadam Slaid :title?',
+    'no_data_found' => 'Tiada Slaid dijumpai.',
+    'leave_blank_for_no_change' => 'Biarkan kosong jika tiada perubahan',
+    'active_status' => 'Status Aktif',
+    'agent_name' => 'Nama Agent',
+    'dashboarddeposit' => ':member_name telah membuat deposit :amount',
+    'dashboardwithdraw' => ':member_name telah membuat pengeluaran :amount',
+    'dashboardwin' => ':member_name telah menang :amount',
+];

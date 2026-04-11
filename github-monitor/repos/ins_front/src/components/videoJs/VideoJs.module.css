@@ -1,0 +1,57 @@
+/* .videoPlayerRef {
+  min-height: 675px;
+}
+
+.player {
+  position: relative;
+  min-height: 675px;
+  cursor: pointer;
+}
+
+.playerPreviewImg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.playerIconBg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.playerIcon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80px;
+  height: 80px;
+}
+
+.playerIcon:hover {
+  opacity: 0.7;
+}
+@media screen and (max-width: 600px) {
+  .player {
+    min-height: 250px;
+  }
+
+  .playerMaxContent {
+    min-height: max-content;
+    cursor: pointer;
+  }
+
+  .videoPlayerRef {
+    min-height: 210px;
+  }
+
+  .videoPlayerRefMaxContent {
+    min-height: max-content;
+  }
+} */

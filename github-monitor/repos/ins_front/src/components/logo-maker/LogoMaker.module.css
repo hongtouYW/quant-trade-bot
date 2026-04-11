@@ -1,0 +1,40 @@
+.navLogoMaker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.navLogoText {
+  font-size: 22px;
+  font-weight: 700;
+  /* line-height: 35px; */
+}
+
+.navLogoTag {
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+
+@media screen and (max-width: 600px) {
+  .navLogoMaker img {
+    width: 55px;
+  }
+  .navLogoTag {
+    font-size: 10px;
+    padding: 1px 5px;
+    width: max-content;
+  }
+}
+
+@media screen and (max-width: 375px) {
+  .navLogoMaker img {
+    width: 48px;
+  }
+}
+
+@media screen and (max-width: 360px) {
+  .navLogoMaker img {
+    width: 45px;
+  }
+}

@@ -1,0 +1,92 @@
+{include file="public/header" /}
+
+<script type="text/javascript" src="/static/ckeditor/ckeditor.js"> </script>
+</head>
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+
+            <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">内容</label>
+                <div class="layui-input-block">
+                    <textarea id="text" placeholder="请输入内容" class="ckeditor">{$info.text}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">英文内容</label>
+                <div class="layui-input-block">
+                    <textarea id="text_en" placeholder="请输入英文内容" class="ckeditor">{$info.text_en}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text" style="width: 1200px">
+                <label class="layui-form-label">俄语内容</label>
+                <div class="layui-input-block">
+                    <textarea id="text_ru" placeholder="请输入俄语内容" class="ckeditor">{$info.text_ru}</textarea>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">
+                </label>
+                <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+                    保存
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>layui.use(['form', 'layer'],
+    function() {
+        $ = layui.jquery;
+        var form = layui.form,
+            layer = layui.layer;
+        form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+        });
+
+        form.on('submit(sub)', function (data) {
+            var text = CKEDITOR.instances['text'].getData();
+            var text_en = CKEDITOR.instances['text_en'].getData();
+            var text_ru = CKEDITOR.instances['text_ru'].getData();
+            data.field.text = text;
+            data.field.text_en = text_en;
+            data.field.text_ru = text_ru;
+
+            $.ajax({
+                url: "{:url('detail_info')}",
+                type: "POST",
+                data: data.field,
+                async: false,
+                success: function (data) {
+                    console.log(data);
+                    if(data.code==1){
+                        layer.msg(data.msg,{icon:1});
+                        setTimeout(function () {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        },1500);
+                    }else{
+                        layer.msg(data.msg,{icon:2});
+                    }
+                },
+                error: function () {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+            return false;
+        });
+
+    });
+
+
+</script>
+</body>
+
+</html>

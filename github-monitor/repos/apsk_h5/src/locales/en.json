@@ -1,0 +1,1483 @@
+{
+  "welcome": "Welcome, ",
+  "vip": "VIP {level}",
+  "balance": "Balance",
+  "wallet": "My Wallet",
+  "transactions": "Transaction",
+  "topup": "Top-Up",
+  "withdraw": "Withdrawal",
+  "vipPrivileges": "VIP Privileges",
+  "discount": "Discount Center",
+  "bank": "Bank Details",
+  "promote": "Earn by Promoting",
+  "bonusBadge": "Get {percent}%",
+  "nav": {
+    "home": "Home",
+    "privacy": "Privacy Policy",
+    "terms": "Terms & Conditions",
+    "sport": "Sports",
+    "all": "All",
+    "slot": "Slots",
+    "hot": "Hot",
+    "app": "APP",
+    "electronic": "Electronic",
+    "chess": "Chess",
+    "newMember": "New Member Top-Up",
+    "crypto": "Crypto Top-Up Promo",
+    "agent": "Agent",
+    "hotActivity": "Hot Activities",
+    "other": "Other Activities",
+    "fishing": "Fishing",
+    "live": "Live",
+    "sports": "Sports",
+    "lottery": "Lottery",
+    "cock": "Cockfight"
+  },
+  "tabs": {
+    "hot": "Hot",
+    "recent": "Recent",
+    "favorite": "Favorites"
+  },
+  "footer": {
+    "home": "Home",
+    "promo": "Promo",
+    "cs": "Support",
+    "me": "Me"
+  },
+
+  "setting": {
+    "profile": "Profile",
+    "safety": "Privacy & Security",
+    "contact": "Contact Us",
+    "contactNote": "To avoid connection issues",
+    "download": "App Download",
+    "feedback": "App Feedback",
+    "help": "Help",
+    "language": "Language",
+    "logout": "Log Out",
+    "logoutConfirm": "Confirm Log Out",
+    "logoutConfirmMessage": "Are you sure you want to log out?"
+  },
+
+  "findus": {
+    "common": {
+      "copied": "Copied!",
+      "copyFailed": "Copy failed",
+      "openEmail": "Open email app"
+    },
+    "title": "Find Us",
+    "saveWebsite": "Save Website",
+    "websiteNote": "To prevent connection issues and ensure a smooth gaming experience, please save our permanent address:",
+    "homeLink1": "Home Link 1",
+    "homeLink2": "Home Link 2",
+    "officialLink": "Official Website",
+    "saveImage": "Save Image",
+    "saveEmail": "Save Email",
+    "emailNote": "Official email — contact us for the latest domain anytime."
+  },
+
+  "appdownload": {
+    "iosVersion": "iOS v{version}",
+    "androidVersion": "Android v{version}",
+    "title": "App Download",
+    "instruction": "Scan or tap to download our app",
+    "clickNote": "(Tap to open)"
+  },
+  "account": {
+    "switch": "Switch Account"
+  },
+  "language": {
+    "current": {
+      "zh": "简体中文",
+      "ms": "Melayu",
+      "en": "English"
+    },
+    "title": "Language",
+    "cn": "Chinese",
+    "zh": "Chinese",
+    "ms": "Malay",
+    "en": "English",
+    "th": "Thai",
+    "vi": "Vietnamese",
+    "my": "Myanmar"
+  },
+
+  "helps": {
+    "detailTitle": "Help Details",
+    "noAnswer": "No content available",
+    "createdOn": "Created On",
+    "title": "Help",
+    "tab": {
+      "faq": "FAQ",
+      "trade": "Trade",
+      "transfer": "Transfer",
+      "vip": "VIP Guide"
+    },
+
+    "card": {
+      "title": "24/7 Online Support",
+      "subtitle": "Professional support available anytime.",
+      "cs1": "Customer Service 1",
+      "cs2": "Customer Service 2",
+      "otherCS": "Other Support"
+    },
+
+    "group": {
+      "wallet": "Crypto Wallet",
+      "game": "Game Issues",
+      "promo": "Promo Issues",
+      "topup": "Top-Up Issues",
+      "withdraw": "Withdrawal Issues"
+    },
+
+    "q": {
+      "wallet": {
+        "1": "1. Understanding and using a USDT crypto wallet",
+        "2": "2. Benefits of using cryptocurrency",
+        "3": "3. How to download and use cryptocurrency"
+      },
+      "game": {
+        "1": "1. Common game issues"
+      },
+      "promo": {
+        "1": "1. Promo-related questions"
+      },
+      "topup": {
+        "1": "1. How to top up & processing times"
+      },
+      "withdraw": {
+        "1": "1. How to withdraw & important notes"
+      }
+    }
+  },
+  "msgCenter": {
+    "title": "Message Center",
+    "tabs": {
+      "cs": "Support",
+      "notice": "Notifications",
+      "marquee": "Home Marquee",
+      "appFeedback": "App Feedback"
+    },
+    "actions": {
+      "create": "Create Feedback",
+      "mine": "My Feedback",
+      "submit": "Submit Feedback"
+    },
+    "form": {
+      "topic": "Feedback Title",
+      "topicPlaceholder": "Enter feedback title",
+      "topic_bug": "Bug / Function Issue",
+      "topic_ui": "UI Display",
+      "topic_suggest": "Feature Suggestion",
+      "topic_other": "Other",
+      "content": "Feedback Content",
+      "placeholder": "Anything you share is important to us. Feel free to speak your mind!",
+      "mediaTitle": "Feedback Images",
+      "mediaNote": "Supports image and video uploads. Images must be under 2MB, videos under 20MB.",
+      "topic_gameSpeed": "Game Loading Speed",
+      "topic_uiSmooth": "Smoothness / Control Experience",
+      "topic_difficulty": "Stage Difficulty",
+      "topic_guide": "New User Guide"
+    },
+    "toast": {
+      "submitted": "Feedback submitted",
+      "success": "Your feedback has been submitted!",
+      "error": "Submission failed. Please try again later."
+    },
+    "mine": {
+      "empty": "No feedback records yet"
+    },
+    "validation": {
+      "fillAll": "Please fill in all required fields.",
+      "topicRequired": "Please select a feedback topic.",
+      "contentRequired": "Please enter your feedback.",
+      "missingMember": "Missing user information. Please log in again.",
+      "imageRequired": "Please upload at least one image"
+    }
+  },
+
+  "profile": {
+    "title": "Profile",
+    "changeAvatar": "Change Avatar",
+    "username": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "userId": "User ID",
+    "bindSocial": "Bind Social Account",
+    "birthday": "Birthday",
+    "saveSuccess": "Profile saved successfully",
+    "saveFailed": "Failed to save profile. Please try again.",
+    "errors": {
+      "usernameRequired": "Please enter your username",
+      "socialRequired": "Please enter a social account",
+      "birthdayRequired": "Please select your birthday",
+      "avatarRequired": "Please upload an avatar",
+      "userIdRequired": "User ID cannot be empty"
+    }
+  },
+
+  "common": {
+    "loadFailed": "Failed to load. Please try again.",
+    "home": "Home",
+    "sessionExpired": "Session Expired",
+    "sessionExpiredMessage": "Your session has expired. Please log in again.",
+
+    "networkError": "Network error, please try again later.",
+    "select": "Please select",
+    "success": "Success",
+    "error": "An error occurred. Please try again later.",
+    "noData": "No data available",
+    "underMaintenanceTitle": "Page Under Maintenance",
+    "underMaintenanceMessage": "This page is for demonstration only and is temporarily unavailable.",
+    "ok": "OK",
+    "save": "Save",
+    "loading": "Loading...",
+    "saveSuccess": "Saved successfully",
+    "noRecords": "No records",
+    "noMore": "No more content",
+    "copy": "Copy",
+    "copySuccess": "Copied successfully",
+    "copyFailed": "Copy failed",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "confirmLogout": "Confirm logout",
+    "back": "Back",
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "copied": "Copied",
+    "favorite": "Favorite",
+    "retry": "Retry",
+    "next": "Next",
+    "credit": "Balance",
+    "points": "Points",
+    "close": "Close",
+    "backHome": "Back to Home",
+    "link": "Link",
+    "downloadUrl": "App Download Link"
+  },
+
+  "vips": {
+    "invalidBonusType": "Invalid bonus type",
+    "dailyBonusNotImplemented": "Daily bonus is not implemented yet",
+    "max": "Maximum level reached",
+    "title": "VIP Privileges",
+    "oneClickClaim": "One-Click Claim",
+    "claimRecords": "Claim Records",
+    "upgradeNeed": "Required Top-up Amount to topup",
+    "section": {
+      "normal": "Regular Bonus",
+      "weekly": "Weekly Salary",
+      "monthly": "Monthly Salary",
+      "firstbonus": "Regular Bonus",
+      "dailybonus": "Daily Salary",
+      "weeklybonus": "Weekly Salary",
+      "monthlybonus": "Monthly Salary"
+    },
+    "col": {
+      "level": "Level",
+      "needNormal": "Required Regular Bet",
+      "needWeekly": "Required Weekly Bet",
+      "needMonthly": "Required Monthly Bet",
+      "reward": "Bonus"
+    },
+    "rules": {
+      "title": "Rules Explanation",
+      "item1": "Upgrade Criteria: Meet the upgrade requirement (recharge or valid bet), and you will advance to the corresponding VIP level and receive the upgrade bonus. If multiple levels are upgraded continuously, all bonuses can be claimed after 00:00:00 today.",
+      "item2": "Daily Salary: Meet the daily recharge and valid bet requirements to receive the daily salary bonus. Only the current level’s daily salary is given. Unclaimed rewards expire daily.",
+      "item3": "Weekly Salary: Meet the weekly recharge and valid bet requirements to receive the weekly salary bonus. Only the current level’s weekly salary is given. Rewards expire if not claimed within the week.",
+      "item4": "Monthly Salary: Meet the monthly recharge and valid bet requirements to receive the monthly salary bonus. Rewards expire if not claimed within the month.",
+      "item5": "Expiration: Expired rewards will be voided. Please claim before the countdown ends.",
+      "item6": "Audit: VIP bonuses require 1× turnover before withdrawal. Any game provider is allowed.",
+      "item7": "Activity Statement: Only normal gaming behavior is allowed. Account renting, risk-free betting, arbitrage, bots, exploiting APIs or vulnerabilities, or any technical manipulation is strictly prohibited. If verified, the platform may suspend access and confiscate bonuses and illegal gains without prior notice."
+    }
+  },
+
+  "transaction": {
+    "title": "Transaction Records",
+    "back": "Back",
+    "tabs": {
+      "credit": "Credit Records",
+      "points": "Points Records",
+      "bets": "Bet History"
+    },
+    "tx": {
+      "qrPayment": "QR Cash-Out (Store)",
+      "pointReload": "Top-Up {amount}",
+      "topup": "Top-Up {amount}",
+      "rebate": "Received Rebate {amount}",
+      "bonus": "Received Bonus {amount}",
+      "withdraw": "Withdraw {amount}",
+      "reload": "Reload {amount}",
+      "pointWithdraw": "Game Withdrawal {amount}",
+      "gameDeposit": "Game Deposit {amount}",
+      "gameWithdraw": "Game Withdrawal {amount}",
+      "deposit": "Deposit {amount}",
+      "unknown": "Transaction {amount}"
+    },
+    "detail": {
+      "pTopup": "Game Reload",
+      "provider": "Provider",
+      "method": "Method",
+      "notFound": "No transaction record found",
+      "amount": "Amount",
+      "bank": "Bank",
+      "time": "Transaction Time",
+      "id": "Transaction ID",
+      "status": "Status",
+      "game": "Game",
+      "bet": "Bet",
+      "win": "Win",
+      "begin": "Starting Balance",
+      "end": "Ending Balance"
+    },
+    "status": {
+      "success": "Success",
+      "failed": "Failed",
+      "pending": "Processing"
+    },
+    "actions": {
+      "filter": "Filter"
+    },
+    "filter": {
+      "title": "Filter",
+      "clear": "Clear",
+      "rangeTitle": "Select Range",
+      "searchByDate": "Search by Date",
+      "reset": "Reset",
+      "resultTitle": "Filter Results",
+      "quick": {
+        "all": "All",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "thisWeek": "This Week",
+        "lastWeek": "Last Week",
+        "thisMonth": "This Month",
+        "lastMonth": "Last Month",
+        "prevDay": "Previous Day",
+        "nextDay": "Next Day"
+      },
+      "date": "Date",
+      "dateFrom": "Start Date",
+      "dateTo": "End Date",
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "preview": "Preview"
+    }
+  },
+
+  "safety": {
+    "title": "Privacy & Security",
+    "items": {
+      "phone": "Phone Number",
+      "email": "Email",
+      "googleAuth": "Google Authentication",
+      "face": "Face Verification",
+      "fingerprint": "Fingerprint Verification",
+      "changePassword": "Change Password"
+    },
+    "status": {
+      "unbound": "Not Bound",
+      "unadded": "Not Added",
+      "bound": "Bound"
+    },
+    "actions": {
+      "back": "Back"
+    }
+  },
+
+  "bindPhone": {
+    "title": "Phone Number",
+    "heading": "Bind Phone Number",
+    "subtitle": "This phone number will be used for login",
+    "placeholder": "Enter phone number",
+    "verify": "Verify",
+    "boundTitle": "Phone Number Bound",
+    "boundSubtitle": "This phone number will be used for login"
+  },
+
+  "otp": {
+    "title": "Verification Code",
+    "enterCode": "Enter verification code",
+    "sentTo": "Code sent to {phone}",
+    "resend": "Resend ({seconds}s)",
+    "verify": "Verify",
+    "bindSuccess": "Phone number bound successfully"
+  },
+
+  "bindEmail": {
+    "title": "Email",
+    "heading": "Bind Email",
+    "subtitle": "This email will be used for login",
+    "placeholder": "Enter email address",
+    "verify": "Verify",
+    "errors": {
+      "emailRequired": "Please enter an email address",
+      "emailInvalid": "Invalid email format"
+    }
+  },
+
+  "ga": {
+    "title": "Google Authenticator",
+    "h1Bind": "Bind Google Authenticator",
+    "h1Unbind": "Unbind Google Authenticator",
+
+    "step1": "Step 1",
+    "download": "Download & Install",
+    "googleAuthenticator": "Google Authenticator",
+    "openTip": "Open the app after installation",
+
+    "step2": "Step 2",
+    "addQrTip": "Scan the QR code or enter the key manually",
+    "copyPrefix": "Key",
+    "copy": "Copy",
+
+    "step3": "Step 3",
+    "enterSixDigits": "Enter the 6-digit code generated by the app",
+    "enterSixDigitsToUnbind": "Enter the 6-digit code to unbind",
+
+    "actions": {
+      "bindNow": "Bind Now",
+      "unbindNow": "Unbind Now"
+    },
+
+    "copied": "Copied",
+    "enableSuccess": "Binding Successful",
+    "disableSuccess": "Unbinding Successful",
+
+    "errors": {
+      "sixDigits": "Please enter a 6-digit code",
+      "failed": "Operation failed. Please try again later.",
+      "noMember": "User not found. Please log in again."
+    }
+  },
+
+  "pwd": {
+    "title": "Change Password",
+    "enterPwd": "Enter your password",
+    "old": "Current Password",
+    "new": "New Password",
+    "confirm": "Confirm New Password",
+    "strength": "Password Strength",
+    "next": "Next",
+    "errors": {
+      "required": "Please enter your current password",
+      "min6": "New password must be at least 6 characters",
+      "mix": "New password must contain letters and numbers",
+      "mismatch": "Passwords do not match",
+      "failed": "Failed to change password"
+    },
+    "show": "Show",
+    "hide": "Hide"
+  },
+
+  "securityVerify": {
+    "success": "Password updated successfully",
+    "successModal": {
+      "title": "Password changed successfully",
+      "message": "You can use your new password the next time you log in",
+      "confirm": "Got it"
+    },
+    "errors": {
+      "invalidCode": "Please enter a valid 6-digit code",
+      "noMethod": "No verification method available",
+      "failed": "Verification failed"
+    },
+    "title": "Security Verification",
+    "phone": {
+      "title": "Phone Number",
+      "tip": "Enter the verification code sent to your phone",
+      "switch": "Switch to Email Verification"
+    },
+    "email": {
+      "title": "Email",
+      "tip": "Enter the verification code sent to your email"
+    },
+    "ga": {
+      "title": "Google Authenticator",
+      "tip": "Enter your Google verification code"
+    },
+    "actions": {
+      "send": "Send Code",
+      "paste": "Paste",
+      "verify": "Verify"
+    }
+  },
+  "bankDetail": {
+    "title": "Bank Details",
+    "addedTitle": "Added Bank Account",
+    "desc": "Your added bank account will be used for top-ups and in-app purchases requiring exact amounts.",
+    "fastPay": "Fast Pay",
+    "addNewTitle": "Add New Bank Account",
+    "addNewDesc": "Enable this account for quick payment.",
+    "addBankAccount": "Add New Bank Account"
+  },
+
+  "bankAdd": {
+    "title": "Add Bank Card",
+    "addTitle": "New Bank Card",
+    "username": {
+      "label": "Account Holder Name",
+      "placeholder": "Enter account holder name",
+      "tip": "Please enter the name registered with the bank account"
+    },
+    "bank": {
+      "label": "Select Bank",
+      "placeholder": "Choose a bank"
+    },
+    "account": {
+      "label": "Bank Card Number",
+      "placeholder": "Enter bank card number"
+    },
+    "fastPay": {
+      "label": "Fast Pay",
+      "note": "Enable for quick top-up / payment"
+    },
+    "actions": {
+      "submit": "Submit"
+    },
+    "errors": {
+      "nameRequired": "Please enter the account holder name",
+      "bankRequired": "Please select a bank",
+      "accountRequired": "Please enter the card number",
+      "accountDigitsOnly": "Card number can only contain digits",
+      "accountMinLen": "Card number must be at least 8 digits",
+      "accountMaxLen": "Card number cannot exceed {max} digits",
+      "invalidFormat": "Invalid card number format"
+    },
+    "toasts": {
+      "saving": "Submitting…",
+      "saveSuccess": "Saved successfully",
+      "saveFailed": "Save failed. Please try again later."
+    }
+  },
+
+  "bankPicker": {
+    "title": "Select Bank",
+    "searchPlaceholder": "Search bank name",
+    "search": "Search",
+    "empty": "No banks available",
+    "noResults": "No matching bank found"
+  },
+
+  "bankEdit": {
+    "header": "Added Bank Account",
+    "title": "Bank Account",
+    "actions": {
+      "delete": "Delete Bank Account"
+    },
+    "deleteConfirm": {
+      "message": "Are you sure you want to delete this bank account? This will also remove your Fast Pay settings.",
+      "confirm": "Proceed"
+    },
+    "toast": {
+      "deleted": "Bank account deleted"
+    }
+  },
+
+  "withdraws": {
+    "accountCommission": "This account has a {value}% commission",
+    "chargeRate": "Service fee {value}%",
+    "finalAmount": "You will receive {value}",
+    "selectBank": "Select Bank",
+    "addBank": "Add Bank",
+    "title": "Withdraw",
+    "credit": "Balance",
+    "points": "Points",
+    "myId": "My ID",
+    "amount": "Enter amount",
+    "all": "All",
+    "minAmount": "Minimum {value}",
+    "maxAmount": "Maximum {value}",
+    "submitTransfer": "Submit Withdrawal Request",
+    "qrPay": "Store QR Cash Withdrawal",
+    "bank": "Added Bank Account",
+    "bankUsername": "Account Holder Name",
+    "bankAccount": "Bank Account Number",
+    "submit": "Proceed",
+    "qrSubtitle": "QR Withdrawal:",
+    "qrInstruction": "Show this QR code to the merchant to complete deduction",
+    "autoRefreshLabel": "Auto-refresh countdown:",
+    "success": "Your withdrawal request has been submitted successfully. The system will freeze the withdrawal amount while it awaits backend approval",
+    "errors": {
+      "amountRequired": "Please enter an amount",
+      "amountGtZero": "Amount must be greater than 0",
+      "amountMin": "Minimum withdrawal amount is {value}",
+      "amountMax": "Maximum withdrawal amount is {value}",
+      "bankRequired": "Please select a bank account"
+    }
+  },
+
+  "earn": {
+    "title": "Earn by Promoting",
+    "tabs": {
+      "share": "Share",
+      "stats": "My Data",
+      "performance": "My Performance",
+      "commission": "My Commission",
+      "downline": "Downline Info",
+      "backRatioTab": "Return Ratio",
+      "directMember": "Direct Members"
+    },
+    "share": {
+      "wechatTip": "Long press or screenshot this QR code to share with friends via WeChat",
+      "invitaionCode": "Invitation Code",
+      "toClaim": "To Claim",
+      "myUpline": "My Upline",
+      "oneClickReceive": "One-Click Claim",
+      "receiveHistory": "Claim History",
+      "agentMode": "Agent Mode — Daily Settlement",
+      "save": "Save",
+      "myLink": "My Link",
+      "switch": "Switch",
+      "shareTitle": "Share this invitation code to"
+    },
+    "tutorial": {
+      "title": "Promotion Tutorial",
+      "selfPerformance": "Direct Performance",
+      "directCommission": "Direct Commission",
+      "otherCommission": "Other Commission",
+      "totalCommission": "Current Period Commission"
+    },
+    "note": "The more new direct members and valid downline members you have, the better your results.",
+    "rules": {
+      "title": "Commission Explanation:",
+      "r1": "Calculation of A's performance:\n(1) Claiming: A’s direct downlines include B1, B2, B3, and also indirect downlines such as C1, C2, and C3.\n(2) A's daily direct performance = B1 + B2 + B3 direct bets = 500 + 3000 + 2000 = 5500.\n(3) Direct commission = direct performance × commission rate = 5500 × 10% = 550.\n(4) Other commission from C1, C2, C3, and B1’s direct downline: (1000+2000+2000+1000+2000) × 10% × 3% = 690.\n(5) Total commission for A = 550 + 690 = 1240.",
+      "r2": "Calculation of B1’s performance (downline commission 0.1%):\n(1) Direct downlines: C1, C2, C3.\n(2) Direct performance: 1000 + 2000 + 2000 = 5000.\n(3) Direct commission = 5000 × 10% = 500.\n(4) Total commission = 500.",
+      "r3": "Calculation of B2’s performance:\n(1) Direct downlines: D1, D2, D3.\n(2) Direct performance: 1000 + 2000 + 3000 = 6000.\n(3) Direct commission = 6000 × 10% = 600.\n(4) Total commission = 600.",
+      "r4": "Calculation of B3’s performance:\n(1) Direct downlines: E1, E2, E3, plus indirect F1, C2, C3.\n(2) Direct performance: 1000 + 2000 + 2000 = 5000.\n(3) Direct commission = 5000 × 10% = 500.\n(4) Total commission = 500.",
+      "r5": "Note: Commission is settled daily. All commissions from the day — direct and indirect — are calculated instantly and credited on the same day. For clarity, only daily commission is shown in the examples."
+    },
+    "placeholders": {
+      "stats": "Your data will appear here",
+      "performance": "Your performance will appear here",
+      "commission": "Your commission will appear here",
+      "downline": "Your downline info will appear here"
+    }
+  },
+
+  "myData": {
+    "title": "My Data",
+    "filter": {
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "thisWeek": "This Week",
+      "lastWeek": "Last Week",
+      "thisMonth": "This Month",
+      "lastMonth": "Last Month"
+    },
+    "directData": {
+      "title": "Today's Direct Data",
+      "newMember": "New Direct Members",
+      "firstTopupAmount": "First Top-Up Amount",
+      "firstTopupTotal": "Total First Top-Up",
+      "firstTopupCount": "First Top-Up Count",
+      "rechargeAmount": "Recharge Amount",
+      "rechargeCount": "Recharge Count",
+      "withdrawAmount": "Withdrawal Amount",
+      "withdrawCount": "Withdrawal Count",
+      "validBet": "Valid Bet",
+      "rewardClaimed": "Rewards Claimed",
+      "directWin": "Direct Win/Loss",
+      "directPerformance": "Direct Performance",
+      "totalCommission": "Total Commission"
+    },
+    "teamData": {
+      "title": "Today's Team Data",
+      "teamCount": "Team Members",
+      "directCount": "Direct Members",
+      "otherCount": "Other Members",
+      "totalPerformance": "Total Performance",
+      "directPerformance": "Direct Performance",
+      "otherPerformance": "Other Performance",
+      "totalCommission": "Total Commission",
+      "directCommission": "Direct Commission",
+      "otherCommission": "Other Commission",
+      "commissionAccumulated": "Accumulated Commission",
+      "commissionReceived": "Received",
+      "commissionPending": "Pending",
+      "directRecharge": "Total Direct Recharge",
+      "directWithdraw": "Total Direct Withdrawal",
+      "directReward": "Total Direct Rewards",
+      "directValidBet": "Total Direct Valid Bet",
+      "directWin": "Total Direct Win/Loss"
+    }
+  },
+
+  "myPerformance": {
+    "date": "Date",
+    "totalCommission": "Total Commission",
+    "people": "People"
+  },
+
+  "myCommission": {
+    "username": "Username",
+    "userId": "User ID",
+    "recharge": "User Recharge",
+    "time": "Recharge Time",
+    "commission": "Commission Earned"
+  },
+  "subInfo": {
+    "id": "ID",
+    "joined": "Joined",
+    "invite": "Invite Code",
+    "copy": "Copy",
+    "inviteCode": "Inviter Code"
+  },
+
+  "returnRatio": {
+    "valid": "Valid Data",
+    "performance": "Performance",
+    "rebate": "Rebate per 10,000"
+  },
+
+  "directOpen": {
+    "accountPlaceholder": "Enter account",
+    "passwordPlaceholder": "Login password",
+    "showPwd": "Show Password",
+    "hidePwd": "Hide Password",
+    "go": "Go"
+  },
+
+  "invite": {
+    "defaultUpdated": "Default invite code updated successfully",
+    "createSuccess": "Invite code created successfully",
+    "title": "Earn by Inviting",
+    "myCode": "My Invite Code",
+    "default": "Default",
+    "rebateRate": "My Rebate / Friend Rebate %",
+    "inviteCode": "Invite Code",
+    "inviteLink": "Invite Link",
+    "inviteNow": "Invite Now",
+    "more": "More",
+    "myStats": "My Invitation Stats",
+    "groupCount": "Team Members",
+    "tradeCount": "Trading Members",
+    "myRebate": "My Rebate (USDT)",
+
+    "setAsDefault": "Set as Default Invite Code",
+    "noMore": "No more content",
+    "newCode": {
+      "desc": "You can set this invitation code as default for easier sharing",
+      "title": "Create New Invite Code",
+      "remarkPlaceholder": "Remark",
+      "friendRebate": "Friend Rebate %",
+      "myRebate": "My Rebate %",
+      "setAsDefault": "Set as Default Invite Code"
+    }
+  },
+
+  "inviteRecords": {
+    "title": "My Invite Codes",
+    "tabs": {
+      "friends": "Friend List",
+      "rebate": "My Rebates"
+    },
+    "time": "Rebate Time",
+    "invitedId": "Invited ID",
+    "code": "Invite Code",
+    "invitedCount": "Invite Count",
+    "tradedCount": "Traded Members",
+    "totalAmount": "Total Trade Amount",
+    "rebateAmount": "Rebate Amount"
+  },
+
+  "topups": {
+    "redirect": {
+      "title": "Redirecting to Payment Page...",
+      "desc": "Please wait a moment.",
+      "missingUrl": "Payment link not found."
+    },
+    "title": "Top-Up",
+    "tabs": {
+      "online": "Online Top-Up",
+      "crypto": "Crypto Wallet Top-Up",
+      "ewallet": "eWallet Top-Up",
+      "qr": "QR Top-Up"
+    },
+    "payments": {
+      "empty": "No available payment methods",
+      "loadFailed": "Failed to load payment methods"
+    },
+    "platform": "Platform {n}",
+    "amount": {
+      "title": "Select Amount",
+      "other": "Custom Amount",
+      "placeholder": "0",
+      "limits": "Min {min} / Max {max}",
+      "limitsRange": "Allowed Range: {min} to {max}",
+      "mustMatchAllowed": "This payment method only supports fixed denominations. Please choose a preset amount.",
+      "outOfRange": "Amount is out of allowed range.",
+      "overMaxSplit": "Amount exceeds the limit. Please split into two payments."
+    },
+    "actions": {
+      "submit": "Top-Up Now"
+    },
+    "success": {
+      "title": "Top-Up Successful",
+      "desc": "Your top-up has been received."
+    },
+
+    "cancel": {
+      "title": "Cancel Waiting?",
+      "desc": "Checking/waiting for payment status. Stop waiting?"
+    },
+    "keepWaiting": "Keep Waiting",
+
+    "status": {
+      "completedNow": "Completed. Displaying result…",
+      "current": "Current Order Status: {status}",
+      "initializing": "Order is being created. Please try again later.",
+      "error": "Payment failed. Please retry.",
+      "failed": "Payment failed. Please retry.",
+      "processing": "Payment processing, please try again shortly."
+    }
+  },
+
+  "discounts": {
+    "claimSuccess": "Successfully claimed.",
+    "claimAllSuccess": "Successfully claimed",
+    "claimFail": "Claim failed",
+    "title": "Promotions",
+    "activity": "Activity",
+    "vip": "VIP",
+    "return": "Rebate",
+    "record": "Claim Records",
+    "noData": "No data available",
+    "validBet": "Valid Bet",
+    "returnRatio": "Rebate Ratio",
+    "claimable": "Claimable",
+    "claim": "Claim",
+    "success": "Success",
+    "oneClickClaim": "One-Click Claim",
+    "toClaimPoints": "To Claim +{points} points",
+    "claimedIntoWallet": "Claimed +{points} points to eWallet"
+  },
+
+  "discountDetail": {
+    "title": "Promotion Details",
+    "noAnswer": "No description available",
+    "noData": "No promotions",
+    "headlinePrefix": "Top-Up",
+    "headlineMid": "Get",
+
+    "rules": {
+      "title": "Rule Description",
+      "newbie": "Upgrade Criteria: New users who top up will receive an extra +200 points.",
+      "period": "Event Duration: From 1/5/2025 to 31/12/2025 11:59 AM."
+    },
+
+    "how": {
+      "title": "How It Works",
+      "step1": "Upgrade criteria: meet the VIP upgrade requirement (top-up or valid bets), and you can upgrade and receive the upgrade bonus. If you upgrade multiple levels in a row, you can claim all bonuses after 00:00:00.",
+      "step2": "Daily Salary: meet the daily requirement to receive the daily bonus. Unclaimed bonuses expire the same day.",
+      "step3": "Weekly Salary: meet the weekly requirement to receive the bonus. Unclaimed bonuses expire weekly.",
+      "step4": "Monthly Salary: meet the monthly requirement to receive the bonus. Unclaimed bonuses expire monthly.",
+      "step5": "Expiration: expired bonuses are void. Claim before the countdown ends.",
+      "step6": "Audit: bonuses require 1× turnover before withdrawal.",
+      "step7": "Statement: Only normal gameplay is allowed. Account rental, risk-free betting, botting, exploiting API/vulnerabilities, etc. are prohibited. Violators may have bonuses and profits confiscated without notice."
+    },
+
+    "actions": {
+      "play": "Start Game",
+      "deposit": "Top-Up"
+    }
+  },
+
+  "players": {
+    "invitationCode": "Invite Code",
+    "credentials": "Your Login Credentials",
+    "brand": "WL Live",
+    "selectTitle": "Select Player",
+    "points": "Points",
+    "addNew": "Add New Player",
+    "addTitle": "Add New Player",
+    "myId": "My Player ID",
+    "password": "Password",
+    "startGame": "Top-Up & Start Game",
+    "delete": "Delete Player",
+    "setPassword": "Set Password",
+    "addSuccess": "Player added successfully",
+    "deleteConfirmTitle": "Confirmation",
+    "deleteConfirmDesc": "Are you sure you want to delete player PLAYER_ID_PLACEHOLDER ?\nAfter deletion, any remaining Points will be returned to Credit.\n\n*Note: Only one new player can be added per day.",
+    "deleteSuccess": "Deleted successfully. Returning to home...",
+    "deleteFailed": "Failed to delete. Please try again.",
+    "errors": {
+      "idRequired": "Player ID is required"
+    }
+  },
+
+  "wallets": {
+    "withdrawTitle": "Withdraw Amount",
+    "balance": "Account Balance",
+    "loadingGameTitle2": "Loading Game...",
+    "pleaseWaitToContinue2": "Please wait while the game page is opening",
+    "popupBlockedNotice": "If the game does not open, your browser may have blocked pop-up windows. Enable pop-ups or tap the button below.",
+    "openGameManually": "Open Game Manually",
+    "backToHome": "Back to Home",
+    "tapToOpenGame": "Tap to reopen the game",
+    "providerPoints": "{{provider}} Points",
+    "addBankRequired": "Please add a bank account before continuing",
+    "credit": "Credit",
+    "points": "Points",
+    "fromCredit": "From Credit",
+    "toPoints": "To Points",
+    "all": "All",
+    "convert": "Convert",
+    "openGame": "Open Game",
+    "transferTitle": "Transfer Amount",
+    "topup": "Top-Up",
+    "transfer": "Transfer",
+    "confirmMessage": "Convert Credit to Points?",
+    "toCredit": "To Credit",
+    "fromPoints": "From Points",
+    "inputAmount": "Enter Amount",
+    "idLabel": "ID: {value}",
+    "transferSuccess": "Conversion Successful",
+    "confirmTitle": "Confirm Conversion",
+    "confirmCreditToPoints": "Confirm converting Credit to Points?",
+    "confirmPointsToCredit": "Confirm converting Points to Credit?",
+    "enterAmount": "Please enter an amount",
+    "redirectingTitle": "Redirecting...",
+    "redirecting": "Preparing your payment page...",
+    "pleaseWait": "Please wait",
+    "urlNotFound": "Payment link not found",
+    "topupSuccess": "Top-Up request submitted",
+    "topupFailed": "Top-Up request failed. Please try again later.",
+    "loading": "Loading...",
+    "amountInvalid": "Please enter a valid amount",
+    "selectPayment": "Please select a payment method",
+    "confirmTopup": "Confirm Top-Up",
+    "topupNow": "Top-Up Now",
+    "loadingGameTitle": "Loading Game...",
+    "loadingGame": "Loading game...",
+    "pleaseWaitToContinue": "Please wait. The page will redirect automatically.",
+    "transferFailedTitle": "Transfer Failed",
+    "transferFailedMessage": "An error occurred during the transfer. Please try again later.",
+    "transferFailed": "Transfer failed. Please try again.",
+    "loadingGameFailedTitle": "Unable to Load Game",
+    "loadingGameFailedMessage": "Please return to the previous page and try again.",
+    "loadingGameFailed": "Game failed to load.",
+    "errorTitle": "Error",
+    "cannotLoadGame": "Unable to load game. Please go back and retry.",
+    "cannotLoadGame2": "Unable to load game. Please try again.",
+    "close": "Close",
+    "redirectingSoon": "You will be redirected shortly.",
+    "popupBlockedTryAgain": "Pop-up blocked. Please open manually."
+  },
+
+  "transfer": {
+    "noDeepLink": "No app link provided. Please download the game and manually log in with the username and password.",
+    "tryOpen": "Trying to open the app…",
+    "appNotInstalled": "Unable to open app. Please install it first.",
+    "openSuccess": "App opened successfully.",
+    "processing": "Please wait. Wallet transfer is in progress…",
+    "failed": "Wallet transfer failed. Please try again later.",
+    "createPlayerFailed": "Failed to create player",
+    "generalError": "An error occurred. Please try again later.",
+    "title": "Transfer",
+    "success": "One-click claim successful!",
+    "oneClick": "One-Click Claim",
+    "credit": "Credit",
+    "points": "Points",
+    "tip": "Enter other Points to transfer to today's Credit",
+    "table": {
+      "game": "Game",
+      "currentPoints": "Current Points",
+      "toTransfer": "Transfer"
+    },
+    "quickSet": "Quick Set",
+    "actions": {
+      "allIn": "Transfer All",
+      "clear": "Clear"
+    },
+    "confirm": "Confirm",
+    "transferSuccess": "Transfer Successful",
+    "transferFail": "Transfer failed. Please retry",
+    "invalidAmount": "Please enter a valid amount",
+    "ipError": "Unable to get IP address"
+  },
+
+  "login": {
+    "invalidCredentials": "Invalid username or password",
+    "title": "Login",
+    "subtitle": "Login to get the latest updates",
+    "phone": "Phone Number",
+    "password": "Login Password",
+    "forgot": "Forgot Password",
+    "submit": "Login",
+    "socialTitle": "Login with Third-Party Account",
+    "noAccount": "Don't have an account?",
+    "register": "Register",
+    "phonePickerTitle": "Country Code",
+    "searchCountry": "Search country or code",
+    "remember": "Remember Me",
+    "submitting": "Logging in...",
+    "errors": {
+      "format": "Password must be at least 6 characters",
+      "phoneRequired": "Please enter your phone number",
+      "invalidPhone": "Please enter a valid phone number",
+      "passwordRequired": "Please enter your password",
+      "passwordMin": "Password must be at least 6 characters"
+    }
+  },
+
+  "register": {
+    "enterReferral": "Enter invitation code",
+    "referralCode": "Referral Code",
+    "agentCode": "Agent Code",
+    "agentCodePlaceholder": "Enter agent code",
+    "agentCodeReadonly": "Agent Code (Auto-filled)",
+    "agentCodeDelete": "Remove Agent Code",
+    "title": "Register",
+    "confirmPassword": "Confirm Password",
+    "subtitle": "Good Music, Good Life",
+    "phone": "Enter phone number",
+    "username": "Enter username",
+    "password": "Enter password",
+    "passwordRule": "Password must be at least 6 characters",
+    "submit": "Register",
+    "agreePrefix": "By registering, you agree to the",
+    "userAgreement": "User Agreement",
+    "success": "Registration Successful",
+    "errors": {
+      "passwordRequired": "Please enter password",
+      "confirmPasswordRequired": "Please confirm password",
+      "passwordMismatch": "Passwords do not match",
+      "phoneRequired": "Please enter phone number",
+      "usernameRequired": "Please enter username",
+      "agreementRequired": "Please accept the user agreement",
+      "generic": "Registration failed. Please try again later.",
+      "passwordWeak": "Password must be 6–16 characters and include uppercase and lowercase letters"
+    },
+    "agreement": {
+      "title": "User Agreement",
+      "section1": "By registering and using this platform, you acknowledge that you have read, understood, and fully agreed to all the terms and conditions outlined in this User Agreement, including any future updates published by the platform. If you do not agree with any part of this Agreement, you must immediately stop using the platform and all related services.",
+
+      "section2": "You confirm that all information submitted during registration, including your name, contact details, banking information, payment details, and identity documents, is accurate, truthful, and belongs to you. If any information is found to be false, misleading, or illegally obtained, the platform reserves the right to restrict, freeze, or terminate your account without prior notice.",
+
+      "section3": "Your account is for personal use only and must not be rented, shared, sold, transferred, or provided to any third party. You are responsible for safeguarding your account credentials, and you assume full responsibility for all activities carried out under your account, regardless of whether you authorized them.",
+
+      "section4": "You agree not to engage in, assist, or participate in any behaviour that may harm or disrupt the platform, including but not limited to hacking, exploiting vulnerabilities, bypassing security systems, using bots or automated scripts, engaging in fraudulent transactions, or any other illegal activity. Violations may result in immediate account suspension and potential legal action.",
+
+      "section5": "You understand and accept that all transactional records—including deposits, withdrawals, credit conversions, reward calculations, and activity logs—are based on the platform’s final system data. In cases of system failure, network delays, abnormal transactions, or operational errors, the platform has the right to adjust, correct, or revoke records as deemed necessary.",
+
+      "section6": "The platform may update, modify, or replace any part of this Agreement at any time based on legal, operational, or policy needs. All updates take effect immediately upon publication. You are responsible for reviewing the latest version of the Agreement. Continuing to use the platform signifies your acceptance of any updates.",
+
+      "section7": "In the event of disputes—whether related to transactions, account issues, rewards, security, or service content—the platform reserves the right to interpret, investigate, and make the final decision. If you disagree with the outcome, you may submit an appeal, but the platform retains sole authority to determine whether to process it.",
+
+      "section8": "If any part of this Agreement is deemed invalid, illegal, or unenforceable, the remaining provisions shall remain fully valid and binding. By continuing to use the platform, you unconditionally accept all valid terms of this Agreement.",
+
+      "section9": "The platform complies with applicable data protection laws and is committed to safeguarding your personal information, including registration data, transaction records, and sensitive information. While the platform will apply reasonable security measures, it cannot guarantee protection from unauthorized attacks, network failures, or uncontrollable incidents.",
+
+      "section10": "You acknowledge and accept the inherent risks of using online services, including network instability, system maintenance, API failures, delayed responses, or account anomalies. The platform will strive to provide stable service but cannot guarantee uninterrupted or error-free operation.",
+
+      "section11": "You confirm that you are above the legal minimum age (18 years old or the age defined by your local law) to register and use this platform. The platform may request identity verification at any time. If a minor is found using the platform, the account will be terminated immediately.",
+
+      "section12": "You must not use the platform for unlawful purposes, including money laundering, fraud, identity theft, payment abuse, publishing illegal content, or any activity prohibited by law. Suspicious activities may be reported to relevant authorities in compliance with legal obligations.",
+
+      "section13": "You are responsible for maintaining the security of your device, including preventing malware, viruses, unauthorized access, and Wi-Fi interference. If your device is compromised, resulting in account loss or data leakage, the platform is not liable.",
+
+      "section14": "The platform may send you notifications through system messages, SMS, email, or in-app alerts regarding updates, reminders, risk warnings, or promotional information. These communications are considered official notices once sent.",
+
+      "section15": "You agree that platform maintenance, upgrades, or modifications may temporarily interrupt services. Such interruptions do not constitute a breach of service agreement.",
+
+      "section16": "This Agreement represents the complete and final understanding between you and the platform regarding the use of our services and supersedes any prior verbal or written statements. Continued use of the platform indicates that you fully understand and accept all terms in this Agreement."
+    }
+  },
+
+  "reset": {
+    "title": "Reset Password",
+    "subtitle": "Verification code has been sent to",
+    "subtitle2": "Enter your phone number to receive a verification code",
+    "phone": "Enter phone number",
+    "verify": "Verify"
+  },
+
+  "verify": {
+    "title": "Verification Code",
+    "subtitle": "Code has been sent to",
+    "subtitle2": "Please enter the verification code sent to phone number $phone",
+    "resendPhone": "Verification code has been sent to your phone",
+    "resendEmail": "Verification code has been sent to your email",
+    "resendGoogle": "Please check your Google Authenticator for the code",
+    "googleTip": "Please open Google Authenticator to get the 6-digit code",
+    "resend": "Resend Code",
+    "submit": "Verify",
+    "errors": {
+      "requiredAll": "Please enter the full verification code",
+      "sixDigits": "Verification code must be 6 digits",
+      "invalidCode": "Invalid verification code"
+    },
+    "resendInSuffix": "seconds until resend",
+    "resendSuccess": "Verification code sent to your email",
+    "resendError": "Failed to send. Please try again later.",
+    "resendIn": "Resend Countdown"
+  },
+
+  "resetPwd": {
+    "title": "Reset Password",
+    "subtitle": "Enter a new password and confirm it",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "rule": "6–16 characters, with uppercase and lowercase letters",
+    "submit": "Reset Password",
+    "errors": {
+      "passwordRequired": "Please enter password",
+      "confirmRequired": "Please confirm password",
+      "notMatch": "Passwords do not match",
+      "failed": "Failed to reset password"
+    },
+    "players": {
+      "setPassword": "Set Password"
+    }
+  },
+
+  "mega": {
+    "gameSeriesList": "Game List",
+    "subtitle": "Log in easily and play on your mobile",
+    "steps": {
+      "1": {
+        "title": "Step 1",
+        "desc": "Go to the download page and install the app on your phone"
+      },
+      "2": {
+        "title": "Step 2",
+        "desc": "Open the app"
+      },
+      "3": {
+        "title": "Step 3",
+        "desc": "Tap “Start Game” or enter your username and password to log in"
+      },
+      "start": {
+        "title": "Tap to Start Game",
+        "desc": "Simply tap the “Start Game” button to enter immediately. Please ensure your browser does not block pop-up windows or new tabs so the game can launch properly."
+      }
+    },
+    "credentials": {
+      "title": "Your Login Credentials",
+      "username": "Username",
+      "password": "Password"
+    },
+    "actions": {
+      "copy": "Copy"
+    }
+  },
+
+  "avatar": {
+    "title": "Select Avatar",
+    "confirmTitle": "Confirm Avatar Change",
+    "confirmMsg": "Are you sure you want to use this avatar?",
+    "confirmAction": "Confirm",
+    "selectFirstTitle": "Reminder",
+    "selectFirstMsg": "Please select an avatar first",
+    "changeButton": "Change Avatar"
+  },
+
+  "feedback": {
+    "detailTitle": "Feedback Details",
+    "noPhoto": "No images available",
+    "notFound": "Feedback not found"
+  },
+
+  "download": {
+    "android": "Download for Android",
+    "ios": "Download for iOS"
+  },
+
+  "agent": {
+    "storeFailed": "Failed to save agent ID",
+    "title": "Agent Promotion Download",
+    "copied": {
+      "ios": "iOS invite code copied!",
+      "android": "Android invite code copied!",
+      "web": "Web invite link copied!"
+    },
+    "copyFailed": "Copy failed. Please try again.",
+    "yourCode": "Your Agent ID",
+    "noCode": "Agent ID not found",
+    "tips": {
+      "clickButton": "Tap the button below to copy your exclusive promo code",
+      "copiedHint": "After copying, send it to users for registration"
+    },
+    "buttons": {
+      "ios": "iOS Download",
+      "android": "Android Download",
+      "web": "Web Version"
+    },
+    "toast": {
+      "success": "Copied successfully!",
+      "fail": "Copy failed. Please try again."
+    }
+  },
+
+  "shop": {
+    "storeFailed": "Failed to save shop ID",
+    "title": "Agent Promotion Download",
+    "copied": {
+      "ios": "iOS invite code copied!",
+      "android": "Android invite code copied!",
+      "web": "Web invite link copied!"
+    },
+    "copyFailed": "Copy failed. Please try again.",
+    "yourCode": "Your SHOP COde",
+    "noCode": "SHOP Code not found",
+    "tips": {
+      "clickButton": "Tap the button below to copy your exclusive promo code",
+      "copiedHint": "After copying, send it to users for registration"
+    },
+    "buttons": {
+      "ios": "iOS Download",
+      "android": "Android Download",
+      "web": "Web Version"
+    },
+    "toast": {
+      "success": "Copied successfully!",
+      "fail": "Copy failed. Please try again."
+    }
+  },
+
+  "promotion": {
+    "title": "Promotions",
+    "newMember": "New Member Top-Up",
+    "crypto": "Crypto Top-Up Event",
+    "agent": "Agent",
+    "hotActivity": "Hot Events",
+    "other": "Other Events",
+    "noData": "No events available",
+    "loading": "Loading..."
+  },
+
+  "user": {
+    "referralCode": "Referral Code",
+    "agentCode": "Agent Code",
+    "noCode": "No referral code available.",
+    "storeFailed": "Failed to save referral code.",
+    "copyFailed": "Failed to copy referral code.",
+    "copied": {
+      "ios": "Referral code copied (iOS)!",
+      "android": "Referral code copied (Android)!",
+      "web": "Referral code copied (Android)"
+    }
+  },
+
+  "noData": "No data available",
+
+  "errorScreen": {
+    "subtitle": "Please go back to the previous page and try again.",
+    "clickToGoBack": "Click here to go back and try again."
+  },
+  "landing": {
+    "announcement": {
+      "text": "Notice: Latest updates and important announcements will scroll here for your information."
+    },
+    "nav": {
+      "home": "Home",
+      "electronic": "Electronic",
+      "chess": "Chess",
+      "fishing": "Fishing",
+      "real": "Live Dealer",
+      "sports": "Sports",
+      "lottery": "Lottery",
+      "service": "Support",
+      "promo": "Promo",
+      "app": "APP",
+      "login": "Login",
+      "register": "Register"
+    },
+    "download": {
+      "title": "Exciting games and the latest APP",
+      "desc": "Install our app to enjoy more games, faster access, and better rewards.",
+      "qr": "QR",
+      "scan": "Scan to download"
+    },
+    "gameMenu": {
+      "choose": "Please choose",
+      "refresh": "Refresh",
+      "withdraw": "Withdraw",
+      "exitGame": "Exit Game",
+      "home": "Home"
+    },
+    "games": {
+      "cardLine1": "Fair and secure gameplay",
+      "cardLine2": "Enjoy a wide variety of exciting games",
+      "title": "Game Center",
+      "sub": "More fun, more choices",
+      "cardTitle": "Slot Games",
+      "cardDesc": "Play anytime, win big",
+      "cardTitle1": "Professional Support",
+      "cardLine1_1": "24/7 online assistance",
+      "cardLine2_1": "Fast and reliable service",
+
+      "cardTitle2": "Secure Platform",
+      "cardLine1_2": "Advanced risk protection",
+      "cardLine2_2": "Your data is fully safeguarded",
+
+      "cardTitle3": "Fast Transactions",
+      "cardLine1_3": "Quick deposit processing",
+      "cardLine2_3": "Instant withdrawals supported"
+    },
+    "live": {
+      "title": "Live Streaming",
+      "tab1": "Live",
+      "tab2": "Today",
+      "tab3": "Schedule",
+      "cta": "Enter Now",
+      "league1": "League 1",
+      "league2": "League 2",
+      "league3": "League 3",
+      "time1": "30 July - 8pm",
+      "time2": "30 July - 9pm",
+      "time3": "30 July - 10pm",
+      "playingTeam": "Playing Team",
+      "odds": "Odds"
+    },
+    "service": {
+      "title": "Technology Driven Entertainment",
+      "sub": "Top-tier security and support",
+      "cardTitle": "Professional Support",
+      "cardDesc": "24/7 customer service",
+      "cardFoot": "Fast response and safe play",
+      "cardLine1": "Fast and secure services",
+      "cardLine2": "24/7 customer support"
+    },
+    "footer": {
+      "copy": "© 911 / Expro99. All rights reserved.",
+      "terms": "Terms",
+      "privacy": "Privacy",
+      "contact": "Help Center"
+    }
+  },
+  "terms": {
+    "title": "Terms & Conditions",
+    "section1": {
+      "title": "1. Acceptance of Terms",
+      "desc": "By accessing and using this website, you agree to be bound by these Terms & Conditions, applicable laws, and regulations."
+    },
+    "section2": {
+      "title": "2. Eligibility",
+      "desc": "You must be at least 18 years old or meet the legal age required by your jurisdiction to use this service."
+    },
+    "section3": {
+      "title": "3. Account Responsibilities",
+      "desc": "You are responsible for maintaining the confidentiality of your account information and agreeing to all activities under your account."
+    },
+    "section4": {
+      "title": "4. Restrictions",
+      "desc": "You agree not to use the website for unlawful purposes, abuse the platform, or attempt unauthorized access to any system."
+    },
+    "section5": {
+      "title": "5. Modifications",
+      "desc": "We reserve the right to modify or update these Terms & Conditions at any time without prior notice."
+    }
+  },
+  "help": {
+    "noSupportLink": "Customer support is currently unavailable. Please try again later.",
+    "noChild": "No sub-items available",
+    "detailTitle": "Help Details",
+    "noAnswer": "No content available",
+    "createdOn": "Created On",
+    "title": "Help Center",
+
+    "tab": {
+      "faq": "FAQ",
+      "trade": "Trading",
+      "transfer": "Transfer",
+      "vip": "VIP Level Guide"
+    },
+
+    "card": {
+      "title": "24/7 Online Support",
+      "subtitle": "Professional support agents are available to assist you.",
+      "cs1": "Support 1",
+      "cs2": "Support 2",
+      "otherCS": "Other Support"
+    },
+
+    "group": {
+      "wallet": "Crypto Wallet",
+      "game": "Game Issues",
+      "promo": "Promotion Issues",
+      "topup": "Deposit Issues",
+      "withdraw": "Withdrawal Issues"
+    },
+
+    "q": {
+      "wallet": {
+        "1": "1. Understanding and using a USDT crypto wallet",
+        "2": "2. Benefits of using cryptocurrency",
+        "3": "3. How to download and use a crypto wallet"
+      },
+      "game": {
+        "1": "1. Common game-related questions"
+      },
+      "promo": {
+        "1": "1. Promotion-related questions"
+      },
+      "topup": {
+        "1": "1. How to deposit and processing time"
+      },
+      "withdraw": {
+        "1": "1. How to withdraw and important notes"
+      }
+    }
+  },
+
+  "privacy": {
+    "title": "Privacy Policy",
+    "section1": {
+      "title": "1. Information We Collect",
+      "desc": "We collect personal information that you voluntarily provide when registering, using our services, or interacting with the platform. This includes, but is not limited to, your name, contact information, account details, device data, usage records, and communication logs. We may also record system activities such as IP addresses, access times, browser types, and device identifiers to ensure service stability and enhance user safety."
+    },
+    "section2": {
+      "title": "2. How We Use Your Information",
+      "desc": "Your information is used to create and maintain your account, process transactions, provide customer support, and ensure compliance with legal and regulatory requirements. We may analyze usage behaviors to improve service performance, personalize your experience, prevent fraud, and enhance the overall stability of the platform. Your information may also be used for security monitoring and verification to protect both you and the system."
+    },
+    "section3": {
+      "title": "3. Data Protection and Security",
+      "desc": "We adopt industry-standard security measures, including encryption, access controls, and continuous monitoring, to safeguard your personal data against unauthorized access, disclosure, loss, or misuse. Although we implement comprehensive measures to secure your data, no Internet transmission or storage system is completely risk-free. Therefore, we encourage you to maintain strong password hygiene and monitor your account activity."
+    },
+    "section4": {
+      "title": "4. Sharing and Disclosure of Information",
+      "desc": "We do not sell or trade your personal information. Your data may only be shared with trusted partners or service providers who are essential for operating the platform—such as payment processors, identity verification services, and technical infrastructure providers. All third parties are required to follow strict confidentiality and data protection obligations. We may also disclose information when legally required to comply with investigations, court orders, or regulatory authorities."
+    },
+    "section5": {
+      "title": "5. Your Rights and Choices",
+      "desc": "You have the right to access, correct, or update your personal data at any time. Where permitted by law, you may request deletion of your information, restrict certain processing activities, or withdraw consent previously granted. If you choose to delete or limit certain information, some services may become unavailable. Please contact us through customer support if you wish to exercise any data-related rights or have concerns about your privacy."
+    },
+    "helps": {
+      "title": "Help Center",
+      "section1": {
+        "title": "1. Frequently Asked Questions",
+        "desc": "Here you can quickly find answers to the most common questions, including account registration, deposits, withdrawals, and game-related information. This section helps you resolve most basic issues on your own without contacting customer service, improving overall efficiency."
+      },
+      "section2": {
+        "title": "2. Deposit Assistance",
+        "desc": "This section provides a complete deposit guide, including step-by-step instructions, common failure reasons, troubleshooting methods, and estimated processing times for different payment methods. We also include suggestions to help you avoid failed deposits and ensure every transaction goes smoothly."
+      },
+      "section3": {
+        "title": "3. Withdrawal Assistance",
+        "desc": "Learn about the withdrawal application process, review requirements, average processing times, and common delay reasons. This section helps you submit withdrawal requests correctly and provides necessary troubleshooting steps to ensure your funds are processed safely and promptly."
+      },
+      "section4": {
+        "title": "4. Account & Security",
+        "desc": "This section covers how to manage account details, update personal information, reset your password, and enable security features. We also provide multiple security tips, such as avoiding scams, protecting login information, and identifying suspicious activity to keep your account safe."
+      },
+      "section5": {
+        "title": "5. Contact Support",
+        "desc": "If you need further assistance, our support team is always ready to help. You can reach us through live chat, email, or messaging apps. Whether it’s a technical issue, account verification, or an urgent matter, we will respond as quickly as possible."
+      }
+    }
+  },
+  "bind": {
+    "sendCode": "Send Code",
+    "resendCode": "Resend Code",
+    "title": "Bind Mobile Number",
+    "subtitle": "Please bind your mobile number. After binding, the random number will no longer be valid.",
+    "phone": "Enter mobile number",
+    "otp": "Verification Code",
+    "confirm": "Confirm Binding",
+    "invalidCode": "Invalid verification code",
+    "errors": {
+      "phoneRequired": "Please enter your mobile number",
+      "otpRequired": "Please enter the verification code"
+    }
+  }
+}

@@ -1,0 +1,296 @@
+<resources>
+    <string name="app_name">Expro99 Store</string>
+    <string name="copyright">2025 Expro99 STORE</string>
+    <string name="exit_tap_twice">连按两次退出</string>
+    <string name="no_data">查无记录</string>
+    <string name="new_notification">您收到了一条新通知。</string>
+    <string name="search_hint">搜索</string>
+    <string name="copied">已复制到剪贴板</string>
+    <string name="button_confirm">确定</string>
+    <string name="common_okay">确定</string>
+
+    <string name="session_expired_title">登录已过期</string>
+    <string name="session_expired_desc">您的登录已过期，请重新登录。</string>
+    <string name="session_expired_button">重新登录</string>
+
+    <!-- Splash Screen -->
+    <string name="splash_version_title">升级到最新版本？</string>
+    <string name="splash_version_desc">当前版本 v%s\n请安装最新版本 v%s</string>
+    <string name="splash_version_confirm">立即安装</string>
+    <string name="splash_version_cancel">跳过</string>
+
+    <!-- Login -->
+    <string name="login_welcome">欢迎</string>
+    <string name="login_hint_username">用户名</string>
+    <string name="login_hint_password">密码</string>
+    <string name="login_button">登入</string>
+    <string name="login_change_language">切换语言</string>
+    <string name="login_invalid_credentials">用户名或密码不正确</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_amount">店铺金额</string>
+    <string name="dashboard_income">今日收入</string>
+    <string name="dashboard_alert">提示金额过半</string>
+    <string name="dashboard_alert_success">成功提示</string>
+    <string name="dashboard_yxi_count">游戏数量</string>
+    <string name="dashboard_player_count">玩家人数</string>
+    <string name="dashboard_account_new">创建用户</string>
+    <string name="dashboard_account_password">修改用户密码</string>
+    <string name="dashboard_account_block">拉黑用户</string>
+    <string name="dashboard_action_top_up">充值</string>
+    <string name="dashboard_action_withdraw">提现</string>
+    <string name="dashboard_action_history">报备历史</string>
+    <string name="dashboard_action_setting">个人设置</string>
+
+    <!-- Dashboard - Search -->
+    <string name="dashboard_search_title">搜索</string>
+    <string name="dashboard_search_hint">搜索电话号码,用户名或用户ID</string>
+    <string name="dashboard_search_check_details">查看详情</string>
+
+    <!-- Action Main -->
+    <string name="action_main_top_up_title">充值</string>
+    <string name="action_main_top_up_desc">输入电话号码或用户ID或\n选择其他方式</string>
+    <string name="action_main_top_up_option_qr">扫描二维码充值</string>
+    <string name="action_main_top_up_option_yxi">充值到游戏账号</string>
+    <string name="action_main_withdraw_title">提现</string>
+    <string name="action_main_withdraw_desc">输入电话号码或用户ID或\n选择其他方式</string>
+    <string name="action_main_withdraw_option_qr">扫描二维码</string>
+    <string name="action_main_withdraw_option_yxi">搜索游戏账号</string>
+    <string name="action_main_create_user_title">创建用户</string>
+    <string name="action_main_create_user_desc">输入电话号码或\n选择其他创建方式</string>
+    <string name="action_main_create_user_option_random">创建随机账号</string>
+    <string name="action_main_create_user_option_yxi">创建游戏账号</string>
+    <string name="action_main_create_random_title">创建随机账号</string>
+    <string name="action_main_create_random_desc">点击确认进行\n创建随机账号</string>
+    <string name="action_main_change_password_title">修改用户密码</string>
+    <string name="action_main_change_password_desc">输入电话号码或\n点击右上角进行扫描搜索</string>
+    <string name="action_main_block_title">拉黑/屏蔽用户</string>
+    <string name="action_main_block_desc">输入电话号码进入下一步</string>
+    <string name="action_main_block_reason_hint">拉黑原因 (选填)</string>
+    <string name="action_main_block_reason_success_title">拉黑用户</string>
+    <string name="action_main_block_reason_success_desc">已提交原因</string>
+    <string name="action_main_block_reason_success_okay">好的</string>
+    <string name="action_main_hint_format">eg. 60121234567</string>
+    <string name="action_main_hint_search">手机号码 / 账号ID</string>
+    <string name="action_main_hint_phone">手机号码</string>
+    <string name="action_main_button_search">搜索</string>
+    <string name="action_main_button_create">创建</string>
+    <string name="action_main_button_confirm">确认</string>
+    <string name="action_main_button_cancel">取消</string>
+
+    <!-- Action User Details -->
+    <string name="details_player_title">游戏账号详情</string>
+    <string name="details_user_title">账号详情</string>
+    <string name="details_account_id">账号ID</string>
+    <string name="details_phone">电话号码</string>
+    <string name="details_password">密码</string>
+    <string name="details_yxi_password">游戏密码</string>
+    <string name="details_yxi">游戏</string>
+    <string name="details_join_date">加入日期</string>
+    <string name="details_account_balance">账号当前金额</string>
+    <string name="details_player_id">游戏账号ID</string>
+    <string name="details_yxi_balance">游戏当前金额</string>
+    <string name="details_hint_top_up_amount">充值金额</string>
+    <string name="details_hint_withdraw_amount">提现金额</string>
+    <string name="details_button_top_up">充值</string>
+    <string name="details_button_withdraw">提现</string>
+    <string name="details_button_next">下一步</string>
+    <string name="details_button_block">拉黑</string>
+    <string name="details_button_change_password">修改密码</string>
+    <string name="details_button_cancel">取消</string>
+
+    <!-- Success -->
+    <string name="success_action_top_up_title">RM%s\n充值成功</string>
+    <string name="success_action_top_up_another">充值另一个账号</string>
+    <string name="success_action_withdraw_title">RM%s\n提现成功</string>
+    <string name="success_action_withdraw_another">提现另一个账号</string>
+    <string name="success_action_create_user_title">用户创建成功</string>
+    <string name="success_action_create_user_desc">OTP已发送至该用户手机号码</string>
+    <string name="success_action_create_user_another">创建另一个新用户</string>
+    <string name="success_action_create_user_random_title">随机用户创建成功</string>
+    <string name="success_action_change_password_title">修改成功</string>
+    <string name="success_action_change_password_desc">OTP已发送至该用户手机号码</string>
+    <string name="success_action_change_password_another">修改另一个用户密码</string>
+    <string name="success_action_block_title">已拉黑该用户</string>
+    <string name="success_action_block_desc">该用户已经被限制</string>
+    <string name="success_action_block_submit">提交</string>
+    <string name="success_action_block_another">拉黑另一个用户</string>
+    <string name="success_action_create_player_title">游戏账号创建成功</string>
+    <string name="success_action_create_player_another">创建另一个账号</string>
+    <string name="success_action_feedback_title">反馈成功</string>
+    <string name="success_action_feedback_desc">感谢您的反馈</string>
+    <string name="success_action_connect_printer_title">打印机链接成功</string>
+    <string name="success_action_connect_printer_desc">测试打印中…</string>
+    <string name="success_action_home">回到主页</string>
+    <string name="success_action_print">打印</string>
+    <string name="success_action_top_up">前往充值</string>
+
+    <!-- Yxi -->
+    <string name="yxi_title">选择游戏</string>
+    <string name="yxi_select_yxi">请选择游戏</string>
+    <string name="yxi_search_hint">搜索游戏</string>
+    <string name="yxi_create_player">创建游戏账号</string>
+    <string name="yxi_next">下一步</string>
+
+    <!-- Player Search -->
+    <string name="player_search_id_hint">游戏账号</string>
+    <string name="player_search_button_search">搜索</string>
+    <string name="player_search_button_back">返回选择游戏</string>
+    <string name="player_search_hint_top_up">充值金额</string>
+    <string name="player_search_hint_withdraw">提现金额</string>
+
+    <!-- Transaction -->
+    <string name="transaction_title">报备历史</string>
+    <string name="transaction_tab_all">全部</string>
+    <string name="transaction_tab_user">创建历史</string>
+    <string name="transaction_tab_top_up">用户充值</string>
+    <string name="transaction_tab_withdraw">用户提现</string>
+    <string name="transaction_tab_manager_settlement">Manager清账</string>
+    <string name="transaction_type_user">创建用户</string>
+    <string name="transaction_type_user_random">创建随机用户</string>
+    <string name="transaction_type_user_player">创建游戏账号</string>
+    <string name="transaction_type_top_up">用户充值</string>
+    <string name="transaction_type_yxi_top_up">游戏账号充值</string>
+    <string name="transaction_type_withdraw">用户提现</string>
+    <string name="transaction_type_yxi_withdraw">游戏账号提现</string>
+    <string name="transaction_type_manager_settlement">Manager清账</string>
+    <string name="transaction_type_manager_top_up">Manager增加额度</string>
+    <string name="transaction_type_close_shop">关闭店铺</string>
+    <string name="transaction_type_unknown">未知</string>
+    <string name="transaction_search_hint">搜索Manager</string>
+    <string name="transaction_details_title">交易明细</string>
+    <string name="transaction_date">交易日期</string>
+    <string name="transaction_member_id">账号ID</string>
+    <string name="transaction_phone">手机号码</string>
+    <string name="transaction_player_id">游戏账号ID</string>
+    <string name="transaction_manager">Manager</string>
+    <string name="transaction_payment_mode">交易方式</string>
+    <string name="transaction_status">交易状态</string>
+    <string name="transaction_remarks">备注</string>
+    <string name="transaction_history_user_details">账号详情 ></string>
+
+    <!-- Profile -->
+    <string name="profile_title">个人主页</string>
+    <string name="profile_unknown_user">未知用户</string>
+    <string name="profile_profile_setting">个人设置</string>
+    <string name="profile_feedback">系统反馈</string>
+    <string name="profile_language_setting">语言设定</string>
+    <string name="profile_logout">登出</string>
+    <string name="profile_logout_title">确定登出?</string>
+    <string name="profile_logout_confirm">确定</string>
+    <string name="profile_logout_cancel">取消</string>
+
+    <!-- Profile Setting -->
+    <string name="profile_setting_title">个人设置</string>
+    <string name="profile_setting_user">用户信息</string>
+    <string name="profile_setting_user_desc">更改用户信息</string>
+    <string name="profile_setting_printer">链接打印机</string>
+    <string name="profile_setting_printer_desc">链接和管理打印机</string>
+
+    <!-- Profile Setting - User -->
+    <string name="profile_setting_user_title">用户信息</string>
+    <string name="profile_setting_user_name">用户名</string>
+    <string name="profile_setting_user_country">店铺所在国家</string>
+    <string name="profile_setting_user_state">店铺所在洲</string>
+    <string name="profile_setting_user_area">店铺所在地区</string>
+    <string name="profile_setting_user_qr">店铺二维码</string>
+
+    <!-- Profile Feedback -->
+    <string name="profile_feedback_title">系统反馈</string>
+    <string name="profile_feedback_subject_manager">反馈Manager行为</string>
+    <string name="profile_feedback_subject_manager_desc">举报Manager管理不当或者涉及任何不正当行为等等</string>
+    <string name="profile_feedback_subject_app">反馈APP的用途 / 提及建议</string>
+    <string name="profile_feedback_subject_app_desc">APP很慢或者闪现问题?</string>
+    <string name="profile_feedback_subject_other">其他</string>
+    <string name="profile_feedback_subject_other_desc">以上没提及到的</string>
+    <string name="profile_feedback_subject_title">反馈标题</string>
+    <string name="profile_feedback_hint_content">反馈内容</string>
+    <string name="profile_feedback_content_count">0/1000</string>
+    <string name="profile_feedback_content_count_template">%d/1000</string>
+    <string name="profile_feedback_upload">上传图片</string>
+    <string name="profile_feedback_upload_gallery">相册</string>
+    <string name="profile_feedback_upload_camera">相机</string>
+    <string name="profile_feedback_upload_cancel">取消</string>
+    <string name="profile_feedback_note">*本意见与建议将直接呈交公司领导层及管理高层审阅</string>
+    <string name="profile_feedback_note_desc">公司高度重视每一位员工所提出的反馈与建议，\n所有内容将以严肃、专业及审慎的态度进行处理。</string>
+    <string name="profile_feedback_submit">提交</string>
+    <string name="profile_feedback_image_create_failed">无法创建图片文件</string>
+    <string name="profile_feedback_image_process_failed">图片处理失败</string>
+    <string name="profile_feedback_image_compress_failed">图片压缩后仍超过 2MB，上传失败</string>
+    <string name="profile_feedback_image_size_mb">%.2f MB</string>
+    <string name="profile_feedback_image_size_kb">%.2f KB</string>
+    <string name="profile_feedback_camera_permission">需要相机权限以拍照</string>
+    <string name="profile_feedback_gallery_permission">需要存储权限以访问图片</string>
+    <string name="profile_feedback_upload_desc">提交前请至少上传一张图片。</string>
+    <string name="profile_feedback_upload_okay">好的</string>
+
+    <!-- Profile Setting - Printer -->
+    <string name="profile_setting_printer_title">链接打印机</string>
+    <string name="profile_setting_printer_refresh">刷新</string>
+    <string name="profile_setting_printer_scanning">扫描中</string>
+    <string name="profile_setting_printer_no_printer">未发现打印机</string>
+    <string name="profile_setting_printer_scan_completed">扫描完成</string>
+    <string name="profile_setting_printer_connect_failed">连接失败</string>
+    <string name="profile_setting_printer_bluetooth_not_supported">当前设备不支持蓝牙</string>
+    <string name="profile_setting_printer_bluetooth_permission">请开启蓝牙以扫描打印机</string>
+    <string name="profile_setting_printer_gps_permission">请开启GPS定位以扫描打印机</string>
+    <string name="profile_setting_printer_gps_on">开启</string>
+    <string name="profile_setting_printer_gps_cancel">取消</string>
+    <string name="profile_setting_printer_connect">点击链接</string>
+    <string name="profile_setting_printer_disconnect">点击断链</string>
+    <string name="profile_setting_printer_connected">已链接, 默认设备</string>
+    <string name="profile_setting_printer_disconnected">未链接</string>
+
+    <string name="qr_scan_title">扫描搜寻</string>
+    <string name="qr_scan_camera_permission">需要相机权限以扫描二维码</string>
+
+    <string name="user_status_active">活跃</string>
+    <string name="user_status_blocked">屏蔽</string>
+    <string name="user_status_deleted">删除</string>
+
+    <string name="transaction_status_success">成功</string>
+    <string name="transaction_status_failed">失败</string>
+
+    <string name="template_currency_amount">RM %s</string>
+    <string name="template_bracket_s">(%s)</string>
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_bracket_s">%s (%s)</string>
+
+    <string name="placeholder_currency">RM</string>
+    <string name="placeholder_currency_amount">RM 0.00</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_amount_add">+0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_password_masked">•••••••••</string>
+
+    <string name="language_english">English</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_malay">Malay</string>
+
+    <string name="cd_icon">Icon</string>
+    <string name="cd_qr">QR</string>
+    <string name="cd_image">Image</string>
+
+    <string name="print_connected">CONNECTED---------------------</string>
+    <string name="print_template_store">Store : %s</string>
+    <string name="print_template_date">Date : %s</string>
+    <string name="print_template_yxi">Game : %s</string>
+    <string name="print_template_id">I : %s</string>
+    <string name="print_template_password">P : %s</string>
+    <string name="print_template_top_up">+ : RM %s</string>
+    <string name="print_template_yxi_balance">GB : %s</string>
+    <string name="print_template_balance">B : %s</string>
+
+    <string name="country_code">地区号</string>
+    <string name="country_code_mys">+60</string>
+
+    <string name="qr_user_app_download_title">客户端二维码</string>
+    <string name="qr_user_app_download_desc">扫码下载客户端APP</string>
+
+    <string name="in_app_updater_preparing_download">正在准备下载…</string>
+    <string name="in_app_updater_downloading_update">正在下载更新…</string>
+    <string name="in_app_updater_installing_update">正在安装更新…</string>
+    <string name="in_app_updater_wait">请稍候</string>
+    <string name="in_app_updater_progress">%d%%（%dKB / %dKB）</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>

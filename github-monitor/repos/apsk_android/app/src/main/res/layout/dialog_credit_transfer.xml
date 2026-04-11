@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_yxi_details"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="18dp"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:gravity="center"
+            android:text="@string/yxi_withdraw_title"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_point_details"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="16dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/textView_yxi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:gravity="center"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/textView_player_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="4dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:gravity="center"
+                    android:textColor="@color/gray_6E6E6E"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_star" />
+
+                    <TextView
+                        android:id="@+id/textView_points"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="center"
+                        android:text="@string/placeholder_amount"
+                        android:textColor="@color/orange_F8AF07"
+                        android:textSize="18sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_to" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:gravity="center"
+                    android:text="@string/yxi_withdraw_credit"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/textView_member_id"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="4dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:gravity="center"
+                    android:textColor="@color/gray_6E6E6E"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    tools:ignore="UseCompoundDrawables">
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_marginEnd="16dp"
+                        android:contentDescription="@string/cd_icon"
+                        android:src="@drawable/ic_dollar" />
+
+                    <TextView
+                        android:id="@+id/textView_balance_available"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:gravity="center_horizontal"
+                        android:text="@string/placeholder_amount"
+                        android:textColor="@color/orange_F8AF07"
+                        android:textSize="18sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="@font/pingfang_sc_regular"
+            android:gravity="center"
+            android:text="@string/yxi_withdraw_desc"
+            android:textColor="@color/white_FFFFFF"
+            android:textSize="14sp" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginBottom="18dp"
+            android:background="@drawable/bg_button_bordered_white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:contentDescription="@string/cd_icon"
+                android:src="@drawable/ic_star" />
+
+            <EditText
+                android:id="@+id/editText_credit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginHorizontal="10dp"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:hint="@string/placeholder_amount"
+                android:inputType="numberDecimal"
+                android:textColor="@color/orange_F8AF07"
+                android:textColorHint="@color/yellow_FFFC86_50a"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/textView_all"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:background="@drawable/bg_button_orange"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:text="@string/yxi_withdraw_all"
+                android:textColor="@color/black_000000"
+                android:textSize="14sp" />
+        </LinearLayout>
+
+        <com.dj.user.widget.BlackTextButton
+            android:id="@+id/button_convert"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/yxi_withdraw_transfer" />
+
+        <TextView
+            android:id="@+id/textView_start_yxi"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_bottom_rounded_gradient_green"
+            android:fontFamily="@font/pingfang_sc_semi_bold"
+            android:gravity="center"
+            android:text="@string/yxi_withdraw_start_yxi"
+            android:textColor="@color/black_000000"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imageView_dismiss"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:contentDescription="@string/cd_icon"
+        android:src="@drawable/ic_dismiss_gradient" />
+</LinearLayout>

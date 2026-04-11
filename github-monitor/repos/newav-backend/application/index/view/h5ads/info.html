@@ -1,0 +1,194 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red">*</span>位置</label>
+        <div class="layui-input-block">
+          <input type="radio" value="1" name="position" title="首页底部横幅" lay-verify="need_choose" {if condition="$info.position eq 1 "}checked{/if}>
+          <input type="radio" value="2" name="position" title="底部悬浮" lay-verify="need_choose" {if condition="$info.position eq 2 "}checked{/if}>
+          <input type="radio" value="3" name="position" title="底部右下" lay-verify="need_choose" {if condition="$info.position eq 3 "}checked{/if}>
+          <input type="radio" value="4" name="position" title="列表页"  lay-verify="need_choose" {if condition="$info.position eq 4 "}checked{/if}>
+          <input type="radio" value="5" name="position" title="播放页"  lay-verify="need_choose" {if condition="$info.position eq 5 "}checked{/if}>
+          <input type="radio" value="6" name="position" title="首页弹窗"  lay-verify="need_choose" {if condition="$info.position eq 6 "}checked{/if}>
+          <input type="radio" value="7" name="position" title="播放页2"  lay-verify="need_choose" {if condition="$info.position eq 7 "}checked{/if}>
+        </div>
+      </div>
+
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>标题
+        </label>
+        <div class="layui-input-inline">
+          <input type="text"  name="title" value="{$info.title}" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>缩略图
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="thumb" id="thumb" value="{$info.thumb}"  lay-verify="required" style="width: 400px" class="layui-input" onclick="change()">
+          <img alt style="max-width: 200px" class="image" id="img1" src="{$info.thumb}" />
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          跳转url
+        </label>
+        <div class="layui-input-inline">
+          <input type="text" name="url" lay-verify="required" value="{$info.url}"  style="width: 400px" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>状态</label>
+        <div class="layui-input-block">
+          <input type="radio" name="status"  lay-filter="status" value="1" title="展示" {if condition="$info.status eq 1 "}checked{/if}>
+          <input type="radio" name="status" lay-filter="status" value="0" title="隐藏" {if condition="$info.status eq 0 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>排序</label>
+        <div class="layui-input-inline">
+          <input type="number"min="0" name="sort" autocomplete="off" value="{$info.sort}" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          <span class="x-red"></span>不填默认为0
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>layui.use(['form', 'layer'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+                  layer = layui.layer;
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+            need_choose: function(value,item) {
+              var $ = layui.$;
+              var verifyName = $(item).attr('name')
+                      , verifyType = $(item).attr('type')
+                      , formElem = $(item).parents('.layui-form')//获取当前所在的form元素，如果存在的话
+                      , verifyElem = formElem.find("input[name='" + verifyName + "']")//获取需要校验的元素
+                      , isTrue = verifyElem.is(':checked')//是否命中校验
+                      , focusElem = verifyElem.next().find('i.layui-icon');//焦点元素
+              if (!isTrue || !value) {
+                //定位焦点
+                focusElem.css(verifyType == 'radio' ? {"color": "#FF5722"} : {"border-color": "#FF5722"});
+                //对非输入框设置焦点
+                focusElem.first().attr("tabIndex", "1").css("outline", "0").blur(function () {
+                  focusElem.css(verifyType == 'radio' ? {"color": ""} : {"border-color": ""});
+                }).focus();
+                return '请选择广告位置';
+              }
+            }
+          });
+
+          form.on('submit(sub)', function (data) {
+            $.ajax({
+              url: "{:url('info')}",
+              type: "POST",
+              data: data.field,
+              async: false,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+
+
+function show_video() {
+  var url='{:url("video_list")}';
+  layer.open({
+    type: 2,
+    title: '视频列表',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['90%', '90%'],
+    content: url, //iframe的url
+  });
+}
+
+function show_actor() {
+  var url='{:url("actor_list")}';
+  layer.open({
+    type: 2,
+    title: '演员列表',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['90%', '90%'],
+    content: url, //iframe的url
+  });
+}
+
+
+// 选择标签
+$('.selectVideo').click(function () {
+    show_video();
+})
+
+// 选择标签
+$('.selectActor').click(function () {
+  show_actor();
+})
+
+/**
+ * 获取子页面传递过来的分类参数
+ * @param obj  分类id
+ */
+function GetValue(obj){
+  $('#vid').val(obj);
+}
+
+/**
+ * 获取子页面传递过来的分类参数
+ * @param obj  分类id
+ */
+function GetValue1(obj){
+  $('#aid').val(obj);
+}
+  function change() {
+
+      var src=$("#thumb").val();
+      $('#img1').attr("src", src)//这时写地址
+  }
+</script>
+</body>
+
+</html>

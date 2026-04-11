@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'log_type' => 'Jenis Log',
+    'log_text' => 'Teks Log',
+    'log_desc' => 'Keterangan Log',
+    'shop' => ' kedai ',
+    'member' => ' ahli ',
+    'manager' => ' pengurus ',
+    'player' => ' pemain ',
+    'login' => '%s log masuk ke akaun %s',
+    'logout' => '%s log keluar dari akaun %s',
+    'create_account' => '%s dicipta untuk akaun %s',
+    'create_random_account' => '%s dicipta secara rawak untuk akaun %s',
+    'deposit' => '%s deposit kepada %s',
+    'withdraw' => '%s pengeluaran kepada %s',
+    'active_alarm' => '%s mengaktifkan penggera untuk akaun %s',
+    'deactive_alarm' => '%s menyahaktifkan penggera untuk akaun %s',
+    'changepassword' => '%s menukar kata laluan untuk akaun %s',
+    'block' => '%s menyekat akaun %s',
+    'unblock' => '%s menyahsekat akaun %s',
+    'create_player_account' => '%s mencipta akaun pemain untuk akaun %s',
+    'gamedeposit' => '%s menambah nilai mata permainan untuk akaun %s',
+    'gamewithdraw' => '%s mengeluarkan mata permainan untuk akaun %s',
+];

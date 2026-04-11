@@ -1,0 +1,51 @@
+{include file="public/header" /}
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row" style="padding-top: 20px;">
+            <form class="layui-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">满意度</label>
+                    <div class="layui-input-block" style="padding-top: 9px;">
+                        {switch name="info.satisfaction"}
+                            {case value="1"}<span class="layui-badge layui-bg-red">满意</span>{/case}
+                            {case value="2"}<span class="layui-badge layui-bg-blue">一般</span>{/case}
+                            {case value="3"}<span class="layui-badge layui-bg-gray">不满意</span>{/case}
+                            {default /}未知
+                        {/switch}
+                    </div>
+                </div>
+                
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户信息</label>
+                    <div class="layui-input-inline">
+                        <input type="text" value="UID: {$info.member_id|default='游客'}" class="layui-input" disabled>
+                    </div>
+                    <div class="layui-input-inline">
+                        <input type="text" value="IP: {$info.ip}" class="layui-input" disabled>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">联系方式</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{$info.contact}" class="layui-input" disabled>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">提交时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" value="{$info.add_time|date='Y-m-d H:i:s'}" class="layui-input" disabled>
+                    </div>
+                </div>
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">反馈内容</label>
+                    <div class="layui-input-block">
+                        <textarea class="layui-textarea" style="height: 150px; background-color: #f8f8f8;" readonly>{$info.content}</textarea>
+                    </div>
+                </div>
+                <div class="layui-form-item" style="text-align: center;">
+                    <button type="button" class="layui-btn layui-btn-primary" onclick="xadmin.close();">关闭窗口</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>

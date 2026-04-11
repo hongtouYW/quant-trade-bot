@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:id="@+id/panel_data"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ListView
+            android:id="@+id/listView_commission"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:divider="@android:color/transparent"
+            android:dividerHeight="20dp"
+            android:listSelector="@android:color/transparent"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="20dp" />
+    </LinearLayout>
+
+    <include
+        android:id="@+id/panel_no_data"
+        layout="@layout/view_no_data"
+        android:visibility="gone" />
+
+    <include
+        android:id="@+id/panel_loading"
+        layout="@layout/view_loading"
+        android:visibility="gone" />
+</FrameLayout>

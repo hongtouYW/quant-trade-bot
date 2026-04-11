@@ -1,0 +1,94 @@
+{include file="public/header" /}
+<body>
+<div class="x-nav">
+  <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+    <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+  </a>
+</div>
+<div class="layui-fluid">
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+
+        <div class="layui-card-body ">
+          <form class="layui-form layui-col-space5" action="">
+            <div class="layui-input-inline layui-show-xs-block">
+              <select name="admin_id">
+                <option value="">=请选择登陆用户=</option>
+                {volist name="adminList" id="vo"}
+                <option value="{$vo.id}">{$vo.username}</option>
+                {/volist}
+              </select>
+            </div>
+
+            <div class="layui-input-inline layui-show-xs-block">
+              <input type="submit" class="layui-btn"  value="搜索">
+            </div>
+          </form>
+        </div>
+
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>登陆用户</th>
+              <th>IP</th>
+              <th>浏览器</th>
+              <th>浏览器（版本号）</th>
+              <th>操作系统</th>
+              <th>登陆时间</th>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>{$vo.admin_name}</td>
+              <td>{$vo.ip}</td>
+              <td>{$vo.browser}</td>
+              <td>{$vo.browser_type}</td>
+              <td>{$vo.type_os}</td>
+              <th>{$vo.create_time}</th>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+        <div class="layui-card-body ">
+          <div id="pages" class="center"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+              layer = layui.layer;
+
+      var curUrl = "{:url('system/login_admin',$param)}";
+      layui.use(['laypage', 'layer'], function () {
+        var laypage = layui.laypage
+                , layer = layui.layer,
+                $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          , count: {$total}
+          , limit: {$limit}
+          , limits: [10, 20, 50, 100]
+          , curr: {$page}
+          , layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          , jump: function (obj, first) {
+            if (!first) {
+              location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+            }
+          }
+        });
+      });
+    });
+</script>
+
+</html>

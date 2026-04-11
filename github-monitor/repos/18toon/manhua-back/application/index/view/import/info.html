@@ -1,0 +1,222 @@
+{include file="public/header" /}
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form">
+            <input type="hidden" name="id" value="{$info.id}">
+
+            <!-- 其他基础属性 -->
+            <fieldset class="layui-elem-field">
+                <legend>基础属性</legend>
+                <div class="layui-field-box">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">作者</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="author" value="{$info.author|default=''}" placeholder="请输入作者名称" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">
+                            <span class="x-red">*</span>题材</label>
+                        <div class="layui-input-inline">
+                            <select name="ticai_id">
+                                <option value="">选择题材</option>
+                                {volist name="ticaiList" id="vo"}
+                                <option value="{$vo.id}" {if condition="$info['ticai_id'] eq $vo.id" }selected {/if}>
+                                    {$vo.name}</option>
+                                {/volist}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">标签</label>
+                        <div class="layui-input-block">
+                            <div id="tag-select"></div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">可见区域</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="project_visibility" value="1" title="全部" {if $info.project_visibility==1}checked{/if}>
+                            <input type="radio" name="project_visibility" value="2" title="海外" {if $info.project_visibility==2}checked{/if}>
+                            <input type="radio" name="project_visibility" value="3" title="国内" {if $info.project_visibility==3}checked{/if}>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">状态</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="status" value="1" title="正常" {if $info.status==1}checked{/if}>
+                            <input type="radio" name="status" value="0" title="下架" {if $info.status==0}checked{/if}>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">进度</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="mhstatus" value="0" title="连载" {if $info.mhstatus==0}checked{/if}>
+                            <input type="radio" name="mhstatus" value="1" title="完结" {if $info.mhstatus==1}checked{/if}>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">18+</label>
+                        <div class="layui-input-block">
+                            <input type="radio" name="age18" value="0" title="否" {if $info.age18==0}checked{/if}>
+                            <input type="radio" name="age18" value="1" title="是" {if $info.age18==1}checked{/if}>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="layui-elem-field">
+                <legend>多语言信息</legend>
+                <div class="layui-field-box">
+                    <div class="layui-tab layui-tab-brief" lay-filter="lang-tab">
+                        <ul class="layui-tab-title">
+                            {volist name="translations" id="lang"}
+                            <li {if $i==1}class="layui-this"{/if}>{$lang.lang_code|strtoupper}</li>
+                            {/volist}
+                        </ul>
+
+                        <div class="layui-tab-content">
+                            {volist name="translations" id="lang"}
+                            <div class="layui-tab-item {if $i==1}layui-show{/if}">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">标题 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][title]" value="{$lang.title}" class="layui-input">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item layui-form-text">
+                                    <label class="layui-form-label">简介 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <textarea name="translations[{$lang.lang_code}][desc]" class="layui-textarea">{$lang.desc}</textarea>
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">关键词 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][keyword]" value="{$lang.keyword}" class="layui-input">
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">封面竖图 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][cover]" value="{$lang.cover}" class="layui-input">
+                                        {if !empty($lang.cover)}
+                                        <img src="{$img_domain}{$lang.cover}" style="max-height:80px;margin-top:5px;">
+                                        {/if}
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">封面横图 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][cover_horizontal]" value="{$lang.cover_horizontal}" class="layui-input">
+                                        {if !empty($lang.cover_horizontal)}
+                                        <img src="{$img_domain}{$lang.cover_horizontal}" style="max-height:80px;margin-top:5px;">
+                                        {/if}
+                                    </div>
+                                </div>
+
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">展示图 ({$lang.lang_code})</label>
+                                    <div class="layui-input-block">
+                                        <input type="text" name="translations[{$lang.lang_code}][image]" value="{$lang.image}" class="layui-input">
+                                        {if !empty($lang.image)}
+                                        <img src="{$img_domain}{$lang.image}" style="max-height:80px;margin-top:5px;">
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+                            {/volist}
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+
+            <div class="layui-form-item center">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="save">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+layui.use(['form', 'layer'], function () {
+    var form = layui.form, layer = layui.layer, $ = layui.jquery;
+
+    form.on('submit(save)', function (data) {
+        layer.load(2, {shade: 0.2});
+
+        $.ajax({
+            url: "{:url('info')}",
+            type: "POST",
+            data: data.field,
+            dataType: 'json',
+            success: function (res) {
+                layer.closeAll('loading');
+                if (res.code == 1) {
+                    layer.msg(res.msg, {icon: 1});
+                    setTimeout(function () {
+                        parent.layer.closeAll();
+                        parent.location.reload();
+                    }, 1500);
+                } else {
+                    layer.msg(res.msg, {icon: 2});
+                }
+            },
+            error: function () {
+                layer.closeAll('loading');
+                layer.msg("System Service Busy!", {offset: '200px'});
+            }
+        });
+
+        return false;
+    });
+});
+</script>
+
+<!-- 引入 xm-select -->
+<script src="/static/js/xm-select.js"></script>
+<!-- 初始化 -->
+<script>
+    var defaultTags = {$selectedTags|json_encode|raw};
+
+    xmSelect.render({
+        el: '#tag-select',
+        name: 'tags[]',
+        filterable: true,
+        remoteSearch: true,
+        remoteMethod: function (val, cb) {
+            if (!val) {
+                return cb([]);
+            }
+            $.ajax({
+                url: '/comic/search',
+                type: 'GET',
+                dataType: 'json',
+                data: { wd: val },
+                success: function (res) {
+                    cb(res.list || []);
+                },
+                error: function () {
+                    cb([]);
+                }
+            });
+        },
+        initValue: defaultTags,
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,295 @@
+{include file="public/header" /}
+
+<body>
+    <style>
+        .dropdown-menu {
+        display: none;
+        position: absolute;
+        right: 0;
+        top: 32px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        z-index: 999;
+        /* padding: 5px 0; */
+        min-width: 100px;
+        }
+
+        .dropdown-menu li {
+        padding: 8px 15px;
+        font-size: 13px;
+        cursor: pointer;
+        white-space: nowrap;
+        }
+
+        .dropdown-menu li:hover {
+        background: #f2f2f2;
+        }
+
+        .dropdown-danger {
+        color: #ff4d4f;
+        font-weight: bold;
+        }
+
+        .dropdown-danger:hover {
+        background-color: #ffecec;
+        }
+
+        .alert-warning {
+            padding: 10px;
+            border: 1px solid #f39c12;
+            background-color: #fff3cd;
+            color: #856404;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+    </style>
+<div class="layui-fluid">
+    <div class="x-nav">
+        <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+            <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+        </a>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body">
+                    {if isset($noDuplicates)}
+                        <div class="alert alert-warning" style="margin-bottom: 15px;">{$noDuplicates}</div>
+                    {/if}
+                    <form class="layui-form layui-col-space5" action="">
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="text" name="title" placeholder="输入标题" value="{$param['title']}" autocomplete="off" class="layui-input">
+                        </div>
+
+                        <div class="layui-input-inline w150">
+                          <select name="status">
+                              <option value="">选择状态</option>
+                              <option value="0" {if condition="$param['status'] eq '0'"}selected {/if}>未审核</option>
+                              <option value="1" {if condition="$param['status'] eq '1'"}selected {/if}>已审核</option>
+                          </select>
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="submit" class="layui-btn" value="搜索">
+                        </div>
+                    </form>
+                </div>
+
+                <div class="layui-card-header">
+                    <button class="layui-btn layui-btn-normal" onclick="clearComic()">
+                        <i class="layui-icon"></i>清除缓存
+                    </button>
+                </div>
+
+                <div class="layui-card-body">
+                    <table class="layui-table layui-form">
+                        <thead>
+                            <tr>
+                                <th width="60">ID</th>
+                                <th width="150">标题</th>
+                                <th width="100">题材</th>
+                                <th width="100">封面图</th>
+                                <th width="100">更新时间</th>
+                                <th width="100">是否上线</th>
+                                <th width="100">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {volist name="duplicates" id="comic"}
+                            <tr>
+                                <td>{$comic.id}</td>
+                                <td>{$comic.title}</td>
+                                <td>{$comic.ticai_name}</td>
+                                <td>
+                                    <div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)">
+                                        <img style="width: 100%;height: 100%" src="{$comic.image}" alt="漫画封面">
+                                    </div>
+                                </td>
+                                <td>{$comic.update_time}</td>
+                                <td>
+                                  <input type="checkbox" name="status" data-id="{$comic.id}" type="checkbox"  {if condition="$comic.status eq 1"} checked {/if}  value="{$comic['status']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" >
+                                </td>
+                                <td class="td-manage">
+                                    <div class="layui-btn-group" style="position: relative;">
+                                    <button class="layui-btn layui-btn-xs" onclick="chapter(this)" data-id="{$comic.id}">章节</button>
+                                    <button class="layui-btn layui-btn-xs layui-btn-primary dropdown-trigger">操作<i
+                                        class="layui-icon layui-icon-down"></i></button>
+
+                                    <ul class="dropdown-menu">
+                                        <li onclick="set_edit(this)" data-id="{$comic.id}"><i class="layui-icon">&#xe642;</i> 编辑</li>
+                                        <li class="dropdown-danger" onclick="set_del(this)" data-id="{$comic.id}"><i
+                                            class="layui-icon">&#xe640;</i> 删除</li>
+                                    </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            {/volist}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="layui-card-body">
+                    <div id="pages" class="center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'], function() {
+    $ = layui.jquery;
+    var form = layui.form,
+        layer = layui.layer;
+
+    var curUrl = "{:url('repeat', $param)}";
+    layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage,
+            layer = layui.layer,
+            $ = layer.jquery;
+            laypage.render({
+              elem: 'pages',
+              count: {$total},
+              limit: {$limit},
+              limits:[10, 20, 50, 100],
+              curr: {$page},
+              jump: function(obj, first) {
+                if (!first) {
+                  location.href = curUrl.replace('%7Bpage%7D', obj.curr).replace('%7Blimit%7D', obj.limit);
+                }
+              }
+            });
+    });
+
+    form.on('switch(modify)', function(data) {
+        var that = $(this),
+            status = 0;
+        var field = that.attr('name');
+        if (this.checked) {
+            if (field == 'private') {
+                status = 2;
+            } else {
+                status = 1;
+            }
+        }
+
+        var id = that.attr('data-id');
+        $.ajax({
+            url: "{:url('modify')}",
+            type: "POST",
+            data: {
+                id: id,
+                field: field,
+                value: status,
+            },
+            async: false,
+            success: function(data) {
+                if (data.code == 1) {
+                    layer.msg(data.msg, { icon: 1 });
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    layer.msg(data.msg, { icon: 2 });
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                }
+            },
+            error: function() {
+                layer.msg("System Service Busy!", { offset: '200px' });
+            }
+        });
+    });
+});
+
+function set_edit(t) {
+    var id = $(t).attr("data-id");
+    var url = '{:url("info")}' + '?id=' + id;
+    var edit = layer.open({
+        type: 2,
+        title: '编辑漫画',
+        area: ['100%', '100%'],
+        content: url, //iframe的url
+    });
+    layer.full(edit);
+}
+
+function chapter(t) {
+    var id = $(t).attr("data-id");
+    var url = '{:url("chapter")}' + '?comic_id=' + id;
+    var edit = layer.open({
+        type: 2,
+        title: '漫画章节',
+        area: ['100%', '100%'],
+        content: url, //iframe的url
+    });
+    layer.full(edit);
+}
+
+function set_del(t) {
+    var id = $(t).attr("data-id");
+    layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消']
+    }, function(index, layero) {
+        $.post('{:url("del")}', { 'id': id }, function(data) {
+            if (data.code == 1) {
+                layer.msg(data.msg, { icon: 1 });
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                layer.alert(data.msg, { icon: 2 });
+            }
+        });
+    });
+}
+
+function show_img(t) {
+    var t = $(t).find("img");
+    layer.open({
+        type: 1,
+        skin: 'layui-layer-rim',
+        area: ['75%', '85%'],
+        shadeClose: true,
+        content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+    });
+}
+
+function clearComic() {
+    layer.confirm('你确定要清除Comic缓存么？', {
+        btn: ['确定', '取消']
+    }, function(index, layero) {
+        $.post('{:url("clear")}', {}, function(data) {
+            if (data.code == 1) {
+                layer.msg(data.msg, { icon: 1 });
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                layer.alert(data.msg, { icon: 2 });
+            }
+        });
+    });
+}
+
+    $(document).on('click', '.dropdown-trigger', function (e) {
+        e.stopPropagation(); // 阻止事件冒泡到 document
+        let $menu = $(this).siblings('.dropdown-menu');
+
+        // 关闭其它已打开的菜单
+        $('.dropdown-menu').not($menu).hide();
+
+        // 切换当前菜单
+        $menu.toggle();
+    });
+
+    // 点击其他地方自动关闭
+    $(document).on('click', function () {
+        $('.dropdown-menu').hide();
+    });
+</script>
+</html>

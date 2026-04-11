@@ -1,0 +1,111 @@
+{include file="public/header" /}
+{include file="public/date" /}
+<body>
+<div class="layui-fluid">
+  <div class="x-nav">
+    <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+      <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+    </a>
+  </div>
+  <div class="layui-row layui-col-space15">
+    <div class="layui-col-md12">
+      <div class="layui-card">
+        <div class="layui-card-header">
+          <button class="layui-btn" onclick="set_add()">
+            <i class="layui-icon"></i>添加
+          </button>
+        </div>
+        <div class="layui-card-body ">
+          <table class="layui-table layui-form">
+            <thead>
+            <tr>
+              <th>ID</th>
+              <th>域名</th>
+              <th>添加时间</th>
+              <th>更新时间</th>
+              <th>操作</th></tr>
+            </thead>
+            <tbody>
+            {volist name="list" id="vo"}
+            <tr>
+              <td>{$vo.id}</td>
+              <td>{$vo.url}</td>
+              <td>{$vo.add_time}</td>
+              <td>{$vo.update_time}</td>
+              <td class="td-manage">
+                <button class="layui-btn layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                <button class="layui-btn-danger layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+              </td>
+            </tr>
+            {/volist}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+
+<script>
+
+/*
+添加
+ */
+function set_add() {
+  var url='{:url("info")}';
+  layer.open({
+    type: 2,
+    title: '添加',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['80%', '80%'],
+    content: url, //iframe的url
+  });
+}
+
+/*
+编辑
+ */
+function set_edit(t) {
+  var id=$(t).attr("data-id");
+  var url='{:url("info")}'+'?id='+id;
+  layer.open({
+    type: 2,
+    title: '信息',
+    shadeClose: true,
+    shade: 0.8,
+    area: ['80%', '80%'],
+    content: url, //iframe的url
+  });
+}
+
+
+/*
+删除
+ */
+function set_del(t) {
+  var id=$(t).attr("data-id");
+  layer.confirm('你确定要删除么？', {
+    btn: ['确定', '取消'] //可以无限个按钮
+  }, function(index, layero){
+    //按钮【按钮一】的回调
+    $.post('{:url("del")}',{'id':id},function(data){
+      if(data.code==1){
+        layer.msg(data.msg,{icon:1});
+        setTimeout(function () {
+          location.reload();
+        },800);
+      }else{
+        layer.alert(data.msg,{icon:2});
+      }
+    });
+
+  }, function(index){
+    //按钮【按钮二】的回调
+  });
+
+}
+</script>
+
+</html>

@@ -1,0 +1,184 @@
+.videoListKeyword {
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.videoListKeyword span {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.videoListContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.videoListOtherContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: 8px;
+}
+
+.actorContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 25px;
+  position: relative;
+}
+
+.actorTrend {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translate(0px, -50%);
+}
+
+.actorTrendButton {
+  padding: 3px 15px;
+  line-height: 25px;
+  background: var(--primary-color);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.actorAvatar {
+  width: 70px;
+  height: 70px;
+}
+
+.actorAvatar img {
+  border-radius: 50px;
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.actorInfo {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.actorName {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.publisherContainer,
+.tagContainer {
+  margin: 15px 0px;
+}
+
+.publisherInfo,
+.tagInfo {
+  text-align: center;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.publisherName,
+.tagName {
+  color: #fff;
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 45px;
+}
+
+.hotMenuList {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0px;
+}
+
+.hotMenuItem {
+  flex: 1;
+  background: #191b27;
+  border-radius: 3px;
+  line-height: 45px;
+  text-align: center;
+}
+
+.hotMenuItem p {
+  color: #fff;
+}
+
+.hotMenuItemActive p {
+  color: var(--primary-color);
+  font-weight: 700;
+}
+
+.asVideoListFooter {
+  margin: 20px 0px;
+}
+
+.asVideoListFooter img {
+  width: 100%;
+  object-fit: contain;
+}
+
+.loadingContainer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  background-color: rgba(0, 0, 0, 0.35);
+}
+
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@media screen and (max-width: 600px) {
+  .videoListSection {
+    padding-left: 10px;
+  }
+
+  .videoItem {
+    width: 31%;
+  }
+
+  .videoOtherItem {
+    width: 48%;
+  }
+
+  .actorContainer {
+    justify-content: flex-start;
+  }
+
+  .actorName {
+    font-size: 18px;
+  }
+
+  .hotMenuItem p {
+    line-height: 23px;
+  }
+
+  .hotMenuList {
+    align-items: stretch;
+  }
+
+  .hotMenuItem {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 3px;
+  }
+}

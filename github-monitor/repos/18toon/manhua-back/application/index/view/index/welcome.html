@@ -1,0 +1,178 @@
+{include file="public/header" /}
+    <body>
+        <div class="layui-fluid">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-body ">
+                            <blockquote class="layui-elem-quote" >
+                                <a href="#" onclick="clers()" class="layui-btn layui-btn-normal">清除系统缓存</a>
+                                <a href="#" onclick="clersR()" class="layui-btn layui-btn-normal">清除Redis缓存</a>
+                            </blockquote>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-col-md12">
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:#006adb;">今日数据</div>
+                        <div class="layui-card-body ">
+                            <ul class="layui-row layui-col-space10 layui-this x-admin-carousel x-admin-backlog">
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>总下单</h3>
+                                        <p>
+                                            <cite>{$today_order}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>已付款订单</h3>
+                                        <p>
+                                            <cite>{$today_pay}</cite></p>
+                                    </a>
+                                </li>
+
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>特惠订单</h3>
+                                        <p>
+                                            <cite>{$today_discount}</cite></p>
+                                    </a>
+                                </li>
+
+
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>今日收益</h3>
+                                        <p>
+                                            <cite>{$today_profit}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>新增用户</h3>
+                                        <p>
+                                            <cite>{$today_user}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>观看次数</h3>
+                                        <p>
+                                            <cite>{$today_view}</cite></p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="layui-card">
+                        <div class="layui-card-header" style="color:#006adb;">昨日数据</div>
+                        <div class="layui-card-body ">
+                            <ul class="layui-row layui-col-space10 layui-this x-admin-carousel x-admin-backlog">
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>总下单</h3>
+                                        <p>
+                                            <cite>{$yes_order}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>已付款订单</h3>
+                                        <p>
+                                            <cite>{$yes_pay}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>特惠订单</h3>
+                                        <p>
+                                            <cite>{$yes_discount}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>昨日收益</h3>
+                                        <p>
+                                            <cite>{$yes_profit}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>新增用户</h3>
+                                        <p>
+                                            <cite>{$yes_user}</cite></p>
+                                    </a>
+                                </li>
+                                <li class="layui-col-md2 layui-col-xs6">
+                                    <a href="javascript:;" class="x-admin-backlog-body">
+                                        <h3>观看次数</h3>
+                                        <p>
+                                            <cite>{$yes_view}</cite></p>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                <style id="welcome_style"></style>
+            </div>
+        </div>
+        </div>
+    </body>
+</html>
+<script>
+
+    layui.use(['laydate','form'], function(){
+        var laydate = layui.laydate;
+        var table = layui.table;
+        var form = layui.form;
+    });
+
+    function clers() {
+        layer.confirm('你确定要清除系统缓存么？', {
+            btn: ['确定', '取消'] //可以无限个按钮
+        }, function(index, layero){
+            //按钮【按钮一】的回调
+            $.post('{:url("base/clear")}',{},function(data){
+                if(data.code==1){
+                    layer.msg(data.msg,{icon:1});
+                    setTimeout(function () {
+                        location.reload();
+                    },1500);
+
+                }else{
+                    layer.alert(data.msg,{icon:2});
+                }
+            });
+
+        }, function(index){
+            //按钮【按钮二】的回调
+        });
+
+
+    }
+
+    function clersR() {
+        layer.confirm('你确定要清除Redis么？', {
+            btn: ['确定', '取消'] //可以无限个按钮
+        }, function(index, layero){
+            //按钮【按钮一】的回调
+            $.post('{:url("base/clearredis")}',{},function(data){
+                if(data.code==1){
+                    layer.msg(data.msg,{icon:1});
+                    setTimeout(function () {
+                        location.reload();
+                    },1500);
+
+                }else{
+                    layer.alert(data.msg,{icon:2});
+                }
+            });
+
+        }, function(index){
+            //按钮【按钮二】的回调
+        });
+
+
+    }
+</script>

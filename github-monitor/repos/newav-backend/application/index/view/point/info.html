@@ -1,0 +1,178 @@
+{include file="public/header" /}
+<body>
+    <div class="layui-fluid">
+        <div class="layui-row">
+            <form class="layui-form">
+                <input type="hidden" name="id" value="{$info.id}">
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>名称:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="title" value="{$info.title}" lay-verify="required" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>英文名称:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="title_en" value="{$info.title_en}" lay-verify="required" class="layui-input">
+                    </div>
+                </div>
+                <!-- <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>俄语名称:</label>
+                    <div class="layui-input-inline">
+                        <input type="text" name="title_ru" value="{$info.title_ru}" lay-verify="required" class="layui-input">
+                    </div>
+                </div> -->
+                <!-- Description Fields -->
+                <div class="layui-form-item">
+                    <label class="layui-form-label">描述:</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="des" placeholder="请输入描述" class="layui-textarea">{$info.des}</textarea>
+                    </div>
+                </div>
+                
+                <div class="layui-form-item">
+                    <label class="layui-form-label">英文描述:</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="des_en" placeholder="英文描述" class="layui-textarea">{$info.des_en}</textarea>
+                    </div>
+                </div>
+                
+                <!-- <div class="layui-form-item">
+                    <label class="layui-form-label">俄语描述:</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="des_ru" placeholder="俄语描述" class="layui-textarea">{$info.des_ru}</textarea>
+                    </div>
+                </div> -->
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                        <span class="x-red">*</span>缩略图:
+                    </label>
+                    <div class="layui-input-inline">
+                        <input type="text" id="thumb" name="thumb" value="{$info.thumb}" style="width: 400px" class="layui-input" onchange="change()">
+                        <img style="width: 80px;height: 80px"  class="thumb" id="thumb1" src="{$img_url}{$info.thumb}" />
+                    </div>
+                </div>
+        
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>点卷数量:</label>
+                    <div class="layui-input-inline">
+                        <input type="number" name="points" value="{$info.points}" lay-verify="required" autocomplete="off" class="layui-input">
+                    </div>
+
+                    <label class="layui-form-label"><span class="x-red">*</span>赠送钻石:</label>
+                    <div class="layui-input-inline">
+                        <input type="number" name="diamonds" value="{$info.diamonds}" autocomplete="off" class="layui-input">
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">
+                        <span class="x-red">*</span>不填默认为0
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red">*</span>原价:</label>
+                    <div class="layui-input-inline">
+                        <input type="number" name="cost" value="{$info.cost}" autocomplete="off" lay-verify="required" class="layui-input">
+                    </div>
+
+                    <label class="layui-form-label"><span class="x-red">*</span>现价:</label>
+                    <div class="layui-input-inline">
+                        <input type="number" name="money" value="{$info.money}" autocomplete="off" lay-verify="required" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label"><span class="x-red"></span>排序:</label>
+                    <div class="layui-input-inline">
+                        <input type="number"min="0" name="sort"  edit="text" autocomplete="off" value="{$info.sort}" class="layui-input">
+                    </div>
+                    <div class="layui-form-mid layui-word-aux">
+                        <span class="x-red"></span>不填默认为0
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                    <span class="x-red"></span>是否展示</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="status" value="0" title="否" {if condition="$info.status eq 0 "}checked{/if}>
+                        <input type="radio" name="status" value="1" title="是" {if condition="$info.status eq 1 "}checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                    <span class="x-red"></span>是否折扣</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="is_sale" value="0" title="否" {if condition="$info.is_sale eq 0 "}checked{/if}>
+                        <input type="radio" name="is_sale" value="1" title="是" {if condition="$info.is_sale eq 1 "}checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                    <span class="x-red"></span>是否热门</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="hot" value="0" title="否" {if condition="$info.hot eq 0 "}checked{/if}>
+                        <input type="radio" name="hot" value="1" title="是" {if condition="$info.hot eq 1 "}checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">
+                    <span class="x-red"></span>是否推荐</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="recommend" value="0" title="否" {if condition="$info.recommend eq 0 "}checked{/if}>
+                        <input type="radio" name="recommend" value="1" title="是" {if condition="$info.recommend eq 1 "}checked{/if}>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="sub">保存</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        layui.use(['form', 'layer'], function () {
+        // 操作对象
+        var form = layui.form
+            , layer = layui.layer
+            , $ = layui.jquery
+            , upload = layui.upload;;
+
+        // 验证
+            form.verify({
+                required: [/[\S]+/, "必填项不能为空"],
+            });
+
+            form.on('submit(sub)', function (data) {
+                console.log(data.field);
+                $.ajax({
+                    url: "{:url('info')}",
+                    type: "POST",
+                    data: data.field,
+                    async: false,
+                    success: function (data) {
+                        if(data.code==1){
+                            layer.msg(data.msg,{icon:1});
+                            setTimeout(function () {
+                                parent.layer.closeAll();
+                                parent.location.reload();
+                            },1500);
+                        }else{
+                            layer.msg(data.msg,{icon:2});
+                        }
+                    },
+                    error: function () {
+                        layer.msg("System Service Busy!", {offset: '200px'});
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>

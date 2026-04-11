@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Encrypt / Decrypt Demo</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- CryptoJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-4">
+  <div class="w-full max-w-lg space-y-8">
+
+    <!-- Encrypt / Decrypt Toolbox -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Encrypt / Decrypt</h2>
+      <div class="space-y-4">
+
+        <div>
+          <label for="payloadInput" class="block mb-1 font-medium">Payload</label>
+          <textarea id="payloadInput" rows="4"
+                    class="w-full border px-3 py-2 rounded"
+                    placeholder='{"username":"testuser","password":"mypassword","timestamp":...}'></textarea>
+        </div>
+
+        <div class="flex space-x-2">
+          <button onclick="encryptPayload()"
+                  class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
+            Encrypt
+          </button>
+          <button onclick="decryptPayload()"
+                  class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">
+            Decrypt
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Result Display -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">Result</h2>
+      <pre id="resultOutput" class="whitespace-pre-wrap text-sm text-gray-800"></pre>
+    </div>
+
+  </div>
+
+  <script>
+    // must-match backend config
+    const config = {
+      aesKey:  '0XxdjmI55ZjjqQLO3nI7gGqrBP0Vz9jS',
+      ivBase:  'RWf23muavY',   // 10-char prefix
+      signKey: 'NRkw0g3iJLDvw5tJ5PuVt5276z0SOuyL'
+    };
+
+    function encryptPayload() {
+      try {
+        const raw = document.getElementById('payloadInput').value;
+        const obj = JSON.parse(raw);
+
+        // generate signature
+        const keys = Object.keys(obj).sort();
+        const signStr = keys.map(k => `${k}=${encodeURIComponent(obj[k])}`).join('&') + config.signKey;
+        obj.encode_sign = CryptoJS.MD5(signStr).toString();
+
+        // generate IV
+        const ivSuffix = CryptoJS.lib.WordArray.random(3).toString().slice(0,6);
+        const fullIv = CryptoJS.enc.Utf8.parse(config.ivBase + ivSuffix);
+
+        // encrypt
+        const encrypted = CryptoJS.AES.encrypt(
+          JSON.stringify(obj),
+          CryptoJS.enc.Utf8.parse(config.aesKey),
+          { iv: fullIv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+        ).toString();
+
+        // output
+        const out = { data: encrypted, iv: ivSuffix };
+        document.getElementById('resultOutput').innerText = JSON.stringify(out, null, 2);
+      } catch (e) {
+        document.getElementById('resultOutput').innerText = 'Encrypt error: ' + e.message;
+      }
+    }
+
+    function decryptPayload() {
+      try {
+        const raw = document.getElementById('payloadInput').value;
+        const resp = JSON.parse(raw);
+
+        // rebuild IV
+        const fullIv = CryptoJS.enc.Utf8.parse(config.ivBase + resp.iv);
+
+        // decrypt
+        const cipherParams = CryptoJS.lib.CipherParams.create({
+          ciphertext: CryptoJS.enc.Base64.parse(resp.data)
+        });
+        const decrypted = CryptoJS.AES.decrypt(
+          cipherParams,
+          CryptoJS.enc.Utf8.parse(config.aesKey),
+          { iv: fullIv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
+        );
+        const result = JSON.parse(CryptoJS.enc.Utf8.stringify(decrypted));
+
+        // verify signature
+        // const sig = result.encode_sign;
+        // delete result.encode_sign;
+        // const keys = Object.keys(result).sort();
+        // const verifyStr = keys.map(k => `${k}=${encodeURIComponent(result[k])}`).join('&') + config.signKey;
+        // const check = CryptoJS.MD5(verifyStr).toString();
+        // if (check !== sig) throw new Error('signature mismatch');
+
+        document.getElementById('resultOutput').innerText = JSON.stringify(result, null, 2);
+      } catch (e) {
+        document.getElementById('resultOutput').innerText = 'Decrypt error: ' + e.message;
+      }
+    }
+  </script>
+</body>
+</html>

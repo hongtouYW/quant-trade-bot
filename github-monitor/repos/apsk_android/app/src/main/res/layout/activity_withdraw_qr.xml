@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="10dp"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="@string/withdraw_qr_label"
+                android:textColor="@color/gray_BCBCBC"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/textView_amount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="20dp"
+                android:background="@drawable/bg_button_bordered_blue"
+                android:fontFamily="@font/pingfang_sc_semi_bold"
+                android:paddingHorizontal="84dp"
+                android:paddingVertical="30dp"
+                android:text="@string/placeholder_currency_amount"
+                android:textColor="@color/orange_F8AF07"
+                android:textSize="30sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/blue_354B9C" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:padding="12dp"
+                android:text="@string/withdraw_qr_desc"
+                android:textColor="@color/white_FFFFFF"
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:fontFamily="@font/pingfang_sc_regular"
+                android:gravity="center"
+                android:text="@string/withdraw_qr_refresh"
+                android:textColor="@color/gray_6E6E6E"
+                android:textSize="12sp" />
+
+            <RelativeLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center">
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imageView_qr"
+                    android:layout_width="305dp"
+                    android:layout_height="305dp"
+                    android:layout_marginTop="19dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="@color/white_FFFFFF"
+                    app:shapeAppearanceOverlay="@style/Radius40ImageView" />
+
+                <TextView
+                    android:id="@+id/textView_count_down"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:layout_centerHorizontal="true"
+                    android:background="@drawable/bg_button_orange"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:gravity="center"
+                    android:paddingHorizontal="15dp"
+                    android:textColor="@color/black_000000"
+                    android:textSize="14sp" />
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

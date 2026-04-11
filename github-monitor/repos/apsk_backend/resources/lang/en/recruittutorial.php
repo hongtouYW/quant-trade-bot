@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'select' => 'Select Tutorial',
+    'recruittutorial_list' => 'Tutorial List',
+    'add_new_recruittutorial' => 'Add New Tutorial',
+    'recruittutorial_added_successfully' => 'Tutorial added successfully!',
+    'recruittutorial_updated_successfully' => 'Tutorial updated successfully!',
+    'recruittutorial_deleted_successfully' => 'Tutorial deleted successfully!',
+    'title' => 'Title',
+    'desc' => 'Description',
+    'picture' => 'Picture',
+    'slogan' => 'Slogan',
+    'url' => 'Link',
+    'status' => 'Status',
+    'active' => 'Active',
+    'inactive' => 'Inactive',
+    'never' => 'Never',
+    'edit_recruittutorial' => 'Edit Tutorial',
+    'delete_recruittutorial' => 'Delete Tutorial',
+    'confirm_delete_recruittutorial' => 'Are you sure you want to delete Tutorial?',
+    'no_data_found' => 'No Tutorial found.',
+    'leave_blank_for_no_change' => 'Leave blank for no change',
+    'active_status' => 'Active',
+];

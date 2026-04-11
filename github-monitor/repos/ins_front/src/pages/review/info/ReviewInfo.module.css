@@ -1,0 +1,103 @@
+.reviewInfoTitle {
+  margin-bottom: 10px;
+}
+
+.reviewInfoTitle p {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.reviewInfoTag {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.reviewInfoTag a {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.reviewInfoShare {
+  background: #191b27;
+  padding: 10px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.reviewInfoShare a {
+  background-color: var(--primary-color);
+  color: #000;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 5px 16px;
+  line-height: 22px;
+  font-size: 14px;
+}
+
+.reviewInfoShare button {
+  border: none;
+  background-color: var(--primary-color);
+  color: #000;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 5px 16px;
+  line-height: 22px;
+  font-size: 14px;
+}
+
+.copyShare {
+  margin: 20px 0px;
+}
+
+.copyShareField {
+  background: #191b27;
+  padding: 20px;
+}
+
+.copyShareField textarea {
+  background: #fff;
+  border-radius: 5px;
+  color: #000;
+}
+
+.copyShareHint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.copyShareHint span {
+  font-size: 12px;
+  color: #fff;
+}
+
+.copyShareBtn button {
+  padding: 8px 15px;
+  line-height: 10px;
+  font-weight: 500;
+}
+
+.reviewInfoDesc p {
+  font-size: 14px;
+  line-height: 25px;
+  color: #8e8e8e;
+  margin: 5px 0px;
+}
+
+.reviewInfoDesc img {
+  width: 100%;
+  object-fit: cover;
+}
+
+@media screen and (max-width: 600px) {
+  .reviewInfoContaier {
+    padding: 0px 10px;
+  }
+}

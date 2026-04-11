@@ -1,0 +1,42 @@
+.registerContainer {
+  max-width: 500px;
+  min-height: 500px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
+.registerHeader {
+  margin: 50px 0px 15px 0px;
+}
+
+.registerHeaderTitle {
+  font-size: 36px;
+  color: var(--primary-color);
+  text-align: center;
+}
+
+.registerHeaderDesc {
+  font-size: 14px;
+  color: #aaa;
+}
+
+.registerFormContainer {
+  margin-bottom: 20px;
+}
+
+.registerForm {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.loginLink a {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.loginLink p {
+  font-weight: 500;
+  color: #fff;
+}

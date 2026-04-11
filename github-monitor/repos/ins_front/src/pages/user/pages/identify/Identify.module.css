@@ -1,0 +1,11 @@
+.identifyContainer {
+  width: 400px;
+  position: relative;
+  margin: 15px auto;
+}
+
+@media screen and (max-width: 600px) {
+  .identifyContainer {
+    width: 95%;
+  }
+}

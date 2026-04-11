@@ -1,0 +1,396 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+      </a>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5" action="">
+                      <input type="hidden" name="comic_id" value="{$param['comic_id']}">
+                      <div class="layui-input-inline layui-show-xs-block">
+                        <input type="text" name="id" placeholder="id"  value="{$param['id']}" autocomplete="off" class="layui-input">
+                      </div>
+
+                        <div class="layui-input-inline layui-show-xs-block">
+                          <input type="text" name="wd" placeholder="请输入章节名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline w150">
+                            <select name="switch">
+                                <option value="">选择状态</option>
+                                <option value="0" {if condition="$param['switch'] eq '0'"}selected {/if}>未审核</option>
+                                <option value="1" {if condition="$param['switch'] eq '1'"}selected {/if}>已审核</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w150">
+                            <select name="switch">
+                                <option value="">权限</option>
+                                <option value="0" {if condition="$param['isvip'] eq '0'"}selected {/if}>免费</option>
+                                <option value="1" {if condition="$param['isvip'] eq '1'"}selected {/if}>VIP</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w150">
+                            <select name="score">
+                                <option value="">书币</option>
+                                <option value="1" {if condition="$param['score'] eq '1'"}selected {/if}>需要</option>
+                                <option value="0" {if condition="$param['score'] eq '0'"}selected {/if}>不需要</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline w150">
+                            <select name="migrate">
+                                <option value="">选择搬迁</option>
+                                <option value="0" {if condition="$param['migrate'] eq '0'"}selected {/if}>未完成</option>
+                                <option value="1" {if condition="$param['migrate'] eq '1'"}selected {/if}>已完成</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="submit" class="layui-btn"  value="搜索">
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <a href="{:url('chapter', ['comic_id' => $param['comic_id']])}" class="layui-btn layui-btn-primary">重置</a>
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <button type="button" class="layui-btn layui-btn-sm" onclick="batchMigrate(this)">批量搬迁</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="layui-card-body ">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th><input type="checkbox" lay-skin="primary" lay-filter="selectAll"></th>
+                            <th>ID</th>
+                            <th width="80">采集id</th>
+                            <th>标题</th>
+                            <th>封面图</th>
+                            <th>书币</th>
+                            <th>搬迁状态</th>
+                            <th>是否上线</th>
+                            <th>是否VIP</th>
+                            <th>更新时间</th>
+                          <th style="width: 400px">操作</th></tr>
+                        </thead>
+                        <tbody>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td><input type="checkbox" lay-skin="primary" class="selectItem" value="{$vo.id}"></td>
+                            <td>{$vo.id}</td>
+                            <td>{$vo.cjid}</td>
+                            <td>{$vo.title}</td>
+                            <td><div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)"><img style="width: 100%;height: 100%" src="{$vo.image}"></div></td>
+                            <td>{$vo.score}</td>
+                            <td>
+                              {if $vo.is_migrated}
+                                  <span style="color:green;">✅ 已搬迁</span>
+                              {else}
+                                  <span style="color:red;">❌ 未搬迁</span>
+                              {/if}
+                            </td>
+                            <td>
+                              <input type="checkbox" name="switch" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.switch eq 1"} checked {/if}  value="{$vo['switch']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" disabled>
+                            </td>
+                            <td>
+                              <input type="checkbox" name="isvip" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.isvip eq 1"} checked {/if}  value="{$vo['isvip']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" disabled>
+                            </td>
+                            <td>{$vo.update_time}</td>
+                            <td class="td-manage">
+                                <button class="layui-btn layui-btn layui-btn-primary" data-id="{$vo.id}" onclick="photos(this)" >图集</button>  
+                                <!-- <button class="layui-btn layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button> -->
+                                <button class="layui-btn layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_migrate(this)" ><i class="layui-icon">&#xe642;</i>搬迁</button>
+                                <!-- <button class="layui-btn-danger layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button> -->
+                            </td>
+                        </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body ">
+
+                    <div id="pages" class="center"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl="{:url('chapter',$param)}";
+      layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          ,count: {$total}
+          ,limit: {$limit}
+          ,limits:[10,20,50,100]
+          ,curr: {$page}
+          ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          ,jump: function(obj,first){
+            if(!first){
+              location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        var field = that.attr('name');
+        if(this.checked){
+          if(field == 'private'){
+            status = 2;
+          }else{
+            status = 1;
+          }
+        }
+
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('chapter_modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field:field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+
+      form.on('checkbox(selectAll)', function(data){
+          var isChecked = data.elem.checked;
+          $('.selectItem').each(function(){
+              this.checked = isChecked;
+          });
+          form.render('checkbox');
+      });
+    });
+
+
+    /*
+    编辑
+     */
+    function set_edit(t) {
+      var id=$(t).attr("data-id");
+      var url='{:url("chapter_info")}'+'?id='+id;
+      var edit = layer.open({
+        type: 2,
+        title: '编辑视频',
+        area: ['100%', '100%'],
+        content: url, //iframe的url
+      });
+      layer.full(edit);
+    }
+
+
+    /*
+    删除
+     */
+    function set_del(t) {
+      var id=$(t).attr("data-id");
+      layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+      }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("chapter_del")}',{'id':id},function(data){
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            },1500);
+          }else{
+            layer.alert(data.msg,{icon:2});
+          }
+        });
+
+      }, function(index){
+        //按钮【按钮二】的回调
+      });
+
+    }
+
+  //图片显示
+    function show_img(t) {
+      var t = $(t).find("img");
+      //页面层
+      layer.open({
+        type: 1,
+        skin: 'layui-layer-rim', //加上边框
+        area: ['75%', '85%'], //宽高
+        shadeClose: true, //开启遮罩关闭
+        end: function (index, layero) {
+          return false;
+        },
+        content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+      });
+    }
+
+
+/*
+删除
+*/
+function photos(t) {
+    var id=$(t).attr("data-id");
+    $.post('{:url("photos")}',{'id':id},function(data){
+        if(data.code==1){
+            layer.photos({
+                photos: {
+                    "title":"图集",
+                    "start": 0,
+                    "data": data.data
+                }
+            });
+
+        }else{
+            layer.alert(data.msg,{icon:2});
+        }
+    });
+}
+
+function getSelectedIds() {
+    let ids = [];
+    $('.selectItem:checked').each(function () {
+        ids.push($(this).val());
+    });
+    return ids;
+}
+
+// <option value="ru">俄语</option>
+// <option value="vi">越南</option>
+// <option value="hi">印度</option>
+// <option value="en">英文</option>
+// <option value="es">西班牙</option>
+function batchMigrate() {
+    let ids = getSelectedIds();
+    if (ids.length === 0) {
+        layer.msg('请选择要搬迁的项');
+        return;
+    }
+
+    // 语言选择弹窗内容
+    const langSelectHTML = `
+        <div style="padding: 20px; text-align: center;">
+            <label for="lang">请选择语言（可多选）：</label><br>
+            <select id="lang" multiple style="margin-top: 10px; padding: 5px 10px; height: 120px; width: 80%;">
+                <option value="en">英文</option>
+            </select>
+        </div>
+    `;
+
+    // 弹出多语言选择框
+    layer.open({
+        title: '选择语言',
+        area: ['320px', '320px'],
+        content: langSelectHTML,
+        btn: ['确定', '取消'],
+        yes: function(index, layero){
+            const selectedLangs = $('#lang').val(); // 多选为数组
+
+            if (!selectedLangs || selectedLangs.length === 0) {
+                layer.msg("请至少选择一种语言", { icon: 0 });
+                return;
+            }
+
+            // 批量提交 ids 和语言数组
+            $.post("{:url('batch_translate')}", {
+                ids: ids,
+                languages: selectedLangs
+            }, function(res) {
+                if (res.code === 1) {
+                    layer.msg('搬迁成功', {icon: 1}, function () {
+                        location.reload();
+                    });
+                } else {
+                    layer.msg(res.msg || '搬迁失败', {icon: 2});
+                }
+            }).fail(function() {
+                layer.alert("请求失败，请稍后重试", { icon: 2 });
+            });
+
+            layer.close(index);
+        }
+    });
+}
+
+// <option value="ru">俄语</option>
+// <option value="vi">越南</option>
+// <option value="hi">印度</option>
+// <option value="en">英文</option>
+// <option value="es">西班牙</option>
+function set_migrate(t) {
+    const id = $(t).data("id"); // 更简洁
+    const langSelectHTML = `
+        <div style="padding: 20px; text-align: center;">
+            <label for="lang">请选择语言（可多选）：</label><br>
+            <select id="lang" multiple style="margin-top: 10px; padding: 5px 10px; height: 120px; width: 80%;">
+                <option value="en">英文</option>
+            </select>
+        </div>
+    `;
+
+    layer.open({
+        title: '选择语言',
+        area: ['320px', '320px'],
+        content: langSelectHTML,
+        btn: ['确定', '取消'],
+        yes: function(index, layero){
+            const selectedLangs = $('#lang').val(); // 多选为数组
+
+            if (!selectedLangs || selectedLangs.length === 0) {
+                layer.msg("请至少选择一种语言", { icon: 0 });
+                return;
+            }
+
+            // 提交到后台（传数组）
+            $.post('{:url("capter_translate")}', {
+                id: id,
+                languages: selectedLangs
+            }, function(res) {
+                if (res.code === 1) {
+                    layer.msg(res.msg, { icon: 1 });
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    layer.alert(res.msg, { icon: 2 });
+                }
+            }).fail(function() {
+                layer.alert("请求失败，请稍后重试", { icon: 2 });
+            });
+
+            layer.close(index);
+        }
+    });
+}
+</script>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-2.png" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"
+    />
+    <title>18Toon</title>
+    <script>
+      (function() {
+        const googleAnalyticsId = "%VITE_GOOGLE_ANALYTICS_ID%";
+
+        if (!googleAnalyticsId) return;
+
+        const s = document.createElement("script");
+        s.async = true;
+        s.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`;
+        document.head.appendChild(s);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag("js", new Date());
+        gtag("config", googleAnalyticsId);
+      })();
+    </script>
+     <script>
+      (function() {
+        const googleAnalyticsId = "%VITE_GOOGLE_ANALYTICS_ID%";
+
+        if (!googleAnalyticsId) return;
+
+        const s = document.createElement("script");
+        s.async = true;
+        s.src = `https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsId}`;
+        document.head.appendChild(s);
+
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){window.dataLayer.push(arguments);}
+        gtag("js", new Date());
+        gtag("config", googleAnalyticsId);
+      })();
+    </script>
+    <script>
+      const enableGTM = "%VITE_APP_REGION%" === "global";
+      const gtmId =  "GTM-THHP99T9";
+
+      if (enableGTM && gtmId) {
+        (function (w, d, s, l, i) {
+          w[l] = w[l] || [];
+          w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+          var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s),
+            dl = l != 'dataLayer' ? '&l=' + l : '';
+          j.async = true;
+          j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+          f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', gtmId);
+      }
+    </script>
+  </head>
+  <body>
+    <script>
+      const enableGTM1 = "%VITE_APP_REGION%" === "global";
+      const gtmId1 = "GTM-THHP99T9";
+      if (enableGTM1 && gtmId1) {
+        document.body.insertAdjacentHTML(
+          "afterbegin",
+          `<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=${gtmId1}"
+            height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>`
+        );
+      }
+    </script>
+    <div id="modal"></div>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

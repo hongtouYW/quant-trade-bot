@@ -1,0 +1,172 @@
+{include file="public/header" /}
+
+<body>
+<div class="layui-fluid">
+    <div class="layui-card">
+        <div class="layui-card-header">
+            <span style="font-size:18px;">演员：{$actor.name}</span>
+
+            <button class="layui-btn layui-btn-normal" style="float:right;" onclick="openAdd()">
+                <i class="layui-icon">&#xe654;</i> 添加写真
+            </button>
+        </div>
+
+        <div class="layui-card-body">
+            <table class="layui-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>图片</th>
+                        <th width="100">排序</th>
+                        <th width="180">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="photoList"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+var actor_id = {$actor_id};
+
+// ========================
+// 载入照片列表
+// ========================
+function loadPhotos() {
+    $.get("{:url('photo_list')}", {actor_id: actor_id}, function(res){
+        if(res.code !== 1) return layer.msg(res.msg);
+
+        var html = '';
+        $.each(res.list, function(i, v){
+            html += `
+                <tr>
+                    <td>${v.id}</td>
+                    <td>
+                        <div style="width:80px;height:80px;cursor:pointer;" onclick="bigImage('${v.image}')">
+                            <img src="{$img_url}${v.image}" style="width:100%;height:100%;">
+                        </div>
+                    </td>
+                    <td>
+                        <input type="number" class="layui-input" value="${v.sort}" 
+                            onchange="updateSort(${v.id}, this.value)">
+                    </td>
+                    <td>
+                        <button class="layui-btn layui-btn-xs" onclick="editPhoto(${v.id}, '${v.image}', ${v.sort})">编辑</button>
+                        <button class="layui-btn layui-btn-danger layui-btn-xs" onclick="delPhoto(${v.id})">删除</button>
+                    </td>
+                </tr>
+            `;
+        });
+
+        $("#photoList").html(html);
+    }, 'json');
+}
+
+loadPhotos();
+
+// ========================
+// 大图预览
+// ========================
+function bigImage(src) {
+    layer.open({
+        type: 1,
+        shadeClose: true,
+        area: ['60%', '80%'],
+        content: '<img src="{$img_url}' + src + '" style="width:100%;">'
+    });
+}
+
+// ========================
+// 添加
+// ========================
+function openAdd() {
+    layer.prompt({
+        title: '请输入图片路径（相对路径）'
+    }, function(value, index){
+        $.post("{:url('photo_add')}", {
+            actor_id: actor_id,
+            image: value,
+            sort: 0
+        }, function(res){
+            layer.msg(res.msg);
+            if(res.code == 1) loadPhotos();
+        }, 'json');
+
+        layer.close(index);
+    });
+}
+
+// ========================
+// 编辑
+// ========================
+function editPhoto(id, image, sort) {
+    layer.open({
+        type: 1,
+        title: '编辑写真',
+        area: ['420px', '260px'],
+        content: `
+            <div style="padding:20px;">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">图片路径</label>
+                    <div class="layui-input-block">
+                        <input id="editImage" type="text" value="${image}" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">排序</label>
+                    <div class="layui-input-block">
+                        <input id="editSort" type="number" value="${sort}" class="layui-input">
+                    </div>
+                </div>
+
+                <button class="layui-btn layui-btn-normal" style="margin-left:110px;" onclick="saveEdit(${id})">保存</button>
+            </div>
+        `
+    });
+}
+
+function saveEdit(id) {
+    $.post("{:url('photo_edit')}", {
+        id: id,
+        image: $("#editImage").val(),
+        sort: $("#editSort").val()
+    }, function(res){
+        layer.msg(res.msg);
+        if(res.code == 1){
+            layer.closeAll();
+            loadPhotos();
+        }
+    }, 'json');
+}
+
+// ========================
+// 删除
+// ========================
+function delPhoto(id) {
+    layer.confirm('确定删除这张写真吗？', function(){
+        $.post("{:url('photo_del')}", {id:id}, function(res){
+            layer.msg(res.msg);
+            if(res.code == 1) loadPhotos();
+        }, 'json');
+    });
+}
+
+// ========================
+// 修改排序
+// ========================
+function updateSort(id, sortValue) {
+    $.post("{:url('photo_edit')}", {
+        id: id,
+        sort: sortValue
+    }, function(res){
+        layer.msg(res.msg);
+        if(res.code == 1) loadPhotos();
+    }, 'json');
+}
+
+</script>
+
+</body>
+</html>

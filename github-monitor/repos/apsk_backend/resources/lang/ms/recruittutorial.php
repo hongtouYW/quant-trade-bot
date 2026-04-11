@@ -1,0 +1,25 @@
+<?php
+
+return [
+    'select' => 'Pilih Tutorial',
+    'recruittutorial_list' => 'Senarai Tutorial',
+    'add_new_recruittutorial' => 'Tambah Tutorial Baharu',
+    'recruittutorial_added_successfully' => 'Tutorial berjaya ditambah!',
+    'recruittutorial_updated_successfully' => 'Tutorial berjaya dikemas kini!',
+    'recruittutorial_deleted_successfully' => 'Tutorial berjaya dipadam!',
+    'title' => 'Tajuk',
+    'desc' => 'Keterangan',
+    'picture' => 'Gambar',
+    'slogan' => 'Slogan',
+    'url' => 'Pautan',
+    'status' => 'Status',
+    'active' => 'Aktif',
+    'inactive' => 'Tidak Aktif',
+    'never' => 'Tidak Pernah',
+    'edit_recruittutorial' => 'Kemaskini Tutorial',
+    'delete_recruittutorial' => 'Padam Tutorial',
+    'confirm_delete_recruittutorial' => 'Adakah anda pasti mahu memadam Tutorial ini?',
+    'no_data_found' => 'Tiada Tutorial ditemui.',
+    'leave_blank_for_no_change' => 'Biarkan kosong jika tiada perubahan',
+    'active_status' => 'Status Aktif',
+];

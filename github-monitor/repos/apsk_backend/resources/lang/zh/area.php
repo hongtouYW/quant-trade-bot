@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'select' => '选择区域',
+    'select_type' => '选择区域类型',
+    'area_list' => '区域列表',
+    'add_new_area' => '添加新区域',
+    'area_added_successfully' => '区域“:areacode”添加成功！',
+    'area_updated_successfully' => '区域“:areacode”更新成功！',
+    'area_deleted_successfully' => '区域“:areacode”删除成功！',
+    'area_code' => '区域代码',
+    'area_name' => '区域名称',
+    'area_type' => '区域类型',
+    'postal_code' => '邮政编码',
+    'district' => '区域',
+    'city' => '城市',
+    'status' => '状态',
+    'active' => '启用',
+    'inactive' => '禁用',
+    'never' => '从未',
+    'edit_area' => '编辑区域',
+    'delete_area' => '删除区域',
+    'confirm_delete_area' => '您确定要删除区域“:areacode”吗？',
+    'no_data_found' => '未找到任何区域。',
+    'leave_blank_for_no_change' => '留空表示不更改',
+    'active_status' => '启用',
+];

@@ -1,0 +1,3 @@
+export const RATE_LIMIT_ERROR_CODE = 1004;
+export const RATE_LIMIT_RETRY_DELAY = 1000;
+export const RATE_LIMIT_MAX_RETRIES = 5;

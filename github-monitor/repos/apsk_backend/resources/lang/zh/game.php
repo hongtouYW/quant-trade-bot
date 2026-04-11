@@ -1,0 +1,28 @@
+<?php
+
+return [
+    'select' => '选择游戏',
+    'game_list' => '游戏列表',
+    'add_new_game' => '添加新游戏',
+    'game_added_successfully' => '游戏":game_name"添加成功！',
+    'game_updated_successfully' => '游戏":game_name"更新成功！',
+    'game_deleted_successfully' => '游戏":game_name"删除成功！',
+    'game_name' => '游戏名称',
+    'game_desc' => '游戏详情',
+    'icon' => '游戏图标',
+    'icon_zh' => '游戏图标 - 中文',
+    'api' => 'API',
+    'status' => '状态',
+    'active' => '启用',
+    'inactive' => '禁用',
+    'never' => '从不',
+    'edit_game' => '编辑游戏',
+    'delete_game' => '删除游戏',
+    'confirm_delete_game' => '您确定要删除游戏":game_name"吗？',
+    'no_data_found' => '没有找到游戏。',
+    'leave_blank_for_no_change' => '留空表示不更改',
+    'active_status' => '启用状态',
+    'no_platform_found' => '没有找到游戏平台。',
+    'platform' => '游戏平台',
+    'platformselect' => '选择游戏平台',
+];

@@ -88,21 +88,22 @@ FUNDING_RATE_MAX = 0.0008  # 0.08%
 
 # Tier 1 扫描参数
 TIER1_SCAN_INTERVAL = 30         # seconds
-TIER1_VOLUME_RATIO_MIN = 5.0
-TIER1_PRICE_CHANGE_MIN = 0.02    # 2%
-TIER1_OI_CHANGE_MIN = 0.0        # 暂时 0: OI 数据需要 REST 补充
-TIER1_TAKER_RATIO_LONG = 0.0     # 暂时 0: Taker 数据需要 REST 补充
-TIER1_TAKER_RATIO_SHORT = 999.0  # 暂时跳过: 需要 REST 补充
+# 快速验证模式 (正式值: 5.0 / 0.02 / 0.08 / 1.5 / 0.67)
+TIER1_VOLUME_RATIO_MIN = 3.0     # 验证: 3x (正式: 5x)
+TIER1_PRICE_CHANGE_MIN = 0.005   # 验证: 0.5% (正式: 2%)
+TIER1_OI_CHANGE_MIN = 0.0
+TIER1_TAKER_RATIO_LONG = 0.0
+TIER1_TAKER_RATIO_SHORT = 999.0
 
-# Tier 2 扫描参数
+# Tier 2 扫描参数 (验证模式放宽)
 TIER2_SCAN_INTERVAL = 60
-TIER2_RSI_LONG = 65
-TIER2_RSI_SHORT = 35
-TIER2_VOLUME_MULTIPLIER = 1.5
+TIER2_RSI_LONG = 58          # 验证: 58 (正式: 65)
+TIER2_RSI_SHORT = 42         # 验证: 42 (正式: 35)
+TIER2_VOLUME_MULTIPLIER = 1.0  # 验证: 1.0 (正式: 1.5)
 
-# Tier 3 扫描参数
+# Tier 3 扫描参数 (验证模式放宽)
 TIER3_SCAN_INTERVAL = 3600       # 1H
-TIER3_MIN_SCORE = 75
+TIER3_MIN_SCORE = 55             # 验证: 55 (正式: 75)
 
 # 阶梯止盈 (Tier 1)
 TIER1_TAKE_PROFIT_LADDER = [

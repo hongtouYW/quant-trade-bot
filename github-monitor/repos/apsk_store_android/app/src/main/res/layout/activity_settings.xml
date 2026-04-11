@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/blue_000122"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="25dp"
+            android:paddingTop="50dp"
+            android:paddingEnd="25dp">
+
+            <RelativeLayout
+                android:id="@+id/panel_user_details"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="50dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView_feedback_new"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="23dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_user" />
+
+                <TextView
+                    android:id="@+id/textView_feedback_new"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/imageView_feedback_new"
+                    android:fontFamily="@font/poppins_semi_bold"
+                    android:text="@string/profile_setting_user"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="19sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textView_feedback_new"
+                    android:layout_toEndOf="@+id/imageView_feedback_new"
+                    android:fontFamily="@font/poppins_regular"
+                    android:text="@string/profile_setting_user_desc"
+                    android:textColor="@color/gray_737373"
+                    android:textSize="14sp" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/panel_printer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView_feedback_submitted"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="23dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_printer" />
+
+                <TextView
+                    android:id="@+id/textView_feedback_submitted"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/imageView_feedback_submitted"
+                    android:fontFamily="@font/poppins_semi_bold"
+                    android:text="@string/profile_setting_printer"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="19sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/textView_feedback_submitted"
+                    android:layout_toEndOf="@+id/imageView_feedback_submitted"
+                    android:fontFamily="@font/poppins_regular"
+                    android:text="@string/profile_setting_printer_desc"
+                    android:textColor="@color/gray_737373"
+                    android:textSize="14sp" />
+            </RelativeLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

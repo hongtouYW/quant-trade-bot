@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black_1D1D1D"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:id="@+id/panel_bind"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14sp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/bind_phone_label"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="24sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/bind_phone_desc"
+                    android:textColor="@color/gray_BCBCBC"
+                    android:textSize="14sp" />
+
+                <LinearLayout
+                    android:id="@+id/panel_phone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/panel_country_code"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="12dp"
+                        android:layout_weight="0.4"
+                        android:background="@drawable/bg_edit_text_transparent"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingHorizontal="16dp">
+
+                        <TextView
+                            android:id="@+id/textView_country_code"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:text="@string/country_code_mys"
+                            android:textColor="@color/orange_F8AF07"
+                            android:textSize="16sp"
+                            tools:ignore="NestedWeights" />
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:contentDescription="@string/cd_icon"
+                            android:src="@drawable/ic_chev_down" />
+                    </LinearLayout>
+
+                    <com.dj.user.widget.RoundedEditTextView
+                        android:id="@+id/editText_phone"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.6" />
+                </LinearLayout>
+
+                <com.dj.user.widget.BlackTextButton
+                    android:id="@+id/button_verify"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="40dp"
+                    android:text="@string/bind_phone_verify" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/panel_binded"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="14sp"
+                    android:fontFamily="@font/pingfang_sc_semi_bold"
+                    android:text="@string/bind_phone_label_binded"
+                    android:textColor="@color/white_FFFFFF"
+                    android:textSize="24sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:fontFamily="@font/pingfang_sc_regular"
+                    android:text="@string/bind_phone_desc_binded"
+                    android:textColor="@color/gray_BCBCBC"
+                    android:textSize="14sp" />
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="86dp"
+                    android:background="@drawable/dj_bg_phone">
+
+                    <TextView
+                        android:id="@+id/textView_phone"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="30sp" />
+                </RelativeLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

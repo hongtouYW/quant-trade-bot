@@ -1,0 +1,312 @@
+{include file="public/header" /}
+<body>
+<div class="layui-fluid">
+
+    <div class="x-nav">
+      <a class="layui-btn layui-btn-small" style="line-height:1.6em;margin-top:3px;float:right" onclick="location.reload()" title="刷新">
+        <i class="layui-icon layui-icon-refresh" style="line-height:30px"></i>
+      </a>
+    </div>
+
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <form class="layui-form layui-col-space5" action="">
+                      <div class="layui-input-inline layui-show-xs-block">
+                        <input type="text" name="id" placeholder="视频id"  value="{$param['id']}" autocomplete="off" class="layui-input">
+                      </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                          <input type="text" name="mash" placeholder="番号"  value="{$param['mash']}" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                          <input type="text" name="wd" placeholder="请输入视频名称"  value="{$param['wd']}" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="text" name="actor" placeholder="请输入演员名称"  value="{$param['actor']}" autocomplete="off" class="layui-input">
+                        </div>
+                        <div class="layui-input-inline w150">
+                            <select name="status">
+                                <option value="">选择状态</option>
+                                <option value="0" {if condition="$param['status'] eq '0'"}selected {/if}>未审核</option>
+                                <option value="1" {if condition="$param['status'] eq '1'"}selected {/if}>已审核</option>
+                            </select>
+                        </div>
+                      <div class="layui-input-inline w150">
+                        <select name="recommend">
+                          <option value="">是否推荐</option>
+                          <option value="0" {if condition="$param['recommend'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['recommend'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>
+                        <div class="layui-input-inline w150">
+                          <select name="private">
+                            <option value="">视频权限</option>
+                            <option value="0" {if condition="$param['private'] eq '0'"}selected {/if}>免费观看</option>
+                            <option value="1" {if condition="$param['private'] eq '1'"}selected {/if}>注册观看</option>
+                            <option value="2" {if condition="$param['private'] eq '2'"}selected {/if}>VIP观看</option>
+                          </select>
+                        </div>
+<!--                      <div class="layui-input-inline w150">
+                        <select name="mosaic">
+                          <option value="">是否有码</option>
+                          <option value="0" {if condition="$param['mosaic'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['mosaic'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>-->
+                      <div class="layui-input-inline w150">
+                        <select name="subtitle">
+                          <option value="">是否字幕</option>
+                          <option value="0" {if condition="$param['subtitle'] eq '0'"}selected {/if}>否</option>
+                          <option value="1" {if condition="$param['subtitle'] eq '1'"}selected {/if}>是</option>
+                        </select>
+                      </div>
+                        <div class="layui-input-inline w150">
+                            <select name="zimu">
+                                <option value="">是否翻译</option>
+                                <option value="0" {if condition="$param['zimu'] eq '0'"}selected {/if}>否</option>
+                                <option value="1" {if condition="$param['zimu'] eq '1'"}selected {/if}>是</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <select name="tag">
+                                <option value="">标签</option>
+                                {volist name="tagList" id="vo"}
+                                <option value="{$vo.id}" {if condition="$param['tag'] eq $vo.id"}selected{/if}>{$vo.name}</option>
+                                {/volist}
+                            </select>
+                        </div>
+
+                      <div class="layui-input-inline w150">
+                        <select name="sort">
+                          <option value="">排序</option>
+                          <option value="1" {if condition="$param['sort'] eq '1'"}selected {/if}>上映时间↓</option>
+                          <option value="2" {if condition="$param['sort'] eq '2'"}selected {/if}>上映时间↑</option>
+                            <option value="3" {if condition="$param['sort'] eq '3'"}selected {/if}>入库时间</option>
+                            <option value="4" {if condition="$param['sort'] eq '4'"}selected {/if}>更新时间</option>
+                        </select>
+                      </div>
+
+                        <div class="layui-input-inline layui-show-xs-block">
+                            <input type="submit" class="layui-btn"  value="搜索">
+                        </div>
+                    </form>
+                </div>
+                <div class="layui-card-body ">
+                    <table class="layui-table layui-form">
+                        <thead>
+                        <tr>
+                            <th width="50">ID</th>
+                            <th width="80">视频名称</th>
+                            <th width="50">演员</th>
+                            <th width="80">封面</th>
+<!--                            <th width="50">视频标签</th>-->
+                            <th width="50">番号</th>
+                            <th width="50">播放量</th>
+                            <th>推荐</th>
+                            <th>上线</th>
+                            <th width="80">上映时间</th>
+                            <th width="100">视频权限</th>
+                            <th width="300">操作</th>
+                            <th width="80">操作人</th>
+                        </thead>
+                        <tbody>
+                        {volist name="list" id="vo"}
+                        <tr>
+                            <td>{$vo.id}</td>
+                            <td>{:mb_substr($vo.title, 0, 30, 'UTF-8').'......'}</td>
+                            <td>{$vo.actor}</td>
+                            <td><div style="height:70px;width:70px;cursor:pointer;" onclick="show_img(this)"><img style="width: 100%;height: 100%" src="{$vo.thumb}"></div></td>
+<!--                            <td>{$vo.tags_name}</td>-->
+                            <td>{$vo.mash}</td>
+                            <td>{$vo.play}</td>
+                            <td>
+                              <input type="checkbox" name="recommend" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.recommend eq 1"} checked {/if}  value="{$vo['recommend']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" >
+                            </td>
+                            <td>
+                              <input type="checkbox" name="status" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.status eq 1"} checked {/if}  value="{$vo['status']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" >
+                            </td>
+<!--                          <td>
+                            <input type="checkbox" name="mosaic" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.mosaic eq 1"} checked {/if}  value="{$vo['mosaic']}" lay-skin="switch" lay-filter="modify" lay-text="是|否" >
+                          </td>-->
+<!--                          <td>{$vo.video_url}</td>-->
+                          <td>{$vo.publish_date}</td>
+                          <td>
+                            <input type="checkbox" name="private" data-id="{$vo.id}" type="checkbox"  {if condition="$vo.private eq 2"} checked {/if}  value="{$vo['private']}" lay-skin="switch" lay-filter="modify" lay-text="VIP|免费" >
+                          </td>
+
+                            <td class="td-manage">
+                                <button class="layui-btn layui-btn layui-btn-primary"  data-url="{$vo.video_url}" onclick="testPlay(this)" >测试播放</button>
+                                <button class="layui-btn layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_edit(this)" ><i class="layui-icon">&#xe642;</i>编辑</button>
+                                <button class="layui-btn-danger layui-btn layui-btn-xs"  data-id="{$vo.id}" onclick="set_del(this)" ><i class="layui-icon">&#xe640;</i>删除</button>
+                            </td>
+                            <td>{$vo.admin_name}</td>
+                        </tr>
+                        {/volist}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="layui-card-body ">
+
+                    <div id="pages" class="center"></div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+layui.use(['laydate', 'form'],
+    function() {
+      $ = layui.jquery;
+      var form = layui.form,
+          layer = layui.layer;
+
+      var curUrl="{:url('nomosaic',$param)}";
+      layui.use(['laypage', 'layer'], function() {
+        var laypage = layui.laypage
+            , layer = layui.layer,
+            $ = layer.jquery;
+        laypage.render({
+          elem: 'pages'
+          ,count: {$total}
+          ,limit: {$limit}
+          ,limits:[10,20,50,100]
+          ,curr: {$page}
+          ,layout: ['count', 'prev', 'page', 'next', 'limit', 'skip']
+          ,jump: function(obj,first){
+            if(!first){
+              location.href = curUrl.replace('%7Bpage%7D',obj.curr).replace('%7Blimit%7D',obj.limit);
+            }
+          }
+        });
+      });
+
+
+      form.on('switch(modify)',function(data){
+        var that = $(this), status = 0;
+        var field = that.attr('name');
+        if(this.checked){
+          if(field == 'private'){
+            status = 2;
+          }else{
+            status = 1;
+          }
+        }
+
+        var id = that.attr('data-id');
+        $.ajax({
+          url: "{:url('video/modify')}",
+          type: "POST",
+          data: {
+            id:id,
+            field:field,
+            value: status,
+          },
+          async: false,
+          success: function (data) {
+            if(data.code==1){
+              layer.msg(data.msg,{icon:1});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }else{
+              layer.msg(data.msg,{icon:2});
+              setTimeout(function () {
+                location.reload();
+              }, 1500);
+            }
+          },
+          error: function () {
+            layer.msg("System Service Busy!", {offset: '200px'});
+          }
+        });
+      });
+    });
+
+
+    /*
+    编辑
+     */
+    function set_edit(t) {
+      var id=$(t).attr("data-id");
+      var url='{:url("info")}'+'?id='+id;
+      var edit = layer.open({
+        type: 2,
+        title: '编辑视频',
+        area: ['100%', '100%'],
+        content: url, //iframe的url
+      });
+      layer.full(edit);
+    }
+
+
+    /*
+    删除
+     */
+    function set_del(t) {
+      var id=$(t).attr("data-id");
+      layer.confirm('你确定要删除么？', {
+        btn: ['确定', '取消'] //可以无限个按钮
+      }, function(index, layero){
+        //按钮【按钮一】的回调
+        $.post('{:url("del")}',{'id':id},function(data){
+          if(data.code==1){
+            layer.msg(data.msg,{icon:1});
+            setTimeout(function () {
+              location.reload();
+            },1500);
+          }else{
+            layer.alert(data.msg,{icon:2});
+          }
+        });
+
+      }, function(index){
+        //按钮【按钮二】的回调
+      });
+
+    }
+
+  //图片显示
+    function show_img(t) {
+      var t = $(t).find("img");
+      //页面层
+      layer.open({
+        type: 1,
+        skin: 'layui-layer-rim', //加上边框
+        area: ['75%', '85%'], //宽高
+        shadeClose: true, //开启遮罩关闭
+        end: function (index, layero) {
+          return false;
+        },
+        content: '<div style="text-align:center"><img src="' + $(t).attr('src') + '" /></div>'
+      });
+    }
+
+
+
+  /*
+  测试播放
+  */
+  function testPlay(t) {
+    var url=$(t).attr("data-url");
+
+    if(url == '' || url == 'undefined'){
+      layer.msg('测试url为空',{icon:2});
+      return ;
+    }
+    var url='{:url("testplay")}'+'?url='+encodeURIComponent(url);
+    layer.open({
+      type: 2,
+      title: '测试播放',
+      shadeClose: true,
+      shade: 0.8,
+      area: ['40%', '60%'],
+      content: url, //iframe的url
+    });
+  }
+
+</script>
+</html>

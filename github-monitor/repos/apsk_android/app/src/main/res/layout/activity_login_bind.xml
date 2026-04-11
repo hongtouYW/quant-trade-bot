@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/cd_image"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_login" />
+
+    <FrameLayout
+        android:id="@+id/content_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_marginTop="25dp"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="16dp">
+
+                <ImageView
+                    android:id="@+id/imageView_back"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/cd_icon"
+                    android:src="@drawable/ic_arrow_left" />
+            </LinearLayout>
+
+            <ScrollView
+                android:id="@+id/scrollView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/imageView_logo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:adjustViewBounds="true"
+                        android:contentDescription="@string/cd_image"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/img_logo_login" />
+
+                    <TextView
+                        android:id="@+id/textView_title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="-30dp"
+                        android:layout_marginBottom="14dp"
+                        android:fontFamily="@font/pingfang_sc_semi_bold"
+                        android:text="@string/login_bind_title"
+                        android:textColor="@color/white_FFFFFF"
+                        android:textSize="24sp" />
+
+                    <TextView
+                        android:id="@+id/textView_desc"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:fontFamily="@font/pingfang_sc_regular"
+                        android:text="@string/login_bind_desc"
+                        android:textColor="@color/gray_BCBCBC"
+                        android:textSize="14sp" />
+
+                    <LinearLayout
+                        android:id="@+id/panel_phone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"
+                        android:gravity="bottom"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:id="@+id/panel_country_code"
+                            android:layout_width="0dp"
+                            android:layout_height="56dp"
+                            android:layout_marginEnd="12dp"
+                            android:layout_weight="0.4"
+                            android:background="@drawable/bg_edit_text"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="16dp">
+
+                            <TextView
+                                android:id="@+id/textView_country_code"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/pingfang_sc_regular"
+                                android:text="@string/country_code_mys"
+                                android:textColor="@color/orange_F8AF07"
+                                android:textSize="16sp"
+                                tools:ignore="NestedWeights" />
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:contentDescription="@string/cd_icon"
+                                android:src="@drawable/ic_chev_down" />
+                        </LinearLayout>
+
+                        <com.dj.user.widget.RoundedEditTextView
+                            android:id="@+id/editText_phone"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="0.6" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/panel_otp"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:layout_marginBottom="22dp"
+                        android:background="@drawable/bg_edit_text">
+
+                        <EditText
+                            android:id="@+id/editText_otp"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="16dp"
+                            android:layout_weight="1"
+                            android:background="@android:color/transparent"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:hint="@string/login_bind_hint"
+                            android:inputType="number"
+                            android:lineSpacingExtra="4sp"
+                            android:maxLength="6"
+                            android:textColor="@color/orange_F8AF07"
+                            android:textColorHint="@color/yellow_FFFC86_50a"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/textView_count_down"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:fontFamily="@font/pingfang_sc_regular"
+                            android:gravity="center"
+                            android:paddingHorizontal="15dp"
+                            android:text="@string/login_bind_send"
+                            android:textColor="@color/orange_F8AF07"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <!--                    <TextView-->
+                    <!--                        android:id="@+id/textView_count_down"-->
+                    <!--                        android:layout_width="wrap_content"-->
+                    <!--                        android:layout_height="wrap_content"-->
+                    <!--                        android:layout_gravity="end"-->
+                    <!--                        android:layout_marginBottom="22dp"-->
+                    <!--                        android:fontFamily="@font/pingfang_sc_regular"-->
+                    <!--                        android:paddingVertical="8dp"-->
+                    <!--                        android:text="@string/login_bind_resend"-->
+                    <!--                        android:textColor="@color/orange_F8AF07"-->
+                    <!--                        android:textSize="12sp" />-->
+
+                    <com.dj.user.widget.BlackTextButton
+                        android:id="@+id/button_login_bind"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="40dp"
+                        android:text="@string/login_bind_confirm" />
+                </LinearLayout>
+            </ScrollView>
+        </LinearLayout>
+    </FrameLayout>
+</RelativeLayout>

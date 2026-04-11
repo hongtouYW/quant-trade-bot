@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar"
+        layout="@layout/view_toolbar" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:orientation="vertical"
+                android:padding="30dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_top_up"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_top_up"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_withdraw"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_withdraw"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_create_user"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_create"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_block_user"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_block"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_income"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_income"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_settlement"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_settlement"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_view_credentials"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_view_credientials"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="24dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="0.5"
+                        android:fontFamily="@font/poppins_regular"
+                        android:text="@string/shop_permission_withdrawal_fee"
+                        android:textColor="@color/gray_C2C3CB"
+                        android:textSize="18sp" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="0.5"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchCompat_withdrawal_fee"
+                            android:layout_width="42dp"
+                            android:layout_height="24dp"
+                            android:showText="false"
+                            android:switchPadding="0dp"
+                            android:thumb="@drawable/switch_thumb_ios"
+                            android:thumbTextPadding="0dp"
+                            app:track="@drawable/switch_track_tint" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

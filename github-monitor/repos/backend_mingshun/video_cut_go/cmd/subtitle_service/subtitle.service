@@ -1,0 +1,17 @@
+[Unit]
+Description=subtitle service
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=root
+Restart=always
+ExecStart=/home/mingshun_service/subtitle_service/subtitle_service
+WorkingDirectory=/home/mingshun_service/subtitle_service
+Environment="SERVICE_PORT=9999"
+Environment="SSH_KEY_PATH=/root/.ssh/id_rsa"
+Environment="PHP_PROJECT_PATH=/home/mingshun"
+
+[Install]
+WantedBy=multi-user.target

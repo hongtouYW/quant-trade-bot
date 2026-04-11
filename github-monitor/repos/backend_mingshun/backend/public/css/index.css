@@ -1,0 +1,262 @@
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td,
+th {
+    border: 1px solid #dddddd !important;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+.button-container {
+    padding-bottom: 10px;
+    padding-top: 10px;
+    position: -webkit-sticky;
+    position: sticky;
+    z-index: 10;
+    background-color: white;
+    top: 72px;
+}
+
+.label,
+.label2,
+.label3,
+.role-label {
+    display: inline;
+    padding: 0.2em 0.6em 0.3em;
+    margin-right: 2px;
+    font-size: 75%;
+    line-height: 1;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    vertical-align: baseline;
+    border-radius: 0.25em;
+}
+
+.role-label {
+    background-color: #ed820e;
+}
+
+.label {
+    background-color: #77619e;
+}
+
+.label2 {
+    background-color: #e75480;
+}
+
+.label3 {
+    background-color: #ed820e;
+}
+
+
+.table-img {
+    max-width: 200px;
+    height: auto;
+}
+
+.table-img-vertical {
+    max-width: 150px;
+    height: auto;
+}
+
+.btn-submit {
+    background-color: #77619e;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.submit-button {
+    text-align: right;
+}
+
+.btn-import {
+    background-color: #ed820e;
+    color: white;
+}
+
+.btn-import:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.btn-export {
+    background-color: #964B00;
+    color: white;
+}
+
+.btn-export:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.same-btn-width {
+    width: 75px;
+    margin-bottom: 10px;
+}
+
+.bottom-margin-10{
+    margin-bottom: 10px;
+}
+
+.change-status-model-grid-button {
+    color: black;
+    padding: 12px 16px !important;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    background: none;
+}
+
+
+.change-status-model-grid-button:focus {
+    outline: none;
+}
+
+.input-submit {
+    height: 100%;
+    width: 100%;
+    text-align: left;
+}
+
+.btn-disable {
+    background-color: white;
+    color: grey;
+    border: 1px solid #000;
+}
+
+.btn-disable:hover {
+    background-color: white;
+    color: grey;
+}
+
+.input-disable,
+.btn-disable {
+    cursor: not-allowed !important;
+}
+
+#pagination-input {
+    width: 50px;
+}
+
+.filter-input {
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.filter-input label {
+    text-align: left;
+}
+
+.filter-input input[type="date"] {
+    flex-grow: 1;
+    text-align: right;
+}
+
+.search-reset-btn {
+    background-color: #77619e;
+    color: white;
+}
+
+.search-reset-btn:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.btn-app {
+    border-radius: 3px;
+    position: relative;
+    padding: 15px 5px;
+    min-width: 60px;
+    height: 60px;
+    text-align: center;
+    color: #666;
+    border: 1px solid #ddd;
+    background-color: #f4f4f4;
+}
+
+.description {
+    padding-left: 0px;
+    color: black;
+}
+
+.submit-button-container {
+    padding-top: 10px;
+}
+
+.create-container {
+    margin: 20px 0;
+}
+
+
+.search-text-field {
+    width: 100%;
+}
+
+.select-button,
+.select-grid-button,
+.multi {
+    display: none;
+}
+
+.reset-checking-btn {
+    margin-bottom:10px;
+    background-color: #77619e;
+    color: white;
+}
+
+.reject-status-model-btn{
+    margin-bottom:10px;
+}
+
+.reset-checking-btn:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+table.dataTable .details {
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+.quest-btn{
+    margin-bottom: 10px;
+}
+
+.quest-btn {
+    background-color: #77619e;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.quest-btn:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+.filter-click, .clickable-img{
+    cursor: pointer;
+}
+
+#modal-image-inside{
+    width:100%;
+    height:100%;
+}
+
+.btn-blue {
+    background-color: #0d6efd;
+    color: white;
+}

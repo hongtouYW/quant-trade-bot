@@ -1,0 +1,167 @@
+{include file="public/header" /}
+
+<body>
+<div class="layui-fluid">
+  <div class="layui-row">
+    <form class="layui-form">
+      <input type="hidden" name="id" value="{$info.id}">
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>类型</label>
+        <div class="layui-input-block">
+          <input type="radio" lay-verify="radioVer" name="type_status"  value="1" title="时间卡" {if condition="$info.type_status eq 1 "}checked{/if}>
+          <input type="radio" lay-verify="radioVer" name="type_status"  value="2" title="VIP卡" {if condition="$info.type_status eq 2  "}checked{/if}>
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>名称
+        </label>
+        <div class="layui-input-inline w500">
+          <input type="text"  name="title" value="{$info.title}" required="" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red">*</span>前端展示
+        </label>
+        <div class="layui-input-inline w500">
+          <input type="text"  name="intro" value="{$info.intro}" required="" lay-verify="required"
+                 autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>是否展示</label>
+        <div class="layui-input-block">
+          <input type="radio" name="status" value="1" title="是" {if condition="$info.status eq 1 "}checked{/if}>
+          <input type="radio" name="status" value="0" title="否" {if condition="$info.status eq 0 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>是否热销</label>
+        <div class="layui-input-block">
+          <input type="radio" name="ishotswitch" value="0" title="否" {if condition="$info.ishotswitch eq 0 "}checked{/if}>
+          <input type="radio" name="ishotswitch" value="1" title="是" {if condition="$info.ishotswitch eq 1 "}checked{/if}>
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red"></span>到账金币</label>
+        <div class="layui-input-inline">
+          <input type="number" name="addcoin" value="{$info.addcoin}"  autocomplete="off" class="layui-input">
+        </div>
+      </div>
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red"></span>Vip天数</label>
+        <div class="layui-input-inline">
+          <input type="number" name="addvip" value="{$info.addvip}"  autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red">*</span>原价</label>
+        <div class="layui-input-inline">
+          <input type="number" name="ori_price" value="{$info.ori_price}" required="" lay-verify="required"  autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label"><span class="x-red">*</span>价格</label>
+        <div class="layui-input-inline">
+          <input type="number" name="price" value="{$info.price}" required="" lay-verify="required"  autocomplete="off" class="layui-input">
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+          <span class="x-red"></span>排序</label>
+        <div class="layui-input-inline">
+          <input type="number"min="0" name="sort"  edit="text" autocomplete="off" value="{$info.sort}" class="layui-input">
+        </div>
+        <div class="layui-form-mid layui-word-aux">
+          <span class="x-red"></span>不填默认为0
+        </div>
+      </div>
+
+      <div class="layui-form-item">
+        <label class="layui-form-label">
+        </label>
+        <button  class="layui-btn"  lay-submit="sub"  lay-filter="sub">
+          保存
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+<script>layui.use(['form', 'layer'],
+        function() {
+          $ = layui.jquery;
+          var form = layui.form,
+                  layer = layui.layer;
+          var laydate = layui.laydate;
+          form.verify({
+            required: [/[\S]+/, "必填项不能为空"],
+            radioVer: function(value,item){
+              var $ = layui.$;
+              var verifyName=$(item).attr('name')
+                      , verifyType=$(item).attr('type')
+                      ,formElem=$(item).parents('.layui-form')//获取当前所在的form元素，如果存在的话
+//,verifyElem=formElem.find('input[name='+verifyName+']')//获取需要校验的元素
+                      ,verifyElem=formElem.find("input[name='"+verifyName+"']")//获取需要校验的元素
+                      ,isTrue= verifyElem.is(':checked')//是否命中校验
+                      ,focusElem = verifyElem.next().find('i.layui-icon');//焦点元素
+              if(!isTrue || !value){
+                //定位焦点
+                focusElem.css(verifyType=='radio'?{"color":"#FF5722"}:{"border-color":"#FF5722"});
+                //对非输入框设置焦点
+                focusElem.first().attr("tabIndex","1").css("outline","0").blur(function() {
+                  focusElem.css(verifyType=='radio'?{"color":""}:{"border-color":""});
+                }).focus();
+                return '必填项不能为空';
+              }
+            }
+          });
+
+          var flag=false;
+          form.on('submit(sub)', function (data) {
+            if (flag){
+              return  false;
+            }
+            flag = true;
+            $.ajax({
+              url: "{:url('info')}",
+              type: "POST",
+              data: data.field,
+              async: false,
+              success: function (data) {
+                console.log(data);
+                if(data.code==1){
+                  layer.msg(data.msg,{icon:1});
+                  setTimeout(function () {
+                    parent.layer.closeAll();
+                    parent.location.reload();
+                  },1500);
+                }else{
+                  flag = false;
+                  layer.msg(data.msg,{icon:2});
+                }
+              },
+              error: function () {
+                flag = false;
+                layer.msg("System Service Busy!", {offset: '200px'});
+              }
+            });
+            return false;
+          });
+
+        });
+</script>
+
+</body>
+
+</html>

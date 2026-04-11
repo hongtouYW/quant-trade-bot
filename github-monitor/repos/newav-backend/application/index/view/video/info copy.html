@@ -1,0 +1,464 @@
+{include file="public/header" /}
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<style>
+    .x-admin-sm .layui-btn-xs {
+        height: 22px;
+        line-height: 22px;
+        padding: 0 5px;
+        font-size: 12px;
+    }
+    
+    .select2-container--default .select2-selection--multiple {
+        border: none !important;
+        background: transparent !important;
+    }
+    
+    .layui-form-select .select2-container {
+        width: 100% !important;
+    }
+    
+    .layui-form-select .layui-edge {
+        display: none;
+    }
+    
+    .select2-container--default .select2-selection--multiple {
+        min-height: 38px;
+        line-height: 38px;
+        border: 1px solid #e6e6e6 !important;
+        border-radius: 2px;
+    }
+    
+    .select2-selection__choice {
+        background: #2362e3 !important;
+        color: white !important;
+        border: none !important;
+        padding: 0 8px !important;
+        margin-top: 5px !important;
+    }
+    
+    .select2-container--default .select2-selection--multiple .select2-selection__rendered {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    
+    .layui-form-select:not(.select2-container) {
+        display: none !important;
+    }
+
+    /* Replace the × with X in Select2 tag remove buttons */
+.select2-selection__choice__remove {
+    font-family: Arial, sans-serif;
+    position: relative;
+    margin-left: 3px;
+}
+
+.select2-selection__choice__remove::after {
+    content: "X";
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.select2-selection__choice__remove {
+    color: gray !important; /* Hide the original × */
+    width: 12px;
+    display: inline-block;
+    position: relative;
+}
+
+/* Adjust positioning if needed */
+.select2-selection__choice__remove:hover::after {
+    color: #fff;
+}
+
+/* 语言切换按钮样式 */
+.lang-toggle {
+    cursor: pointer;
+    color: #1E9FFF;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    margin: 10px 0;
+}
+
+.lang-toggle i {
+    margin-right: 5px;
+}
+
+.other-langs {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease;
+}
+
+.other-langs.show {
+    max-height: 1000px;
+}
+</style>
+<body>
+<div class="layui-fluid">
+    <div class="layui-row">
+        <form class="layui-form" id="videoForm">
+            <input type="hidden" name="id" value="{$info.id}">
+            <input type="hidden" name="mosaic" value="{$info.mosaic}">
+            <input type="hidden" name="last_admin_id" value="{$info.last_admin_id}">
+
+            <div class="layui-form-item">
+                <label class="layui-form-label"><span class="x-red">*</span>原标题：</label>
+                <div class="layui-input-block" style="top:-35px">
+                    <input type="text" required lay-verify="required" value="{$info.title}" class="layui-input" placeholder="" name="title">
+                </div>
+            </div>
+            
+            <!-- 多语言标题切换按钮 -->
+            <div class="layui-form-item">
+                <label class="layui-form-label"></label>
+                <div class="layui-input-block">
+                    <span class="lang-toggle" onclick="toggleLangs('title')">
+                        <i class="fas fa-language"></i> 显示其他语言标题
+                    </span>
+                </div>
+            </div>
+            
+            <!-- 多语言标题区域 -->
+            <div class="other-langs" id="titleLangs">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">中文标题：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <input type="text" name="title_zh" value="{$info.title_zh}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">英文标题：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <input type="text" name="title_en" value="{$info.title_en}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">俄语标题：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <input type="text" name="title_ru" value="{$info.title_ru}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">马来语标题：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <input type="text" name="title_ms" value="{$info.title_ms}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">泰语标题：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <input type="text" name="title_th" value="{$info.title_th}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">西班牙语标题：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <input type="text" name="title_es" value="{$info.title_es}" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item layui-form-text">
+                <label class="layui-form-label">原简介：</label>
+                <div class="layui-input-block" style="top:-35px">
+                    <textarea name="description" placeholder="请输入简介" class="layui-textarea">{$info.description}</textarea>
+                </div>
+            </div>
+
+            <!-- 多语言简介切换按钮 -->
+            <div class="layui-form-item">
+                <label class="layui-form-label"></label>
+                <div class="layui-input-block" style="">
+                    <span class="lang-toggle" onclick="toggleLangs('description')">
+                        <i class="fas fa-language"></i> 显示其他语言简介
+                    </span>
+                </div>
+            </div>
+            
+            <!-- 多语言简介区域 -->
+            <div class="other-langs" id="descriptionLangs">
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">中文简介：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="description_zh" placeholder="请输入英文简介" class="layui-textarea">{$info.description_zh}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">英文简介：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="description_en" placeholder="请输入英文简介" class="layui-textarea">{$info.description_en}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">俄语简介：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="description_ru" placeholder="请输入俄语简介" class="layui-textarea">{$info.description_ru}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">马来语简介：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="description_ms" placeholder="请输入俄语简介" class="layui-textarea">{$info.description_ms}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">泰语简介：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="description_th" placeholder="请输入俄语简介" class="layui-textarea">{$info.description_th}</textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-form-text">
+                    <label class="layui-form-label">西班牙语简介：</label>
+                    <div class="layui-input-block" style="top:-35px">
+                        <textarea name="description_es" placeholder="请输入俄语简介" class="layui-textarea">{$info.description_es}</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">导演：</label>
+                <!-- <div class="layui-input-inline w1200"> -->
+                <div class="layui-input-block" style="top:-35px">
+                    <input type="text" name="director" value="{$info.director}" autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">扩展分类：</label>
+                <div class="layui-input-block">
+                    {volist name="tagList" id="vo"}
+                        <input type="checkbox" name="tags[]" value="{$vo.id}" {in name="vo.id" value="$info.tags"}checked{/in} lay-skin="primary" title="{$vo.name}">
+                    {/volist}
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">视频权限：</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="private" value="0" title="免费观看" lay-filter="privateRadio" {if $info.private eq 0}checked{/if}>
+                    <input type="radio" name="private" value="1" title="注册观看" lay-filter="privateRadio" {if $info.private eq 1}checked{/if}>
+                    <input type="radio" name="private" value="2" title="VIP观看" lay-filter="privateRadio" {if $info.private eq 2}checked{/if}>
+                    <input type="radio" name="private" value="3" title="购买系列" lay-filter="privateRadio" {if $info.private eq 3}checked{/if}>
+                </div>
+            </div>
+
+            <!-- <div class="layui-form-item" id="seriesSelection" style="display:none;">
+                <label class="layui-form-label">视频系列</label>
+                <div class="layui-input-block">
+                    <select name="groups[]" id="groupSelect" multiple class="layui-select">
+                        {volist name="all_groups" id="group"}
+                        <option value="{$group.id}">{$group.title}</option>
+                        {/volist}
+                    </select>
+                </div>
+            </div> -->
+
+            <div class="layui-form-item" id="groupSelectContainer" style="display:none;">
+                <label class="layui-form-label">视频系列：</label>
+                <div class="layui-input-block" style="top:-35px">
+                    <select name="groups[]" id="groupSelect" multiple class="layui-select">
+                        {volist name="all_groups" id="group"}
+                        <option value="{$group.id}" {in name="group.id" value="$info.current_group_ids"}selected{/in}>
+                            {$group.title}
+                        </option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item">
+                <label class="layui-form-label">热门系列：</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="hotlist" value="0" title="否" {if $info.hotlist eq 0}checked{/if}>
+                    <input type="radio" name="hotlist" value="1" title="是" {if $info.hotlist eq 1}checked{/if}>
+                </div>
+            </div>
+
+            <div class="layui-form-item" id="hotlistSelectContainer" style="display: none;">
+                <label class="layui-form-label">选择热门系列：</label>
+                <div class="layui-input-block" style="top:-35px">
+                    <select name="hotlists[]" id="hotlistSelect" multiple class="layui-select">
+                        {volist name="all_hotlist" id="hotlist"}
+                        <option value="{$hotlist.id}" {in name="hotlist.id" value="$info.current_hotlist_ids"}selected{/in}>
+                            {$hotlist.title}
+                        </option>
+                        {/volist}
+                    </select>
+                </div>
+            </div>
+
+            <div class="layui-form-item center">
+                <div class="" style="margin-left:55px">
+                    <button class="layui-btn" lay-submit lay-filter="sub">保存</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+// 切换语言显示/隐藏
+function toggleLangs(type) {
+    const langSection = document.getElementById(type + 'Langs');
+    const toggleButton = document.querySelector(`[onclick="toggleLangs('${type}')"]`);
+    const isShowing = langSection.classList.contains('show');
+    
+    if (isShowing) {
+        langSection.classList.remove('show');
+        toggleButton.innerHTML = '<i class="fas fa-language"></i> 显示其他语言' + (type === 'title' ? '标题' : '简介');
+    } else {
+        langSection.classList.add('show');
+        toggleButton.innerHTML = '<i class="fas fa-eye-slash"></i> 隐藏其他语言' + (type === 'title' ? '标题' : '简介');
+    }
+}
+
+function updateVisibility() {
+    layui.use('jquery', function() {
+        var $ = layui.jquery;
+        var privateValue = $('input[name="private"]:checked').val();
+        var isSeriesPurchase = (privateValue === '3');
+
+        if (isSeriesPurchase) {
+            $('#groupSelectContainer').show();
+            $('#groupSelect').attr('required', true);
+        } else {
+            $('#groupSelectContainer').hide();
+            $('#groupSelect').removeAttr('required');
+        }
+
+        layui.form.render(); // Re-render LayUI form (radios/selects)
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    layui.use(['form', 'jquery'], function() {
+        var form = layui.form;
+        var $ = layui.jquery;
+
+        // Initialize Select2
+        $('#groupSelect').select2({
+            width: '100%',
+            placeholder: "选择视频系列",
+            closeOnSelect: false,
+            language: {
+                noResults: function() {
+                    return "无可选系列"; // Custom message
+                }
+            }
+        });
+        $('#hotlistSelect').select2({
+            width: '100%',
+            placeholder: "选择热门系列",
+            closeOnSelect: false,
+            language: {
+                noResults: function() {
+                    return "无可选热门系列";
+                }
+            }
+        });
+
+        // Ensure LayUI radios are rendered
+        form.render('radio');
+
+        // Initial visibility on page load
+        updateVisibility();
+
+        // Handle radio button change using LayUI's API
+        form.on('radio(privateRadio)', function(data) {
+            updateVisibility();
+        });
+
+        form.on('radio', function(data){
+            if (data.elem.name === 'hotlist') {
+                if (data.value === '1') {
+                    $('#hotlistSelectContainer').show();
+                } else {
+                    $('#hotlistSelectContainer').hide();
+                    $('#hotlistSelect').val(null).trigger('change'); // reset
+                }
+            }
+        });
+
+        if ($('input[name="hotlist"]:checked').val() === '1') {
+            $('#hotlistSelectContainer').show();
+        }
+
+        // Form submission handler
+        form.on('submit(sub)', function() {
+            // 1. First collect ALL original fields EXACTLY as they were
+            var params = [];
+            
+            // Handle ALL fields EXCEPT tags[]
+            $('#videoForm').find('input:not([name="tags[]"]), textarea, select').each(function() {
+                var $el = $(this);
+                var name = $el.attr('name');
+                if (!name || $el.prop('disabled')) return;
+
+                if ($el.attr('type') === 'radio' && !$el.is(':checked')) return;
+                if ($el.attr('type') === 'checkbox' && !$el.is(':checked')) return;
+
+                // ORIGINAL GROUPS HANDLING - DON'T TOUCH
+                if (name === 'groups[]') {
+                    $el.find('option:selected').each(function() {
+                        params.push('groups[]=' + encodeURIComponent($(this).val()));
+                    });
+                }
+                if (name === 'hotlists[]') {
+                    $el.find('option:selected').each(function() {
+                        params.push('hotlists[]=' + encodeURIComponent($(this).val()));
+                    });
+                } 
+                // All other fields
+                else {
+                    params.push(encodeURIComponent(name) + '=' + encodeURIComponent($el.val()));
+                }
+            });
+
+            // 2. Then handle ONLY tags - completely isolated fix
+            $('input[name="tags[]"]:checked').each(function() {
+                params.push('tags[]=' + encodeURIComponent($(this).val()));
+            });
+
+            $.ajax({
+                url: "{:url('info')}",
+                type: "POST",
+                data: params.join('&'),
+                contentType: 'application/x-www-form-urlencoded',
+                success: function(res) {
+                    if (res.code == 1) {
+                        layer.msg(res.msg, {icon: 1});
+                        setTimeout(function() {
+                            parent.layer.closeAll();
+                            parent.location.reload();
+                        }, 1500);
+                    } else {
+                        layer.msg(res.msg, {icon: 2});
+                    }
+                },
+                error: function() {
+                    layer.msg("System Service Busy!", {offset: '200px'});
+                }
+            });
+
+            return false;
+        });
+    });
+});
+</script>
+
+</body>
+</html>

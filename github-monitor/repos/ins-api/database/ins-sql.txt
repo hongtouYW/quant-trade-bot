@@ -1,0 +1,1 @@
+ALTER TABLE `user` ADD `token` VARCHAR(100) NULL DEFAULT '' COMMENT '用户token' AFTER `reg_time`, ADD `token_val` INT(11) NULL DEFAULT '0' COMMENT 'token有效期' AFTER `token`;

@@ -1,0 +1,721 @@
+<resources>
+    <string name="app_name">Expro99</string>
+    <string name="new_notification">您收到了一条新通知。</string>
+    <string name="search_hint">搜索</string>
+
+    <!-- Splash -->
+    <string name="splash_update_title">升级到最新版本？</string>
+    <string name="splash_update_desc">当前版本 v%s\n请安装最新版本 v%s</string>
+    <string name="splash_update_negative">跳过</string>
+    <string name="splash_update_positive">立即安装</string>
+
+    <!-- Login -->
+    <string name="login_title">登陆</string>
+    <string name="login_desc">请登陆以获得最新资讯</string>
+    <string name="login_hint_phone">手机号码</string>
+    <string name="login_hint_password">登陆密码</string>
+    <string name="login_forgot_password">忘记密码</string>
+    <string name="login_third_party">第三方账号登陆</string>
+    <string name="login_login">登陆</string>
+    <string name="login_no_account">还没有账号?</string>
+    <string name="login_register">注册</string>
+    <string name="login_invalid_credentials">用户名或密码不正确</string>
+
+    <string name="login_bind_title">绑定手机号码</string>
+    <string name="login_bind_desc">请绑定手机号码，绑定后随机号码不再有效</string>
+    <string name="login_bind_confirm">确认绑定</string>
+    <string name="login_bind_resend_countdown">重新发送验证码 (%d秒)</string>
+    <string name="login_bind_resend">重新发送验证码</string>
+    <string name="login_bind_send">发送验证码</string>
+    <string name="login_bind_hint">验证码</string>
+
+    <!-- Register -->
+    <string name="register_title">注册</string>
+    <string name="register_desc">好音乐好生活</string>
+    <string name="register_hint_phone">手机号码</string>
+    <string name="register_hint_password">登陆密码</string>
+    <string name="register_hint_confirm_password">再次确认密码</string>
+    <string name="register_hint_invitation_code">邀请码</string>
+    <string name="register_password_mismatch">新密码与确认密码不匹配</string>
+    <string name="register_password_invalid">密码长度需为 6–16 个字符</string>
+    <string name="register_password_requirement">密码长度需为 6–16 个字符</string>
+    <string name="register_register">注册</string>
+    <string name="register_tnc_desc">注册代表您同意</string>
+    <string name="register_tnc">《用户协议》</string>
+
+    <!-- Reset -->
+    <string name="reset_request_title">重新设置密码</string>
+    <string name="reset_request_hint_phone">手机号码</string>
+    <string name="reset_request_verify">验证</string>
+
+    <string name="verify_otp_title">验证码</string>
+    <string name="verify_otp_desc">验证码已发送至%s</string>
+    <string name="verify_otp_count_down">重新发送验证码 (%d秒)</string>
+    <string name="verify_otp_resend">重新发送验证码</string>
+    <string name="verify_otp_verify">验证</string>
+
+    <string name="reset_password_title">重新设置密码</string>
+    <string name="reset_password_desc">请输入新密码与再次确认密码</string>
+    <string name="reset_password_hint_new_password">新密码</string>
+    <string name="reset_password_hint_confirm_password">再次确认密码</string>
+    <string name="reset_password_requirements">密码长度需为 6–16 个字符</string>
+    <string name="reset_password_reset">重置密码</string>
+    <string name="reset_password_mismatch">新密码与确认密码不匹配</string>
+    <string name="reset_password_invalid">密码长度需为 6–16 个字符</string>
+    <string name="reset_password_success_title">重置密码</string>
+    <string name="reset_password_success_desc">您的密码已成功重置。请使用新密码登录。</string>
+    <string name="reset_password_success_okay">好的</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_tab_home">首页</string>
+    <string name="dashboard_tab_promotion">优惠</string>
+    <string name="dashboard_tab_support">客服</string>
+    <string name="dashboard_tab_profile">我的</string>
+
+    <string name="action_panel_top_up">充值</string>
+    <string name="action_panel_transaction">交易记录</string>
+    <string name="action_panel_withdraw">提现</string>
+    <string name="action_panel_wallet">我的钱包</string>
+    <string name="action_panel_vip">VIP 特权</string>
+    <string name="action_panel_promotion">优惠中心</string>
+    <string name="action_panel_bank">银行详情</string>
+    <string name="action_panel_affiliate">推广赚钱</string>
+
+    <!-- News Centre -->
+    <string name="news_centre_title">消息中心</string>
+    <string name="news_centre_tab_customer_care">客服</string>
+    <string name="news_centre_tab_notification">通知</string>
+    <string name="news_centre_tab_home_notification">首页跑马灯</string>
+    <string name="news_centre_tab_app_feedback">App反馈</string>
+
+    <!-- Home -->
+    <string name="home_balance">账户余额</string>
+    <string name="home_withdraw_all">一键回收</string>
+    <string name="home_yxi_category_all">全部</string>
+    <string name="home_yxi_category_popular">热门</string>
+    <string name="home_yxi_category_app">APP</string>
+    <string name="home_yxi_category_slots">老虎机</string>
+    <string name="home_yxi_category_live">真人</string>
+    <string name="home_yxi_category_sports">体育</string>
+    <string name="home_yxi_category_fishing">捕鱼</string>
+    <string name="home_yxi_category_cock">斗鸡</string>
+    <string name="home_yxi_category_lottery">彩票</string>
+    <string name="home_yxi_category_cards">棋牌</string>
+
+    <!-- Yxi -->
+    <string name="yxi_details_refreshing">正在刷新中，请稍候再返回</string>
+    <string name="yxi_details_login_label">您的登录凭证</string>
+    <string name="yxi_details_login_delete">删除玩家</string>
+    <string name="yxi_details_login_username">用户名</string>
+    <string name="yxi_details_login_password">密码</string>
+    <string name="yxi_details_yxi_list">%s游戏列表</string>
+    <string name="yxi_details_desc">轻松逐步在您的手机上玩%s</string>
+    <string name="yxi_details_step_1_label">1</string>
+    <string name="yxi_details_step_1">步骤 1</string>
+    <string name="yxi_details_step_2_label">2</string>
+    <string name="yxi_details_step_1_desc">将资金转入%s钱包，以在此页的下面部分获取您的登录户名和密码</string>
+    <string name="yxi_details_step_2">步骤 2</string>
+    <string name="yxi_details_step_2_desc">前往下载页面以在手机上安装的应用</string>
+    <string name="yxi_details_step_2_download">下载</string>
+    <string name="yxi_details_step_3_label">3</string>
+    <string name="yxi_details_step_3">步骤 3</string>
+    <string name="yxi_details_step_3_desc">在您的手机中启动应用程序，并使用户名和您的密码登录</string>
+    <string name="yxi_details_choose_yxi">请先选择游戏</string>
+    <string name="yxi_details_start">开启游戏</string>
+    <string name="yxi_details_top_up">充值</string>
+    <string name="yxi_details_transfer">转移</string>
+
+    <string name="yxi_details_delete_player_title">请确认</string>
+    <string name="yxi_details_delete_player_desc">是否要删除玩家 %s\n删除后，您剩余的 Points 将会返回 Credit 里。</string>
+    <string name="yxi_details_delete_player_note">*注意 一天只能添加一个新玩家\n要删除的玩家 Points 必须少于 1</string>
+    <string name="yxi_details_delete_player_negative">取消</string>
+    <string name="yxi_details_delete_player_positive">确定</string>
+    <string name="yxi_details_delete_player_success">成功删除玩家，Credit 会返回到账号中。</string>
+    <string name="yxi_details_delete_player_success_positive">OK</string>
+
+    <string name="yxi_player_title">请选择玩家</string>
+    <string name="yxi_player_points">points</string>
+    <string name="yxi_player_new">添加新玩家</string>
+
+    <string name="yxi_lobby_home">首页</string>
+    <string name="yxi_action_title">请选择</string>
+    <string name="yxi_action_refresh">刷新</string>
+    <string name="yxi_action_reload">转入</string>
+    <string name="yxi_action_withdraw">提现</string>
+    <string name="yxi_action_exit">退出游戏</string>
+
+    <string name="yxi_withdraw_title">金额转出</string>
+    <string name="yxi_withdraw_credit">Credit</string>
+    <string name="yxi_withdraw_points">%s Points</string>
+    <string name="yxi_withdraw_id">ID:%s</string>
+    <string name="yxi_withdraw_desc">请输入转出金额</string>
+    <string name="yxi_withdraw_all">全部</string>
+    <string name="yxi_withdraw_transfer">转换</string>
+    <string name="yxi_withdraw_start_yxi">开启游戏</string>
+
+    <!-- Me -->
+    <string name="me_profile">个人资料</string>
+    <string name="me_action_privacy_security">安全隐私</string>
+    <string name="me_action_find_us">找到我们</string>
+    <string name="me_action_find_us_desc">防止打不开</string>
+    <string name="me_action_app_download">APP 下载</string>
+    <string name="me_action_app_feedback">APP 反馈</string>
+    <string name="me_action_language">语言</string>
+    <string name="me_action_help">帮助</string>
+    <string name="me_action_logout">登出</string>
+    <string name="me_action_logout_desc">切换账号</string>
+
+    <!-- Profile -->
+    <string name="profile_personal_details">个人资料</string>
+    <string name="profile_change_profile_pic">更换头像</string>
+    <string name="profile_username">用户名字</string>
+    <string name="profile_user_id">用户ID</string>
+    <string name="profile_bind_social_media">绑定社交账号</string>
+    <string name="profile_dob">生日</string>
+    <string name="profile_choose_dob">选择生日</string>
+    <string name="profile_save">保存</string>
+    <string name="profile_saved_successfully">保存成功</string>
+
+    <!-- Player Transfer / My Wallet -->
+    <string name="player_transfer_title">转换</string>
+    <string name="player_transfer_point">Points</string>
+    <string name="player_transfer_credit">Credit</string>
+    <string name="player_transfer_one_click">一键领取</string>
+    <string name="player_transfer_desc">输入其他 Points 以转移到当天 Credit</string>
+    <string name="player_transfer_header_yxi">游戏</string>
+    <string name="player_transfer_header_points">目前Points</string>
+    <string name="player_transfer_header_transfer">转移</string>
+    <string name="player_transfer_confirm">确认</string>
+    <string name="player_transfer_confirm_title">请确认</string>
+    <string name="player_transfer_confirm_desc">您确定要把目前所有的points\n转移到credit里吗？</string>
+    <string name="player_transfer_confirm_okay">确定</string>
+    <string name="player_transfer_confirm_cancel">取消</string>
+
+    <!-- Transaction -->
+    <string name="transaction_title">交易记录</string>
+    <string name="transaction_tab_credit">Credit流水</string>
+    <string name="transaction_tab_points">Points流水</string>
+    <string name="transaction_tab_history">投注历史</string>
+
+    <string name="transaction_type_credit_unknown">未知</string>
+    <string name="transaction_type_credit_unknown_desc">未知 RM</string>
+    <string name="transaction_type_credit_commission">佣金</string>
+    <string name="transaction_type_credit_commission_desc">佣金 +RM</string>
+    <string name="transaction_type_credit_bonus_general">普级奖金</string>
+    <string name="transaction_type_credit_bonus_general_desc">普级奖金 +RM</string>
+    <string name="transaction_type_credit_bonus_weekly">W周俸禄</string>
+    <string name="transaction_type_credit_bonus_weekly_desc">周俸禄 +RM</string>
+    <string name="transaction_type_credit_bonus_monthly">月俸禄</string>
+    <string name="transaction_type_credit_bonus_monthly_desc">月俸禄 +RM</string>
+    <string name="transaction_type_credit_new_register">活动-新注册奖励</string>
+    <string name="transaction_type_credit_new_register_desc">活动-新注册奖励 +RM</string>
+    <string name="transaction_type_credit_new_reload">活动-新会员充值奖励</string>
+    <string name="transaction_type_credit_new_reload_desc">活动-新会员充值奖励 +RM</string>
+    <string name="transaction_type_credit_new_recruit">活动-推广奖励</string>
+    <string name="transaction_type_credit_new_recruit_desc">活动-推广奖励 +RM</string>
+    <string name="transaction_type_credit_new_yxi_reload">活动-新会员游戏充值奖励</string>
+    <string name="transaction_type_credit_new_yxi_reload_desc">活动-新会员游戏充值奖励 +RM</string>
+    <string name="transaction_type_credit_top_up_online">线上充值</string>
+    <string name="transaction_type_credit_top_up_online_desc">线上充值 +RM</string>
+    <string name="transaction_type_credit_top_up_shop">商店充值</string>
+    <string name="transaction_type_credit_top_up_shop_desc">商店充值 +RM</string>
+    <string name="transaction_type_credit_top_up_yxi">游戏充值</string>
+    <string name="transaction_type_credit_top_up_yxi_desc">游戏充值 + RM</string>
+    <string name="transaction_type_credit_withdraw_online">线上提现</string>
+    <string name="transaction_type_credit_withdraw_online_desc">线上提现 -RM</string>
+    <string name="transaction_type_credit_withdraw_shop">商店提现</string>
+    <string name="transaction_type_credit_withdraw_shop_desc">商店提现 -RM</string>
+    <string name="transaction_type_credit_withdraw_shop_qr">商店QR提现</string>
+    <string name="transaction_type_credit_withdraw_shop_qr_desc">商店QR提现 -RM</string>
+    <string name="transaction_type_credit_withdraw_yxi">游戏提现</string>
+    <string name="transaction_type_credit_withdraw_yxi_desc">游戏提现 -RM</string>
+
+    <string name="transaction_type_point_reload">上分</string>
+    <string name="transaction_type_point_reload_desc">上分 +RM</string>
+    <string name="transaction_type_point_withdraw">下分</string>
+    <string name="transaction_type_point_withdraw_desc">下分 -RM</string>
+
+    <string name="transaction_status_success">成功</string>
+    <string name="transaction_status_processing">处理中</string>
+    <string name="transaction_status_failed">失败</string>
+
+    <string name="transaction_history_bet">投注 %s</string>
+    <string name="transaction_history_win">赢取 %s</string>
+    <string name="transaction_history_begin">开始余额 RM%s</string>
+    <string name="transaction_history_end">结束余额 RM%s</string>
+
+    <!-- Transaction Details -->
+    <string name="transaction_details_title">交易记录</string>
+    <string name="transaction_details_bank">银行</string>
+    <string name="transaction_details_method">交易方式</string>
+    <string name="transaction_details_provider">供应商</string>
+    <string name="transaction_details_yxi">游戏</string>
+    <string name="transaction_details_bet">投注</string>
+    <string name="transaction_details_win">赢取</string>
+    <string name="transaction_details_opening_balance">开始余额</string>
+    <string name="transaction_details_closing_balance">结束余额</string>
+    <string name="transaction_details_date_time">交易时间</string>
+    <string name="transaction_details_id">交易ID</string>
+    <string name="transaction_details_status">交易状态</string>
+    <string name="transaction_details_remarks">备注</string>
+
+    <!-- Transaction Filter -->
+    <string name="transaction_filter_range">筛选范围</string>
+    <string name="transaction_filter_reset">重置</string>
+    <string name="transaction_filter_results">筛选结果</string>
+    <string name="transaction_filter_title">筛选</string>
+    <string name="transaction_filter_date_search">日期搜索</string>
+    <string name="transaction_filter_all">全部</string>
+    <string name="transaction_filter_today">今天</string>
+    <string name="transaction_filter_yesterday">昨天</string>
+    <string name="transaction_filter_this_week">这星期</string>
+    <string name="transaction_filter_last_week">上星期</string>
+    <string name="transaction_filter_this_month">这个月</string>
+    <string name="transaction_filter_last_month">上个月</string>
+    <string name="transaction_filter_previous_day">前一天</string>
+    <string name="transaction_filter_next_day">下一天</string>
+
+    <!-- Top Up -->
+    <string name="top_up_title">充值</string>
+    <string name="top_up_tab_online">线上充值</string>
+    <string name="top_up_tab_crypto">货币钱包充值</string>
+    <string name="top_up_tab_ewallet">eWallet 充值</string>
+    <string name="top_up_tab_qr">QR充值</string>
+    <string name="top_up_range">最低%s - 最高%s</string>
+    <string name="top_up_range_error">充值金额最低%s - 最高%s</string>
+    <string name="top_up_min">最低%s</string>
+    <string name="top_up_min_error">充值金额最低 %s</string>
+    <string name="top_up_max_error">金额超过 %s，请按限额分笔支付。</string>
+    <string name="top_up_amount">充值金额</string>
+    <string name="top_up_amount_other">其他金额</string>
+    <string name="top_up_now">立即充值</string>
+    <string name="top_up_error_no_url">未提供链接</string>
+    <string name="top_up_success_title">成功充值</string>
+    <string name="top_up_success_desc">你已成功充值：</string>
+    <string name="top_up_okay">好的</string>
+    <string name="top_up_add_bank_account">请先添加银行账户再继续</string>
+    <string name="top_up_success">成功充值 +RM %s</string>
+
+    <!-- Withdrawal -->
+    <string name="withdraw_title">提现</string>
+    <string name="withdraw_bank_account_name">银行用户名字</string>
+    <string name="withdraw_bank_account_number">银行户口</string>
+    <string name="withdraw_application_submitted">成功提交提现请求，系统将冻结提现金额，等待后台审核。</string>
+    <string name="withdraw_credit">Credit</string>
+    <string name="withdraw_point">Point</string>
+    <string name="withdraw_id">我的ID</string>
+    <string name="withdraw_enter_amount">输入金额</string>
+    <string name="withdraw_all">全部</string>
+    <string name="withdraw_percentage">*此账号抽成 %s%%</string>
+    <string name="withdraw_withdrawable">可获得的金额为 %s</string>
+    <string name="withdraw_min">最低 1.01</string>
+    <string name="withdraw_method">提现方式</string>
+    <string name="withdraw_submit_request">提交转账请求</string>
+    <string name="withdraw_shop_qr">店铺二维码现金支付</string>
+    <string name="withdraw_add_bank">添加银行</string>
+    <string name="withdraw_choose_bank">选择银行</string>
+    <string name="withdraw_add_bank_account">添加银行户口</string>
+    <string name="withdraw_added_bank">已添加的银行</string>
+    <string name="withdraw_change_bank_account">更换银行户口</string>
+    <string name="withdraw_added_bank_account">已添加的银行户口</string>
+    <string name="withdraw_add_bank_prompt">请选择银行账户</string>
+    <string name="withdraw_add_bank_prompt_new">添加新银行账户</string>
+    <string name="withdraw_next">前往</string>
+    <string name="withdraw_generate_qr">生成二维码</string>
+
+    <string name="withdraw_qr_title">店铺二维码现金支付</string>
+    <string name="withdraw_qr_label">QR提现：</string>
+    <string name="withdraw_qr_desc">向商家出示二维码以完成扣款</string>
+    <string name="withdraw_qr_refresh">自动刷新倒计时：</string>
+    <string name="withdraw_qr_success_title">成功扣款</string>
+    <string name="withdraw_qr_success_desc">商家需支付玩家现金：</string>
+    <string name="withdraw_qr_success_positive">OK</string>
+    <string name="withdraw_qr_success_toast">店铺二维码现金支付成功 RM%s</string>
+
+    <!-- VIP -->
+    <string name="vip_privilege_title">VIP 特权</string>
+    <string name="vip_redeem_success">领取成功</string>
+    <string name="vip_current_level">当前等级</string>
+    <string name="vip_redeem_all">一键领取</string>
+    <string name="vip_redeem_history">领取记录</string>
+    <string name="vip_redeem_distance">距离升级还需充值</string>
+    <string name="vip_tab_bonus">普级奖金</string>
+    <string name="vip_tab_weekly">周俸禄</string>
+    <string name="vip_tab_monthly">月俸禄</string>
+    <string name="vip_tab_vip">VIP Privileges</string>
+    <string name="vip_header_level">等级</string>
+    <string name="vip_header_progress">普级再投注</string>
+    <string name="vip_header_reward">普及奖金</string>
+    <string name="vip_redemption_redeem">领取</string>
+    <string name="vip_redemption_success">成功</string>
+
+    <!-- Promotion -->
+    <string name="promotion_tab_event">活动</string>
+    <string name="promotion_tab_vip">VIP</string>
+    <string name="promotion_tab_rebate">返水</string>
+    <string name="promotion_tab_redeem_history">领取记录</string>
+
+    <string name="promotion_category_new_reload">新会员充值</string>
+    <string name="promotion_category_crypto_reload">数字货币\n充值活动</string>
+    <string name="promotion_category_agent">代理</string>
+    <string name="promotion_category_popular">热门活动</string>
+    <string name="promotion_category_others">其他活动</string>
+
+    <!-- Bank Details -->
+    <string name="bank_details_title">银行详情</string>
+    <string name="bank_details_update_success">更新成功</string>
+    <string name="bank_details_added_bank">已添加银行账户</string>
+    <string name="bank_details_added_bank_desc">您添加的银行账户将用于充值应用程序内购买所需的确切金额。</string>
+    <string name="bank_details_add_bank">添加新银行账户</string>
+    <string name="bank_details_add_bank_desc">通过启用此帐户进行快速付款</string>
+    <string name="bank_details_new">添加新银行账户</string>
+    <string name="bank_details_bank_account_holder">用户名字</string>
+    <string name="bank_details_bank_account_number">银行账号</string>
+    <string name="bank_details_quick_pay">快速支付</string>
+    <string name="bank_details_added_success">添加成功</string>
+    <string name="bank_details_delete_title">请确认</string>
+    <string name="bank_details_delete_desc">您确定要删除此银行账户吗？\n这也会删除您的快速付款。</string>
+    <string name="bank_details_delete_negative">取消</string>
+    <string name="bank_details_delete_positive">前往</string>
+    <string name="bank_details_delete_success">删除成功</string>
+
+    <string name="bank_form_add_bank">添加银行户口</string>
+    <string name="bank_form_account_holder">用户名字</string>
+    <string name="bank_form_account_holder_desc">只能使用一个用户名字， 不能删除，请谨慎检查。</string>
+    <string name="bank_form_bank_name">银行名字</string>
+    <string name="bank_form_choose_bank">选择银行</string>
+    <string name="bank_form_bank_account_number">银行账号</string>
+    <string name="bank_form_quick_pay">快速支付</string>
+    <string name="bank_form_disclaimer">通过启用此帐户进行快速付款，即表示您同意条款和条件。</string>
+    <string name="bank_form_add">添加银行户口</string>
+    <string name="bank_form_delete">删除银行户口</string>
+
+    <string name="bank_option_title">选择银行</string>
+    <string name="bank_option_search_hint">搜索 …</string>
+    <string name="bank_option_search">搜索</string>
+
+    <!-- Affiliate -->
+    <string name="affiliate_title">推广赚钱</string>
+    <string name="affiliate_tab_share">推广分享</string>
+    <string name="affiliate_tab_data">我的数据</string>
+    <string name="affiliate_tab_kpi">我的业绩</string>
+    <string name="affiliate_tab_commission">我的佣金</string>
+    <string name="affiliate_tab_downline">下级信息</string>
+    <string name="affiliate_tab_ratio">返回比例</string>
+    <string name="affiliate_tab_new">直属开户</string>
+
+    <string name="affiliate_share_to_redeem">待领取</string>
+    <string name="affiliate_share_upline">我的上级</string>
+    <string name="affiliate_share_one_click_redeem">一键领取</string>
+    <string name="affiliate_share_redeem_history">佣金记录</string>
+    <string name="affiliate_share_agent_mode">代理模式 全民代理（日结）</string>
+    <string name="affiliate_share_save">保存</string>
+    <string name="affiliate_share_link">我的链接</string>
+    <string name="affiliate_share_invitation_code">我的邀请码</string>
+    <string name="affiliate_share_change_link">更换</string>
+    <string name="affiliate_share_share">分享</string>
+    <string name="affiliate_share_tutorial">推广教程</string>
+    <string name="affiliate_share_example">举例说明如下：</string>
+    <string name="affiliate_share_saved">文件保存位置：</string>
+
+    <string name="affiliate_data_tab_today">今日</string>
+    <string name="affiliate_data_tab_ytd">昨日</string>
+    <string name="affiliate_data_tab_this_week">本周</string>
+    <string name="affiliate_data_tab_last_week">上周</string>
+    <string name="affiliate_data_tab_this_month">本月</string>
+    <string name="affiliate_data_tab_last_month">上月</string>
+    <string name="affiliate_data_downline_template">%s直属数据</string>
+    <string name="affiliate_data_team">总直属数据</string>
+    <string name="affiliate_data_new_downline">新增直属</string>
+    <string name="affiliate_data_first_top_up_amount">首充金额</string>
+    <string name="affiliate_data_first_top_up_head_count">首充人数</string>
+    <string name="affiliate_data_top_up_amount">充值金额</string>
+    <string name="affiliate_data_top_up_count">充值人次</string>
+    <string name="affiliate_data_withdraw_amount">提现金额</string>
+    <string name="affiliate_data_withdraw_count">提现次数</string>
+    <string name="affiliate_data_bet_amount">有效投注</string>
+    <string name="affiliate_data_redeem_reward">领取奖励</string>
+    <string name="affiliate_data_downline_win_loss">直属输赢</string>
+    <string name="affiliate_data_downline_kpi">直属业绩</string>
+    <string name="affiliate_data_total_commision">总佣金</string>
+    <string name="affiliate_data_team_head_count">团队人数</string>
+    <string name="affiliate_data_downline_head_count">直属人数</string>
+    <string name="affiliate_data_other_head_count">其他人数</string>
+    <string name="affiliate_data_total_kpi">总业绩</string>
+    <string name="affiliate_data_other_kpi">其他业绩</string>
+    <string name="affiliate_data_downline_commision">直属佣金</string>
+    <string name="affiliate_data_other_commision">其他佣金</string>
+    <string name="affiliate_data_accumulated_commision">累计佣金</string>
+    <string name="affiliate_data_redeemed">已领取</string>
+    <string name="affiliate_data_to_redeem">未领取</string>
+    <string name="affiliate_data_accumulated_downline_top_up">累计直属充值</string>
+    <string name="affiliate_data_accumulated_downline_withdraw">累计直属提现</string>
+    <string name="affiliate_data_accumulated_downline_redeem">累计直属领取</string>
+    <string name="affiliate_data_accumulated_downline_bet">累计直属有效投注</string>
+    <string name="affiliate_data_accumulated_downline_win_loss">累计直属输赢</string>
+
+    <string name="affiliate_kpi_date">日期</string>
+    <string name="affiliate_kpi_total_commission">总佣金</string>
+    <string name="affiliate_kpi_head_count">人数</string>
+
+    <string name="affiliate_commission_username">用户名</string>
+    <string name="affiliate_commission_login">用户ID</string>
+    <string name="affiliate_commission_top_up">用户充值</string>
+    <string name="affiliate_commission_date_time">充值时间</string>
+    <string name="affiliate_commission_commission">提成佣金</string>
+
+    <string name="affiliate_downline_id">ID：%s</string>
+    <string name="affiliate_downline_join_date">加入：%s</string>
+    <string name="affiliate_downline_invitation_code">邀请码：%s</string>
+
+    <string name="affiliate_new_id">请输入手机号码</string>
+    <string name="affiliate_new_password">登陆密码</string>
+    <string name="affiliate_new_phone_invalid">电话号码格式不正确</string>
+    <string name="affiliate_new_password_invalid">密码长度需为 6–16 个字符</string>
+    <string name="affiliate_new_proceed">前往</string>
+    <string name="affiliate_new_success">成功直属开户</string>
+
+    <string name="affiliate_code_tab_friend">好友列表</string>
+    <string name="affiliate_code_tab_reward">我的返利</string>
+
+    <string name="affiliate_code_title">我的邀请码</string>
+    <string name="affiliate_code_default_label">我的邀请码</string>
+    <string name="affiliate_code_default">默认</string>
+    <string name="affiliate_code_set_as_default">设为默认邀请码</string>
+    <string name="affiliate_code_rebate">我的返利/好友返利 %</string>
+    <string name="affiliate_code_invitation_code">邀请码</string>
+    <string name="affiliate_code_invitation_link">邀请链接</string>
+    <string name="affiliate_code_invite_now">立即邀请</string>
+    <string name="affiliate_code_more">更多</string>
+    <string name="affiliate_code_summary">我的邀请统计</string>
+    <string name="affiliate_code_team_count">团队人数 （人）</string>
+    <string name="affiliate_code_transacted_count">已交易人数 （人）</string>
+    <string name="affiliate_code_my_rebate">我的返利(RM)</string>
+
+    <string name="affiliate_code_friend_member_id">被邀请人ID</string>
+    <string name="affiliate_code_friend_code">邀请码</string>
+    <string name="affiliate_code_friend_reward_date">返利时间</string>
+    <string name="affiliate_code_friend_invited_count">被邀请人数</string>
+    <string name="affiliate_code_friend_traded_count">已交易人数</string>
+    <string name="affiliate_code_friend_total_amount">交易总数额</string>
+
+    <string name="affiliate_code_reward_date">返利时间</string>
+    <string name="affiliate_code_reward_member_id">被邀请人ID</string>
+    <string name="affiliate_code_reward_count">返利数量</string>
+
+    <!-- Security & Privacy -->
+    <string name="security_privacy_title">安全隐私</string>
+    <string name="security_privacy_phone">手机号码</string>
+    <string name="security_privacy_email">绑定邮箱</string>
+    <string name="security_privacy_google">Google Authentication</string>
+    <string name="security_privacy_biometric">验证识别</string>
+    <string name="security_privacy_password">更改密码</string>
+    <string name="security_privacy_binded">已绑定</string>
+    <string name="security_privacy_to_bind">未添加</string>
+
+    <string name="bind_phone_title">手机号码</string>
+    <string name="bind_phone_label">绑定手机号码</string>
+    <string name="bind_phone_label_binded">已绑定手机号码</string>
+    <string name="bind_phone_desc">此电话号码将用于登录</string>
+    <string name="bind_phone_desc_binded">此电话号码将用于登录</string>
+    <string name="bind_phone_verify">验证</string>
+
+    <string name="bind_email_title">邮箱</string>
+    <string name="bind_email_label">绑定邮箱</string>
+    <string name="bind_email_hint">邮箱</string>
+    <string name="bind_email_proceed">前往</string>
+
+    <string name="bind_otp_title">验证码</string>
+    <string name="bind_otp_label">请输入验证码</string>
+    <string name="bind_otp_desc">验证码已发送至 %s</string>
+    <string name="bind_otp_resend_countdown">重新发送验证码 (%d秒)</string>
+    <string name="bind_otp_resend">重新发送验证码</string>
+    <string name="bind_otp_success_phone">成功绑定电话号码</string>
+    <string name="bind_otp_success_email">成功绑定邮箱</string>
+    <string name="bind_otp_verify">验证</string>
+
+    <string name="google_authentication_title">Google Authentication</string>
+    <string name="google_authentication_unbind">解绑Google身份证</string>
+    <string name="google_authentication_bind">绑定Google身份证</string>
+    <string name="google_authentication_step_1">第一步：下载</string>
+    <string name="google_authentication_step_2">第二步：打开验证器App添加二维码</string>
+    <string name="google_authentication_step_2_binded">第二步：输入验证器App中的六位数字进行验证</string>
+    <string name="google_authentication_step_3">第三步：输入验证器App中的六位数字进行验证</string>
+    <string name="google_authentication_app">Google身份验证器</string>
+    <string name="google_authentication_click">（点击可前往）</string>
+    <string name="google_authentication_copy">复制 SharedSecret</string>
+    <string name="google_authentication_proceed">前往</string>
+    <string name="google_authentication_success_unbind">成功解绑Google Authentication</string>
+    <string name="google_authentication_success_bind">成功绑定Google Authentication</string>
+
+    <string name="biometric_title">验证识别</string>
+    <string name="biometric_identification">生物验证</string>
+    <string name="biometric_label">脸部/指纹验证</string>
+    <string name="biometric_prompt_title">身份验证</string>
+    <string name="biometric_prompt_desc">请使用生物识别完成验证</string>
+    <string name="biometric_prompt_cancel">取消</string>
+    <string name="biometric_prompt_failed">无法启动验证\n</string>
+    <string name="biometric_not_supported">设备不支持生物识别</string>
+    <string name="biometric_not_setup">未设置生物识别信息，请先在系统设置中添加生物识别信息</string>
+    <string name="biometric_unavailable">生物识别硬件当前不可用</string>
+    <string name="biometric_success_enabled">成功开启生物识别</string>
+    <string name="biometric_failed">验证失败</string>
+
+    <string name="change_password_title">更改密码</string>
+    <string name="change_password_label">请输入密码</string>
+    <string name="change_password_hint_old_password">旧密码</string>
+    <string name="change_password_hint_new_password">新密码</string>
+    <string name="change_password_hint_confirm_password">再次确认密码</string>
+    <string name="change_password_strength">密码强度</string>
+    <string name="change_password_proceed">前往</string>
+    <string name="change_password_mismatch">新密码与确认密码不匹配</string>
+
+    <string name="change_password_otp_title">安全验證</string>
+    <string name="change_password_otp_success">成功更改密码</string>
+    <string name="change_password_otp_phone">手机号码</string>
+    <string name="change_password_otp_phone_desc">请输入手机号码 %s 收到的验证码</string>
+    <string name="change_password_otp_phone_switch_email">切換到邮箱驗證方式</string>
+    <string name="change_password_otp_email">邮箱</string>
+    <string name="change_password_otp_email_desc">请输入邮箱 %s 收到的验证码</string>
+    <string name="change_password_otp_google">谷歌验证码</string>
+    <string name="change_password_otp_google_desc">请输入谷歌验证码</string>
+    <string name="change_password_otp_send">发送验证码</string>
+    <string name="change_password_otp_resend_countdown">重新发送验证码 (%d秒)</string>
+    <string name="change_password_otp_resend">重新发送验证码</string>
+    <string name="change_password_otp_paste">粘贴</string>
+    <string name="change_password_otp_verify">验证</string>
+
+    <!-- Find Us -->
+    <string name="find_us_title">找到我们</string>
+    <string name="find_us_save_web_label">保存网址</string>
+    <string name="find_us_save_web_desc">为了防止（避免）网页打不开，影响您的游戏体验，请您及时保存我们的永久地址：</string>
+    <string name="find_us_web_template">回家网址 %d</string>
+    <string name="find_us_web_1">回家网址 1</string>
+    <string name="find_us_web_2">回家网址 2</string>
+    <string name="find_us_save_email_label">保存邮箱</string>
+    <string name="find_us_save_email_desc">官方邮箱，咨询域名，永不迷路：发送任何内容获取最新网址</string>
+    <string name="find_us_official">官方邮箱</string>
+    <string name="find_us_save">保存图片</string>
+
+    <!-- App Download -->
+    <string name="app_download_title">APP 下载</string>
+    <string name="app_download_current_version">当前版本： V %s_%s</string>
+    <string name="app_download_desc">扫描或点击应用商店下载我们的应用程序</string>
+    <string name="app_download_click">（点击可前往）</string>
+    <string name="app_download_check">检测最新版本</string>
+    <string name="app_download_upgrade_title">升级到最新版本？</string>
+    <string name="app_download_upgrade_desc">当前版本 V %s\n确定要安装新版本 V %s 吗？</string>
+    <string name="app_download_upgrade_install">立即安装</string>
+    <string name="app_download_upgrade_skip">跳过</string>
+    <string name="app_download_already_latest">当前已是最新版本</string>
+
+    <!-- App Feedback -->
+    <string name="app_feedback_create">创建反馈</string>
+    <string name="app_feedback_list">我的反馈</string>
+    <string name="app_feedback_subject_label">反馈标题</string>
+    <string name="app_feedback_subject_prompt">反馈问题</string>
+    <string name="app_feedback_subject_speed">游戏加载速度</string>
+    <string name="app_feedback_subject_performance">操作手感 / 流畅度</string>
+    <string name="app_feedback_subject_level">关卡难度</string>
+    <string name="app_feedback_subject_newbie">新手引导</string>
+    <string name="app_feedback_subject_others">其他</string>
+    <string name="app_feedback_message_desc">反馈内容\n你的任何一件对我们都很重要，欢迎您畅所欲言！</string>
+    <string name="app_feedback_message_count">0/1000</string>
+    <string name="app_feedback_image_label">反馈图片</string>
+    <string name="app_feedback_image_desc">支持图片与视频上传，图片大小不得超过2MB，\n视频大小不得超过20MB</string>
+    <string name="app_feedback_submit">提交反馈</string>
+    <string name="app_feedback_upload_desc">提交前请至少上传一张图片。</string>
+    <string name="app_feedback_upload_okay">好的</string>
+
+    <string name="app_feedback_upload_gallery">相册</string>
+    <string name="app_feedback_upload_camera">相机</string>
+    <string name="app_feedback_upload_cancel">取消</string>
+    <string name="app_feedback_image_create_failed">无法创建图片文件</string>
+    <string name="app_feedback_image_process_failed">图片处理失败</string>
+    <string name="app_feedback_image_compress_failed">图片压缩后仍超过 2MB，上传失败</string>
+    <string name="app_feedback_image_size_mb">%.2f MB</string>
+    <string name="app_feedback_image_size_kb">%.2f KB</string>
+    <string name="app_feedback_camera_permission">需要相机权限来拍照</string>
+    <string name="app_feedback_gallery_permission">需要存储权限来访问图片</string>
+
+    <string name="app_feedback_details_title">APP 反馈</string>
+
+    <!-- Language -->
+    <string name="language_title">语言</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_english">English</string>
+    <string name="language_malay">Malay</string>
+
+    <!-- Help -->
+    <string name="help_title">帮助</string>
+    <string name="help_support_title">7 x 24 在线客服</string>
+    <string name="help_support_desc">专业客服在线对话，为您解决问题。</string>
+    <string name="help_support_1">在线客服 1</string>
+    <string name="help_support_2">在线客服 2</string>
+    <string name="help_support_other">其他客服</string>
+    <string name="help_support_unavailable">客服暂时无法使用，请稍后再试</string>
+    <string name="help_tab_common">常见问题</string>
+    <string name="help_tab_transaction">交易操作</string>
+    <string name="help_tab_transfer">转移</string>
+    <string name="help_tab_vip">VIP等级讲解</string>
+    <string name="help_tab_affiliate">推广赚钱讲解</string>
+    <string name="help_tab_agent">代理讲解</string>
+    <string name="help_details_title">帮助</string>
+
+    <!-- Logout -->
+    <string name="logout_title">请确认</string>
+    <string name="logout_desc">是否退出当前账号？</string>
+    <string name="logout_negative">取消</string>
+    <string name="logout_positive">确认退出</string>
+
+    <string name="month_jan">一</string>
+    <string name="month_feb">二</string>
+    <string name="month_mar">三</string>
+    <string name="month_apr">四</string>
+    <string name="month_may">五</string>
+    <string name="month_jun">六</string>
+    <string name="month_jul">七</string>
+    <string name="month_aug">八</string>
+    <string name="month_sep">九</string>
+    <string name="month_oct">十</string>
+    <string name="month_nov">十一</string>
+    <string name="month_dec">十二</string>
+
+    <string name="country_code">地区号</string>
+    <string name="country_code_mys">+60</string>
+
+    <string name="template_s_s">%s%s</string>
+    <string name="template_s_space_s">%s %s</string>
+    <string name="template_s_dash_space_s">%s - %s</string>
+    <string name="template_s_space_plus_s">%s +%s</string>
+    <string name="template_s_bracket_s">%s (%s)</string>
+    <string name="template_s_rm_s">%sRM%s</string>
+    <string name="template_s_s_rm_s">%s %sRM%s</string>
+    <string name="template_plus_s">+%s</string>
+    <string name="template_rm_s">RM%s</string>
+    <string name="template_d_secs">%d 秒</string>
+    <string name="template_d_pax">%d 位</string>
+
+    <string name="placeholder_currency_amount">RM0.00</string>
+    <string name="placeholder_currency_myr">RM</string>
+    <string name="placeholder_amount">0.00</string>
+    <string name="placeholder_count">0</string>
+    <string name="placeholder_dash">-</string>
+
+    <string name="cd_icon">Icon</string>
+    <string name="cd_image">Image</string>
+
+    <string name="common_no_data">暂无记录</string>
+    <string name="common_password">密码</string>
+    <string name="common_ok">OK</string>
+
+    <string name="calendar_negative">取消</string>
+    <string name="calendar_positive">确定</string>
+
+    <string name="in_app_updater_preparing_download">正在准备下载…</string>
+    <string name="in_app_updater_downloading_update">正在下载更新…</string>
+    <string name="in_app_updater_installing_update">正在安装更新…</string>
+    <string name="in_app_updater_wait">请稍候</string>
+    <string name="in_app_updater_progress">%d%%（%dKB / %dKB）</string>
+    <string name="in_app_updater_0">0%</string>
+</resources>
