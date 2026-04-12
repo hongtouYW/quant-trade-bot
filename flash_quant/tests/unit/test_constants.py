@@ -11,8 +11,8 @@ from core.constants import (
 
 class TestConstants:
 
-    def test_max_leverage_is_50(self):
-        assert MAX_LEVERAGE == 50
+    def test_max_leverage_is_20(self):
+        assert MAX_LEVERAGE == 20
 
     def test_max_margin_is_300(self):
         assert MAX_MARGIN_PER_TRADE == 300
@@ -35,40 +35,34 @@ class TestConstants:
 
 class TestGetLeverageTier:
 
-    def test_btc_is_tier_a_major(self):
+    def test_btc_is_20x(self):
         tier = get_leverage_tier("BTCUSDT")
-        assert tier['max_leverage'] == 50
-        assert tier['stop_loss_roi'] == -0.05
+        assert tier['max_leverage'] == 20
+        assert tier['stop_loss_roi'] == -0.10
 
-    def test_eth_is_tier_a_major(self):
+    def test_eth_is_20x(self):
         tier = get_leverage_tier("ETHUSDT")
-        assert tier['max_leverage'] == 50
+        assert tier['max_leverage'] == 20
 
-    def test_sol_is_tier_a_large(self):
+    def test_sol_is_20x(self):
         tier = get_leverage_tier("SOLUSDT")
-        assert tier['max_leverage'] == 30
-        assert tier['stop_loss_roi'] == -0.08
+        assert tier['max_leverage'] == 20
 
-    def test_bnb_is_tier_a_large(self):
+    def test_bnb_is_20x(self):
         tier = get_leverage_tier("BNBUSDT")
-        assert tier['max_leverage'] == 30
+        assert tier['max_leverage'] == 20
 
-    def test_unknown_defaults_tier_b(self):
+    def test_unknown_defaults_20x(self):
         tier = get_leverage_tier("RANDOMUSDT")
         assert tier['max_leverage'] == 20
         assert tier['stop_loss_roi'] == -0.10
 
     def test_ccxt_format_btc(self):
-        """ccxt 格式: BTC/USDT:USDT"""
         tier = get_leverage_tier("BTC/USDT:USDT")
-        assert tier['max_leverage'] == 50
+        assert tier['max_leverage'] == 20
 
-    def test_plain_format(self):
-        """简单格式: BTC"""
-        tier = get_leverage_tier("BTC")
-        assert tier['max_leverage'] == 50
-
-    def test_btc_leverage_never_exceeds_50(self):
-        """BR-001: BTC 杠杆 ≤ 50"""
-        tier = get_leverage_tier("BTCUSDT")
-        assert tier['max_leverage'] <= MAX_LEVERAGE
+    def test_all_tiers_same_leverage(self):
+        """检讨后统一 20x"""
+        for name, config in LEVERAGE_TIERS.items():
+            assert config['max_leverage'] == 20, f"{name} should be 20x"
+            assert config['stop_loss_roi'] == -0.10, f"{name} should be -10%"

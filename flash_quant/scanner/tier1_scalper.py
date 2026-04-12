@@ -170,6 +170,16 @@ class Tier1Scalper(ScannerBase):
         if direction == 'short' and taker_ratio > TIER1_TAKER_RATIO_SHORT:
             return None
 
+        # 6.5 ADX 趋势过滤 (震荡市不开仓)
+        if len(klines) >= 15:
+            from data.indicators import adx as calc_adx
+            highs = [k.high for k in klines]
+            lows_list = [k.low for k in klines]
+            closes_list = [k.close for k in klines]
+            adx_vals = calc_adx(highs, lows_list, closes_list, 14)
+            if adx_vals and adx_vals[-1] < 20:
+                return None  # 震荡市, 不开仓
+
         # 7. Wick 过滤
         wick_passed, body_ratio = wick_filter(
             latest.open, latest.high, latest.low, latest.close

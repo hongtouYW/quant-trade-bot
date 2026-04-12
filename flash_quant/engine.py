@@ -123,21 +123,20 @@ async def main():
     # 4. REST 数据补充 (funding/OI/volume)
     rest = RestPoller(DEFAULT_SYMBOLS)
 
-    # 5. 三层扫描器
+    # 5. 扫描器 (Tier 1 爆发 + Tier 2 次级爆发, Tier 3 暂停)
     tier1 = Tier1Scalper(DEFAULT_SYMBOLS, executor=executor)
     tier2 = Tier2TrendScanner(DEFAULT_SYMBOLS, executor=executor)
-    tier3 = Tier3DirectionScanner(executor=executor)
+    # Tier 3 暂停: 评分系统在震荡市方向不准, 检讨后决定暂停
 
     # 6. 启动
-    logger.info("engine.started", tiers="1+2+3")
+    logger.info("engine.started", tiers="1+2 (tier3 suspended)")
     await asyncio.gather(
         ws.run(),
         rest.run(),
         tier1.run(),
         tier2.run(),
-        tier3.run(),
         position_monitor(executor, interval=30),
-        daily_stats_updater(interval=300),  # 每5分钟更新日统计
+        daily_stats_updater(interval=300),
     )
 
 

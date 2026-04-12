@@ -1,6 +1,9 @@
 """
-Tier 2 趋势爆破扫描器 - FR-002
-60 秒周期, 15min MACD + RSI + EMA 趋势启动检测
+Tier 2 次级爆发扫描器 (检讨后改版)
+60 秒周期, 量比 ≥ 3x + 涨跌 ≥ 1% + ADX趋势确认
+
+核心逻辑: 不预测方向, 跟随价格。
+价格已经涨了 1% = 做多, 跌了 1% = 做空。
 """
 import asyncio
 import time
@@ -8,19 +11,16 @@ from datetime import datetime, timezone, timedelta
 from scanner.base import ScannerBase
 from data.kline_cache import kline_cache
 from data.market_data import market_data
-from data.indicators import macd, rsi, ema_cross, volume_ratio
+from data.indicators import adx
 from filters.wick_filter import wick_filter
 from filters.funding_filter import funding_filter
 from filters.blacklist_filter import is_tradable
 from risk.risk_manager import risk_manager
 from models.db_ops import save_signal
-from core.constants import (
-    TIER2_SCAN_INTERVAL, TIER2_RSI_LONG, TIER2_RSI_SHORT,
-    TIER2_VOLUME_MULTIPLIER,
-)
+from core.constants import TIER2_SCAN_INTERVAL, TIER2_VOLUME_RATIO_MIN, TIER2_PRICE_CHANGE_MIN
 from core.logger import get_logger
 
-logger = get_logger('tier2_trend')
+logger = get_logger('tier2_burst')
 
 MYT = timezone(timedelta(hours=8))
 
@@ -31,8 +31,6 @@ class Tier2TrendScanner(ScannerBase):
         self.symbols = symbols
         self.executor = executor
         self._scan_count = 0
-        self._signal_count = 0
-        # 去重: symbol -> last processed kline timestamp
         self._last_signal_ts = {}
 
     async def run(self):
@@ -52,7 +50,7 @@ class Tier2TrendScanner(ScannerBase):
                     try:
                         sig_id = save_signal(sig)
                     except Exception as e:
-                        logger.error("tier2.save_signal_error", error=str(e))
+                        logger.error("tier2.save_error", error=str(e))
                         sig_id = None
 
                     if sig['final_decision'] == 'executed' and self.executor:
@@ -68,7 +66,8 @@ class Tier2TrendScanner(ScannerBase):
                                 signal_id=sig_id,
                             )
                             logger.info("tier2.trade_opened",
-                                       symbol=sym, direction=sig['direction'])
+                                       symbol=sym, direction=sig['direction'],
+                                       vol_ratio=sig['volume_ratio'])
                         else:
                             if sig_id:
                                 try:
@@ -89,19 +88,14 @@ class Tier2TrendScanner(ScannerBase):
 
     async def scan(self) -> list:
         signals = []
-        t0 = time.time()
-
         for symbol in self.symbols:
             sig = self._scan_one(symbol)
             if sig:
                 signals.append(sig)
 
-        elapsed = (time.time() - t0) * 1000
-        if self._scan_count % 10 == 0:  # 每 10 次打一次日志
+        if self._scan_count % 10 == 0:
             logger.info("tier2.scan_done",
-                       scanned=len(self.symbols), signals=len(signals),
-                       elapsed_ms=f"{elapsed:.0f}")
-
+                       scanned=len(self.symbols), signals=len(signals))
         return signals
 
     def _scan_one(self, symbol: str) -> dict:
@@ -111,88 +105,56 @@ class Tier2TrendScanner(ScannerBase):
         if not tradable:
             return None
 
-        # 2. 获取 15min K线 (需要至少 35 根做 MACD 26+9)
-        klines = kline_cache.get(symbol, '15m', n=50)
-        if len(klines) < 35:
+        # 2. 获取 5min K线
+        klines = kline_cache.get(symbol, '5m', n=21)
+        if len(klines) < 2:
             return None
 
-        closes = [k.close for k in klines]
-        volumes = [k.volume for k in klines]
         latest = klines[-1]
+        prev = klines[:-1]
 
-        # 3. MACD 柱状图
-        _, _, hist = macd(closes)
-        macd_cross = False
-        macd_direction = None
-        if len(hist) >= 2:
-            if hist[-2] <= 0 and hist[-1] > 0:
-                macd_cross = True
-                macd_direction = 'long'
-            elif hist[-2] >= 0 and hist[-1] < 0:
-                macd_cross = True
-                macd_direction = 'short'
-
-        # 4. RSI
-        rsi_values = rsi(closes)
-        rsi_confirm = False
-        rsi_direction = None
-        if rsi_values:
-            current_rsi = rsi_values[-1]
-            if current_rsi >= TIER2_RSI_LONG:
-                rsi_confirm = True
-                rsi_direction = 'long'
-            elif current_rsi <= TIER2_RSI_SHORT:
-                rsi_confirm = True
-                rsi_direction = 'short'
-        else:
-            current_rsi = 50
-
-        # 5. EMA9/EMA21 穿越
-        cross = ema_cross(closes, 9, 21)
-        ema_confirm = cross in ('golden_cross', 'death_cross')
-        ema_direction = 'long' if cross == 'golden_cross' else ('short' if cross == 'death_cross' else None)
-
-        # 需要至少 2/3 条件满足 (验证模式) + 方向一致
-        conditions = [macd_cross, rsi_confirm, ema_confirm]
-        directions = [d for d in [macd_direction, rsi_direction, ema_direction] if d]
-        met = sum(conditions)
-
-        if met < 2:
+        # 3. 量比 ≥ 3x
+        avg_vol = sum(k.volume for k in prev) / len(prev) if prev else 0
+        vol_ratio = latest.volume / avg_vol if avg_vol > 0 else 0
+        if vol_ratio < TIER2_VOLUME_RATIO_MIN:
             return None
 
-        # 方向取多数
-        if not directions:
+        # 4. 涨跌 ≥ 1% — 方向由价格决定
+        price_change = latest.change_pct
+        if abs(price_change) < TIER2_PRICE_CHANGE_MIN:
             return None
-        long_count = directions.count('long')
-        short_count = directions.count('short')
-        if long_count > short_count:
-            direction = 'long'
-        elif short_count > long_count:
-            direction = 'short'
-        else:
-            return None  # 方向矛盾
 
-        # 7. Wick 过滤
+        direction = 'long' if price_change > 0 else 'short'
+
+        # 5. ADX 趋势过滤 (≥ 20 才有趋势)
+        if len(klines) >= 15:
+            highs = [k.high for k in klines]
+            lows = [k.low for k in klines]
+            closes = [k.close for k in klines]
+            adx_vals = adx(highs, lows, closes, 14)
+            if adx_vals and adx_vals[-1] < 20:
+                # 震荡市, 不开仓
+                return None
+
+        # 6. Wick 过滤
         wick_passed, body_ratio = wick_filter(
             latest.open, latest.high, latest.low, latest.close
         )
 
-        # 8. Funding 过滤
+        # 7. Funding 过滤
         funding_rate = market_data.get_funding_rate(symbol)
         funding_passed, _ = funding_filter(funding_rate)
 
-        # 构建信号
         signal = {
             'tier': 'tier2',
             'symbol': symbol,
             'direction': direction,
             'price': latest.close,
-            'volume_ratio': round(volume_ratio(volumes), 2),
-            'price_change_pct': round(latest.change_pct, 4),
-            'score': round(current_rsi, 1),  # 用 score 字段存 RSI
+            'volume_ratio': round(vol_ratio, 2),
+            'price_change_pct': round(price_change, 4),
             'funding_rate': funding_rate,
             'body_ratio': round(body_ratio, 4),
-            'cvd_aligned': True,  # Tier 2 不检查 CVD
+            'cvd_aligned': True,
             'funding_passed': funding_passed,
             'timestamp': datetime.now(MYT),
             'kline_timestamp': latest.timestamp,
@@ -208,5 +170,4 @@ class Tier2TrendScanner(ScannerBase):
             signal['final_decision'] = 'executed'
             signal['filter_reason'] = None
 
-        self._signal_count += 1
         return signal

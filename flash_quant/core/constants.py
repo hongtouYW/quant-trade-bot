@@ -7,32 +7,34 @@ Flash Quant - 业务规则硬编码常量
 from enum import IntEnum
 
 
-# === BR-001: 分级杠杆上限 ===
+# === BR-001: 统一杠杆 20x (检讨后调整) ===
+# 原因: 50x止损空间0.1%太窄, BTC 39秒就被扫
+# 统一20x + -10% ROI = 0.5%止损空间, 合理
 LEVERAGE_TIERS = {
     'tier_a_major': {
         'symbols': ['BTC', 'ETH'],
-        'max_leverage': 50,
-        'stop_loss_roi': -0.05,     # -5% ROI
-        'max_hold_hours': 1,
+        'max_leverage': 20,
+        'stop_loss_roi': -0.10,
+        'max_hold_hours': 2,
     },
     'tier_a_large': {
         'symbols': ['SOL', 'BNB', 'XRP', 'DOGE', 'ADA', 'AVAX'],
-        'max_leverage': 30,
-        'stop_loss_roi': -0.08,     # -8% ROI
+        'max_leverage': 20,
+        'stop_loss_roi': -0.10,
         'max_hold_hours': 4,
     },
     'tier_b': {
         'max_leverage': 20,
-        'stop_loss_roi': -0.10,     # -10% ROI
+        'stop_loss_roi': -0.10,
         'max_hold_hours': 8,
     },
     'tier_c': {
-        'max_leverage': 15,
+        'max_leverage': 20,
         'stop_loss_roi': -0.10,
-        'max_hold_hours': 20,
+        'max_hold_hours': 8,
     },
 }
-MAX_LEVERAGE = 50  # 绝对上限
+MAX_LEVERAGE = 20
 
 
 # === BR-002: Tier D 黑名单 ===
@@ -88,22 +90,21 @@ FUNDING_RATE_MAX = 0.0008  # 0.08%
 
 # Tier 1 扫描参数
 TIER1_SCAN_INTERVAL = 30         # seconds
-# 快速验证模式 (正式值: 5.0 / 0.02 / 0.08 / 1.5 / 0.67)
-TIER1_VOLUME_RATIO_MIN = 3.0     # 验证: 3x (正式: 5x)
-TIER1_PRICE_CHANGE_MIN = 0.005   # 验证: 0.5% (正式: 2%)
-TIER1_OI_CHANGE_MIN = 0.0
-TIER1_TAKER_RATIO_LONG = 0.0
+# PRD 正式阈值
+TIER1_VOLUME_RATIO_MIN = 5.0
+TIER1_PRICE_CHANGE_MIN = 0.02    # 2%
+TIER1_OI_CHANGE_MIN = 0.0        # OI 暂时跳过 (REST 数据延迟)
+TIER1_TAKER_RATIO_LONG = 0.0     # Taker 暂时跳过
 TIER1_TAKER_RATIO_SHORT = 999.0
 
-# Tier 2 扫描参数 (验证模式放宽)
+# Tier 2 次级爆发参数 (检讨后: 去掉MACD/RSI/EMA, 改为量价爆发)
 TIER2_SCAN_INTERVAL = 60
-TIER2_RSI_LONG = 58          # 验证: 58 (正式: 65)
-TIER2_RSI_SHORT = 42         # 验证: 42 (正式: 35)
-TIER2_VOLUME_MULTIPLIER = 1.0  # 验证: 1.0 (正式: 1.5)
+TIER2_VOLUME_RATIO_MIN = 3.0    # 量比 ≥ 3x
+TIER2_PRICE_CHANGE_MIN = 0.01   # 涨跌 ≥ 1%
 
-# Tier 3 扫描参数 (验证模式放宽)
+# Tier 3 扫描参数 (PRD 正式值)
 TIER3_SCAN_INTERVAL = 3600       # 1H
-TIER3_MIN_SCORE = 55             # 验证: 55 (正式: 75)
+TIER3_MIN_SCORE = 75
 
 # 阶梯止盈 (Tier 1)
 TIER1_TAKE_PROFIT_LADDER = [
