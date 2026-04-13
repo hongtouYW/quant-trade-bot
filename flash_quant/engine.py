@@ -76,8 +76,8 @@ async def warmup_klines(symbols):
                         low=c[3], close=c[4], volume=c[5], is_closed=True,
                     ))
 
-                # 拉 1H K线 (Tier 3 需要)
-                ohlcv_1h = exchange.fetch_ohlcv(pair, '1h', limit=50)
+                # 拉 1H K线 (大趋势判断需要 EMA50, 至少 55 根)
+                ohlcv_1h = exchange.fetch_ohlcv(pair, '1h', limit=60)
                 for c in ohlcv_1h[:-1]:
                     kline_cache.update(sym, '1h', Kline(
                         timestamp=c[0], open=c[1], high=c[2],
@@ -90,7 +90,10 @@ async def warmup_klines(symbols):
 
             await asyncio.sleep(0.2)  # 限速保护
 
-        logger.info("warmup.complete", symbols=len(symbols))
+        # 验证 1H 数据
+        btc_1h = len(kline_cache.get('BTCUSDT', '1h', 60))
+        logger.info("warmup.complete", symbols=len(symbols),
+                    btc_1h_klines=btc_1h)
     except Exception as e:
         logger.error("warmup.failed", error=str(e))
 

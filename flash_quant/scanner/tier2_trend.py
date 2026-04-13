@@ -126,6 +126,12 @@ class Tier2TrendScanner(ScannerBase):
 
         direction = 'long' if price_change > 0 else 'short'
 
+        # 4.5 大趋势过滤 — 不逆势, 震荡不开
+        from data.trend import is_direction_allowed
+        allowed, trend = is_direction_allowed(symbol, direction)
+        if not allowed:
+            return None
+
         # 5. ADX 趋势过滤 (≥ 20 才有趋势)
         if len(klines) >= 15:
             highs = [k.high for k in klines]
