@@ -118,12 +118,34 @@ def get_exchange_price(symbol):
         if not sym.endswith('USDT'):
             sym = sym + 'USDT'
         base = sym.replace('USDT', '')
-        if exchange:
+        if exchange and not PAPER_TRADING:
             ticker = exchange.fetch_ticker(f'{base}/USDT:USDT')
             return float(ticker['last'])
-        # Fallback
-        resp = requests.get(f'https://api.binance.com/api/v3/ticker/price', params={'symbol': sym}, timeout=5)
-        return float(resp.json()['price'])
+        # Bitget REST API (primary for paper trading)
+        try:
+            resp2 = requests.get(f'https://api.bitget.com/api/v2/mix/market/ticker?productType=USDT-FUTURES&symbol={sym}', timeout=5)
+            data2 = resp2.json()
+            if data2.get('data') and data2['data'].get('lastPr'):
+                return float(data2['data']['lastPr'])
+        except:
+            pass
+        # Binance fallback
+        try:
+            resp = requests.get(f'https://api.binance.com/api/v3/ticker/price', params={'symbol': sym}, timeout=5)
+            data = resp.json()
+            if data.get('price'):
+                return float(data['price'])
+        except:
+            pass
+        # MEXC fallback
+        try:
+            resp3 = requests.get(f'https://api.mexc.com/api/v3/ticker/price?symbol={sym}', timeout=5)
+            data3 = resp3.json()
+            if data3.get('price'):
+                return float(data3['price'])
+        except:
+            pass
+        return None
     except Exception as e:
         print(f"[Price Error] {symbol}: {e}")
         return None
@@ -451,6 +473,15 @@ def init_db():
             message TEXT
         );
     ''')
+
+    # Migrations
+    for sql in [
+        "ALTER TABLE signals ADD COLUMN cancel_reason TEXT",
+    ]:
+        try:
+            conn.execute(sql)
+        except:
+            pass
 
     # Seed default symbol aliases
     default_aliases = {
@@ -885,8 +916,10 @@ def auto_open_trade(signal_id):
         if entry_price_check and entry_price_check > 0 and current_price_check:
             diff_pct = abs(current_price_check - entry_price_check) / entry_price_check * 100
             if diff_pct > 10:
-                print(f"[Auto-Trade] Price {current_price_check} too far from entry {entry_price_check} ({diff_pct:.1f}%), skip", flush=True)
-                add_log(f"跳过 {signal['symbol']}: 价格偏离 {diff_pct:.1f}% > 10%", 'WARN')
+                reason = f"价格偏离{diff_pct:.1f}%>10%"
+                print(f"[Auto-Trade] {signal['symbol']} {reason}, skip", flush=True)
+                conn.execute("UPDATE signals SET status='cancelled', cancel_reason=? WHERE id=?", (reason, signal_id))
+                conn.commit()
                 conn.close()
                 return False
 
@@ -895,11 +928,15 @@ def auto_open_trade(signal_id):
         if tp_check and tp_check > 0 and current_price_check:
             direction = signal['direction']
             if direction == 'LONG' and current_price_check >= tp_check:
-                print(f"[Auto-Trade] Price {current_price_check} already past TP {tp_check}, skip", flush=True)
+                reason = f"价格{current_price_check}已超TP{tp_check}"
+                conn.execute("UPDATE signals SET status='cancelled', cancel_reason=? WHERE id=?", (reason, signal_id))
+                conn.commit()
                 conn.close()
                 return False
             elif direction == 'SHORT' and current_price_check <= tp_check:
-                print(f"[Auto-Trade] Price {current_price_check} already past TP {tp_check}, skip", flush=True)
+                reason = f"价格{current_price_check}已超TP{tp_check}"
+                conn.execute("UPDATE signals SET status='cancelled', cancel_reason=? WHERE id=?", (reason, signal_id))
+                conn.commit()
                 conn.close()
                 return False
 
@@ -940,8 +977,8 @@ def auto_open_trade(signal_id):
         )
 
         if order_result is None:
-            print(f"[Auto-Trade] MEXC order failed for {signal['symbol']}")
-            add_log(f"MEXC下单失败: {signal['symbol']} {signal['direction']}", 'ERROR')
+            print(f"[Auto-Trade] Order failed for {signal['symbol']}", flush=True)
+            add_log(f"下单失败: {signal['symbol']} {signal['direction']}", 'ERROR')
             conn.close()
             return False
 
@@ -978,6 +1015,83 @@ def auto_open_trade(signal_id):
 
 monitor_running = False
 
+# WebSocket price cache
+ws_prices = {}
+ws_connected = False
+
+def start_ws_price_stream():
+    """Start Binance WebSocket for real-time prices of watched symbols"""
+    global ws_connected
+    import websocket
+    import _thread
+
+    def get_watched_symbols():
+        """Get all symbols we need to watch (open trades + pending signals)"""
+        conn = get_db()
+        symbols = set()
+        for row in conn.execute("SELECT DISTINCT symbol FROM trades WHERE status='open'"):
+            symbols.add(row['symbol'].lower().replace('/', ''))
+        for row in conn.execute("SELECT DISTINCT symbol FROM signals WHERE status='pending' AND created_at > datetime('now', '-30 minutes')"):
+            symbols.add(row['symbol'].lower().replace('/', ''))
+        conn.close()
+        return symbols
+
+    def run_ws():
+        global ws_connected
+        while True:
+            try:
+                symbols = get_watched_symbols()
+                if not symbols:
+                    time.sleep(10)
+                    continue
+
+                streams = '/'.join([f'{s.lower()}@ticker' for s in symbols])
+                url = f'wss://stream.binance.com:9443/stream?streams={streams}'
+                print(f"[WS] Connecting to {len(symbols)} streams...", flush=True)
+
+                def on_message(ws, message):
+                    global ws_prices
+                    try:
+                        data = json.loads(message)
+                        if 'data' in data:
+                            d = data['data']
+                            sym = d.get('s', '').upper()
+                            price = float(d.get('c', 0))
+                            if sym and price > 0:
+                                ws_prices[sym] = price
+                    except:
+                        pass
+
+                def on_open(ws):
+                    global ws_connected
+                    ws_connected = True
+                    print(f"[WS] Connected, watching {len(symbols)} symbols", flush=True)
+
+                def on_close(ws, code, msg):
+                    global ws_connected
+                    ws_connected = False
+                    print(f"[WS] Disconnected, reconnecting...", flush=True)
+
+                def on_error(ws, error):
+                    print(f"[WS] Error: {error}", flush=True)
+
+                ws = websocket.WebSocketApp(url,
+                    on_message=on_message, on_open=on_open,
+                    on_close=on_close, on_error=on_error)
+                ws.run_forever(ping_interval=30, ping_timeout=10)
+            except Exception as e:
+                print(f"[WS] Error: {e}", flush=True)
+            time.sleep(5)
+
+    _thread.start_new_thread(run_ws, ())
+
+def get_realtime_price(symbol):
+    """Get price from WS cache, fallback to REST"""
+    sym = symbol.upper().replace('/', '').replace('_', '').replace(':', '')
+    if sym in ws_prices:
+        return ws_prices[sym]
+    return get_exchange_price(symbol)
+
 def position_monitor():
     """Background thread: check MEXC positions every 30s for TP/SL"""
     global monitor_running
@@ -995,7 +1109,7 @@ def position_monitor():
 
             for trade in open_trades:
                 symbol = trade['symbol']
-                price = get_exchange_price(symbol)
+                price = get_realtime_price(symbol)
                 if price is None:
                     continue
 
@@ -1041,6 +1155,55 @@ def position_monitor():
                             conn3.execute("UPDATE trades SET status='closed', close_reason='no_position' WHERE id=?", (trade['id'],))
                             conn3.commit()
                             conn3.close()
+
+            # Auto-cancel pending signals older than 30 minutes
+            conn = get_db()
+            expired = conn.execute("UPDATE signals SET status='cancelled', cancel_reason='超时30分钟' WHERE status='pending' AND created_at <= datetime('now', '-30 minutes')").rowcount
+            if expired > 0:
+                conn.commit()
+                print(f"[Monitor] Cancelled {expired} expired pending signals (>30min)", flush=True)
+
+            # Check pending signals — retry if price now in entry zone
+            pending = conn.execute('''
+                SELECT * FROM signals WHERE status = 'pending'
+                AND created_at > datetime('now', '-30 minutes')
+            ''').fetchall()
+            conn.close()
+
+            for sig in pending:
+                sym = sig['symbol']
+                entry = sig['entry_price']
+                tp = sig['take_profit']
+                direction = sig['direction']
+                if not entry or entry <= 0:
+                    continue
+
+                price = get_realtime_price(sym)
+                if not price:
+                    continue
+
+                # Check if price is now in entry zone (within 1.5%)
+                diff_pct = abs(price - entry) / entry * 100
+                if diff_pct > 1.5:
+                    # Also check if price is on the right side
+                    if direction == 'LONG' and price > entry * 1.015:
+                        continue
+                    elif direction == 'SHORT' and price < entry * 0.985:
+                        continue
+                    elif diff_pct > 10:
+                        continue
+
+                # Skip if price already past TP
+                if tp and tp > 0:
+                    if direction == 'LONG' and price >= tp:
+                        continue
+                    elif direction == 'SHORT' and price <= tp:
+                        continue
+
+                # Price in zone, try to open
+                print(f"[Pending] {sym} price {price} near entry {entry} ({diff_pct:.1f}%), opening!", flush=True)
+                if auto_open_trade(sig['id']):
+                    add_log(f"Pending信号触发: {sym} {direction} price={price}")
 
         except Exception as e:
             print(f"[Monitor Error] {e}")
@@ -1401,7 +1564,8 @@ async def _run_telegram_listener():
 
                     if existing:
                         print(f"[{group_name}] {signal['symbol']} already open from {existing['category']}, skip trade", flush=True)
-                        conn.execute("UPDATE signals SET status='skipped' WHERE id=?", (signal_id,))
+                        conn.execute("UPDATE signals SET status='skipped', cancel_reason=? WHERE id=?",
+                                    (f"重复:{existing['category']}已持仓", signal_id))
                         conn.commit()
                         conn.close()
                         return
@@ -1704,6 +1868,46 @@ def api_daily_pnl():
     conn.close()
     return jsonify([dict(r) for r in rows])
 
+@app.route('/api/backtest')
+def api_backtest():
+    """Return backtest results"""
+    bt_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backtest_results.json')
+    if not os.path.exists(bt_file):
+        return jsonify({'error': 'No backtest results found'}), 404
+    with open(bt_file, 'r') as f:
+        return jsonify(json.load(f))
+
+@app.route('/api/signal-stats')
+def api_signal_stats():
+    """Daily signal statistics"""
+    conn = get_db()
+    rows = conn.execute('''
+        SELECT date(created_at) as day,
+               COUNT(*) as total,
+               SUM(CASE WHEN status='active' OR status='closed' THEN 1 ELSE 0 END) as traded,
+               SUM(CASE WHEN status='pending' THEN 1 ELSE 0 END) as pending,
+               SUM(CASE WHEN status='skipped' THEN 1 ELSE 0 END) as skipped,
+               SUM(CASE WHEN status='cancelled' THEN 1 ELSE 0 END) as cancelled
+        FROM signals
+        GROUP BY date(created_at)
+        ORDER BY day DESC
+        LIMIT 30
+    ''').fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+@app.route('/api/backtest/trade/<int:idx>')
+def api_backtest_trade(idx):
+    """Return single backtest trade with candle data for charting"""
+    detail_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'backtest_trades_detail.json')
+    if not os.path.exists(detail_file):
+        return jsonify({'error': 'No detail data'}), 404
+    with open(detail_file, 'r') as f:
+        trades = json.load(f)
+    if idx < 0 or idx >= len(trades):
+        return jsonify({'error': 'Invalid index'}), 404
+    return jsonify(trades[idx])
+
 @app.route('/api/config', methods=['GET'])
 def api_get_config():
     return jsonify(get_config())
@@ -1961,6 +2165,12 @@ tr:hover { background: rgba(245,158,11,0.04); }
         <div id="tradesTable"><div style="text-align:center;padding:20px;color:#64748b;">暂无交易</div></div>
     </div>
 
+    <!-- Backtest -->
+    <div class="section" id="backtestSection">
+        <div class="section-title">回测结果 (2026-01-01 → 2026-04-11) <button onclick="loadBacktest()" style="margin-left:12px;padding:4px 12px;background:#f59e0b;color:#000;border:none;border-radius:4px;cursor:pointer;font-size:12px;">加载回测</button></div>
+        <div id="backtestContent"><div style="text-align:center;padding:20px;color:#64748b;">点击加载回测查看详细结果</div></div>
+    </div>
+
     <!-- Settings -->
     <div class="section">
         <div class="section-title">设置</div>
@@ -2193,6 +2403,181 @@ loadAll(); loadConfig();
 setInterval(()=>{ loadStats(); loadPositions(); loadTgStatus(); }, 15000);
 setInterval(()=>{ loadSignals(); loadTrades(); loadLogs(); }, 30000);
 setInterval(loadPnlChart, 60000);
+
+function showTradeDetail(idx) {
+    // Create modal if not exists
+    let modal = document.getElementById('tradeModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'tradeModal';
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:1000;display:flex;align-items:center;justify-content:center;';
+        modal.onclick = (e)=>{if(e.target===modal)modal.style.display='none';};
+        document.body.appendChild(modal);
+    }
+    modal.style.display = 'flex';
+    modal.innerHTML = '<div style="background:#0f172a;border-radius:12px;padding:24px;max-width:800px;width:95%;max-height:90vh;overflow-y:auto;border:1px solid #334155;"><div style="text-align:center;color:#f59e0b;">加载中...</div></div>';
+
+    fetch('/api/backtest/trade/'+idx).then(r=>r.json()).then(t=>{
+        let c = t.real_pnl>=0?'#10b981':'#ef4444';
+        let dirColor = t.direction=='LONG'?'#10b981':'#ef4444';
+        let hitLabel = {tp:'✅ 止盈',sl:'🛑 止损',hard_sl:'💀 硬止损',timeout:'⏰ 超时'}[t.hit_type]||t.hit_type;
+
+        let html = `<div style="background:#0f172a;border-radius:12px;padding:24px;max-width:800px;width:95%;max-height:90vh;overflow-y:auto;border:1px solid #334155;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="margin:0;color:#e2e8f0;">${t.symbol} <span style="color:${dirColor};">${t.direction}</span> ${t.leverage}x</h3>
+                <button onclick="document.getElementById('tradeModal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;">✕</button>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;font-size:13px;">
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">信号时间:</span> <span style="color:#e2e8f0;">${t.open_time}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">平仓时间:</span> <span style="color:#e2e8f0;">${t.close_time||'—'}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">信号入场价:</span> <span style="color:#e2e8f0;">${t.signal_entry||'—'}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">实际入场价:</span> <span style="color:#f59e0b;">${t.actual_entry}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">止盈价:</span> <span style="color:#10b981;">${t.tp||'—'}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">止损价:</span> <span style="color:#ef4444;">${t.sl||'—'}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">平仓价:</span> <span style="color:${c};">${t.exit_price}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">结果:</span> <span>${hitLabel}</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">保证金:</span> <span style="color:#e2e8f0;">${t.margin}U</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">持仓时长:</span> <span style="color:#e2e8f0;">${t.hours_held}h</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">盈亏:</span> <span style="color:${c};font-weight:700;">${t.real_pnl>=0?'+':''}${t.real_pnl.toFixed(2)}U (${t.pnl_pct>=0?'+':''}${t.pnl_pct.toFixed(1)}%)</span>
+                </div>
+                <div style="background:#1e293b;padding:10px;border-radius:6px;">
+                    <span style="color:#94a3b8;">费用:</span> <span style="color:#64748b;">手续费${t.trading_fees}U + 资金费${t.funding_fees}U</span>
+                </div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <canvas id="tradeChart" height="250"></canvas>
+            </div>
+        </div>`;
+        modal.innerHTML = html;
+
+        // Draw candle chart with entry/exit/sl/tp lines
+        if (t.candles && t.candles.length > 0) {
+            let labels = t.candles.map(c=>new Date(c.time).toLocaleString('zh',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}));
+            let highs = t.candles.map(c=>c.high);
+            let lows = t.candles.map(c=>c.low);
+            let closes = t.candles.map(c=>c.close);
+
+            let datasets = [
+                {label:'价格',data:closes,borderColor:'#e2e8f0',pointRadius:0,borderWidth:1.5,fill:false},
+                {label:'最高',data:highs,borderColor:'rgba(226,232,240,0.2)',pointRadius:0,borderWidth:0.5,fill:false},
+                {label:'最低',data:lows,borderColor:'rgba(226,232,240,0.2)',pointRadius:0,borderWidth:0.5,fill:false},
+            ];
+
+            // Horizontal lines for entry, tp, sl, exit
+            let entryLine = Array(labels.length).fill(t.actual_entry);
+            datasets.push({label:'入场 '+t.actual_entry,data:entryLine,borderColor:'#f59e0b',borderDash:[5,5],pointRadius:0,borderWidth:1,fill:false});
+            if(t.tp){let tpLine=Array(labels.length).fill(t.tp);datasets.push({label:'止盈 '+t.tp,data:tpLine,borderColor:'#10b981',borderDash:[3,3],pointRadius:0,borderWidth:1,fill:false});}
+            if(t.sl){let slLine=Array(labels.length).fill(t.sl);datasets.push({label:'止损 '+t.sl,data:slLine,borderColor:'#ef4444',borderDash:[3,3],pointRadius:0,borderWidth:1,fill:false});}
+            let exitLine = Array(labels.length).fill(null);exitLine[exitLine.length-1]=t.exit_price;
+            datasets.push({label:'平仓 '+t.exit_price,data:exitLine,borderColor:c,pointRadius:6,pointBackgroundColor:c,borderWidth:0,fill:false});
+
+            new Chart(document.getElementById('tradeChart'),{
+                type:'line',
+                data:{labels:labels,datasets:datasets},
+                options:{responsive:true,plugins:{legend:{labels:{color:'#94a3b8',font:{size:10}}}},scales:{x:{ticks:{color:'#64748b',maxTicksLimit:10,font:{size:9}},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(100,116,139,0.1)'}}}}
+            });
+        }
+    }).catch(e=>{modal.innerHTML='<div style="background:#0f172a;padding:24px;border-radius:12px;color:#ef4444;">加载失败: '+e+'</div>';});
+}
+
+function loadBacktest() {
+    document.getElementById('backtestContent').innerHTML = '<div style="text-align:center;padding:20px;color:#f59e0b;">加载中...</div>';
+    fetch('/api/backtest').then(r=>r.json()).then(data=>{
+        if(data.error){document.getElementById('backtestContent').innerHTML='<div style="color:#ef4444;padding:20px;">'+data.error+'</div>';return;}
+        let s=data.summary;
+        let pnlColor = s.total_pnl>=0?'#10b981':'#ef4444';
+        let html = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+            <div style="background:#1e293b;padding:12px;border-radius:8px;text-align:center;">
+                <div style="color:#94a3b8;font-size:11px;">初始本金</div>
+                <div style="font-size:18px;font-weight:700;color:#e2e8f0;">${s.initial_capital.toLocaleString()}U</div>
+            </div>
+            <div style="background:#1e293b;padding:12px;border-radius:8px;text-align:center;">
+                <div style="color:#94a3b8;font-size:11px;">最终资金</div>
+                <div style="font-size:18px;font-weight:700;color:${pnlColor};">${s.final_capital.toLocaleString()}U</div>
+            </div>
+            <div style="background:#1e293b;padding:12px;border-radius:8px;text-align:center;">
+                <div style="color:#94a3b8;font-size:11px;">总盈亏</div>
+                <div style="font-size:18px;font-weight:700;color:${pnlColor};">${s.total_pnl>=0?'+':''}${s.total_pnl.toLocaleString()}U</div>
+                <div style="color:${pnlColor};font-size:12px;">${s.total_pnl_pct>=0?'+':''}${s.total_pnl_pct}%</div>
+            </div>
+            <div style="background:#1e293b;padding:12px;border-radius:8px;text-align:center;">
+                <div style="color:#94a3b8;font-size:11px;">胜率</div>
+                <div style="font-size:18px;font-weight:700;color:#f59e0b;">${s.win_rate}%</div>
+                <div style="color:#94a3b8;font-size:12px;">${s.wins}/${s.total_trades}</div>
+            </div>
+            <div style="background:#1e293b;padding:12px;border-radius:8px;text-align:center;">
+                <div style="color:#94a3b8;font-size:11px;">最大回撤</div>
+                <div style="font-size:18px;font-weight:700;color:#ef4444;">${s.max_drawdown}%</div>
+            </div>
+            <div style="background:#1e293b;padding:12px;border-radius:8px;text-align:center;">
+                <div style="color:#94a3b8;font-size:11px;">总费用</div>
+                <div style="font-size:14px;font-weight:700;color:#94a3b8;">${(s.total_fees||0).toFixed(0)}U</div>
+                <div style="color:#64748b;font-size:11px;">总费用</div>
+            </div>
+        </div>`;
+
+        // Equity curve
+        html += '<canvas id="btChart" height="200"></canvas>';
+
+        // Trades table
+        html += '<div style="margin-top:16px;max-height:400px;overflow-y:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">';
+        html += '<tr style="background:#1e293b;position:sticky;top:0;"><th style="padding:6px;text-align:left;">日期</th><th>币种</th><th>方向</th><th>类型</th><th>杠杆</th><th>保证金</th><th>入场</th><th>出场</th><th>盈亏</th><th>ROI</th><th>费用</th><th>结果</th></tr>';
+        data.trades.forEach((t,idx)=>{
+            let c = t.real_pnl>=0?'#10b981':'#ef4444';
+            let hitEmoji = {tp:'✅',sl:'🛑',hard_sl:'💀',timeout:'⏰'}[t.hit_type]||'❓';
+            html += '<tr style="border-bottom:1px solid #1e293b;cursor:pointer;" onclick="showTradeDetail('+idx+')" title="点击查看详情">';
+            html += '<td style="padding:4px 6px;color:#94a3b8;">'+t.date.substring(0,10)+'</td>';
+            html += '<td style="font-weight:600;">'+t.symbol+'</td>';
+            html += '<td style="color:'+(t.direction=="LONG"?"#10b981":"#ef4444")+';">'+t.direction+'</td>';
+            html += '<td style="color:#94a3b8;">'+t.type+'</td>';
+            html += '<td>'+t.leverage+'x</td>';
+            html += '<td>'+t.margin+'U</td>';
+            html += '<td>'+(t.actual_entry||t.entry)+'</td>';
+            html += '<td>'+(t.exit_price||t.exit||'')+'</td>';
+            html += '<td style="color:'+c+';font-weight:600;">'+(t.real_pnl>=0?'+':'')+t.real_pnl.toFixed(1)+'U</td>';
+            html += '<td style="color:'+c+';">'+(t.pnl_pct>=0?'+':'')+t.pnl_pct.toFixed(1)+'%</td>';
+            html += '<td style="color:#64748b;">'+(t.total_fees||0)+'U</td>';
+            html += '<td>'+hitEmoji+'</td>';
+            html += '</tr>';
+        });
+        html += '</table></div>';
+
+        document.getElementById('backtestContent').innerHTML = html;
+
+        // Draw equity curve
+        let labels = data.trades.map(t=>t.date.substring(5,10));
+        let equityData = data.trades.map(t=>t.capital_after);
+        new Chart(document.getElementById('btChart'),{
+            type:'line',
+            data:{labels:labels,datasets:[{label:'资金曲线',data:equityData,borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.1)',fill:true,pointRadius:0,borderWidth:1.5}]},
+            options:{responsive:true,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#64748b',maxTicksLimit:20,font:{size:10}},grid:{display:false}},y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'rgba(100,116,139,0.1)'}}}}
+        });
+    }).catch(e=>{document.getElementById('backtestContent').innerHTML='<div style="color:#ef4444;padding:20px;">加载失败: '+e+'</div>';});
+}
 </script>
 </body>
 </html>
@@ -2220,5 +2605,12 @@ if __name__ == '__main__':
 
     # Start Telegram listener
     start_telegram_listener()
+
+    # Start WebSocket price stream
+    try:
+        start_ws_price_stream()
+        print("[WS] Price stream starting...", flush=True)
+    except Exception as e:
+        print(f"[WS] Failed to start: {e}", flush=True)
 
     app.run(host='0.0.0.0', port=5113, debug=False)
