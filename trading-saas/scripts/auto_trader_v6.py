@@ -23,7 +23,7 @@ class AutoTraderV6:
         self.fee_rate = 0.0005
         self.min_score = 70
         self.long_min_score = 85
-        self.max_positions = 15
+        self.max_positions = 20
         self.max_leverage = 3
         self.cooldown_seconds = 3600  # 60min — 单币种冷却(平仓后该币1h内不再开仓)
         self.max_hold_minutes = 2880
