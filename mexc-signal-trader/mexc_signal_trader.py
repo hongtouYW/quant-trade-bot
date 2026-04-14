@@ -1126,11 +1126,8 @@ def position_monitor():
                 else:
                     roi_pct = ((entry - price) / entry) * leverage * 100
 
-                # Hard stop: -20% ROI
-                if roi_pct <= -50:
-                    close_reason = 'hard_sl_-50%'
-                    print(f"[Monitor] {symbol} {direction} ROI={roi_pct:.1f}% <= -50%, hard stop!", flush=True)
-                elif sl and direction == 'LONG' and price <= sl:
+                # Only use signal SL/TP, no hard stop
+                if sl and direction == 'LONG' and price <= sl:
                     close_reason = 'sl'
                 elif sl and direction == 'SHORT' and price >= sl:
                     close_reason = 'sl'
