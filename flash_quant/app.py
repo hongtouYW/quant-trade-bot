@@ -234,6 +234,65 @@ def create_app():
             'SYMBOL_COUNT': 50,
         })
 
+    @app.route('/backtest')
+    @login_required
+    def backtest_page():
+        import os, glob
+        base = os.path.dirname(__file__)
+
+        # 加载所有回测版本
+        versions = []
+        bt_files = {
+            'backtest_result.json': '当前',
+            'backtest_result_v1_tier1_tier2.json': 'V1: Tier1+Tier2 (20币)',
+            'backtest_result_v2_tier1_100coins.json': 'V2: Tier1 (100币)',
+            'backtest_result_signal_trader.json': 'Signal Trader (TG跟单)',
+        }
+        for fname, label in bt_files.items():
+            path = os.path.join(base, fname)
+            if not os.path.exists(path):
+                continue
+            with open(path) as f:
+                r = json.load(f)
+            r['label'] = label
+            r['file'] = fname
+            # 补指标
+            trades = r.get('trades', [])
+            wins_pnl = [t['pnl'] for t in trades if t.get('pnl', 0) > 0]
+            loss_pnl = [t['pnl'] for t in trades if t.get('pnl', 0) <= 0]
+            avg_w = sum(wins_pnl) / len(wins_pnl) if wins_pnl else 0
+            avg_l = abs(sum(loss_pnl) / len(loss_pnl)) if loss_pnl else 1
+            if not r.get('profit_factor'):
+                r['profit_factor'] = round(avg_w / avg_l, 2) if avg_l else 0
+            if not r.get('breakeven_winrate'):
+                r['breakeven_winrate'] = round(avg_l / (avg_w + avg_l) * 100, 1) if (avg_w + avg_l) else 50
+            # 月度
+            from collections import defaultdict
+            monthly = defaultdict(lambda: {'trades': 0, 'pnl': 0, 'wins': 0})
+            for t in trades:
+                m = t.get('date', '')[:7]
+                if not m or m == 'end': continue
+                monthly[m]['trades'] += 1
+                monthly[m]['pnl'] += t.get('pnl', 0)
+                if t.get('pnl', 0) > 0: monthly[m]['wins'] += 1
+            r['monthly'] = [
+                {'month': m, 'trades': d['trades'],
+                 'win_rate': d['wins']/d['trades']*100 if d['trades'] else 0,
+                 'pnl': round(d['pnl'], 2)}
+                for m, d in sorted(monthly.items())
+            ]
+            versions.append(r)
+
+        # 默认显示第一个有数据的,或选中的
+        selected = request.args.get('v', '0')
+        try:
+            idx = int(selected)
+        except ValueError:
+            idx = 0
+        result = versions[idx] if idx < len(versions) else (versions[0] if versions else None)
+
+        return render_template('backtest.html', result=result, versions=versions, selected=idx)
+
     @app.route('/api/trade/<int:trade_id>')
     @login_required
     def api_trade_detail(trade_id):
