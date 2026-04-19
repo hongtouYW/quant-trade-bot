@@ -230,7 +230,9 @@
       "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/src/exchange/bybit_client.py /Users/hongtou/newproject/quant-v4lite/src/exchange/okx_client.py trading-server:/opt/quant-v4lite/src/exchange/)",
       "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/config/config.dev.yaml /Users/hongtou/newproject/quant-v4lite/config/config.backtest.yaml /Users/hongtou/newproject/quant-v4lite/config/economic_calendar.json trading-server:/opt/quant-v4lite/config/)",
       "Bash(rsync -avz /Users/hongtou/newproject/quant-v4lite/README.md trading-server:/opt/quant-v4lite/)",
-      "WebFetch(domain:freqst.com)"
+      "WebFetch(domain:freqst.com)",
+      "Bash(rm -f /Users/hongtou/newproject/.claude/agentvibes-unmuted)",
+      "Bash(touch /Users/hongtou/newproject/.claude/agentvibes-muted)"
     ]
   }
 }
