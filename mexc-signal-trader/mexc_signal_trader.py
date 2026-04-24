@@ -29,8 +29,9 @@ EXCHANGE_API_KEY = os.environ.get('EXCHANGE_API_KEY', 'bg_1d2f0f0c862ab0bc2a1bce
 EXCHANGE_API_SECRET = os.environ.get('EXCHANGE_API_SECRET', '7e2f272689659ebca18fda1ab054b3b9bd89594b7c61ff163a9ac02315b742a8')
 EXCHANGE_PASSWORD = os.environ.get('EXCHANGE_PASSWORD', 'qweqweqweqwe')
 EXCHANGE_NAME = 'bitget'
-MAX_LEVERAGE = 100
+MAX_LEVERAGE = 25  # 基于回测优化: 29-50x 全亏 (-2689U), 20x 赚 (+970U)
 MIN_LEVERAGE = 20
+ETH_MAX_LEVERAGE = 15  # ETH 单独降杠杆 (ETH 做空亏 -1074U 最大亏损源)
 
 # ===== Paper Trading Mode =====
 PAPER_TRADING = True
@@ -965,6 +966,13 @@ def auto_open_trade(signal_id):
         else:
             leverage = signal['leverage'] or int(config.get('default_leverage', 20))
             leverage = max(min(leverage, MAX_LEVERAGE), MIN_LEVERAGE)
+
+        # ETH 单独降杠杆 (回测: ETH SHORT 亏-1074U 最大亏损源)
+        symbol_upper = signal['symbol'].upper()
+        if 'ETH' in symbol_upper and 'ETC' not in symbol_upper:
+            if leverage > ETH_MAX_LEVERAGE:
+                print(f"[ETH Cap] {signal['symbol']} leverage {leverage}x → {ETH_MAX_LEVERAGE}x", flush=True)
+                leverage = ETH_MAX_LEVERAGE
 
         # Open on MEXC
         order_result = exchange_open_order(

@@ -1,0 +1,101 @@
+{
+  "base_pnl": -1396.8641999999995,
+  "results": [
+    {
+      "name": "\u89c4\u5219 1: \u53ea\u780d\u6760\u6746 >25x",
+      "kept": 90,
+      "filtered": 15,
+      "tp_kept": 59,
+      "sl_kept": 31,
+      "win_rate": 65.55555555555556,
+      "total_pnl": 969.9259000000023,
+      "saved_loss": 2846.2689000000005,
+      "lost_profit": 479.4788,
+      "net_saved": 2366.7901000000006
+    },
+    {
+      "name": "\u89c4\u5219 2: \u53ea\u780d 1H \u6da8\u5e45 >3%",
+      "kept": 72,
+      "filtered": 33,
+      "tp_kept": 49,
+      "sl_kept": 23,
+      "win_rate": 68.05555555555556,
+      "total_pnl": 459.799500000001,
+      "saved_loss": 3536.5083999999997,
+      "lost_profit": 1679.8447,
+      "net_saved": 1856.6636999999996
+    },
+    {
+      "name": "\u89c4\u5219 3: \u53ea\u780d RSI >73",
+      "kept": 57,
+      "filtered": 48,
+      "tp_kept": 41,
+      "sl_kept": 16,
+      "win_rate": 71.9298245614035,
+      "total_pnl": 704.4636999999983,
+      "saved_loss": 5117.514600000001,
+      "lost_profit": 3016.1866999999997,
+      "net_saved": 2101.3279000000016
+    },
+    {
+      "name": "\u89c4\u5219 4: \u53ea\u780d BTC 24H \u6da8 >1.5%",
+      "kept": 61,
+      "filtered": 44,
+      "tp_kept": 42,
+      "sl_kept": 19,
+      "win_rate": 68.85245901639344,
+      "total_pnl": 422.2838999999991,
+      "saved_loss": 5037.4248,
+      "lost_profit": 3218.2767,
+      "net_saved": 1819.1480999999999
+    },
+    {
+      "name": "\u89c4\u5219 5: \u6760\u6746 + 1H \u6da8\u5e45",
+      "kept": 57,
+      "filtered": 48,
+      "tp_kept": 45,
+      "sl_kept": 12,
+      "win_rate": 78.94736842105263,
+      "total_pnl": 2826.5896000000007,
+      "saved_loss": 6382.777300000002,
+      "lost_profit": 2159.3235,
+      "net_saved": 4223.453800000001
+    },
+    {
+      "name": "\u89c4\u5219 6: \u6760\u6746 + 1H \u6da8\u5e45 + RSI",
+      "kept": 45,
+      "filtered": 60,
+      "tp_kept": 37,
+      "sl_kept": 8,
+      "win_rate": 82.22222222222221,
+      "total_pnl": 2202.3476999999993,
+      "saved_loss": 7103.198300000002,
+      "lost_profit": 3503.9864,
+      "net_saved": 3599.211900000002
+    },
+    {
+      "name": "\u89c4\u5219 7: \u56db\u91cd\u8fc7\u6ee4",
+      "kept": 38,
+      "filtered": 67,
+      "tp_kept": 32,
+      "sl_kept": 6,
+      "win_rate": 84.21052631578947,
+      "total_pnl": 1363.0539000000012,
+      "saved_loss": 7335.981600000002,
+      "lost_profit": 4576.063499999999,
+      "net_saved": 2759.9181000000026
+    },
+    {
+      "name": "\u89c4\u5219 8: \u4e25\u683c\u4e94\u91cd\u8fc7\u6ee4",
+      "kept": 23,
+      "filtered": 82,
+      "tp_kept": 22,
+      "sl_kept": 1,
+      "win_rate": 95.65217391304348,
+      "total_pnl": 2160.5977000000003,
+      "saved_loss": 8980.9171,
+      "lost_profit": 5423.455199999999,
+      "net_saved": 3557.461900000001
+    }
+  ]
+}
