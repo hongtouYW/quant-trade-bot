@@ -17,7 +17,7 @@ export default function Settings() {
   );
 }
 
-const SERVER_IP = '139.162.41.38';
+const SERVER_IP = '43.98.81.206';
 
 const EXCHANGE_INFO = {
   binance: {

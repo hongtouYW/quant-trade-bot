@@ -1,8 +1,51 @@
 # CHANGELOG — Trading SaaS + 5111 Paper Trader
 
-> 时间范围：2026-01-27 ~ 2026-04-01
+> 时间范围：2026-01-27 ~ 2026-04-27
 > 仅包含有实质代码变更的提交，跳过纯自动提交（🤖 自动提交）。
 > [SaaS] = Trading SaaS 生产系统（端口 80）| [5111] = Paper Trader 模拟系统（端口 5111）
+
+---
+
+## 2026-04-27
+
+### [SaaS-迁移] 独立服务器部署 43.98.81.206
+
+- **背景**：trading-saas 之前与 SignalHive 共用 139.162.31.86 服务器，需要独立服务器隔离
+- **新服务器**：43.98.81.206（Ubuntu 22, 4GB RAM, 99GB 磁盘）
+- **部署**：完整代码 + DB（13 表）从 signalhive-server 同步到 saas-server
+- **配置**：MySQL + Redis + Nginx + Supervisor，端口 80/5301，时区 Asia/Kuala_Lumpur
+- **SSH 别名**：`saas-server` (root@43.98.81.206)
+- **Binance API IP 白名单**：已添加 43.98.81.206
+- **状态**：bot 运行中，余额 2787 USDT
+
+### [SaaS-修复] 幽灵持仓批量同步 + 自动检测机制
+
+- **问题**：DB 有 15 个 OPEN 持仓，但 Binance 实际只有 1 个（BLUR/USDT）。其他 14 个是幽灵持仓（最早 04-09 的 TURBO peak_roi 已 100%）
+- **根因**：bot 重启或服务器迁移时，内存持仓没同步到 DB；交易所平仓但 DB 未更新
+- **修复**：
+  1. 一次性脚本 `sync_ghosts.py` 从 Binance `fapiPrivateGetUserTrades` 拉真实平仓价，批量同步 14 个幽灵持仓
+  2. **新增 `_reconcile_db_against_exchange()` 方法**到 `agent_bot.py`：bot 启动时自动检测 DB OPEN 但交易所没有的持仓，自动从币安交易历史同步真实平仓价/PnL/时间，更新 DB 状态为 CLOSED 并发 Telegram 通知
+- **同步结果**：14 笔幽灵持仓 PnL 合计约 -54U（AAVE +80, ATOM -69, GRIFFAIN -18, AXS -18 等）
+- **文件**：`agent_bot.py`（备份 .bak.20260427）
+
+### [SaaS-功能] 评分段表现统计
+
+- **新增**：首页 Dashboard 添加"评分段表现"表格，按评分分组显示交易数/胜负/胜率/总盈亏/平均ROI
+- **后端**：`/api/agent/trades/score-stats` endpoint，按 70-74/75-79/80-84/85-89/90+/<70 分组聚合
+- **前端**：`Dashboard.jsx` 加表格展示，胜率<50% 红色、>=50% 绿色
+- **文件**：`app/api/trading.py`（备份 .bak.20260427）、`frontend/src/pages/agent/Dashboard.jsx`（备份 .bak.20260427）
+- **数据洞察**：85-89 分胜率 83.3%/+20U，<70 分胜率 47.6%/-520U（最差）
+
+### [SaaS-调参] min_score 60→80，专注高分信号 + 最小开单 100U
+
+- **背景**：评分段数据显示 <70 分历史亏 -520U，70-74 占 159 笔但平均 ROI 仅 +0.9%
+- **改动**：
+  - DB `agent_trading_config` agent_id=1: `min_score 60 → 80`, `long_min_score 70 → 85`
+  - `signal_analyzer.py:623`: `size = max(50, int(size))` → `max(100, int(size))`
+  - `agent_bot.py:568`: `if amount < 50: skip` → `if amount < 100: skip`
+- **效果**：只开 80+ 分高质量信号，每笔至少 100U
+- **预期**：交易频率大幅下降，但单笔质量提升（85-89 历史胜率 83%）
+- **备份**：signal_analyzer.py.bak（已存在）、agent_bot.py.bak.20260427
 
 ---
 

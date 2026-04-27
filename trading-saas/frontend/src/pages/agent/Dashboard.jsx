@@ -13,6 +13,7 @@ export default function AgentDashboard() {
   const { data, loading } = useApi('/agent/dashboard', { interval: 15000 });
   const { data: daily } = useApi('/agent/trades/daily?days=30');
   const { data: stats } = useApi('/agent/trades/stats');
+  const { data: scoreStats } = useApi('/agent/trades/score-stats');
   const { data: bot } = useApi('/agent/bot/status', { interval: 5000 });
   const { data: balanceData } = useApi('/agent/balance');
 
@@ -120,6 +121,52 @@ export default function AgentDashboard() {
           </div>
         </Card>
       </div>
+
+      {scoreStats?.score_ranges?.length > 0 && (
+        <Card>
+          <h3 className="text-sm font-semibold mb-3">评分段表现</h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-text-secondary border-b border-border/50">
+                  <th className="text-left py-2 px-2">评分段</th>
+                  <th className="text-right py-2 px-2">交易数</th>
+                  <th className="text-right py-2 px-2">胜/负</th>
+                  <th className="text-right py-2 px-2">胜率</th>
+                  <th className="text-right py-2 px-2">总盈亏</th>
+                  <th className="text-right py-2 px-2">平均ROI</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scoreStats.score_ranges.map((r) => (
+                  <tr key={r.range} className="border-b border-border/30">
+                    <td className="py-2 px-2 font-semibold">{r.range}</td>
+                    <td className="text-right py-2 px-2">{r.cnt}</td>
+                    <td className="text-right py-2 px-2">
+                      <span className="text-success">{r.wins}</span>
+                      {' / '}
+                      <span className="text-danger">{r.losses}</span>
+                    </td>
+                    <td className="text-right py-2 px-2">
+                      <span className={r.win_rate >= 50 ? 'text-success' : 'text-danger'}>
+                        {r.win_rate}%
+                      </span>
+                    </td>
+                    <td className="text-right py-2 px-2">
+                      <PnlValue value={r.total_pnl} />
+                    </td>
+                    <td className="text-right py-2 px-2">
+                      <span className={r.avg_roi >= 0 ? 'text-success' : 'text-danger'}>
+                        {r.avg_roi >= 0 ? '+' : ''}{r.avg_roi}%
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
