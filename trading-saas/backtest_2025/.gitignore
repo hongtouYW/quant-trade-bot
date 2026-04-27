@@ -1,0 +1,7 @@
+data/
+charts/
+sample_charts/
+reports/*.csv
+reports/*.log
+__pycache__/
+*.pyc

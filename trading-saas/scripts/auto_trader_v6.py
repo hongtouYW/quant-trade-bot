@@ -21,7 +21,7 @@ class AutoTraderV6:
         self.initial_capital = 10000
         self.current_capital = 10000
         self.fee_rate = 0.0005
-        self.min_score = 70
+        self.min_score = 80
         self.long_min_score = 85
         self.max_positions = 20
         self.max_leverage = 3

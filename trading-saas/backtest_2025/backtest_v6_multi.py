@@ -15,12 +15,12 @@ from backtest_v6 import analyze_signal_v6, calc_position_size
 
 BASE_DIR = '/opt/backtest_2025'
 CACHE_DIR = os.path.join(BASE_DIR, 'data', 'klines_cache')
-DB_PATH = os.path.join(BASE_DIR, 'data', 'backtest_2025_multi.db')
+DB_PATH = os.path.join(BASE_DIR, 'data', 'backtest_2025_multi_score80.db')
 
 CONFIG = {
     'initial_capital': 10000,   # TOTAL, shared across all coins
     'fee_rate': 0.0005,
-    'min_score': 70,
+    'min_score': 80,
     'long_min_score': 85,
     'max_positions': 20,        # GLOBAL across all coins
     'max_leverage': 3,
