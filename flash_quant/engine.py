@@ -12,6 +12,7 @@ from data.market_data import market_data
 from scanner.tier1_scalper import Tier1Scalper
 from scanner.tier2_trend import Tier2TrendScanner
 from scanner.tier3_direction import Tier3DirectionScanner
+from scanner.liquidation_hunter import LiquidationHunter
 from executor.paper_executor import PaperExecutor
 from risk.risk_manager import risk_manager
 from models.db_ops import count_open_trades, get_open_symbols
@@ -126,18 +127,16 @@ async def main():
     # 4. REST 数据补充 (funding/OI/volume)
     rest = RestPoller(DEFAULT_SYMBOLS)
 
-    # 5. 扫描器 (Tier 1 爆发 + Tier 2 次级爆发, Tier 3 暂停)
-    tier1 = Tier1Scalper(DEFAULT_SYMBOLS, executor=executor)
-    tier2 = Tier2TrendScanner(DEFAULT_SYMBOLS, executor=executor)
-    # Tier 3 暂停: 评分系统在震荡市方向不准, 检讨后决定暂停
+    # 5. 扫描器 — 切换为爆仓猎手 (回测 +3%, 之前 7 轮全亏)
+    # Tier1/2/3 已停用 (回测验证亏损)
+    liq_hunter = LiquidationHunter(DEFAULT_SYMBOLS, executor=executor)
 
     # 6. 启动
-    logger.info("engine.started", tiers="1+2 (tier3 suspended)")
+    logger.info("engine.started", strategy="liquidation_hunter")
     await asyncio.gather(
         ws.run(),
         rest.run(),
-        tier1.run(),
-        tier2.run(),
+        liq_hunter.run(),
         position_monitor(executor, interval=30),
         daily_stats_updater(interval=300),
     )
