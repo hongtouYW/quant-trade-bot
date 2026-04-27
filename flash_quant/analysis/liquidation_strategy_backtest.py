@@ -26,7 +26,8 @@ MAX_POSITIONS = 3
 MAX_HOLD_BARS = 12            # 1 小时 (12 根 5min)
 
 DROP_THRESHOLD = -0.03         # 触发条件: 跌幅 -3%
-VOLUME_RATIO_MIN = 5.0          # 触发条件: 量比 5x
+VOLUME_RATIO_MIN = 5.0          # 触发条件: 量比 5x 起
+VOLUME_RATIO_MAX = 10.0         # 上限 10x — 避开真崩盘 (10-30x 胜率仅 31-41%)
 LOOKBACK_BARS = 20
 
 # 入场后规则
@@ -69,7 +70,7 @@ def fetch_data(exchange, symbols, start, end):
 def backtest(data):
     print("\n" + "=" * 70)
     print("爆仓猎手回测 (2025 全年)")
-    print(f"  入场: 5min 跌幅≥{DROP_THRESHOLD*100:.0f}% AND 量比≥{VOLUME_RATIO_MIN}x → 做多")
+    print(f"  入场: 5min 跌幅≥{DROP_THRESHOLD*100:.0f}% AND 量比 {VOLUME_RATIO_MIN}-{VOLUME_RATIO_MAX}x → 做多")
     print(f"  止损: -{abs(STOP_LOSS_PCT)*100:.0f}% / 止盈: +{TAKE_PROFIT_PCT*100:.0f}% / 超时: {MAX_HOLD_BARS*5}min")
     print(f"  杠杆: {LEVERAGE}x / 单笔: {MARGIN_PER_TRADE}U / 最大持仓: {MAX_POSITIONS}")
     print("=" * 70)
@@ -126,6 +127,8 @@ def backtest(data):
                 trades.append({
                     'symbol': sym,
                     'direction': 'long',
+                    'leverage': LEVERAGE,
+                    'margin': round(pos['margin'], 2),
                     'entry': round(pos['entry'], 6),
                     'exit': round(exit_price, 6),
                     'pnl': round(pnl, 2),
@@ -153,7 +156,7 @@ def backtest(data):
         prev_vols = [sym_klines[sym][j][5] for j in range(i - LOOKBACK_BARS, i)]
         avg_vol = sum(prev_vols) / len(prev_vols) if prev_vols else 0
         vol_ratio = vol / avg_vol if avg_vol > 0 else 0
-        if vol_ratio < VOLUME_RATIO_MIN:
+        if vol_ratio < VOLUME_RATIO_MIN or vol_ratio > VOLUME_RATIO_MAX:
             continue
 
         # 资金检查
@@ -192,6 +195,7 @@ def backtest(data):
             cap += pnl
             trades.append({
                 'symbol': sym, 'direction': 'long',
+                'leverage': LEVERAGE, 'margin': round(pos['margin'], 2),
                 'entry': round(pos['entry'], 6), 'exit': round(c, 6),
                 'pnl': round(pnl, 2), 'pnl_pct': round(pnl_pct * 100, 2),
                 'reason': 'end', 'hold_min': 0, 'date': 'end',

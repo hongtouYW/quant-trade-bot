@@ -25,7 +25,8 @@ logger = get_logger('liquidation_hunter')
 
 # 策略参数 (与回测一致)
 DROP_THRESHOLD = -0.03         # 5min 跌幅 ≥ 3%
-VOLUME_RATIO_MIN = 5.0          # 量比 ≥ 5x
+VOLUME_RATIO_MIN = 5.0          # 量比 ≥ 5x 起
+VOLUME_RATIO_MAX = 10.0         # 量比 ≤ 10x — 避开 10-30x 真崩盘 (回测 A 方案验证)
 LOOKBACK_BARS = 20              # 量比基准
 SCAN_INTERVAL = 30              # 30s 扫描一次
 
@@ -52,7 +53,9 @@ class LiquidationHunter(ScannerBase):
         logger.info("liq_hunter.started",
                     symbols=len(self.symbols),
                     drop_threshold=DROP_THRESHOLD,
-                    vol_ratio_min=VOLUME_RATIO_MIN)
+                    vol_ratio_min=VOLUME_RATIO_MIN,
+                    vol_ratio_max=VOLUME_RATIO_MAX,
+                    leverage=LEVERAGE)
         while True:
             try:
                 signals = await self.scan()
@@ -139,7 +142,7 @@ class LiquidationHunter(ScannerBase):
         # 量比
         avg_vol = sum(k.volume for k in prev) / len(prev) if prev else 0
         vol_ratio = latest.volume / avg_vol if avg_vol > 0 else 0
-        if vol_ratio < VOLUME_RATIO_MIN:
+        if vol_ratio < VOLUME_RATIO_MIN or vol_ratio > VOLUME_RATIO_MAX:
             return None
 
         # 触发! 构造信号

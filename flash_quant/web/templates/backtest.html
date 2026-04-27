@@ -109,7 +109,7 @@
     <div style="overflow-x:auto">
     <table>
         <thead>
-            <tr><th>日期</th><th>币种</th><th>方向</th><th>层级</th><th>入场</th><th>出场</th><th>盈亏</th><th>持仓(h)</th><th>原因</th></tr>
+            <tr><th>日期</th><th>币种</th><th>方向</th><th>杠杆</th><th>保证金</th><th>入场</th><th>出场</th><th>盈亏</th><th>盈亏%</th><th>持有时间</th><th>原因</th></tr>
         </thead>
         <tbody>
             {% for t in result.trades %}
@@ -117,12 +117,14 @@
                 <td>{{ t.date }}</td>
                 <td><strong>{{ t.symbol }}</strong></td>
                 <td><span class="badge {{ t.direction }}">{{ '多' if t.direction == 'long' else '空' }}</span></td>
-                <td><span class="badge {{ t.tier }}">{{ t.tier }}</span></td>
+                <td>{{ (t.leverage or '-') }}{% if t.leverage %}x{% endif %}</td>
+                <td>{{ "%.0f"|format(t.margin) if t.margin else '-' }}{% if t.margin %} U{% endif %}</td>
                 <td>{{ t.entry }}</td>
                 <td>{{ t.exit }}</td>
                 <td style="color:{{ '#3fb950' if t.pnl > 0 else '#f85149' }};font-weight:bold">{{ "%+.2f"|format(t.pnl) }} U</td>
-                <td>{{ t.hold_hours }}</td>
-                <td style="color:#8b949e">{{ {'stop_loss':'止损','timeout':'超时','backtest_end':'结束'}.get(t.reason, t.reason) }}</td>
+                <td style="color:{{ '#3fb950' if t.pnl > 0 else '#f85149' }}">{% if t.margin %}{{ "%+.1f"|format(t.pnl / t.margin * 100) }}%{% else %}-{% endif %}</td>
+                <td>{% if t.hold_min is defined and t.hold_min is not none %}{{ t.hold_min }} min{% elif t.hold_hours is defined %}{{ t.hold_hours }} h{% else %}-{% endif %}</td>
+                <td style="color:#8b949e">{{ {'tp':'止盈','sl':'止损','timeout':'超时','end':'结束','stop_loss':'止损','backtest_end':'结束'}.get(t.reason, t.reason) }}</td>
             </tr>
             {% endfor %}
         </tbody>
