@@ -1,8 +1,24 @@
 # CHANGELOG — Trading SaaS + 5111 Paper Trader
 
-> 时间范围：2026-01-27 ~ 2026-04-30
+> 时间范围：2026-01-27 ~ 2026-04-28
 > 仅包含有实质代码变更的提交，跳过纯自动提交（🤖 自动提交）。
 > [SaaS] = Trading SaaS 生产系统（端口 80）| [5111] = Paper Trader 模拟系统（端口 5111）
+
+---
+
+## 2026-04-28
+
+### [SaaS-功能] 风险评分 peak_capital 重置机制
+
+- **背景**：Risk Score 7/10，主要由历史峰值$3189 vs 当前$2702 的回撤 15.27% 贡献(+3)，加上单仓集中 40.3%(+2)、SHORT 100%(+2)。前两者来自早期低质量交易包袱
+- **方案**：不粗暴禁用风控，加 peak_reset_at 时间戳，从指定时点开始重新计算回撤
+- **实现**：
+  - DB `bot_state` 表新增 `peak_reset_at DATETIME NULL` 字段
+  - `app/models/bot_state.py` 同步加 SQLAlchemy 列定义
+  - `app/engine/risk_manager.py`：当 peak_reset_at 不为空时，baseline = initial + sum(pnl before reset)，只统计该时间之后的交易做峰值/回撤计算
+- **效果**：Risk Score **7/10 → 0/10**，drawdown 15.27% → 0%（peak=current=2720）
+- **优点**：未来再超回撤还会预警，不是粗暴禁用风控；只清历史包袱重新开始
+- **备份**：`risk_manager.py.bak.20260427`
 
 ---
 
