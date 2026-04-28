@@ -243,10 +243,15 @@ def create_app():
         # 加载所有回测版本
         versions = []
         bt_files = {
-            'backtest_result.json': '当前',
-            'backtest_result_v1_tier1_tier2.json': 'V1: Tier1+Tier2 (20币)',
-            'backtest_result_v2_tier1_100coins.json': 'V2: Tier1 (100币)',
-            'backtest_result_signal_trader.json': 'Signal Trader (TG跟单)',
+            'backtest_result.json': '✅ Liquidation A (2025) — 部署中',
+            'analysis/liquidation_2024_result.json': '✅ Liquidation A (2024)',
+            'analysis/liquidation_2026_result.json': '✅ Liquidation A (2026 YTD)',
+            'analysis/liquidation_2025_top90.json': '❌ TOP90 扩容失败 (2025)',
+            'analysis/pump_fade_result.json': '❌ Pump-Fade 镜像失败 (2025)',
+            'analysis/funding_extreme_result.json': '❌ Funding Extreme 失败 (2025)',
+            'backtest_result_v1_tier1_tier2.json': '历史: V1 Tier1+2',
+            'backtest_result_v2_tier1_100coins.json': '历史: V2 Tier1',
+            'backtest_result_signal_trader.json': '历史: Signal Trader',
         }
         for fname, label in bt_files.items():
             path = os.path.join(base, fname)
